@@ -1,11 +1,11 @@
 name: User Story
-description: Erstelle eine Anforderung.
+description: Erstelle eine Anforderung
 title: "[US]: "
 body:
   - type: textarea
     attributes:
       label: Beschreibung
-      description: Beschreibe kurz die neue Anforderung.
+      description: Beschreibe kurz die Anforderung.
       placeholder: Als <Benutzerrolle> kann ich <Ziel / Wunsch> [, um <Nutzen>].
     validations:
       required: true
@@ -21,4 +21,4 @@ body:
   - type: textarea
     attributes:
       label: Weitere Informationen
-      description: Füge hier weiteren Kontext oder Screenshots hinzu.
+      description: Füge hier weiteren Kontext, Screenshots, Diagramme, etc. hinzu.
