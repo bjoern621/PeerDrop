@@ -1,7 +1,7 @@
 ---
 name: Anforderung
 about: Eine neue Anforderung an das Projekt
-title: ''
+title: 'US '
 labels: ''
 assignees: ''
 
