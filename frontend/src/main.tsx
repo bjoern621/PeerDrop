@@ -4,6 +4,7 @@ import "./index.scss";
 import App from "./components/App/App.tsx";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { PageNotFound } from "./components/PageNotFound/PageNotFound.tsx";
+import { CSSModulesExamples } from "./components/CSSModulesExample/CSSModulesExamples.tsx";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
@@ -11,6 +12,10 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
                 <Route path="/" element={<PageNotFound />} />
                 <Route path="app" element={<App />} />
+                <Route
+                    path="/module-example"
+                    element={<CSSModulesExamples />}
+                />
                 <Route path="*" element={<PageNotFound />} />
             </Routes>
         </BrowserRouter>

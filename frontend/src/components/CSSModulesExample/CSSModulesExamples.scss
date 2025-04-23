@@ -1,0 +1,5 @@
+.heading {
+    // Problem: These styles override / effect the styles from PageNotFound.scss
+    // The 404 page has this styled applied, but shouldn't
+    background-color: aquamarine;
+}
