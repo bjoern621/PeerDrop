@@ -1,8 +1,15 @@
+const string corsAllowDevelopmentOrigin = "corsAllowDevelopmentOrigin";
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddCors(options => options.AddPolicy(
+    corsAllowDevelopmentOrigin,
+    policyBuilder =>
+        policyBuilder.WithOrigins("http://localhost:5173")));
 
 var app = builder.Build();
 
@@ -10,14 +17,17 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    app.UseCors(corsAllowDevelopmentOrigin);
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
+
+string[] summaries =
+[
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+];
 
 app.MapGet("/weatherforecast", () =>
     {
@@ -35,7 +45,7 @@ app.MapGet("/weatherforecast", () =>
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
