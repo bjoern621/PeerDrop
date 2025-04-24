@@ -1,4 +1,5 @@
 const string corsAllowDevelopmentOrigin = "corsAllowDevelopmentOrigin";
+const string corsAllowProductionOrigin = "corsAllowProductionOrigin";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,12 +7,25 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddCors(options => options.AddPolicy(
-    corsAllowDevelopmentOrigin,
-    policyBuilder =>
-        policyBuilder.WithOrigins("http://localhost:5173")));
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddCors(options => options.AddPolicy(
+        corsAllowDevelopmentOrigin,
+        policyBuilder =>
+            policyBuilder.WithOrigins("http://localhost:5173")));
+else if (builder.Environment.IsProduction())
+    builder.Services.AddCors(options => options.AddPolicy(
+        corsAllowProductionOrigin,
+        policyBuilder =>
+            policyBuilder.WithOrigins("http://192.168.1.1:1234")));
+
 
 var app = builder.Build();
+
+Console.WriteLine("djadiwaiojd");
+
+Console.WriteLine(app.Environment.EnvironmentName);
+
+Console.WriteLine(app.Environment.IsDevelopment());
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -19,6 +33,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
     app.UseCors(corsAllowDevelopmentOrigin);
+}
+else if (app.Environment.IsProduction())
+{
+    app.UseCors(corsAllowProductionOrigin);
 }
 
 app.UseHttpsRedirection();
