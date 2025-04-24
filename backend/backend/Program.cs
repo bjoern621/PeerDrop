@@ -33,8 +33,6 @@ else if (app.Environment.IsProduction())
     app.UseCors(corsAllowProductionOrigin);
 }
 
-app.UseHttpsRedirection();
-
 
 string[] summaries =
 [
