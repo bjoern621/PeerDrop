@@ -21,12 +21,6 @@ else if (builder.Environment.IsProduction())
 
 var app = builder.Build();
 
-Console.WriteLine("djadiwaiojd");
-
-Console.WriteLine(app.Environment.EnvironmentName);
-
-Console.WriteLine(app.Environment.IsDevelopment());
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
