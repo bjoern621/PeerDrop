@@ -10,20 +10,6 @@
             "request": "launch",
             "command": "npm run dev",
             "cwd": "${workspaceFolder}/frontend"
-        },
-        {
-            "type": "go",
-            "name": "Launch Go Backend",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}/backend/main.go",
-            "cwd": "${workspaceFolder}/backend"
-        }
-    ],
-    "compounds": [
-        {
-            "name": "Launch Frontend and Backend",
-            "configurations": ["Launch Vite", "Launch Go Backend"]
         }
     ]
 }
