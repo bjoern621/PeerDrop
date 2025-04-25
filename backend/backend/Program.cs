@@ -16,7 +16,7 @@ else if (builder.Environment.IsProduction())
     builder.Services.AddCors(options => options.AddPolicy(
         corsAllowProductionOrigin,
         policyBuilder =>
-            policyBuilder.WithOrigins("http://192.168.1.1:1234")));
+            policyBuilder.WithOrigins("https://peerdrop.bjoernblessin.de")));
 
 
 var app = builder.Build();
