@@ -39,6 +39,9 @@ string[] summaries =
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 ];
 
+/*
+ * Standard, Happy-Path Beispielresponse
+ */
 app.MapGet("/weatherforecast", () =>
     {
         var forecast = Enumerable.Range(1, 5).Select(index =>
@@ -52,6 +55,35 @@ app.MapGet("/weatherforecast", () =>
         return forecast;
     })
     .WithName("GetWeatherForecast");
+
+/*
+ * Erzeugt Fehler: Im Client wird fetch() fehlschlagen (err1)
+ */
+app.MapGet("/weatherforecast1", (HttpContext context) =>
+{
+    context.Abort();
+    return Task.CompletedTask;
+});
+
+/*
+ * Erzeugt Fehler: Im Client wird fetch() erfolgreich sein aber response.ok == false
+ */
+app.MapGet("/weatherforecast2", () => Results.StatusCode(StatusCodes.Status500InternalServerError));
+
+/*
+ * Erzeugt Fehler: Im Client wird response.json() fehlschlagen (err2)
+ */
+app.MapGet("/weatherforecast3", () => "abc");
+
+/*
+ * Erzeugt keinen Fehler, ist aber trotzdem nicht richtig: Dem Client werden invalide Daten gesendet (also kein WeatherForecast[], was eigentlich erwartet wird)
+ */
+app.MapGet("/weatherforecast4", () => Results.Json(new { data = "invalid" }));
+
+/*
+ * Erzeugt keinen Fehler, ist aber trotzdem nicht richtig: Dem Client werden invalide Daten gesendet (also kein WeatherForecast[], was eigentlich erwartet wird)
+ */
+app.MapGet("/weatherforecast5", () => (string[]) ["1", "2"]);
 
 app.Run();
 
