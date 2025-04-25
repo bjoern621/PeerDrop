@@ -17,9 +17,7 @@ export function Fetch() {
         void (async () => {
             const [response, err1] = await errorAsValue(
                 fetch(
-                    `http://${import.meta.env.VITE_BACKEND_HOST}:${
-                        import.meta.env.VITE_BACKEND_PORT
-                    }/weatherforecast` // weatherforecast, weatherforecast1, weatherforecast2, weatherforecast3, weatherforecast4, weatherforecast5
+                    `${import.meta.env.VITE_BACKEND_URL}/weatherforecast` // weatherforecast, weatherforecast1, weatherforecast2, weatherforecast3, weatherforecast4, weatherforecast5
                 )
             );
             if (err1) {
