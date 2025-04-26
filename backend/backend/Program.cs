@@ -1,3 +1,5 @@
+using Npgsql;
+
 const string corsAllowDevelopmentOrigin = "corsAllowDevelopmentOrigin";
 const string corsAllowProductionOrigin = "corsAllowProductionOrigin";
 
@@ -42,7 +44,7 @@ string[] summaries =
 /*
  * Standard, Happy-Path Beispielresponse
  */
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/weatherforecast", async () =>
     {
         var forecast = Enumerable.Range(1, 5).Select(index =>
                 new WeatherForecast
@@ -52,6 +54,14 @@ app.MapGet("/weatherforecast", () =>
                     summaries[Random.Shared.Next(summaries.Length)]
                 ))
             .ToArray();
+
+        const string connectionString = "Host=localhost;Username=postgres;Password=passwort;Database=postgres";
+        await using var dataSource = NpgsqlDataSource.Create(connectionString);
+
+        await using var cmd = dataSource.CreateCommand("INSERT INTO users (display_name) VALUES ('testname')");
+        await cmd.ExecuteNonQueryAsync();
+
+
         return forecast;
     })
     .WithName("GetWeatherForecast");
@@ -59,7 +69,7 @@ app.MapGet("/weatherforecast", () =>
 /*
  * Erzeugt Fehler: Im Client wird fetch() fehlschlagen (err1)
  */
-app.MapGet("/weatherforecast1", (HttpContext context) =>
+app.MapGet("/weatherforecast1", context =>
 {
     context.Abort();
     return Task.CompletedTask;

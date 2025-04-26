@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DdlMappings">
+    <mapping uuid="c33108a5-b0cf-4805-9cac-0cc933d11695" name="postgres@localhost Mapping">
+      <data-sources db="e8b36c89-48ca-4287-9caa-e147431eef05" ddl="f9eb57d3-002d-4b0e-9bfd-9dcb0d4696da" />
+      <scope>
+        <node kind="database" qname="postgres">
+          <node kind="schema" qname="public" />
+        </node>
+      </scope>
+    </mapping>
+  </component>
+  <component name="SqlDataSourceStorage">
+    <option name="dataSources">
+      <list>
+        <State>
+          <option name="id" value="f9eb57d3-002d-4b0e-9bfd-9dcb0d4696da" />
+          <option name="name" value="postgres@localhost (DDL)" />
+          <option name="dbmsName" value="POSTGRES" />
+          <option name="urls">
+            <array>
+              <option value="file://$PROJECT_DIR$/backend/ddl" />
+              <option value="file://$PROJECT_DIR$/backend/ddl/public/users.sql" />
+            </array>
+          </option>
+          <option name="outPath" value="C:\Users\bless\git\PeerDrop\backend\backend\ddl" />
+          <option name="outLayout" value="File per object by schema.groovy" />
+        </State>
+      </list>
+    </option>
+  </component>
+</project>
