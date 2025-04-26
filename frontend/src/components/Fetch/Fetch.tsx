@@ -43,12 +43,6 @@ export function Fetch() {
 
             console.log("body:", json);
 
-            if (!json) {
-                setError("No data received from the server.");
-                setLoading(false);
-                return;
-            }
-
             const newWeatherData = json as WeatherForecast[]; // Unsicher: nicht garantiert, dass es WeatherForecast[] ist
 
             setWeatherData(newWeatherData);
