@@ -2,17 +2,10 @@
   <configuration default="false" name="backend/Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
     <deployment type="dockerfile">
       <settings>
-        <option name="imageTag" value="backend:latest" />
+        <option name="imageTag" value="puma0243/peerdropbackend:0.1.0" />
+        <option name="buildOnly" value="true" />
         <option name="containerName" value="backend" />
-        <option name="contextFolderPath" value="." />
-        <option name="envVars">
-          <list>
-            <DockerEnvVarImpl>
-              <option name="name" value="ASPNETCORE_ENVIRONMENT" />
-              <option name="value" value="Production" />
-            </DockerEnvVarImpl>
-          </list>
-        </option>
+        <option name="contextFolderPath" value="backend." />
         <option name="portBindings">
           <list>
             <DockerPortBindingImpl>

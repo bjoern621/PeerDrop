@@ -9,7 +9,7 @@ RUN npm install
 
 COPY . ./
 
-RUN npm run build --omit=dev
+RUN npm run build -- --mode stage
 
 # Build complete
 

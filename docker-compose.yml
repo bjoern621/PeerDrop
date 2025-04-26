@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+    database:
+        image: postgres:17.4
+        container_name: peerdrop_db
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: passwort
+            POSTGRES_DB: peerdrop
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres -d peerdrop"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 2s
+
+    backend:
+        build:
+            context: ./backend/backend
+            dockerfile: Dockerfile
+        container_name: peerdrop_backend
+        depends_on:
+            database:
+                condition: service_healthy
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Production
+            - FRONTEND_ORIGIN=http://localhost
+            - DB_HOST=database:5432
+            - DB_DATABASE_NAME=peerdrop
+            - DB_USERNAME=postgres
+            - DB_PASSWORD=passwort
+        ports:
+            - "8080:8080"
+        restart: unless-stopped
+
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile.stage
+        container_name: peerdrop_frontend
+        ports:
+            - "80:80"
+        depends_on:
+            - backend
+        restart: unless-stopped
+
+volumes:
+    postgres_data:
+        driver: local

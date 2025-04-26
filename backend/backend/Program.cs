@@ -1,7 +1,6 @@
 using Npgsql;
 
-const string corsAllowDevelopmentOrigin = "corsAllowDevelopmentOrigin";
-const string corsAllowProductionOrigin = "corsAllowProductionOrigin";
+const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,32 +8,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-if (builder.Environment.IsDevelopment())
-    builder.Services.AddCors(options => options.AddPolicy(
-        corsAllowDevelopmentOrigin,
-        policyBuilder =>
-            policyBuilder.WithOrigins("http://localhost:5173")));
-else if (builder.Environment.IsProduction())
-    builder.Services.AddCors(options => options.AddPolicy(
-        corsAllowProductionOrigin,
-        policyBuilder =>
-            policyBuilder.WithOrigins("https://peerdrop.bjoernblessin.de")));
+var frontendOrigin = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN") ??
+                     throw new ApplicationException("FRONTEND_ORIGIN not set");
+
+builder.Services.AddCors(options => options.AddPolicy(
+    corsAllowFrontendOrigin,
+    policyBuilder =>
+        policyBuilder.WithOrigins(frontendOrigin)));
 
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
-    app.UseCors(corsAllowDevelopmentOrigin);
-}
-else if (app.Environment.IsProduction())
-{
-    app.UseCors(corsAllowProductionOrigin);
-}
-
+app.UseCors(corsAllowFrontendOrigin);
 
 string[] summaries =
 [
@@ -55,7 +43,16 @@ app.MapGet("/weatherforecast", async () =>
                 ))
             .ToArray();
 
-        const string connectionString = "Host=localhost;Username=postgres;Password=passwort;Database=postgres";
+        var host = Environment.GetEnvironmentVariable("DB_HOST") ??
+                   throw new ApplicationException("DB_HOST not set");
+        var username = Environment.GetEnvironmentVariable("DB_USERNAME") ??
+                       throw new ApplicationException("DB_USERNAME not set");
+        var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ??
+                       throw new ApplicationException("DB_PASSWORD not set");
+        var databaseName = Environment.GetEnvironmentVariable("DB_DATABASE_NAME") ??
+                           throw new ApplicationException("DB_DATABASE_NAME not set");
+
+        var connectionString = $"Host={host};Username={username};Password={password};Database={databaseName}";
         await using var dataSource = NpgsqlDataSource.Create(connectionString);
 
         await using var cmd = dataSource.CreateCommand("INSERT INTO users (display_name) VALUES ('testname')");
