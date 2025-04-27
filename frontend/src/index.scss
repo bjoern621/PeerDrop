@@ -1,0 +1,50 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    height: 100%;
+
+    --black: #101016;
+    --white: #fefff9;
+
+    background-color: var(--black);
+    color: var(--white);
+
+    font-family: sans-serif;
+
+    fill: var(--white); // SVG fill color
+}
+
+#root {
+    height: 100%;
+}
+
+a,
+button {
+    all: unset;
+    outline: revert; /* Enables accessibility outline */
+    cursor: pointer;
+}
+
+button {
+    user-select: none;
+
+    &:focus-visible {
+        outline: 4px solid var(--light-blue);
+        outline-offset: 1px;
+    }
+}
+
+a {
+    user-select: text;
+}
+
+img {
+    pointer-events: none; /* Disables dragging */
+}

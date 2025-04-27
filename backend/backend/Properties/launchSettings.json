@@ -1,0 +1,19 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5023",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DB_HOST": "localhost:5432",
+        "DB_USERNAME": "postgres",
+        "DB_PASSWORD": "passwort",
+        "DB_DATABASE_NAME": "peerdrop",
+        "FRONTEND_ORIGIN": "http://localhost:5173"
+      }
+    }
+  }
+}
