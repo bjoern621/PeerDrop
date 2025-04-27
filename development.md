@@ -21,19 +21,7 @@ Klone das Repository, falls noch nicht geschehen:
 git clone https://github.com/bjoern621/PeerDrop.git
 ```
 
-### 1. Review-Umgebung
-
-Die Review- (Stage-) Umgebung basiert auf einer einzigen Docker Compose Datei. Um den Branch schnell zu testen kann Docker Compose Up direkt in VSCode genutzt werden:
-
-![alt text](image-2.png)
-
-In der Review-Umgebung sind folgende Schnittstellen verfügbar:
-
--   Frontend: `http://localhost:80`
--   Backend: `http://localhost:8080`
--   Postgres Datenbank: `localhost:5432`
-
-### 2. Entwicklung
+### 1. Entwicklung-Umgebung
 
 Während der aktiven Entwicklung sollte nicht mit der Docker Compose Datei gearbeitet werden, da diese z.B. kein [Hot Reload](https://www.it-intouch.de/glossar/hot-reload/) unterstützt. Die Umgebung für die Entwicklung kann wie folgt eingerichtet werden.
 
@@ -58,7 +46,7 @@ _Backend_
 
 _Datenbank_
 
-1. Nutze "Compose Up - Select Services" in VSCode und wähle nur die Datenbank aus.
+1. Nutze "Compose Up - Select Services" ([siehe dieses Bild](#docker-compose-in-vscode)) in VSCode und wähle nur die Datenbank aus.
 2. Die lokale Entwicklungsdatenbank ist unter `localhost:5432` verfügbar.
 
 Die Datenbank muss noch mit dem richtigen Schema geladen werden:
@@ -85,3 +73,18 @@ Teste zum Beispiel
 -   `http://localhost:5173/fetch`
 -   `http://localhost:5032/weatherforecast`
 -   Lasse dir die users Tabelle anzeigen: postgres@localhost > peerdrop > public > tables > users (Doppelklick)
+
+
+### 2. Review-Umgebung
+
+Die Review- (Stage-) Umgebung basiert auf einer einzigen Docker Compose Datei. Um den Branch schnell zu testen kann Docker Compose Up direkt in VSCode genutzt werden:
+
+#### Docker Compose in VSCode
+![alt text](image-2.png)
+
+In der Review-Umgebung sind folgende Schnittstellen verfügbar:
+
+-   Frontend: `http://localhost:80`
+-   Backend: `http://localhost:8080`
+-   Postgres Datenbank: `localhost:5432`
+  
