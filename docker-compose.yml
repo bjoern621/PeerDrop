@@ -1,8 +1,9 @@
-version: "3.9"
-
 services:
     database:
-        image: postgres:17.4
+        build:
+            context: ./database
+            dockerfile: Dockerfile
+        # image: postgres:17.4
         container_name: peerdrop_db
         environment:
             POSTGRES_USER: postgres
