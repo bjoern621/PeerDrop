@@ -9,8 +9,8 @@ services:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: passwort
             POSTGRES_DB: peerdrop
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
+        # volumes:
+        #     - postgres_data:/var/lib/postgresql/data
         ports:
             - "5432:5432"
         restart: unless-stopped
