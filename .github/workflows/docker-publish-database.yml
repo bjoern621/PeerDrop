@@ -17,10 +17,8 @@ on:
         default: 'latest'
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: peerdrop_db
 
 
 jobs:
