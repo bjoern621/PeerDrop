@@ -4,7 +4,7 @@ on:
   push:
   pull_request:
     branches: [ "main" ]
-
+    
 jobs:
   eslint:
     name: Run eslint scanning
@@ -12,17 +12,15 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install ESLint
-        run: |
-          npm install eslint@8.10.0
-
+        
+      - name: Install modules
+        run: npm install
+        working-directory: frontend
+        
       - name: Run ESLint
-        working-directory: ./frontend/
-        run: npx eslint .
-          --config eslint.config.js
-          --ext .js,.jsx,.ts,.tsx
-          --max-warnings 0
+        run: npm run lint -- --max-warnings 0
+        working-directory: frontend
