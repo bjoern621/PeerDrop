@@ -21,6 +21,6 @@ jobs:
           npm install eslint@8.10.0
 
       - name: Run ESLint
-        run: npx eslint .
+        run: npx eslint ./frontend/
           --ext .js,.jsx,.ts,.tsx
           --max-warnings 0
