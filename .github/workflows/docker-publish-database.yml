@@ -18,7 +18,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: peerdrop_db
+  IMAGE_NAME: ${{ github.repository_owner }}/peerdrop_db
 
 
 jobs:
