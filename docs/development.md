@@ -31,8 +31,8 @@ Die Review- (Stage-) Umgebung basiert auf einer einzigen Docker Compose Datei. U
 
 In der Review-Umgebung sind folgende Schnittstellen verfügbar:
 
--   Frontend: `http://localhost:80`
--   Backend: `http://localhost:8080`
+-   Frontend: [`http://localhost:80`](http://localhost:80)
+-   Backend: [`http://localhost:8080`](http://localhost:8080)
 -   Postgres Datenbank: `localhost:5432`
 
 ### 2. Entwicklung-Umgebung
@@ -43,7 +43,7 @@ _Frontend_
 
 1. Führe `npm install` in `<base_dir>/frontend/` aus.
 2. Starte das Frontend z.B. **F5**-Taste in VSCode.
-3. Frontend ist unter `http://localhost:5173` verfügbar.
+3. Frontend ist unter [`http://localhost:5173`](http://localhost:5173) verfügbar.
 
 ---
 
@@ -54,7 +54,7 @@ _Backend_
 
 ![alt text](image-3.png)
 
-3. Das Backend ist verfügbar unter `http://localhost:5023`.
+3. Das Backend ist verfügbar unter [`http://localhost:5023`](http://localhost:5023).
 
 ---
 
@@ -76,7 +76,7 @@ Beim Erstellen der Datenbank wird das aktuelle Schema aus `<base_dir>/database/d
 9. Füge ein neues Mapping zwischen **postgres@localhost** und **DDL data source** hinzu.
 10. Wähle unter **Scope** **peerdrop** > **public** aus. (Drücke **Refresh** (Kreis Symbol), wenn **public** nicht angezeigt wird.)
 11. Drücke **OK**. Wähle **Later**.
-12. Rechtsklick auf **postgres@localhost** > **DDL Mapping** > **Apply from ...** > **Execute**. <= **Dieser Schritt aktualisiert das Datenbankschema mit dem aktuellen Schema der lokalen Datenbank**.
+12. Rechtsklick auf **postgres@localhost** > **DDL Mapping** > **Apply from ...** > **Execute**. <= **Dieser Schritt aktualisiert das lokale Datenbankschema mit dem aktuellen Schema des Projekts**.
 13. Wähle **Properties** > **postgres@localhost** > **Schemas**.
 14. Entferne alle Haken und setze den Haken bei **peerdrop** > **public**. Wähle **OK** und **Yes**.
 
@@ -84,6 +84,6 @@ Jetzt ist die Entwicklungsumgebung komplett eingerichtet.
 
 Teste zum Beispiel
 
--   `http://localhost:5173/fetch`
--   `http://localhost:5032/weatherforecast`
+-   [`http://localhost:5173/fetch`](http://localhost:5173/fetch)
+-   [`http://localhost:5032/weatherforecast`](http://localhost:5032/weatherforecast)
 -   Lasse dir die users Tabelle anzeigen: postgres@localhost > peerdrop > public > tables > users (Doppelklick)
