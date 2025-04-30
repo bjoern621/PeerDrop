@@ -31,4 +31,4 @@ Dieser Leitfaden beschreibt den Prozess, wie du beitragen kannst.
 
 ## Weitere Informationen
 
--   Der neue Release ist jetzt öffentlich. In [README](README.md) ist beschrieben, wie die Webseite genutzt werden kann.
+-   Der neue Release ist jetzt öffentlich. In [README](/README.md) ist beschrieben, wie die Webseite genutzt werden kann.

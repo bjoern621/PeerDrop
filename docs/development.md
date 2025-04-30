@@ -76,7 +76,7 @@ Beim Erstellen der Datenbank wird das aktuelle Schema aus `<base_dir>/database/d
 9. Füge ein neues Mapping zwischen **postgres@localhost** und **DDL data source** hinzu.
 10. Wähle unter **Scope** **peerdrop** > **public** aus. (Drücke **Refresh** (Kreis Symbol), wenn **public** nicht angezeigt wird.)
 11. Drücke **OK**. Wähle **Later**.
-12. Rechtsklick auf **postgres@localhost** > **DDL Mapping** > **Apply from ...** > **Execute**. <= **Dieser Schritt aktualisiert das Datenbankschema mit dem aktuellen Schema der lokalen Datenbank**.
+12. Rechtsklick auf **postgres@localhost** > **DDL Mapping** > **Apply from ...** > **Execute**. <= **Dieser Schritt aktualisiert das lokale Datenbankschema mit dem aktuellen Schema des Projekts**.
 13. Wähle **Properties** > **postgres@localhost** > **Schemas**.
 14. Entferne alle Haken und setze den Haken bei **peerdrop** > **public**. Wähle **OK** und **Yes**.
 
