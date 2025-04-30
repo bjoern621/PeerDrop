@@ -31,8 +31,8 @@ Die Review- (Stage-) Umgebung basiert auf einer einzigen Docker Compose Datei. U
 
 In der Review-Umgebung sind folgende Schnittstellen verfügbar:
 
--   Frontend: `http://localhost:80`
--   Backend: `http://localhost:8080`
+-   Frontend: [`http://localhost:80`](http://localhost:80)
+-   Backend: [`http://localhost:8080`](http://localhost:8080)
 -   Postgres Datenbank: `localhost:5432`
 
 ### 2. Entwicklung-Umgebung
@@ -43,7 +43,7 @@ _Frontend_
 
 1. Führe `npm install` in `<base_dir>/frontend/` aus.
 2. Starte das Frontend z.B. **F5**-Taste in VSCode.
-3. Frontend ist unter `http://localhost:5173` verfügbar.
+3. Frontend ist unter [`http://localhost:5173`](http://localhost:5173) verfügbar.
 
 ---
 
@@ -54,7 +54,7 @@ _Backend_
 
 ![alt text](image-3.png)
 
-3. Das Backend ist verfügbar unter `http://localhost:5023`.
+3. Das Backend ist verfügbar unter [`http://localhost:5023`](http://localhost:5023).
 
 ---
 
@@ -84,6 +84,6 @@ Jetzt ist die Entwicklungsumgebung komplett eingerichtet.
 
 Teste zum Beispiel
 
--   `http://localhost:5173/fetch`
--   `http://localhost:5032/weatherforecast`
+-   [`http://localhost:5173/fetch`](http://localhost:5173/fetch)
+-   [`http://localhost:5032/weatherforecast`](http://localhost:5032/weatherforecast)
 -   Lasse dir die users Tabelle anzeigen: postgres@localhost > peerdrop > public > tables > users (Doppelklick)
