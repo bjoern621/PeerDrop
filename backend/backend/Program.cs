@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using backend;
 using Npgsql;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
@@ -62,6 +64,26 @@ app.MapGet("/weatherforecast", async () =>
         return forecast;
     })
     .WithName("GetWeatherForecast");
+
+/*
+ * Custom Mappings für Account-Erstellung
+ */
+app.MapPost("/accounts", async (string displayName, string password) =>
+{
+    var repo = new AccountRepository();
+    var accountobj = await repo.GetByNameAsync(displayName);
+
+    if (accountobj == null) {
+        // the account has not been created yet
+
+        var account = new Account(displayName, password);
+        var newId = await repo.SaveAsync(account);
+        return Results.Created($"/users/{newId}", new { Id = newId });
+    }
+
+    // the username is already taken
+    return Results.StatusCode(StatusCodes.Status403Forbidden);
+});
 
 /*
  * Erzeugt Fehler: Im Client wird fetch() fehlschlagen (err1)
