@@ -146,8 +146,6 @@ export class WebSocketService {
         this.socket.send(JSON.stringify(message));
     }
 
-    // TODO subscribe / unsubcribe: specify if one handler can be subscribed to the same mssage type multiple times
-
     /**
      * Subscribe to a specific message type.
      */

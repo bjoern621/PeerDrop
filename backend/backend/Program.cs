@@ -98,9 +98,15 @@ app.MapGet("/weatherforecast4", () => Results.Json(new { data = "invalid" }));
 /*
  * Erzeugt keinen Fehler, ist aber trotzdem nicht richtig: Dem Client werden invalide Daten gesendet (also kein WeatherForecast[], was eigentlich erwartet wird)
  */
-app.MapGet("/weatherforecast5", () => (string[]) ["1", "2"]);
+app.MapGet("/weatherforecast5", () => (string[])["1", "2"]);
 
 app.RegisterWebSocketRoutes();
+
+WebSocketHandler.SubscribeToMessageType<TestMessage>("test", (clientId, message) =>
+{
+    Console.WriteLine($"Received message from client {clientId}: {message.Nachricht}");
+    return Task.CompletedTask;
+});
 
 app.Run();
 

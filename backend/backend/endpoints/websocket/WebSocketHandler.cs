@@ -2,11 +2,13 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
+using System.Diagnostics;
 
 namespace backend.endpoints.websocket;
 
 using MessageType = string;
-
 
 public struct TypedMessage<T>
 {
@@ -17,26 +19,95 @@ public struct TypedMessage<T>
     public T Msg { get; set; }
 }
 
+public delegate Task MessageHandlerDelegate(string clientId, JsonElement messageData);
+public delegate Task TypedMessageHandlerDelegate<T>(string clientId, T messageData);
+
 public static class WebSocketHandler
 {
+    private static readonly ConcurrentDictionary<string, WebSocket> ActiveConnections = new();
+    private static readonly Random Random = new();
+    private static readonly ConcurrentDictionary<MessageType, List<MessageHandlerDelegate>> MessageHandlers = new();
+
+    private static string GenerateClientToken()
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        return new string([.. Enumerable.Repeat(chars, 5).Select(s => s[Random.Next(s.Length)])]);
+    }
+
+    /// <summary>
+    /// Generates a unique client ID and adds the WebSocket connection to the active connections list. Returns the client ID.
+    /// </summary>
+    private static string AddConnection(WebSocket webSocket)
+    {
+        string clientId;
+        do
+        {
+            clientId = GenerateClientToken();
+        } while (!ActiveConnections.TryAdd(clientId, webSocket));
+
+        return clientId;
+    }
+
+    /// <summary>
+    /// Removes a WebSocket connection from the active connections list. The client ID must be valid and connected. 
+    /// </summary>
+    private static void RemoveConnection(string clientId)
+    {
+        var result = ActiveConnections.TryRemove(clientId, out _);
+
+        Debug.Assert(result, $"Failed to remove client with ID: {clientId}");
+    }
+
+    /// <summary>
+    /// Sends a typed message to a specific client. The client ID must be valid and connected. Returns true if the message was sent successfully, false otherwise.
+    /// </summary>
+    public static async Task<bool> SendMessage<T>(string clientId, TypedMessage<T> message)
+    {
+        var result = ActiveConnections.TryGetValue(clientId, out var webSocket);
+
+        Debug.Assert(result, $"Failed to find client with ID: {clientId}");
+        Debug.Assert(webSocket != null);
+
+        try
+        {
+            var messageJson = JsonSerializer.Serialize(message);
+            var messageBytes = Encoding.UTF8.GetBytes(messageJson);
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(messageBytes),
+                WebSocketMessageType.Text,
+                true,
+                CancellationToken.None);
+
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
     public static async Task HandleConnect(HttpContext context)
     {
         if (context.WebSockets.IsWebSocketRequest)
         {
-            Console.WriteLine("WebSocket connection accepted.");
             using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            await ListenForMessages(webSocket);
+            var clientID = AddConnection(webSocket);
+
+            await ListenForMessages(webSocket, clientID);
+
+            RemoveConnection(clientID);
         }
         else
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
         }
     }
-
-    private static async Task ListenForMessages(WebSocket webSocket)
+    /// <summary>
+    /// Continuously listens for messages from the WebSocket connection. If a message is received, it is deserialized and forwarded to typed message listeners. If the message is too large or cannot be deserialized, the connection is closed.
+    /// </summary>
+    private static async Task ListenForMessages(WebSocket webSocket, string clientId)
     {
-        var buffer = new byte[1024 * 4];
-        TypedMessage<object> typedMessage;
+        var buffer = new byte[1024];
 
         while (webSocket.State == WebSocketState.Open)
         {
@@ -52,28 +123,39 @@ public static class WebSocketHandler
                 break;
 
             var messageJSON = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            Console.WriteLine($"Received message: {messageJSON}");
+            // Console.WriteLine($"Received message from {clientId}: {messageJSON}");
 
             try
             {
-                typedMessage = JsonSerializer.Deserialize<TypedMessage<object>>(messageJSON);
-                Console.WriteLine($"Deserialized Type: {typedMessage.Type}, Msg: {typedMessage.Msg}");
+                using var document = JsonDocument.Parse(messageJSON);
+                var root = document.RootElement;
+
+                // Check if the message has the expected structure
+                if (!root.TryGetProperty("type", out var typeElement) ||
+                    typeElement.ValueKind != JsonValueKind.String ||
+                    !root.TryGetProperty("msg", out var msgElement))
+                {
+                    // Received message with invalid structure
+                    CloseConnection(webSocket, WebSocketCloseStatus.InvalidPayloadData);
+                    return;
+
+                }
+
+                var messageType = typeElement.GetString();
+
+                if (string.IsNullOrEmpty(messageType))
+                {
+                    CloseConnection(webSocket, WebSocketCloseStatus.InvalidPayloadData);
+                    return;
+                }
+
+                ForwardMessageToHandlers(clientId, messageType, msgElement);
             }
-            catch (JsonException ex)
+            catch (JsonException)
             {
-                Console.WriteLine($"Failed to deserialize message: {ex.Message}");
                 CloseConnection(webSocket, WebSocketCloseStatus.InvalidPayloadData);
                 return;
             }
-
-            Console.WriteLine($"Type: {typedMessage.Type}, Msg: {typedMessage.Msg}");
-
-            // // Example: Echo the message back
-            // await webSocket.SendAsync(
-            //     new ArraySegment<byte>(buffer, 0, result.Count),
-            //     result.MessageType,
-            //     result.EndOfMessage,
-            //     CancellationToken.None);
         }
 
         CloseConnection(webSocket);
@@ -83,6 +165,94 @@ public static class WebSocketHandler
         WebSocketCloseStatus closeStatus = WebSocketCloseStatus.NormalClosure)
     {
         webSocket.CloseAsync(closeStatus, null, CancellationToken.None);
-        Console.WriteLine("WebSocket connection closed.");
+    }
+
+    /// <summary>
+    /// Registers a handler for a specific message type. 
+    /// When messages of the specified type are received, the handler will be invoked.
+    /// The handler should not be registered multiple times for the same message type.
+    /// </summary>
+    private static void SubscribeToMessageType(MessageType messageType, MessageHandlerDelegate handler)
+    {
+        var handlers = MessageHandlers.GetOrAdd(messageType, _ => []);
+
+        lock (handlers)
+        {
+            Debug.Assert(!handlers.Contains(handler), "Handler already registered for this message type");
+
+            handlers.Add(handler);
+        }
+    }
+
+    /// <summary>
+    /// Registers a strongly-typed handler for a specific message type.
+    /// When messages of the specified type are received, the message will be deserialized
+    /// to the specified type T before being passed to the handler.
+    /// The handler should not be registered multiple times for the same message type.
+    /// </summary>
+    public static void SubscribeToMessageType<T>(MessageType messageType, TypedMessageHandlerDelegate<T> handler)
+    {
+        Task wrapper(string clientId, JsonElement messageData)
+        {
+            try
+            {
+                // Deserialize the JsonElement to the specified type
+                var typedData = messageData.Deserialize<T>();
+                if (typedData == null)
+                {
+                    Console.WriteLine($"Warning: Failed to deserialize message of type {messageType} to {typeof(T).Name}");
+                    return Task.CompletedTask;
+
+                }
+
+                return handler(clientId, typedData);
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"Error deserializing message of type {messageType} to {typeof(T).Name}: {ex.Message}");
+                return Task.CompletedTask;
+            }
+        }
+
+        // Register the wrapper with the standard message handling system
+        SubscribeToMessageType(messageType, wrapper);
+    }
+
+    /// <summary>
+    /// Unregisters a handler for a specific message type.
+    /// The handler must have been registered previously for the same message type.
+    /// </summary>
+    public static void UnsubscribeFromMessageType(MessageType messageType, MessageHandlerDelegate handler)
+    {
+        MessageHandlers.TryGetValue(messageType, out var handlers);
+
+        Debug.Assert(handlers != null, $"No handlers registered for message type: {messageType}");
+
+        lock (handlers)
+        {
+            var result = handlers.Remove(handler);
+
+            Debug.Assert(result, "Handler not found in the list of registered handlers");
+        }
+    }
+
+    /// <summary>
+    /// Forwards a message to all registered handlers for its message type.
+    /// </summary>
+    private static void ForwardMessageToHandlers(string clientId, MessageType messageType, JsonElement messageData)
+    {
+        if (!MessageHandlers.TryGetValue(messageType, out var handlers))
+        {
+            // No handlers registered for this message type
+            return;
+        }
+
+        lock (handlers)
+        {
+            handlers.ForEach(handler =>
+            {
+                handler(clientId, messageData);
+            });
+        }
     }
 }
