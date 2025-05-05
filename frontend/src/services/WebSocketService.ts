@@ -15,19 +15,13 @@ export type ErrorMessage = {
     actual?: string;
 };
 
-type ClientIDMessage = {
-    clientID: ClientID;
+type ClientTokenMessage = {
+    clientToken: ClientToken;
 };
 
-export const CLIENT_DISCONNECT_MESSAGE_TYPE: MessageType = "client-disconnect";
+export type ClientToken = string;
 
-export type ClientDisconnectMessage = {
-    clientID: ClientID;
-};
-
-export type ClientID = string;
-
-const CLIENT_ID_MESSAGE_TYPE: string = "client-id";
+const CLIENT_TOKEN_MESSAGE_TYPE: string = "client-token";
 
 /**
  * The `WebSocketService` class provides functionality for managing the WebSocket connection
@@ -42,7 +36,7 @@ export class WebSocketService {
     private readonly messageHandlers: Map<MessageType, MessageHandler[]> =
         new Map();
 
-    private localClientID: ClientID | undefined;
+    private localToken: ClientToken | undefined;
 
     /**
      * Initializes a new instance of the WebSocketService class.
@@ -51,7 +45,7 @@ export class WebSocketService {
     public constructor() {
         this.connectToServer();
 
-        // this.waitForLocalClientID();
+        this.waitForLocalClientToken();
     }
 
     private connectToServer() {
@@ -60,6 +54,12 @@ export class WebSocketService {
                 import.meta.env.VITE_BACKEND_PORT
             }/connect`
         );
+
+        this.listenToMessages();
+    }
+
+    private listenToMessages() {
+        assert(this.socket);
 
         this.socket.onmessage = async event => {
             console.log("response from server: " + event.data);
@@ -79,36 +79,32 @@ export class WebSocketService {
                 await Promise.allSettled(
                     handlers.map(handler => handler(typedMessage))
                 );
-
-                // for (const handler of handlers) {
-                //     handler(typedMessage);
-                // }
             }
         };
     }
 
     /**
-     * Waits for the local client ID to be received via a message of type `CLIENT_ID_MESSAGE_TYPE`.
+     * Waits for the local client token to be received via a message of type `CLIENT_ID_MESSAGE_TYPE`.
      *
-     * This method subscribes to messages of the specified type and sets the `localClientID` property
-     * when a message containing the client ID is received. Once the client ID is obtained, the
+     * This method subscribes to messages of the specified type and sets the `localToken` property
+     * when a message containing the client token is received. Once the client token is obtained, the
      * subscription to the message type is automatically removed.
      */
-    private waitForLocalClientID() {
-        const handleClientIDMessage = (
-            message: TypedMessage<ClientIDMessage>
+    private waitForLocalClientToken() {
+        const handleClientTokenMessage = (
+            message: TypedMessage<ClientTokenMessage>
         ) => {
-            this.localClientID = message.msg.clientID;
+            this.localToken = message.msg.clientToken;
 
             this.unsubscribeMessage(
-                CLIENT_ID_MESSAGE_TYPE,
-                handleClientIDMessage as MessageHandler
+                CLIENT_TOKEN_MESSAGE_TYPE,
+                handleClientTokenMessage as MessageHandler
             );
         };
 
         this.subscribeMessage(
-            CLIENT_ID_MESSAGE_TYPE,
-            handleClientIDMessage as MessageHandler
+            CLIENT_TOKEN_MESSAGE_TYPE,
+            handleClientTokenMessage as MessageHandler
         );
     }
 
@@ -181,9 +177,9 @@ export class WebSocketService {
         handlers.splice(index, 1);
     }
 
-    public getLocalClientID(): ClientID {
-        assert(this.localClientID, "Local Client ID not set yet.");
+    public getLocalClientToken(): ClientToken {
+        assert(this.localToken, "Local Client Token not set yet.");
 
-        return this.localClientID;
+        return this.localToken;
     }
 }
