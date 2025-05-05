@@ -4,6 +4,22 @@ import {
     WebSocketService,
 } from "../../services/WebSocketService";
 import { assert } from "../../util/Assert";
+import css from "./LandingPage.module.scss";
+import bannerLogo from "../../assets/banner_logo.png";
+import { OTPInput, SlotProps } from "input-otp";
+
+const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
+    return (
+        <div
+            className={`${css.otpSlot} ${isActive ? css.otpSlotActive : ""}`}
+            data-state={!char ? "empty" : "filled"}
+            data-active={isActive || undefined}
+        >
+            {char}
+            {hasFakeCaret && <div className={css.otpSlotCaret} />}
+        </div>
+    );
+};
 
 export default function LandingPage() {
     const webSocketServiceRef = useRef<WebSocketService | undefined>(undefined);
@@ -12,6 +28,7 @@ export default function LandingPage() {
     }
 
     const [clientToken, setClientToken] = useState<string | null>(null);
+    const [peerToken, setPeerToken] = useState<string>("");
 
     useEffect(() => {
         const websocket = webSocketServiceRef.current;
@@ -58,11 +75,48 @@ export default function LandingPage() {
         console.log("LandingPage component mounted");
     }, []);
 
+    const connectToPeer = () => {
+        if (peerToken.length !== 5) {
+            console.warn("Peer token must be 5 characters long.");
+            return;
+        }
+
+        console.log("Connecting to peer with token:", peerToken);
+    };
+
     return (
-        <div>
-            <h1>Welcome to the Landing Page</h1>
-            <p>This is a simple landing page.</p>
-            Client token: {clientToken ? clientToken : "Lädt..."}
+        <div className={css.container}>
+            <img
+                src={bannerLogo}
+                className={css.logo}
+                alt="Banner Logo von PeerDrop"
+            />
+            <div className={css.ownTokenContainer}>
+                <span className={css.tooltip}>Dein Token</span>
+                <span className={css.token}>
+                    {clientToken ? clientToken : "Lädt..."}
+                </span>
+            </div>
+            <div className={css.peerTokenContainer}>
+                <div className={css.inputContainer}>
+                    <OTPInput
+                        maxLength={5}
+                        value={peerToken}
+                        onChange={setPeerToken}
+                        render={({ slots }) => (
+                            <>
+                                <div className={css.slotsContainer}>
+                                    {slots.map((slot, idx) => (
+                                        <Slot key={idx} {...slot} />
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    ></OTPInput>
+                    <button onClick={() => connectToPeer()}>&gt;</button>
+                </div>
+                <div>Anderes Token eingeben, um Verbindung aufzubauen</div>
+            </div>
         </div>
     );
 }
