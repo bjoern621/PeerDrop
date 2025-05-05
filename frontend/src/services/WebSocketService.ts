@@ -16,7 +16,7 @@ export type ErrorMessage = {
 };
 
 type ClientTokenMessage = {
-    clientToken: ClientToken;
+    token: ClientToken;
 };
 
 export type ClientToken = string;
@@ -94,7 +94,9 @@ export class WebSocketService {
         const handleClientTokenMessage = (
             message: TypedMessage<ClientTokenMessage>
         ) => {
-            this.localToken = message.msg.clientToken;
+            console.log("Received client token:", message.msg.token);
+
+            this.localToken = message.msg.token;
 
             this.unsubscribeMessage(
                 CLIENT_TOKEN_MESSAGE_TYPE,
@@ -177,9 +179,7 @@ export class WebSocketService {
         handlers.splice(index, 1);
     }
 
-    public getLocalClientToken(): ClientToken {
-        assert(this.localToken, "Local Client Token not set yet.");
-
+    public getLocalClientToken(): ClientToken | undefined {
         return this.localToken;
     }
 }

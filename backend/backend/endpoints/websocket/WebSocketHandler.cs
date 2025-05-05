@@ -39,23 +39,23 @@ public static class WebSocketHandler
     /// </summary>
     private static string AddConnection(WebSocket webSocket)
     {
-        string clientId;
+        string clientToken;
         do
         {
-            clientId = GenerateClientToken();
-        } while (!ActiveConnections.TryAdd(clientId, webSocket));
+            clientToken = GenerateClientToken();
+        } while (!ActiveConnections.TryAdd(clientToken, webSocket));
 
-        return clientId;
+        return clientToken;
     }
 
     /// <summary>
-    /// Removes a WebSocket connection from the active connections list. The client ID must be valid and connected. 
+    /// Removes a WebSocket connection from the active connections list. The client token must be valid and the client connected. 
     /// </summary>
-    private static void RemoveConnection(string clientId)
+    private static void RemoveConnection(string clientToken)
     {
-        var result = ActiveConnections.TryRemove(clientId, out _);
+        var result = ActiveConnections.TryRemove(clientToken, out _);
 
-        Debug.Assert(result, $"Failed to remove client with ID: {clientId}");
+        Debug.Assert(result, $"Failed to remove client with ID: {clientToken}");
     }
 
     /// <summary>
@@ -88,20 +88,43 @@ public static class WebSocketHandler
 
     public static async Task HandleConnect(HttpContext context)
     {
-        if (context.WebSockets.IsWebSocketRequest)
-        {
-            using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            var clientID = AddConnection(webSocket);
-
-            await ListenForMessages(webSocket, clientID);
-
-            RemoveConnection(clientID);
-        }
-        else
+        if (!context.WebSockets.IsWebSocketRequest)
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
         }
+
+        using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+        var clientToken = AddConnection(webSocket);
+
+        await SendClientTokenAsync(clientToken);
+
+        await ListenForMessages(webSocket, clientToken);
+
+        RemoveConnection(clientToken);
     }
+
+    const string CLIENT_TOKEN_MESSAGE_TYPE = "client-token";
+
+    struct ClientTokenMessage
+    {
+        [JsonPropertyName("token")]
+        public string ClientToken { get; set; }
+    }
+
+    private static async Task SendClientTokenAsync(string clientToken)
+    {
+        TypedMessage<ClientTokenMessage> message = new()
+        {
+            Type = CLIENT_TOKEN_MESSAGE_TYPE,
+            Msg = new ClientTokenMessage
+            {
+                ClientToken = clientToken
+            }
+        };
+
+        await SendMessage(clientToken, message);
+    }
+
     /// <summary>
     /// Continuously listens for messages from the WebSocket connection. If a message is received, it is deserialized and forwarded to typed message listeners. If the message is too large or cannot be deserialized, the connection is closed.
     /// </summary>

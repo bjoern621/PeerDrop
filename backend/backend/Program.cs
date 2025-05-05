@@ -102,10 +102,20 @@ app.MapGet("/weatherforecast5", () => (string[])["1", "2"]);
 
 app.RegisterWebSocketRoutes();
 
-WebSocketHandler.SubscribeToMessageType<TestMessage>("test", (clientId, message) =>
+WebSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
 {
     Console.WriteLine($"Received message from client {clientId}: {message.Nachricht}");
-    return Task.CompletedTask;
+
+    TypedMessage<TestMessage> response = new()
+    {
+        Type = "test",
+        Msg = new TestMessage
+        {
+            Nachricht = "Hallo vom Server!"
+        }
+    };
+
+    await WebSocketHandler.SendMessage(clientId, response);
 });
 
 app.Run();

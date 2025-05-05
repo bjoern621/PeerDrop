@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     TypedMessage,
     WebSocketService,
@@ -10,6 +10,8 @@ export default function LandingPage() {
     if (!webSocketServiceRef.current) {
         webSocketServiceRef.current = new WebSocketService();
     }
+
+    const [clientToken, setClientToken] = useState<string | null>(null);
 
     useEffect(() => {
         const websocket = webSocketServiceRef.current;
@@ -37,6 +39,22 @@ export default function LandingPage() {
             websocket.sendMessage(testMessage);
         }, 1000);
 
+        const token = websocket.getLocalClientToken();
+        if (token) {
+            setClientToken(token);
+        } else {
+            // If not available immediately, set up polling
+            const checkToken = setInterval(() => {
+                const token = websocket.getLocalClientToken();
+                if (token) {
+                    setClientToken(token);
+                    clearInterval(checkToken);
+                }
+            }, 500);
+
+            return () => clearInterval(checkToken);
+        }
+
         console.log("LandingPage component mounted");
     }, []);
 
@@ -44,6 +62,7 @@ export default function LandingPage() {
         <div>
             <h1>Welcome to the Landing Page</h1>
             <p>This is a simple landing page.</p>
+            Client token: {clientToken ? clientToken : "Lädt..."}
         </div>
     );
 }
