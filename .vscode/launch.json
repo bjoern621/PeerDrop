@@ -5,11 +5,29 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch Backend",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/backend/backend/bin/Debug/net9.0/backend.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/backend/backend",
+            "launchSettingsFilePath": "${workspaceFolder}/backend/backend/Properties/launchSettings.json",
+            "launchSettingsProfile": "http",
+            "console": "integratedTerminal"
+        },
+        {
             "type": "node-terminal",
             "name": "Launch Vite",
             "request": "launch",
             "command": "npm run dev",
             "cwd": "${workspaceFolder}/frontend"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Launch Frontend and Backend",
+            "configurations": ["Launch Vite", "Launch Backend"]
         }
     ]
 }
