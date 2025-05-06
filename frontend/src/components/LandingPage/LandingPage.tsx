@@ -86,6 +86,7 @@ export default function LandingPage() {
 
     return (
         <div className={css.container}>
+            <div className={css.sidebar}></div>
             <img
                 src={bannerLogo}
                 className={css.logo}
