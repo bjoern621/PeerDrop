@@ -19,8 +19,8 @@ public struct TypedMessage<T>
     public T Msg { get; set; }
 }
 
-public delegate Task MessageHandlerDelegate(string clientId, JsonElement messageData);
-public delegate Task TypedMessageHandlerDelegate<T>(string clientId, T messageData);
+public delegate Task MessageHandlerDelegate(string clientToken, JsonElement messageData);
+public delegate Task TypedMessageHandlerDelegate<T>(string clientToken, T messageData);
 
 public static class WebSocketHandler
 {
@@ -61,11 +61,11 @@ public static class WebSocketHandler
     /// <summary>
     /// Sends a typed message to a specific client. The client ID must be valid and connected. Returns true if the message was sent successfully, false otherwise.
     /// </summary>
-    public static async Task<bool> SendMessage<T>(string clientId, TypedMessage<T> message)
+    public static async Task<bool> SendMessage<T>(string clientToken, TypedMessage<T> message)
     {
-        var result = ActiveConnections.TryGetValue(clientId, out var webSocket);
+        var result = ActiveConnections.TryGetValue(clientToken, out var webSocket);
 
-        Debug.Assert(result, $"Failed to find client with ID: {clientId}");
+        Debug.Assert(result, $"Failed to find client with ID: {clientToken}");
         Debug.Assert(webSocket != null);
 
         try
@@ -128,7 +128,7 @@ public static class WebSocketHandler
     /// <summary>
     /// Continuously listens for messages from the WebSocket connection. If a message is received, it is deserialized and forwarded to typed message listeners. If the message is too large or cannot be deserialized, the connection is closed.
     /// </summary>
-    private static async Task ListenForMessages(WebSocket webSocket, string clientId)
+    private static async Task ListenForMessages(WebSocket webSocket, string clientToken)
     {
         var buffer = new byte[1024];
 
@@ -146,7 +146,7 @@ public static class WebSocketHandler
                 break;
 
             var messageJSON = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            // Console.WriteLine($"Received message from {clientId}: {messageJSON}");
+            // Console.WriteLine($"Received message from {clientToken}: {messageJSON}");
 
             try
             {
@@ -172,7 +172,7 @@ public static class WebSocketHandler
                     return;
                 }
 
-                ForwardMessageToHandlers(clientId, messageType, msgElement);
+                ForwardMessageToHandlers(clientToken, messageType, msgElement);
             }
             catch (JsonException)
             {
@@ -215,7 +215,7 @@ public static class WebSocketHandler
     /// </summary>
     public static void SubscribeToMessageType<T>(MessageType messageType, TypedMessageHandlerDelegate<T> handler)
     {
-        Task wrapper(string clientId, JsonElement messageData)
+        Task wrapper(string clientToken, JsonElement messageData)
         {
             try
             {
@@ -228,7 +228,7 @@ public static class WebSocketHandler
 
                 }
 
-                return handler(clientId, typedData);
+                return handler(clientToken, typedData);
             }
             catch (JsonException ex)
             {
@@ -262,7 +262,7 @@ public static class WebSocketHandler
     /// <summary>
     /// Forwards a message to all registered handlers for its message type.
     /// </summary>
-    private static void ForwardMessageToHandlers(string clientId, MessageType messageType, JsonElement messageData)
+    private static void ForwardMessageToHandlers(string senderClientToken, MessageType messageType, JsonElement messageData)
     {
         if (!MessageHandlers.TryGetValue(messageType, out var handlers))
         {
@@ -274,7 +274,7 @@ public static class WebSocketHandler
         {
             handlers.ForEach(handler =>
             {
-                handler(clientId, messageData);
+                handler(senderClientToken, messageData);
             });
         }
     }
