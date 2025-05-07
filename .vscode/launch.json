@@ -9,7 +9,14 @@
             "name": "Launch Vite",
             "request": "launch",
             "command": "npm run dev",
-            "cwd": "${workspaceFolder}/frontend"
-        }
-    ]
+            "cwd": "${workspaceFolder}/frontend",
+        },
+        {
+            "type": "msedge",
+            "name": "Launch Firefox to localhost",
+            "request": "launch",
+            "runtimeExecutable": "/mnt/c/Program Files/Mozilla Firefox/firefox.exe",
+            "url": "http://localhost:5173", // default Vite port!
+            "webRoot": "${workspaceFolder}/frontend"
+        }]
 }

@@ -6,11 +6,13 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { PageNotFound } from "./components/PageNotFound/PageNotFound.tsx";
 import { CSSModulesExamples } from "./components/CSSModulesExample/CSSModulesExamples.tsx";
 import { Fetch } from "./components/Fetch/Fetch.tsx";
+import { DataSharingPage } from './components/DataSharingPage/DataSharingPage.tsx';
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <BrowserRouter>
             <Routes>
+                <Route path="/dataShare" element={<DataSharingPage />} />
                 <Route path="/" element={<PageNotFound />} />
                 <Route path="app" element={<App />} />
                 <Route
