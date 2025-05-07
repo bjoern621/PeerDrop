@@ -1,0 +1,24 @@
+body {
+    margin: 0;
+    height: 100%;
+
+    --white: #fefff9;
+    --black: #101016;
+
+    background-color: var(--white);
+    color: var(--black);
+
+    font-family: sans-serif;
+
+    fill: var(--white); // SVG fill color
+}
+
+.heading {
+    font-size: 2.5rem;
+    text-align: center;
+}
+
+.button {
+    color: grey;
+    background-color: black;
+}
