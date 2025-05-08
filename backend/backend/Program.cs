@@ -92,6 +92,7 @@ app.MapGet("/weatherforecast4", () => Results.Json(new { data = "invalid" }));
  */
 app.MapGet("/weatherforecast5", () => (string[]) ["1", "2"]);
 
+
 app.Run();
 
 internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
