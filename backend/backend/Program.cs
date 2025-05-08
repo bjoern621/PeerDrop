@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using backend;
+using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
@@ -57,7 +58,7 @@ app.MapGet("/weatherforecast", async () =>
         var connectionString = $"Host={host};Username={username};Password={password};Database={databaseName}";
         await using var dataSource = NpgsqlDataSource.Create(connectionString);
 
-        await using var cmd = dataSource.CreateCommand("INSERT INTO users (display_name) VALUES ('testname')");
+        await using var cmd = dataSource.CreateCommand("INSERT INTO users (display_name,passwort) VALUES ('testname','aaa')");
         await cmd.ExecuteNonQueryAsync();
 
 
@@ -68,21 +69,22 @@ app.MapGet("/weatherforecast", async () =>
 /*
  * Custom Mappings für Account-Erstellung
  */
-app.MapPost("/accounts", async (string displayName, string password) =>
+app.MapPost("/accounts", async ([FromBody] AccountCreateDTO acc) =>
 {
     var repo = new AccountRepository();
-    var accountobj = await repo.GetByNameAsync(displayName);
+    var accountobj = await repo.GetByNameAsync(acc.getDisplayName());
 
     if (accountobj == null) {
         // the account has not been created yet
 
-        var account = new Account(displayName, password);
+        var account = Account.of(acc);
+        // TODO : Service Logic for encrypting ?
         var newId = await repo.SaveAsync(account);
         return Results.Created($"/users/{newId}", new { Id = newId });
     }
 
     // the username is already taken
-    return Results.StatusCode(StatusCodes.Status403Forbidden);
+    return Results.StatusCode(StatusCodes.Status409Conflict);
 });
 
 /*

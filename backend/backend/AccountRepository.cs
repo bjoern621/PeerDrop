@@ -21,7 +21,10 @@ public class AccountRepository : IAccountRepository
         var connString = $"Host={host};Username={user};Password={pass};Database={database}";
         _dataSource = NpgsqlDataSource.Create(connString);
     }
-
+    
+    // TODO  : Implement Password Length Checking
+    // TODO : Entität
+    
     public Task<int> DeleteAsync(int id)
     {
         throw new NotImplementedException();
@@ -52,8 +55,8 @@ public class AccountRepository : IAccountRepository
         if (!await reader.ReadAsync()) return null;
 
         return new Account(
-            reader.GetString(0),
-            reader.GetString(1)
+            reader.GetString(1),
+            reader.GetString(2)
         );
     }
 }
