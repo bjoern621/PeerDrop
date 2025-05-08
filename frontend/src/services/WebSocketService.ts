@@ -38,8 +38,6 @@ export class WebSocketService {
 
     private localToken: ClientToken | undefined;
 
-    private remoteToken: ClientToken | undefined;
-
     /**
      * Initializes a new instance of the WebSocketService class.
      * It connects to the server.
@@ -48,12 +46,6 @@ export class WebSocketService {
         this.connectToServer();
 
         this.waitForLocalClientToken();
-
-        this.waitForRemoteClientToken();
-    }
-
-    private waitForRemoteClientToken() {
-        
     }
 
     private connectToServer() {

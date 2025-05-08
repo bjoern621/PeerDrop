@@ -11,9 +11,6 @@ export default function LandingPage() {
         webSocketServiceRef.current = new WebSocketService();
     }
 
-    // Make the WebSocketService globally accessible for debugging
-    (window as any).webSocketServiceRef = webSocketServiceRef;
-
     const [clientToken, setClientToken] = useState<string | null>(null);
 
     useEffect(() => {
