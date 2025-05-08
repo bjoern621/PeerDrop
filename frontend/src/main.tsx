@@ -6,19 +6,22 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { PageNotFound } from "./components/PageNotFound/PageNotFound.tsx";
 import { CSSModulesExamples } from "./components/CSSModulesExample/CSSModulesExamples.tsx";
 import { Fetch } from "./components/Fetch/Fetch.tsx";
+import { Layout } from "./Layout/Layout.tsx";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<PageNotFound />} />
-                <Route path="app" element={<App />} />
-                <Route
-                    path="/module-example"
-                    element={<CSSModulesExamples />}
-                />
-                <Route path="/fetch" element={<Fetch />} />
-                <Route path="*" element={<PageNotFound />} />
+                <Route element={<Layout />}>
+                    <Route path="/" element={<PageNotFound />} />
+                    <Route path="app" element={<App />} />
+                    <Route
+                        path="/module-example"
+                        element={<CSSModulesExamples />}
+                    />
+                    <Route path="/fetch" element={<Fetch />} />
+                    <Route path="*" element={<PageNotFound />} />
+                </Route>
             </Routes>
         </BrowserRouter>
     </StrictMode>
