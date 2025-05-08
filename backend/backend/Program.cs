@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using backend;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
@@ -17,7 +18,9 @@ var frontendOrigin = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN") ??
 builder.Services.AddCors(options => options.AddPolicy(
     corsAllowFrontendOrigin,
     policyBuilder =>
-        policyBuilder.WithOrigins(frontendOrigin)));
+        policyBuilder.WithOrigins(frontendOrigin)
+                     .WithHeaders("Content-Type")
+        ));
 
 
 var app = builder.Build();
@@ -69,10 +72,10 @@ app.MapGet("/weatherforecast", async () =>
 /*
  * Custom Mappings für Account-Erstellung
  */
-app.MapPost("/accounts", async ([FromBody] AccountCreateDTO acc) =>
+app.MapPost("/accounts", async ([FromBody] AccountCreateDto acc) =>
 {
     var repo = new AccountRepository();
-    var accountobj = await repo.GetByNameAsync(acc.getDisplayName());
+    var accountobj = await repo.GetByNameAsync(acc.DisplayName);
 
     if (accountobj == null) {
         // the account has not been created yet

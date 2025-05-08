@@ -2,27 +2,13 @@
 
 namespace backend;
 
-public class AccountCreateDTO
+public class AccountCreateDto()
 {
     [Required]
     [StringLength(100, MinimumLength = 3)]
-    private string _displayName;
+    public string DisplayName {get; set; }
     
     [Required]
     [StringLength(100, MinimumLength = 6)]
-    private string _password;
-
-    public AccountCreateDTO(string displayName, string password)
-    {
-        _displayName = displayName;
-        _password = password;
-    }
-    
-    public string getDisplayName() {
-        return _displayName;
-    }
-    
-    public string getPassword() {
-        return _password;
-    }
+    public string Password {get; set; }
 }

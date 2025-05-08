@@ -27,10 +27,10 @@ public class Account
         return _password;
     }
     
-    public static Account of(AccountCreateDTO accountCreateDto) {
+    public static Account of(AccountCreateDto accountCreateDto) {
         return new Account(
-            accountCreateDto.getDisplayName(),
-            accountCreateDto.getPassword()
+            accountCreateDto.DisplayName,
+            accountCreateDto.Password
         );
     }
 
