@@ -56,8 +56,6 @@ export class WebSocketService {
 
         this.waitForRemoteClientToken();
 
-        // WebSocketService global verfügbar machen für die Konsole im Browser (dev mode)
-        (window as any).webSocketService = this;
     }
 
 
@@ -174,8 +172,9 @@ export class WebSocketService {
         //unsubscribe all handlers for the REMOTE_TOKEN_MESSAGE_TYPE
         const handlersRemoteToken = this.messageHandlers.get(REMOTE_TOKEN_MESSAGE_TYPE);
         if(handlersRemoteToken) {
-            Promise.allSettled(
-                handlersRemoteToken.map(handler => this.unsubscribeMessage(REMOTE_TOKEN_MESSAGE_TYPE, handler))
+            handlersRemoteToken.forEach(handler => {
+                this.unsubscribeMessage(REMOTE_TOKEN_MESSAGE_TYPE, handler);
+            }
             );
         }
 

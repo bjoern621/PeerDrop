@@ -1,3 +1,4 @@
+import errorAsValue from "../util/ErrorAsValue";
 import { TypedMessage, WebSocketService } from "./WebSocketService";
 
 const iceServers: RTCConfiguration = {
@@ -9,14 +10,14 @@ const iceServers: RTCConfiguration = {
 
 export class WebRTCConnection {
     
-    private peerConnection: RTCPeerConnection;
+    private readonly peerConnection: RTCPeerConnection;
     private makingOffer: boolean = false;
     private ignoreOffer: boolean = false;
     private isSettingRemoteAnswerPending: boolean = false;
-    private polite: boolean;
+    private readonly polite: boolean;
 
 
-    constructor(private signalingChannel: WebSocketService, polite: boolean) {
+    public constructor(private readonly signalingChannel: WebSocketService, polite: boolean) {
 
         this.polite = polite;
 
@@ -32,18 +33,17 @@ export class WebRTCConnection {
         this.signalingChannel.subscribeMessage("candidate", async (message) => {
                 const candidate = message.msg as RTCIceCandidateInit;
 
-                try {
-                    await this.peerConnection.addIceCandidate(candidate);
-                } catch(err) {
-                    console.error("Error adding ICE candidate: ", err);
-                }
+            const [_, err] = await errorAsValue(this.peerConnection.addIceCandidate(candidate));
+            if (err) {
+                console.error("Error adding ICE candidate: ", err);
+            }
             }
         );
     }
 
     private setupSignalListeners() {
         this.signalingChannel.subscribeMessage("sdp-message", async (message) => {
-                try {
+            
                     //Getting the value of the msg from TypedMessage<RTCSessionDescriptionInit> (offer or answer)
                     const description = message.msg as RTCSessionDescriptionInit;
 
@@ -60,7 +60,7 @@ export class WebRTCConnection {
                     }
 
                     this.isSettingRemoteAnswerPending = description.type === "answer";
-                    await this.peerConnection.setRemoteDescription(description);
+                    const [_] = await errorAsValue(this.peerConnection.setRemoteDescription(description));
                     this.isSettingRemoteAnswerPending = false;
 
                     if(description.type === "offer") {
@@ -71,11 +71,7 @@ export class WebRTCConnection {
                         };
 
                         this.signalingChannel.sendMessage(descriptionMessage);
-                    }
-
-                } catch(err) {
-                    console.error(err);
-                }
+                    }               
 
             }
         );
@@ -83,21 +79,17 @@ export class WebRTCConnection {
 
     private handleNegotiationNeeded() {
         this.peerConnection.onnegotiationneeded = async () => {
-            try{
                 this.makingOffer = true;
                 await this.peerConnection.setLocalDescription();
-
+                
                 const descriptionMessage: TypedMessage<RTCSessionDescriptionInit> = {
                     type: "offer",
                     msg: this.peerConnection.localDescription!  //RTCSessionDescription implements RTCSessionDescriptionInit
                 };
 
                 this.signalingChannel.sendMessage(descriptionMessage);
-            } catch(err) {
-                console.error("Error setting local description", err);
-            } finally {
+
                 this.makingOffer = false;
-            }
         };
     }
 
