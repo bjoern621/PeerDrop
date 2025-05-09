@@ -60,7 +60,7 @@ export class WebRTCConnection {
                 console.log("Received REMOTE ICE candidate message");
 
                 const iceCandidateMessage = message.msg as IceCandidateMessage;
-                const candidate = iceCandidateMessage.iceCandidate as RTCIceCandidateInit;
+                const candidate = iceCandidateMessage.iceCandidate;
 
                 console.log("Adding ICE candidate");
 
@@ -76,7 +76,7 @@ export class WebRTCConnection {
         this.signalingChannel.subscribeMessage(SDP_MESSAGE_TYPE, async (message) => {
 
             const sdpMessage = message.msg as SDPMessage;
-            const description = sdpMessage.description as RTCSessionDescriptionInit;
+            const description = sdpMessage.description;
 
             console.log("Received SDP ", description.type, " message");
 
