@@ -15,13 +15,18 @@ export type ErrorMessage = {
     actual?: string;
 };
 
-type ClientTokenMessage = {
+export type RemoteTokenMessage = {
+    remoteToken: ClientToken;
+}
+
+export type ClientTokenMessage = {
     token: ClientToken;
 };
 
 export type ClientToken = string;
 
 const CLIENT_TOKEN_MESSAGE_TYPE: string = "client-token";
+export const REMOTE_TOKEN_MESSAGE_TYPE: string = "remote-token";
 
 /**
  * The `WebSocketService` class provides functionality for managing the WebSocket connection
@@ -38,6 +43,8 @@ export class WebSocketService {
 
     private localToken: ClientToken | undefined;
 
+    private remoteToken: ClientToken | undefined;
+
     /**
      * Initializes a new instance of the WebSocketService class.
      * It connects to the server.
@@ -46,8 +53,15 @@ export class WebSocketService {
         this.connectToServer();
 
         this.waitForLocalClientToken();
+
+        this.waitForRemoteClientToken();
+
+        // WebSocketService global verfügbar machen für die Konsole im Browser (dev mode)
+        (window as any).webSocketService = this;
     }
 
+
+    
     private connectToServer() {
         this.socket = new WebSocket(
             `ws://${import.meta.env.VITE_BACKEND_HOST}:${
@@ -57,6 +71,7 @@ export class WebSocketService {
 
         this.listenToMessages();
     }
+    
 
     private listenToMessages() {
         assert(this.socket);
@@ -108,6 +123,62 @@ export class WebSocketService {
             CLIENT_TOKEN_MESSAGE_TYPE,
             handleClientTokenMessage as MessageHandler
         );
+    }
+
+    /**
+     * Waits for the remote peer token to be received via a message of type `REMOTE_TOKEN_MESSAGE_TYPE`.
+     *
+     * This method subscribes to messages of the specified type and sets the `remoteToken` property
+     * when a message containing the remote peer token is received. Once the remote token is obtained, the
+     * subscription to the message type is automatically removed.
+     */
+    private waitForRemoteClientToken() {
+
+        const handleRemoteTokenMessage = (
+            message: TypedMessage<RemoteTokenMessage>
+        ) => {
+            console.log("Received remote token:", message.msg.remoteToken);
+
+            this.remoteToken = message.msg.remoteToken;
+
+            this.unsubscribeMessage(REMOTE_TOKEN_MESSAGE_TYPE, handleRemoteTokenMessage as MessageHandler);
+
+        }
+
+
+        this.subscribeMessage(REMOTE_TOKEN_MESSAGE_TYPE, handleRemoteTokenMessage as MessageHandler);
+    }
+
+    /**
+     * Stores the remote peer's token locally and sends a message to the signaling server containing this token.
+     * The signaling server then swaps the `msg.remoteToken` with the token of the sender (the peer that sent the message),
+     * effectively making the sender's token the `msg.remoteToken` for the recipient.
+     * Finally all (only one) handlers for the `REMOTE_TOKEN_MESSAGE_TYPE` are unsubscribed fot this instance.
+     *
+     * @param otherPeerToken The token of the other peer as a strring.
+     */
+    public sendTokenToRemotePeer(otherPeerToken: string) {
+        const otherToken: ClientToken = otherPeerToken;
+
+        const tokenMessage: TypedMessage<RemoteTokenMessage> = {
+            type: REMOTE_TOKEN_MESSAGE_TYPE,
+            msg: {
+                remoteToken: otherToken
+            }
+        };
+
+        this.remoteToken = otherToken;
+
+        this.sendMessage(tokenMessage);
+
+        //unsubscribe all handlers for the REMOTE_TOKEN_MESSAGE_TYPE
+        const handlersRemoteToken = this.messageHandlers.get(REMOTE_TOKEN_MESSAGE_TYPE);
+        if(handlersRemoteToken) {
+            Promise.allSettled(
+                handlersRemoteToken.map(handler => this.unsubscribeMessage(REMOTE_TOKEN_MESSAGE_TYPE, handler))
+            );
+        }
+
     }
 
     /**
@@ -177,9 +248,14 @@ export class WebSocketService {
         assert(index != -1);
 
         handlers.splice(index, 1);
+        console.log("Unsubscribed a handler from message type:", messageType);
     }
 
     public getLocalClientToken(): ClientToken | undefined {
         return this.localToken;
+    }
+
+    public getRemoteClientToken(): ClientToken | undefined {
+        return this.remoteToken;
     }
 }

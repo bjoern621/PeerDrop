@@ -1,4 +1,5 @@
 using System.Net.WebSockets;
+using System.Text.Json;
 using backend;
 using backend.endpoints.websocket;
 using Microsoft.AspNetCore.WebSockets;
@@ -118,6 +119,27 @@ WebSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, me
     await WebSocketHandler.SendMessage(clientId, response);
 });
 
+const string REMOTE_TOKEN_MESSAGE_TYPE = "remote-token";
+
+WebSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(REMOTE_TOKEN_MESSAGE_TYPE, async (clientId, message) =>
+    {
+        Console.WriteLine($"Raw message received from {clientId}: {JsonSerializer.Serialize(message)}");
+        string remoteToken = message.RemoteToken;
+
+        TypedMessage<RemoteTokenMessage> response = new()
+        {
+
+            Type = REMOTE_TOKEN_MESSAGE_TYPE,
+            Msg = new RemoteTokenMessage
+            {
+                RemoteToken = clientId
+            }
+        };
+
+        await WebSocketHandler.SendMessage(remoteToken, response);
+        Console.WriteLine($"Send raw message to {remoteToken}: {JsonSerializer.Serialize(response)}");
+    }
+    );
 
 app.Run();
 

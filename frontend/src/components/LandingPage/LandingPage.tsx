@@ -12,9 +12,11 @@ export default function LandingPage() {
     }
 
     const [clientToken, setClientToken] = useState<string | null>(null);
+    const [remoteToken, setRemoteToken] = useState<string>("");
+    
+    const websocket = webSocketServiceRef.current;
 
     useEffect(() => {
-        const websocket = webSocketServiceRef.current;
 
         assert(websocket, "WebSocketService is not initialized.");
 
@@ -63,6 +65,12 @@ export default function LandingPage() {
             <h1>Welcome to the Landing Page</h1>
             <p>This is a simple landing page.</p>
             Client token: {clientToken ? clientToken : "Lädt..."}
+            <br />
+            <br />
+            <input type="text" value={remoteToken} onChange={(e) => setRemoteToken(e.target.value)} placeholder="Enter Remote Token"/>
+            <br />
+            <br />
+            <button onClick={() => websocket.sendTokenToRemotePeer(remoteToken)}>send</button>
         </div>
     );
 }

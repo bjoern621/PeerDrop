@@ -2,10 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace backend.endpoints.websocket;
 
-public struct RemoteClientToken
+public struct RemoteTokenMessage
 {
     
-    [JsonPropertyName("remote-token")]
+    [JsonPropertyName("remoteToken")]
     
     public String RemoteToken { get; set; }
     
