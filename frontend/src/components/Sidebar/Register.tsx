@@ -1,16 +1,54 @@
 import errorAsValue from "../../util/ErrorAsValue";
+import { useState } from "react";
 
 export const Register = () => {
-    function handleRegisterUser(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        const form = event.currentTarget;
-        const formData = new FormData(form);
-        const username = formData.get('username') as string;
-        const password = formData.get('password') as string;
-        const passwordRepeat = formData.get('passwordRepeat') as string;
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [passwordRepeat, setPasswordRepeat] = useState("");
 
-        if (password !== passwordRepeat) {
-            alert("Die Passwörter stimmen nicht überein.");
+    const [usernameError, setUsernameError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const [passwordRepeatError, setPasswordRepeatError] = useState("");
+
+    const validateUsername = () => {
+        if (!username) {
+            setUsernameError("Benutzername ist erforderlich.");
+            return false;
+        }
+
+        setUsernameError("");
+        return true;
+    }
+
+    const validatePassword = () => {
+        if (!password) {
+            setPasswordError("Passwort ist erforderlich.");
+            return false;
+        }
+
+        setPasswordError("");
+        return true;
+    }
+
+    const validatePasswordRepeat = () => {
+        if (!passwordRepeat) {
+            setPasswordRepeatError("Passwortwiederholung ist erforderlich.");
+            return false;
+        }
+
+        if (passwordRepeat !== password) {
+            setPasswordRepeatError("Passwörter stimmen nicht überein.");
+            return false;
+        }
+
+        setPasswordRepeatError("");
+        return true;
+    }
+
+    function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+
+        if (!validateUsername() || !validatePassword() || !validatePasswordRepeat()) {
             return;
         }
 
@@ -19,16 +57,15 @@ export const Register = () => {
             Password: password,
         };
 
-        postRegisterUser(userData);
+        registerUser(userData);
     }
-
-    async function postRegisterUser(userData: { DisplayName: string; Password: string }) {
+    
+    async function registerUser(userData: { DisplayName: string; Password: string }) {
         const [response, err1] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': '*/*',
                 },
                 body: JSON.stringify(userData),
             })
@@ -46,11 +83,35 @@ export const Register = () => {
 
     return (
         <div className="form-container">
-            <form onSubmit={handleRegisterUser}>
+            <form onSubmit={onSubmit} noValidate>
                 <p>
-                    <input type="text" placeholder="Benutzername" name="username" required />
-                    <input type="password" placeholder="Passwort" name="password" required />
-                    <input type="password" placeholder="Passwort wiederholen" name="passwordRepeat" required />
+                    <input
+                        type="text" 
+                        placeholder="Benutzername" 
+                        name="username" 
+                        value={username}
+                        className={usernameError ? "errorField" : ""}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                    {usernameError && <small className="error">{usernameError}</small>}
+                    <input 
+                        type="password" 
+                        placeholder="Passwort" 
+                        name="password" 
+                        value={password}
+                        className={passwordError ? "errorField" : ""}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    {passwordError && <small className="error">{passwordError}</small>}
+                    <input
+                        type="password"
+                        placeholder="Passwort wiederholen"
+                        name="passwordRepeat"
+                        value={passwordRepeat}
+                        className={passwordRepeatError ? "errorField" : ""}
+                        onChange={(e) => setPasswordRepeat(e.target.value)}
+                    />
+                    {passwordRepeatError && <small className="error">{passwordRepeatError}</small>}
                 </p>
                 <button type="submit">Registrieren</button>
             </form>
