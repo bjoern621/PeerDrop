@@ -17,7 +17,7 @@ export default function LandingPage() {
     const websocket = webSocketServiceRef.current;
 
     useEffect(() => {
-
+        const websocket = webSocketServiceRef.current;
         assert(websocket, "WebSocketService is not initialized.");
 
         const TEST_MESSAGE_TYPE = "test";
