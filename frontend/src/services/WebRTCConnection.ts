@@ -81,7 +81,7 @@ export class WebRTCConnection {
         this.peerConnection.onnegotiationneeded = async () => {
                 this.makingOffer = true;
                 await this.peerConnection.setLocalDescription();
-
+                
                 const descriptionMessage: TypedMessage<RTCSessionDescriptionInit> = {
                     type: "offer",
                     msg: this.peerConnection.localDescription!  //RTCSessionDescription implements RTCSessionDescriptionInit
