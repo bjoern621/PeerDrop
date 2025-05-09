@@ -1,5 +1,5 @@
 import errorAsValue from "../util/ErrorAsValue";
-import { TypedMessage, WebSocketService } from "./WebSocketService";
+import { ClientToken, TypedMessage, WebSocketService } from "./WebSocketService";
 
 const iceServers: RTCConfiguration = {
     iceServers: [
@@ -7,31 +7,62 @@ const iceServers: RTCConfiguration = {
     ],
 };
 
+export type IceCandidateMessage = {
+    remoteToken: ClientToken;
+    iceCandidate: RTCIceCandidateInit;
+}
+
+export type SDPMessage = {
+    remoteToken: ClientToken;
+    description: RTCSessionDescriptionInit;
+}
+
+const ICE_CANDIDATE_MESSAGE_TYPE: string = "ice-candidate";
+const SDP_MESSAGE_TYPE: string = "sdp-message";
+
 
 export class WebRTCConnection {
     
+    private readonly remoteToken: ClientToken;
+    private readonly signalingChannel: WebSocketService;
     private readonly peerConnection: RTCPeerConnection;
+
     private makingOffer: boolean = false;
     private ignoreOffer: boolean = false;
     private isSettingRemoteAnswerPending: boolean = false;
     private readonly polite: boolean;
 
 
-    public constructor(private readonly signalingChannel: WebSocketService, polite: boolean) {
+    public constructor(signalingChannel: WebSocketService) {
 
-        this.polite = polite;
-
+        this.remoteToken = signalingChannel.getRemoteClientToken()!;
+        this.signalingChannel = signalingChannel;
+        this.polite = signalingChannel.getLocalClientToken()! < this.remoteToken;
         this.peerConnection = new RTCPeerConnection(iceServers);
+
         this.handleIncomingICECandidates(); 
         this.handleNegotiationNeeded();
-        this.setupSignalListeners();
+        this.handleSDPPackage();
         this.handleRemoteICECandidates();
+        
+        this.testMethodDataChannelInitializier();
+    }
+
+
+    public testMethodDataChannelInitializier() {
+        this.peerConnection.createDataChannel("testing, testing, attention please");
     }
 
 
     private handleRemoteICECandidates() {
-        this.signalingChannel.subscribeMessage("candidate", async (message) => {
-                const candidate = message.msg as RTCIceCandidateInit;
+        this.signalingChannel.subscribeMessage(ICE_CANDIDATE_MESSAGE_TYPE, async (message) => {
+
+                console.log("Received REMOTE ICE candidate message");
+
+                const iceCandidateMessage = message.msg as IceCandidateMessage;
+                const candidate = iceCandidateMessage.iceCandidate as RTCIceCandidateInit;
+
+                console.log("Adding ICE candidate");
 
             const [, err] = await errorAsValue(this.peerConnection.addIceCandidate(candidate));
             if (err) {
@@ -41,37 +72,54 @@ export class WebRTCConnection {
         );
     }
 
-    private setupSignalListeners() {
-        this.signalingChannel.subscribeMessage("sdp-message", async (message) => {
-            
-                    //Getting the value of the msg from TypedMessage<RTCSessionDescriptionInit> (offer or answer)
-                    const description = message.msg as RTCSessionDescriptionInit;
+    private handleSDPPackage() {
+        this.signalingChannel.subscribeMessage(SDP_MESSAGE_TYPE, async (message) => {
 
-                    const readyForOffer =
-                        !this.makingOffer &&
-                        (this.peerConnection.signalingState === "stable" || this.isSettingRemoteAnswerPending);
+            const sdpMessage = message.msg as SDPMessage;
+            const description = sdpMessage.description as RTCSessionDescriptionInit;
 
-                    const offerCollision = description.type === "offer" && !readyForOffer;
+            console.log("Received SDP ", description.type, " message");
 
-                    // ignoreOffer is true, if offerCollision occurs and if this peer is impolite (ignoring SDP and all incoming ICE candidates)
-                    this.ignoreOffer = !this.polite && offerCollision;
-                    if(this.ignoreOffer) {
-                        return;
+            const readyForOffer =
+                !this.makingOffer &&
+                (this.peerConnection.signalingState === "stable" || this.isSettingRemoteAnswerPending);
+
+            const offerCollision = description.type === "offer" && !readyForOffer;
+
+            // ignoreOffer is true, if offerCollision occurs and if this peer is impolite (ignoring SDP and all incoming ICE candidates)
+            this.ignoreOffer = !this.polite && offerCollision;
+            if(this.ignoreOffer) {
+
+                console.log("IGNORING offer, because this peer is impolite and offerCollision occurred");
+
+                return;
+            }
+
+            this.isSettingRemoteAnswerPending = description.type === "answer";
+
+            console.log("Setting REMOTE DESCRIPTION");
+
+            const [,] = await errorAsValue(this.peerConnection.setRemoteDescription(description));
+            this.isSettingRemoteAnswerPending = false;
+
+            if(description.type === "offer") {
+
+                console.log("Creating ANSWER...");
+                console.log("Setting LOCAL DESCRIPTION");
+
+                await this.peerConnection.setLocalDescription();
+                const descriptionMessage: TypedMessage<SDPMessage> = {
+                    type: SDP_MESSAGE_TYPE,
+                    msg: {
+                        remoteToken: this.remoteToken,
+                        description: this.peerConnection.localDescription!
                     }
+                };
 
-                    this.isSettingRemoteAnswerPending = description.type === "answer";
-                    const [,] = await errorAsValue(this.peerConnection.setRemoteDescription(description));
-                    this.isSettingRemoteAnswerPending = false;
+                console.log("Sending SDP answer...");
 
-                    if(description.type === "offer") {
-                        await this.peerConnection.setLocalDescription();
-                        const descriptionMessage: TypedMessage<RTCSessionDescriptionInit> = {
-                            type: "sdp-message",
-                            msg: this.peerConnection.localDescription!
-                        };
-
-                        this.signalingChannel.sendMessage(descriptionMessage);
-                    }               
+                this.signalingChannel.sendMessage(descriptionMessage);
+            }
 
             }
         );
@@ -79,35 +127,49 @@ export class WebRTCConnection {
 
     private handleNegotiationNeeded() {
         this.peerConnection.onnegotiationneeded = async () => {
-                this.makingOffer = true;
-                await this.peerConnection.setLocalDescription();
-                
-                const descriptionMessage: TypedMessage<RTCSessionDescriptionInit> = {
-                    type: "offer",
-                    msg: this.peerConnection.localDescription!  //RTCSessionDescription implements RTCSessionDescriptionInit
-                };
 
-                this.signalingChannel.sendMessage(descriptionMessage);
+            console.log("Making SDP offer...");
 
-                this.makingOffer = false;
+            this.makingOffer = true;
+
+            console.log("Setting local description");
+
+            await this.peerConnection.setLocalDescription();
+            
+            const descriptionMessage: TypedMessage<SDPMessage> = {
+                type: SDP_MESSAGE_TYPE,
+                msg: {
+                    remoteToken: this.remoteToken,
+                    description: this.peerConnection.localDescription!
+                }
+            };
+
+            console.log("Sending SDP offer...");
+
+            this.signalingChannel.sendMessage(descriptionMessage);
+
+            this.makingOffer = false;
         };
     }
 
 
     private handleIncomingICECandidates() {
         this.peerConnection.onicecandidate = (event) => {
+
+            console.log("STUN Server ICE Candidate received, forwarding");
+
             if(event.candidate) {
-                const iceCandidateMessage: TypedMessage<RTCIceCandidateInit> = {
-                    type: "new-ice-candidate",
-                    msg: event.candidate
+                const iceCandidateMessage: TypedMessage<IceCandidateMessage> = {
+                    type: ICE_CANDIDATE_MESSAGE_TYPE,
+                    msg: {
+                        remoteToken: this.remoteToken,
+                        iceCandidate: event.candidate
+                    }
                 };
                 this.signalingChannel.sendMessage(iceCandidateMessage);
             }
         };
     }
-
-
-
 
 }
 

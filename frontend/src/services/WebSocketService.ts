@@ -1,4 +1,5 @@
 import { assert, never } from "../util/Assert";
+import { WebRTCConnection } from "./WebRTCConnection";
 
 export type MessageHandler = (typedMessage: TypedMessage<unknown>) => unknown;
 
@@ -26,7 +27,7 @@ export type ClientTokenMessage = {
 export type ClientToken = string;
 
 const CLIENT_TOKEN_MESSAGE_TYPE: string = "client-token";
-export const REMOTE_TOKEN_MESSAGE_TYPE: string = "remote-token";
+const REMOTE_TOKEN_MESSAGE_TYPE: string = "remote-token";
 
 /**
  * The `WebSocketService` class provides functionality for managing the WebSocket connection
@@ -45,6 +46,8 @@ export class WebSocketService {
 
     private remoteToken: ClientToken | undefined;
 
+    private peer: WebRTCConnection | undefined;
+
     /**
      * Initializes a new instance of the WebSocketService class.
      * It connects to the server.
@@ -56,6 +59,8 @@ export class WebSocketService {
 
         this.waitForRemoteClientToken();
 
+        // WebSocketService global verfügbar machen für die Konsole im Browser (dev mode)
+        //(window as any).webSocketService = this;
     }
 
 
@@ -141,6 +146,8 @@ export class WebSocketService {
 
             this.unsubscribeMessage(REMOTE_TOKEN_MESSAGE_TYPE, handleRemoteTokenMessage as MessageHandler);
 
+            this.peer = new WebRTCConnection(this);
+
         }
 
 
@@ -169,6 +176,8 @@ export class WebSocketService {
 
         this.sendMessage(tokenMessage);
 
+        console.log("Sent remote token to signaling server:", otherToken);
+
         //unsubscribe all handlers for the REMOTE_TOKEN_MESSAGE_TYPE
         const handlersRemoteToken = this.messageHandlers.get(REMOTE_TOKEN_MESSAGE_TYPE);
         if(handlersRemoteToken) {
@@ -177,6 +186,10 @@ export class WebSocketService {
             }
             );
         }
+
+        this.peer = new WebRTCConnection(this);
+
+        this.peer.testMethodDataChannelInitializier();
 
     }
 
@@ -256,5 +269,9 @@ export class WebSocketService {
 
     public getRemoteClientToken(): ClientToken | undefined {
         return this.remoteToken;
+    }
+
+    public getPeer(): WebRTCConnection | undefined {
+        return this.peer;
     }
 }
