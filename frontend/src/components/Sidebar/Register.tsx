@@ -11,8 +11,8 @@ export const Register = () => {
     const [passwordRepeatError, setPasswordRepeatError] = useState("");
 
     const validateUsername = () => {
-        if (!username) {
-            setUsernameError("Benutzername ist erforderlich.");
+        if (!username.match(/^\S{3,}$/)) {
+            setUsernameError("Benutzername ungültig.");
             return false;
         }
 
@@ -21,8 +21,8 @@ export const Register = () => {
     }
 
     const validatePassword = () => {
-        if (!password) {
-            setPasswordError("Passwort ist erforderlich.");
+        if (!password.match(/^\S{6,}$/)) {
+            setPasswordError("Passwort ungültig.");
             return false;
         }
 
@@ -48,7 +48,11 @@ export const Register = () => {
     function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        if (!validateUsername() || !validatePassword() || !validatePasswordRepeat()) {
+        const usernameValid = validateUsername();
+        const passwordValid = validatePassword();
+        const passwordRepeatValid = validatePasswordRepeat();
+
+        if (!usernameValid || !passwordValid || !passwordRepeatValid) {
             return;
         }
 
