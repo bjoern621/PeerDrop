@@ -77,6 +77,13 @@ export const Register = () => {
         if (err1) {
             console.error("Fehler beim Registrieren:", err1);
             return;
+        } else if (response.status == 409) {
+            setUsernameError("Benutzername bereits vergeben.");
+            return;
+        } else if (!response.ok) {
+            setUsernameError("Ungültiger Benutzername.");
+            setPasswordError("Ungültiges Passwort.");
+            return;
         }
         console.log("Benutzer registriert:", response);
     }
