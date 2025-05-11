@@ -30,7 +30,7 @@ public static class WebSocketHandler
 
     private static string GenerateClientToken()
     {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const string chars = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
         return new string([.. Enumerable.Repeat(chars, 5).Select(s => s[Random.Next(s.Length)])]);
     }
 
