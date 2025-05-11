@@ -11,6 +11,7 @@ jobs:
 
     build:
         runs-on: ubuntu-latest
+        name: Build Docker images
         needs: lint-check
 
         steps:
