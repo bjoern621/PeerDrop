@@ -1,4 +1,4 @@
-name: Docker Database
+name: Docker Image Build & Push Database
 
 on: workflow_call
 
