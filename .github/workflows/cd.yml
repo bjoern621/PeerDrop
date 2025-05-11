@@ -6,7 +6,6 @@ on:
 
 jobs:
     determine-image-tag:
-        id: image_tags
         runs-on: ubuntu-latest
         name: Determine tag
         outputs:
@@ -38,16 +37,19 @@ jobs:
                   echo "TAGS=${major_version},${minor_version},${full_version}" >> "$GITHUB_OUTPUT"
 
     build-and-push-frontend:
+        needs: determine-image-tag
         uses: ./.github/workflows/docker-publish-frontend.yml
         with:
             tags: ${{ needs.determine-image-tag.outputs.TAGS }}
 
     build-and-push-backend:
+        needs: determine-image-tag
         uses: ./.github/workflows/docker-publish-backend.yml
         with:
             tags: ${{ needs.determine-image-tag.outputs.TAGS }}
 
     build-and-push-database:
+        needs: determine-image-tag
         uses: ./.github/workflows/docker-publish-database.yml
         with:
             tags: ${{ needs.determine-image-tag.outputs.TAGS }}
