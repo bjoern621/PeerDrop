@@ -1,6 +1,12 @@
 name: Docker Image Build & Push Database
 
-on: workflow_call
+on:
+    workflow_call:
+        inputs:
+            tags:
+                description: "Comma-separated list of tags for the Docker image"
+                required: true
+                type: string
 
 env:
     REGISTRY: ghcr.io
