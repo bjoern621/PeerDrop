@@ -4,7 +4,7 @@ on:
     workflow_call:
         inputs:
             tags:
-                description: "Comma-separated list of tags for the Docker image"
+                description: 'Comma-separated list of tags for the Docker image e.g., "1, 1.2, 1.2.3"'
                 required: true
                 type: string
 
@@ -33,12 +33,18 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
 
+            - name: Prepend image name to tags
+              id: tagger
+              run: |
+                  TAGS=$(echo "${{ inputs.tags }}" | tr ',' '\n' | sed "s|^|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:|" | paste -sd "," -)
+                  echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
             - name: Build and push Docker image
               id: build-and-push
               uses: docker/build-push-action@v5
               with:
                   context: ./database/
                   push: true
-                  tags: ${{ inputs.tags }}
+                  tags: ${{ steps.tagger.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
