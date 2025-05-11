@@ -1,5 +1,3 @@
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using backend;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;

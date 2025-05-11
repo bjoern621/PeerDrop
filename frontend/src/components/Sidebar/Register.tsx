@@ -57,14 +57,14 @@ export const Register = () => {
         }
 
         const userData = {
-            DisplayName: username,
-            Password: password,
+            username: username,
+            password: password,
         };
 
         registerUser(userData);
     }
     
-    async function registerUser(userData: { DisplayName: string; Password: string }) {
+    async function registerUser(userData: { username: string; password: string }) {
         const [response, err1] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
                 method: 'POST',
