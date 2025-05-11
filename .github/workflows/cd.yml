@@ -1,13 +1,8 @@
 name: CD
 
 on:
-    workflow_dispatch:
-        inputs:
-            tag:
-                description: "Tag for the new Release"
-                required: true
-                default: "latest"
-                placeholder: "vX.X.X"
+    release:
+        types: [released]
 
 jobs:
     determine-image-tag:
@@ -20,7 +15,7 @@ jobs:
         steps:
             - name: Validate tag
               run: |
-                  tag="${{ github.event.inputs.tag }}"
+                  tag="${{ github.event.release.tag_name }}"
                   if [[ ! $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
                       echo "Invalid tag format. Expected format: vX.X.X"
                       exit 1
@@ -29,7 +24,7 @@ jobs:
             - name: Set tags for Docker images
               id: set_tag
               run: |
-                  tag="${{ github.event.inputs.tag }}"
+                  tag="${{ github.event.release.tag_name }}"
 
                   # Remove the 'v' from the start of the tag
                   version_without_v=${tag#"v"}
