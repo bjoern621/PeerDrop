@@ -1,5 +1,7 @@
 import errorAsValue from "../../util/ErrorAsValue";
 import { useState } from "react";
+import { UserLoginDto } from "../dtos/UserLoginDto";
+import { assert } from "../../util/Assert";
 
 export const Register = () => {
     const [username, setUsername] = useState("");
@@ -9,6 +11,8 @@ export const Register = () => {
     const [usernameError, setUsernameError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [passwordRepeatError, setPasswordRepeatError] = useState("");
+
+    const [buttonDisabled, setButtonDisabled] = useState(false);
 
     const validateUsername = () => {
         if (!username.match(/^\S{3,}$/)) {
@@ -45,7 +49,7 @@ export const Register = () => {
         return true;
     }
 
-    function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
         const usernameValid = validateUsername();
@@ -56,15 +60,17 @@ export const Register = () => {
             return;
         }
 
-        const userData = {
+        const userData: UserLoginDto = {
             username: username,
             password: password,
         };
-
-        registerUser(userData);
+        
+        setButtonDisabled(true);
+        await registerUser(userData);
+        setButtonDisabled(false);
     }
     
-    async function registerUser(userData: { username: string; password: string }) {
+    async function registerUser(userData: UserLoginDto) {
         const [response, err1] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
                 method: 'POST',
@@ -74,6 +80,7 @@ export const Register = () => {
                 body: JSON.stringify(userData),
             })
         )
+        
         if (err1) {
             console.error("Fehler beim Registrieren:", err1);
             return;
@@ -85,7 +92,11 @@ export const Register = () => {
             setPasswordError("Ungültiges Passwort.");
             return;
         }
-        console.log("Benutzer registriert:", response);
+
+        const newUserLocation = response.headers.get("Location");
+        assert(newUserLocation, "Fehler: Location-Header fehlt in der Antwort.");
+        const newUserEndpoint = `${import.meta.env.VITE_BACKEND_URL}${newUserLocation}`;
+        console.log("Benutzer registriert:", newUserEndpoint);
     }
 
     function onSwitchToLogin() {
@@ -124,7 +135,7 @@ export const Register = () => {
                     />
                     {passwordRepeatError && <small className="error">{passwordRepeatError}</small>}
                 </p>
-                <button type="submit">Registrieren</button>
+                <button type="submit" disabled={buttonDisabled}>Registrieren</button>
             </form>
             <p>oder <button type="button" onClick={onSwitchToLogin}>Login</button></p>
         </div>
