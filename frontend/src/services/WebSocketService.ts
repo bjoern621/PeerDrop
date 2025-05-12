@@ -50,9 +50,7 @@ export class WebSocketService {
 
     private connectToServer() {
         this.socket = new WebSocket(
-            `ws://${import.meta.env.VITE_BACKEND_HOST}:${
-                import.meta.env.VITE_BACKEND_PORT
-            }/connect`
+            `${import.meta.env.VITE_WS_BACKEND_URL}/connect`
         );
 
         this.listenToMessages();
