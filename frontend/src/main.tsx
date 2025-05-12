@@ -12,7 +12,7 @@ createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <BrowserRouter>
             <Routes>
-                <Route path="/dataShare" element={<DataSharingPage />} />
+                <Route path="/share" element={<DataSharingPage />} />
                 <Route path="/" element={<PageNotFound />} />
                 <Route path="app" element={<App />} />
                 <Route
