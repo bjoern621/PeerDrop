@@ -144,7 +144,6 @@ public static class WebSocketHandler
 
             if (result.MessageType == WebSocketMessageType.Close)
                 break;
-
             var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
             // Console.WriteLine($"Received message from {clientToken}: {messageJson}");
 

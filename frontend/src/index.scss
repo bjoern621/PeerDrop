@@ -12,13 +12,15 @@ body {
 
     --black: #101016;
     --white: #fefff9;
+    --shadow-rgb: 39, 39, 42;
+    --shadow: rgba(var(--shadow-rgb), 0.1);
 
-    background-color: var(--black);
-    color: var(--white);
+    background-color: var(--white);
+    color: var(--black);
 
     font-family: sans-serif;
 
-    fill: var(--white); // SVG fill color
+    fill: var(--black); // SVG fill color
 }
 
 #root {
