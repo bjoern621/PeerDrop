@@ -11,6 +11,8 @@ export const Register = () => {
     const [passwordError, setPasswordError] = useState("");
     const [passwordRepeatError, setPasswordRepeatError] = useState("");
 
+    const [buttonDisabled, setButtonDisabled] = useState(false);
+
     const validateUsername = () => {
         if (!username.match(/^\S{3,}$/)) {
             setUsernameError("Benutzername ungültig.");
@@ -46,7 +48,7 @@ export const Register = () => {
         return true;
     }
 
-    function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
         const usernameValid = validateUsername();
@@ -61,8 +63,10 @@ export const Register = () => {
             username: username,
             password: password,
         };
-
-        registerUser(userData);
+        
+        setButtonDisabled(true);
+        await registerUser(userData);
+        setButtonDisabled(false);
     }
     
     async function registerUser(userData: UserLoginDto) {
