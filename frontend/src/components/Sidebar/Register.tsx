@@ -1,5 +1,6 @@
 import errorAsValue from "../../util/ErrorAsValue";
 import { useState } from "react";
+import { UserLoginDto } from "../dtos/UserLoginDto";
 
 export const Register = () => {
     const [username, setUsername] = useState("");
@@ -56,7 +57,7 @@ export const Register = () => {
             return;
         }
 
-        const userData = {
+        const userData: UserLoginDto = {
             username: username,
             password: password,
         };
@@ -64,7 +65,7 @@ export const Register = () => {
         registerUser(userData);
     }
     
-    async function registerUser(userData: { username: string; password: string }) {
+    async function registerUser(userData: UserLoginDto) {
         const [response, err1] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
                 method: 'POST',
