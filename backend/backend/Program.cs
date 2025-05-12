@@ -1,3 +1,7 @@
+using System.Net.WebSockets;
+using backend;
+using backend.endpoints.websocket;
+using Microsoft.AspNetCore.WebSockets;
 using Npgsql;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
@@ -16,6 +20,7 @@ builder.Services.AddCors(options => options.AddPolicy(
     policyBuilder =>
         policyBuilder.WithOrigins(frontendOrigin)));
 
+builder.Services.AddWebSockets(options => { });
 
 var app = builder.Build();
 
@@ -23,6 +28,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
 app.UseCors(corsAllowFrontendOrigin);
+
+app.UseWebSockets();
 
 string[] summaries =
 [
@@ -63,6 +70,7 @@ app.MapGet("/weatherforecast", async () =>
     })
     .WithName("GetWeatherForecast");
 
+
 /*
  * Erzeugt Fehler: Im Client wird fetch() fehlschlagen (err1)
  */
@@ -90,7 +98,25 @@ app.MapGet("/weatherforecast4", () => Results.Json(new { data = "invalid" }));
 /*
  * Erzeugt keinen Fehler, ist aber trotzdem nicht richtig: Dem Client werden invalide Daten gesendet (also kein WeatherForecast[], was eigentlich erwartet wird)
  */
-app.MapGet("/weatherforecast5", () => (string[]) ["1", "2"]);
+app.MapGet("/weatherforecast5", () => (string[])["1", "2"]);
+
+app.RegisterWebSocketRoutes();
+
+WebSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
+{
+    Console.WriteLine($"Received message from client {clientId}: {message.Message}");
+
+    TypedMessage<TestMessage> response = new()
+    {
+        Type = "test",
+        Msg = new TestMessage
+        {
+            Message = "Hallo vom Server!"
+        }
+    };
+
+    await WebSocketHandler.SendMessage(clientId, response);
+});
 
 app.Run();
 
