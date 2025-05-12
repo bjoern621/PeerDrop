@@ -36,7 +36,7 @@ public class Account
     
     public static void ValidatePasswordFormat(string password)
     {
-        if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 6 || password.Contains(' '))
         {
             throw new InvalidPasswordFormatException("Password must be at least 6 characters long and contain no whitespace.");
         }
@@ -44,7 +44,7 @@ public class Account
     
     public static void ValidateUsernameFormat(string username)
     {
-        if (string.IsNullOrWhiteSpace(username) || username.Length < 3)
+        if (string.IsNullOrWhiteSpace(username) || username.Length < 3 || username.Contains(' '))
         {
             throw new InvalidUsernameFormatException("Username must be at least 3 characters long and contain no whitespace.");
         }
