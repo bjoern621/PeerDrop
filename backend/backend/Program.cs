@@ -23,6 +23,9 @@ builder.Services.AddCors(options => options.AddPolicy(
 
 var app = builder.Build();
 
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
@@ -78,8 +81,12 @@ app.MapPost("/accounts", async ([FromBody] AccountCreateDto acc) =>
     if (accountobj == null) {
         // the account has not been created yet
 
+        // throw Exceptions if the username or password is invalid
+        Account.ValidateUsernameFormat(acc.DisplayName);
+        Account.ValidatePasswordFormat(acc.Password);
+        
         var account = Account.of(acc);
-        // TODO : Service Logic for encrypting ?
+        
         var newId = await repo.SaveAsync(account);
         return Results.Created($"/users/{newId}", new { Id = newId });
     }

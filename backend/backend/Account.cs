@@ -33,7 +33,22 @@ public class Account
             accountCreateDto.Password
         );
     }
-
+    
+    public static void ValidatePasswordFormat(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+        {
+            throw new InvalidPasswordFormatException("Password must be at least 6 characters long and contain no whitespace.");
+        }
+    }
+    
+    public static void ValidateUsernameFormat(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username) || username.Length < 3)
+        {
+            throw new InvalidUsernameFormatException("Username must be at least 3 characters long and contain no whitespace.");
+        }
+    }
     /**
      * Hash und Salt des Passwortes.
      */
