@@ -1,6 +1,7 @@
 import errorAsValue from "../../util/ErrorAsValue";
 import { useState } from "react";
 import { UserLoginDto } from "../dtos/UserLoginDto";
+import { assert } from "../../util/Assert";
 
 export const Register = () => {
     const [username, setUsername] = useState("");
@@ -79,6 +80,7 @@ export const Register = () => {
                 body: JSON.stringify(userData),
             })
         )
+        
         if (err1) {
             console.error("Fehler beim Registrieren:", err1);
             return;
@@ -90,7 +92,11 @@ export const Register = () => {
             setPasswordError("Ungültiges Passwort.");
             return;
         }
-        console.log("Benutzer registriert:", response);
+
+        const newUserLocation = response.headers.get("Location");
+        assert(newUserLocation, "Fehler: Location-Header fehlt in der Antwort.");
+        const newUserEndpoint = `${import.meta.env.VITE_BACKEND_URL}${newUserLocation}`;
+        console.log("Benutzer registriert:", newUserEndpoint);
     }
 
     function onSwitchToLogin() {
@@ -129,7 +135,7 @@ export const Register = () => {
                     />
                     {passwordRepeatError && <small className="error">{passwordRepeatError}</small>}
                 </p>
-                <button type="submit">Registrieren</button>
+                <button type="submit" disabled={buttonDisabled}>Registrieren</button>
             </form>
             <p>oder <button type="button" onClick={onSwitchToLogin}>Login</button></p>
         </div>

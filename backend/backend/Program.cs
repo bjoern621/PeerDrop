@@ -18,6 +18,7 @@ builder.Services.AddCors(options => options.AddPolicy(
     policyBuilder =>
         policyBuilder.WithOrigins(frontendOrigin)
                      .WithHeaders("Content-Type")
+                     .WithExposedHeaders("Location")
         ));
 
 
