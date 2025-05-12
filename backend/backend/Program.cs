@@ -104,14 +104,14 @@ app.RegisterWebSocketRoutes();
 
 WebSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
 {
-    Console.WriteLine($"Received message from client {clientId}: {message.Nachricht}");
+    Console.WriteLine($"Received message from client {clientId}: {message.Message}");
 
     TypedMessage<TestMessage> response = new()
     {
         Type = "test",
         Msg = new TestMessage
         {
-            Nachricht = "Hallo vom Server!"
+            Message = "Hallo vom Server!"
         }
     };
 

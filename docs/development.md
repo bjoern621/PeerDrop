@@ -85,5 +85,5 @@ Jetzt ist die Entwicklungsumgebung komplett eingerichtet.
 Teste zum Beispiel
 
 -   [`http://localhost:5173/fetch`](http://localhost:5173/fetch)
--   [`http://localhost:5032/weatherforecast`](http://localhost:5032/weatherforecast)
+-   [`http://localhost:5023/weatherforecast`](http://localhost:5023/weatherforecast)
 -   Lasse dir die users Tabelle anzeigen: postgres@localhost > peerdrop > public > tables > users (Doppelklick)

@@ -42,13 +42,13 @@ export default function LandingPage() {
         });
 
         type TestMessage = {
-            nachricht: string;
+            message: string;
         };
 
         const testMessage: TypedMessage<TestMessage> = {
             type: TEST_MESSAGE_TYPE,
             msg: {
-                nachricht: "Hallo Server",
+                message: "Hallo Server",
             },
         };
 

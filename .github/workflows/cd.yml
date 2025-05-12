@@ -1,0 +1,73 @@
+name: CD
+
+on:
+    release:
+        types: [released]
+
+permissions:
+    contents: read
+    packages: write
+
+jobs:
+    determine-image-tag:
+        runs-on: ubuntu-latest
+        name: Determine tag
+        outputs:
+            TAGS: ${{ steps.set_tag.outputs.TAGS }}
+
+        steps:
+            - name: Validate tag
+              run: |
+                  tag="${{ github.event.release.tag_name }}"
+                  if [[ ! $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                      echo "Invalid tag format. Expected format: vX.X.X"
+                      exit 1
+                  fi
+
+            - name: Set tags for Docker images
+              id: set_tag
+              run: |
+                  tag="${{ github.event.release.tag_name }}"
+
+                  # Remove the 'v' from the start of the tag
+                  version_without_v=${tag#"v"}
+
+                  # Extract major, minor, and patch parts of the tag
+                  major_version=$(echo $version_without_v | cut -d. -f1) # e.g., 1
+                  minor_version=$(echo $version_without_v | cut -d. -f1,2) # e.g., 1.0
+                  full_version=$version_without_v # e.g., 1.0.0
+
+                  # Set the tags variable
+                  echo "TAGS=${major_version},${minor_version},${full_version}" >> "$GITHUB_OUTPUT"
+
+    build-and-push-frontend:
+        needs: determine-image-tag
+        uses: ./.github/workflows/docker-publish-frontend.yml
+        with:
+            tags: ${{ needs.determine-image-tag.outputs.TAGS }}
+
+    build-and-push-backend:
+        needs: determine-image-tag
+        uses: ./.github/workflows/docker-publish-backend.yml
+        with:
+            tags: ${{ needs.determine-image-tag.outputs.TAGS }}
+
+    build-and-push-database:
+        needs: determine-image-tag
+        uses: ./.github/workflows/docker-publish-database.yml
+        with:
+            tags: ${{ needs.determine-image-tag.outputs.TAGS }}
+
+    deploy:
+        runs-on: ubuntu-latest
+        needs:
+            - build-and-push-frontend
+            - build-and-push-backend
+            - build-and-push-database
+
+        steps:
+            - name: Trigger Watchtower Update
+              run: |
+                  curl -X POST \
+                    -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
+                    https://watchtower.bjoernblessin.de/v1/update

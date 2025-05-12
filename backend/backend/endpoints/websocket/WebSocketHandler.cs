@@ -30,7 +30,7 @@ public static class WebSocketHandler
 
     private static string GenerateClientToken()
     {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
         return new string([.. Enumerable.Repeat(chars, 5).Select(s => s[Random.Next(s.Length)])]);
     }
 
@@ -144,13 +144,12 @@ public static class WebSocketHandler
 
             if (result.MessageType == WebSocketMessageType.Close)
                 break;
-
-            var messageJSON = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            // Console.WriteLine($"Received message from {clientToken}: {messageJSON}");
+            var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            // Console.WriteLine($"Received message from {clientToken}: {messageJson}");
 
             try
             {
-                using var document = JsonDocument.Parse(messageJSON);
+                using var document = JsonDocument.Parse(messageJson);
                 var root = document.RootElement;
 
                 // Check if the message has the expected structure
