@@ -1,0 +1,15 @@
+name: Task
+description: Definiere eine kompakte Teilaufgabe
+title: "[Task]: "
+body:
+  - type: textarea
+    attributes:
+      label: Aufgabe
+      description: Beschreibe klar, was umgesetzt werden soll.
+      placeholder: z. B. "UI für XYZ implementieren" oder "API-Endpunkt für ABC erstellen"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Hinweise / Kontext
+      description: Relevante technische Hinweise, Links, Abhängigkeiten o.Ä.

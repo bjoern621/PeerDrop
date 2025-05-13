@@ -1,5 +1,4 @@
 using System.Net.WebSockets;
-using System.Text.Json;
 using backend;
 using backend.endpoints.websocket;
 using Microsoft.AspNetCore.WebSockets;
@@ -105,14 +104,14 @@ app.RegisterWebSocketRoutes();
 
 WebSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
 {
-    Console.WriteLine($"Received message from client {clientId}: {message.Nachricht}");
+    Console.WriteLine($"Received message from client {clientId}: {message.Message}");
 
     TypedMessage<TestMessage> response = new()
     {
         Type = "test",
         Msg = new TestMessage
         {
-            Nachricht = "Hallo vom Server!"
+            Message = "Hallo vom Server!"
         }
     };
 
@@ -160,11 +159,11 @@ WebSocketHandler.SubscribeToMessageType<IceCandidateMessage>(ICE_CANDIDATE_MESSA
             IceCandidate = message.IceCandidate
         }
     };
-    
+
     await WebSocketHandler.SendMessage(remoteToken, response);
     Console.WriteLine($"to {remoteToken}: Remote ICE Candidate");
     //Console.WriteLine($"Send raw message to {remoteToken}: {JsonSerializer.Serialize(response)}");
-    
+
 });
 
 const string SDP_MESSAGE_TYPE = "sdp-message";
@@ -184,11 +183,11 @@ WebSocketHandler.SubscribeToMessageType<SDPMessage>(SDP_MESSAGE_TYPE, async (cli
             Description = message.Description
         }
     };
-    
+
     await WebSocketHandler.SendMessage(remoteToken, response);
     Console.WriteLine($"to {remoteToken}: Remote SDP");
     //Console.WriteLine($"Send raw message to {remoteToken}: {JsonSerializer.Serialize(response)}");
-    
+
 });
 
 app.Run();

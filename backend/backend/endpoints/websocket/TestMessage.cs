@@ -4,6 +4,6 @@ namespace backend.endpoints.websocket;
 
 public struct TestMessage
 {
-    [JsonPropertyName("nachricht")]
-    public string Nachricht { get; set; }
+    [JsonPropertyName("message")]
+    public string Message { get; set; }
 }
