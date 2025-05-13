@@ -119,6 +119,8 @@ WebSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, me
 });
 
 const string REMOTE_TOKEN_MESSAGE_TYPE = "remote-token";
+const string ERROR_MESSAGE_TYPE = "error-message";
+const string SUCCESS_MESSAGE_TYPE = "success-message";
 
 WebSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(REMOTE_TOKEN_MESSAGE_TYPE, async (clientId, message) =>
     {
@@ -126,19 +128,49 @@ WebSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(REMOTE_TOKEN_MESSAGE
         Console.WriteLine($"from {clientId}: Local Token");
         string remoteToken = message.RemoteToken;
 
-        TypedMessage<RemoteTokenMessage> response = new()
+        if (!WebSocketHandler.RemoteTokenExists(remoteToken))
+        {
+            TypedMessage<ErrorMessage> exception = new()
+            {
+                Type = ERROR_MESSAGE_TYPE,
+                Msg = new ErrorMessage
+                {
+                    Description = $"Remote token {remoteToken} does not exist"
+                }
+            };
+            
+            await WebSocketHandler.SendMessage(clientId, exception);
+            Console.WriteLine($"to {clientId}: ERROR: Remote token {remoteToken} does not exist");
+        }
+        else
         {
 
-            Type = REMOTE_TOKEN_MESSAGE_TYPE,
-            Msg = new RemoteTokenMessage
+            TypedMessage<SuccessMessage> success = new()
             {
-                RemoteToken = clientId
-            }
-        };
+                Type = SUCCESS_MESSAGE_TYPE,
+                Msg = new SuccessMessage
+                {
+                    Description = $"Token {remoteToken} exists, OK"
+                }
+            };
+            
+            TypedMessage<RemoteTokenMessage> response = new()
+            {
 
-        await WebSocketHandler.SendMessage(remoteToken, response);
-        Console.WriteLine($"to {remoteToken}: Remote Token");
-        //Console.WriteLine($"Send raw message to {remoteToken}: {JsonSerializer.Serialize(response)}");
+                Type = REMOTE_TOKEN_MESSAGE_TYPE,
+                Msg = new RemoteTokenMessage
+                {
+                    RemoteToken = clientId
+                }
+            };
+
+            await WebSocketHandler.SendMessage(clientId, success);
+            Console.WriteLine($"to {clientId}: SUCCESS: Remote token {remoteToken} exists");
+            
+            await WebSocketHandler.SendMessage(remoteToken, response);
+            Console.WriteLine($"to {remoteToken}: Remote Token");
+            //Console.WriteLine($"Send raw message to {remoteToken}: {JsonSerializer.Serialize(response)}");
+        }
     }
     );
 

@@ -81,7 +81,7 @@ export default function LandingPage() {
         }
         webSocketServiceRef.current?.sendTokenToRemotePeer(remoteToken);
 
-        console.log("Connecting to peer with token:", remoteToken);
+        console.log("Trying to connect to peer with token:", remoteToken);
     };
 
     return (

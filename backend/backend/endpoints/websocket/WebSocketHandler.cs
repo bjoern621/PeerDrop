@@ -28,6 +28,10 @@ public static class WebSocketHandler
     private static readonly Random Random = new();
     private static readonly ConcurrentDictionary<MessageType, List<MessageHandlerDelegate>> MessageHandlers = new();
 
+    public static bool RemoteTokenExists(string remoteToken)
+    {
+        return ActiveConnections.ContainsKey(remoteToken);
+    }
     private static string GenerateClientToken()
     {
         const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
