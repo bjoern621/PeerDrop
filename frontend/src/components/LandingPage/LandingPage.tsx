@@ -75,13 +75,18 @@ export default function LandingPage() {
         console.log("LandingPage component mounted");
     }, []);
 
-    const connectToPeer = () => {
+    const connectToPeer = async () => {
         if (remoteToken.length !== 5) {
             console.warn("Peer token must be 5 characters long.");
         }
-        webSocketServiceRef.current?.sendTokenToRemotePeer(remoteToken);
+
+        const websocket = webSocketServiceRef.current;
+        assert(websocket, "WebSocketService is not initialized.");
 
         console.log("Trying to connect to peer with token:", remoteToken);
+
+        await websocket.sendTokenToRemotePeer(remoteToken);
+
     };
 
     return (

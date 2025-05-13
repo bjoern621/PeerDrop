@@ -70,27 +70,49 @@ export class WebSocketService {
         //(window as any).webSocketService = this;
     }
 
-    public sendMessageAndWaitForResponse<T>(message: TypedMessage<T>): Promise<TypedMessage<ErrorMessage | SuccessMessage>> {
+    public sendMessageAndWaitForResponse<T>(
+        message: TypedMessage<T>
+    ): Promise<TypedMessage<ErrorMessage | SuccessMessage>> {
         return new Promise((resolve, reject) => {
-            const handlerResponse = (response: TypedMessage<ErrorMessage | SuccessMessage>) => {
-                if(response.type == ERROR_MESSAGE_TYPE) {
+            const handlerResponse = (
+                response: TypedMessage<ErrorMessage | SuccessMessage>
+            ) => {
+                if (response.type == ERROR_MESSAGE_TYPE) {
+                    this.unsubscribeMessage(
+                        SUCCESS_MESSAGE_TYPE,
+                        handlerResponse as MessageHandler
+                    );
+                    this.unsubscribeMessage(
+                        ERROR_MESSAGE_TYPE,
+                        handlerResponse as MessageHandler
+                    );
 
-                    this.unsubscribeMessage(SUCCESS_MESSAGE_TYPE, handlerResponse as MessageHandler);
-                    this.unsubscribeMessage(ERROR_MESSAGE_TYPE, handlerResponse as MessageHandler);
-
-                    reject(new Error((response.msg as ErrorMessage).description));
+                    reject(
+                        new Error((response.msg as ErrorMessage).description)
+                    );
                 }
-                if(response.type == SUCCESS_MESSAGE_TYPE) {
-
-                    this.unsubscribeMessage(SUCCESS_MESSAGE_TYPE, handlerResponse as MessageHandler);
-                    this.unsubscribeMessage(ERROR_MESSAGE_TYPE, handlerResponse as MessageHandler);
+                if (response.type == SUCCESS_MESSAGE_TYPE) {
+                    this.unsubscribeMessage(
+                        SUCCESS_MESSAGE_TYPE,
+                        handlerResponse as MessageHandler
+                    );
+                    this.unsubscribeMessage(
+                        ERROR_MESSAGE_TYPE,
+                        handlerResponse as MessageHandler
+                    );
 
                     resolve(response as TypedMessage<SuccessMessage>);
                 }
             };
 
-            this.subscribeMessage(SUCCESS_MESSAGE_TYPE, handlerResponse as MessageHandler);
-            this.subscribeMessage(ERROR_MESSAGE_TYPE, handlerResponse as MessageHandler);
+            this.subscribeMessage(
+                SUCCESS_MESSAGE_TYPE,
+                handlerResponse as MessageHandler
+            );
+            this.subscribeMessage(
+                ERROR_MESSAGE_TYPE,
+                handlerResponse as MessageHandler
+            );
 
             this.sendMessage(message);
         });
@@ -194,7 +216,6 @@ export class WebSocketService {
      * @param otherPeerToken The token of the other peer as a strring.
      */
     public async sendTokenToRemotePeer(otherPeerToken: string) {
-
         const otherToken: ClientToken = otherPeerToken;
 
         const tokenMessage: TypedMessage<RemoteTokenMessage> = {
@@ -204,14 +225,15 @@ export class WebSocketService {
             },
         };
 
-        const [, err] = await errorAsValue(this.sendMessageAndWaitForResponse<RemoteTokenMessage>(tokenMessage));
-        if(err) {
+        const [, err] = await errorAsValue(
+            this.sendMessageAndWaitForResponse<RemoteTokenMessage>(tokenMessage)
+        );
+        if (err) {
             console.error("Error sending remote token:", err.message);
             return;
         }
 
         this.remoteToken = otherToken;
-
 
         console.log("Sent remote token to signaling server:", otherToken);
 
