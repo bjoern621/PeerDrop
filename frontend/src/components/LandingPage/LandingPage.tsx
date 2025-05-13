@@ -28,7 +28,7 @@ export default function LandingPage() {
     }
 
     const [clientToken, setClientToken] = useState<string | null>(null);
-    const [peerToken, setPeerToken] = useState<string>("");
+    const [remoteToken, setRemoteToken] = useState<string>("");
 
     useEffect(() => {
         const websocket = webSocketServiceRef.current;
@@ -76,12 +76,12 @@ export default function LandingPage() {
     }, []);
 
     const connectToPeer = () => {
-        if (peerToken.length !== 5) {
+        if (remoteToken.length !== 5) {
             console.warn("Peer token must be 5 characters long.");
-            return;
         }
+        webSocketServiceRef.current?.sendTokenToRemotePeer(remoteToken);
 
-        console.log("Connecting to peer with token:", peerToken);
+        console.log("Connecting to peer with token:", remoteToken);
     };
 
     return (
@@ -102,8 +102,8 @@ export default function LandingPage() {
                 <div className={css.inputContainer}>
                     <OTPInput
                         maxLength={5}
-                        value={peerToken}
-                        onChange={setPeerToken}
+                        value={remoteToken}
+                        onChange={setRemoteToken}
                         render={({ slots }) => (
                             <>
                                 <div className={css.slotsContainer}>
