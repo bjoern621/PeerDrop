@@ -7,7 +7,7 @@ enum FileDirection {
     DOWN = 'down',
 }
 
-interface File {
+interface FileDisplay {
     name: string;
     direction: FileDirection;
     progress: number;
@@ -15,7 +15,7 @@ interface File {
     time: Date;
 }
 
-const mockData: File[] = [
+const mockData: FileDisplay[] = [
     {
         name: 'Datei01-final.png',
         direction: FileDirection.DOWN,
@@ -49,7 +49,7 @@ const mockData: File[] = [
 export function DataSharingPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [files, setFiles] = useState<File[]>(mockData);
+    const [files, setFiles] = useState<FileDisplay[]>(mockData);
 
     function getSizeInHumanReadableFormat(size: number): string {
         const units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -80,7 +80,7 @@ export function DataSharingPage() {
             return;
         }
 
-        const newFiles: File[] = [];
+        const newFiles: FileDisplay[] = [];
         for (const file of event.target.files!) {
             newFiles.push({
                 name: file.name,
