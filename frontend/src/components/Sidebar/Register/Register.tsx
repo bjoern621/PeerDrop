@@ -23,7 +23,7 @@ export const Register = () => {
 
         setUsernameError("");
         return true;
-    }
+    };
 
     const validatePassword = () => {
         if (!password.match(/^\S{6,}$/)) {
@@ -33,7 +33,7 @@ export const Register = () => {
 
         setPasswordError("");
         return true;
-    }
+    };
 
     const validatePasswordRepeat = () => {
         if (!passwordRepeat) {
@@ -48,7 +48,7 @@ export const Register = () => {
 
         setPasswordRepeatError("");
         return true;
-    }
+    };
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -74,13 +74,13 @@ export const Register = () => {
     async function registerUser(userData: UserLoginDto) {
         const [response, err1] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify(userData),
             })
-        )
+        );
 
         if (err1) {
             console.error("Fehler beim Registrieren:", err1);
@@ -95,8 +95,13 @@ export const Register = () => {
         }
 
         const newUserLocation = response.headers.get("Location");
-        assert(newUserLocation, "Fehler: Location-Header fehlt in der Antwort.");
-        const newUserEndpoint = `${import.meta.env.VITE_BACKEND_URL}${newUserLocation}`;
+        assert(
+            newUserLocation,
+            "Fehler: Location-Header fehlt in der Antwort."
+        );
+        const newUserEndpoint = `${
+            import.meta.env.VITE_BACKEND_URL
+        }${newUserLocation}`;
         console.log("Benutzer registriert:", newUserEndpoint);
     }
 
@@ -112,31 +117,57 @@ export const Register = () => {
                     placeholder="Benutzername"
                     name="username"
                     value={username}
-                    className={[usernameError ? css.errorField : '', css.inputfield].join(' ')}
-                    onChange={(e) => setUsername(e.target.value)}
+                    className={[
+                        usernameError ? css.errorField : "",
+                        css.inputfield,
+                    ].join(" ")}
+                    onChange={e => setUsername(e.target.value)}
                 />
-                {usernameError && <small className={css.error}>{usernameError}</small>}
+                {usernameError && (
+                    <small className={css.error}>{usernameError}</small>
+                )}
                 <input
                     type="password"
                     placeholder="Passwort"
                     name="password"
                     value={password}
-                    className={[usernameError ? css.errorField : '', css.inputfield].join(' ')}
-                    onChange={(e) => setPassword(e.target.value)}
+                    className={[
+                        usernameError ? css.errorField : "",
+                        css.inputfield,
+                    ].join(" ")}
+                    onChange={e => setPassword(e.target.value)}
                 />
-                {passwordError && <small className={css.error}>{passwordError}</small>}
+                {passwordError && (
+                    <small className={css.error}>{passwordError}</small>
+                )}
                 <input
                     type="password"
                     placeholder="Passwort wiederholen"
                     name="passwordRepeat"
                     value={passwordRepeat}
-                    className={[usernameError ? css.errorField : '', css.inputfield].join(' ')}
-                    onChange={(e) => setPasswordRepeat(e.target.value)}
+                    className={[
+                        usernameError ? css.errorField : "",
+                        css.inputfield,
+                    ].join(" ")}
+                    onChange={e => setPasswordRepeat(e.target.value)}
                 />
-                {passwordRepeatError && <small className={css.error}>{passwordRepeatError}</small>}
-                <button type="submit" disabled={buttonDisabled} className={css.submitbutton}>Registrieren</button>
+                {passwordRepeatError && (
+                    <small className={css.error}>{passwordRepeatError}</small>
+                )}
+                <button
+                    type="submit"
+                    disabled={buttonDisabled}
+                    className={css.submitbutton}
+                >
+                    Registrieren
+                </button>
             </form>
-            <p className={css.loginlink}>oder <button type="button" onClick={onSwitchToLogin}>Login</button></p>
+            <p className={css.loginlink}>
+                oder{" "}
+                <button type="button" onClick={onSwitchToLogin}>
+                    Login
+                </button>
+            </p>
         </div>
-    )
-}
+    );
+};
