@@ -17,8 +17,8 @@ body {
 
     background-color: var(--white);
     color: var(--black);
-    background-color: var(--white);
-    color: var(--black);
+    --shadow-rgb: 39, 39, 42;
+    --shadow: rgba(var(--shadow-rgb), 0.1);
 
     font-family: "Source Sans 3", sans-serif;
 
