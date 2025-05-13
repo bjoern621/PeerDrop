@@ -1,0 +1,26 @@
+name: Bug Report
+description: Melde einen Fehler
+title: "[Bug]: "
+labels: "bug"
+body:
+  - type: textarea
+    attributes:
+      label: Fehlerbeschreibung
+      description: Beschreibe den beobachteten Fehler so genau wie möglich.
+      placeholder: Beim Ausführen von <Aktion> passiert <Fehler>, erwartet wurde <Erwartetes Verhalten>.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Schritte zur Reproduktion
+      description: Liste die Schritte auf, um den Fehler zu reproduzieren.
+      placeholder: |
+        1. Gehe zu '...'
+        2. Klicke auf '...'
+        3. Beobachte '...'
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Weitere Informationen
+      description: Füge hier weiteren Kontext, Screenshots, Fehlermeldungen, Logs, etc. hinzu.
