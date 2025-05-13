@@ -8,7 +8,6 @@ export const Sidebar = () => {
 
     function onCollapseSidebar() {
         setIsCollapsed(!isCollapsed);
-        console.log("Sidebar toggled");
     }
 
     return (
