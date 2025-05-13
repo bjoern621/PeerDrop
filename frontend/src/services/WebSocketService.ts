@@ -56,6 +56,11 @@ export class WebSocketService {
         this.connectToServer();
 
         this.waitForLocalClientToken();
+
+        this.waitForRemoteClientToken();
+
+        // WebSocketService global verfügbar machen für die Konsole im Browser (dev mode)
+        //(window as any).webSocketService = this;
     }
 
     private connectToServer() {
