@@ -11,7 +11,7 @@ permissions:
 jobs:
     determine-image-tag:
         runs-on: ubuntu-latest
-        name: Determine tag
+        name: Determine image tags
         outputs:
             TAGS: ${{ steps.set_tag.outputs.TAGS }}
 
@@ -40,25 +40,31 @@ jobs:
                   # Set the tags variable
                   echo "TAGS=${major_version},${minor_version},${full_version}" >> "$GITHUB_OUTPUT"
 
+                  echo "The image will have the tags: ${major_version}, ${minor_version}, ${full_version}"
+
     build-and-push-frontend:
+        name: Build & Push Frontend
         needs: determine-image-tag
         uses: ./.github/workflows/docker-publish-frontend.yml
         with:
             tags: ${{ needs.determine-image-tag.outputs.TAGS }}
 
     build-and-push-backend:
+        name: Build & Push Backend
         needs: determine-image-tag
         uses: ./.github/workflows/docker-publish-backend.yml
         with:
             tags: ${{ needs.determine-image-tag.outputs.TAGS }}
 
     build-and-push-database:
+        name: Build & Push Database
         needs: determine-image-tag
         uses: ./.github/workflows/docker-publish-database.yml
         with:
             tags: ${{ needs.determine-image-tag.outputs.TAGS }}
 
     deploy:
+        name: Deploy to Production
         runs-on: ubuntu-latest
         needs:
             - build-and-push-frontend
