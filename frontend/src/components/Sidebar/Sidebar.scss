@@ -20,7 +20,7 @@
         
         h2 {
             margin: 0;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: normal;
         }
         
@@ -63,7 +63,7 @@
     justify-content: center;
     width: 100%;
     margin-bottom: 1rem;
-    font-size: 20px;
+    font-size: 23px;
 
     form {
         display: flex;
@@ -73,9 +73,9 @@
         input {
             margin-bottom: 0.5rem;
             margin-top: 0.5rem;
-            padding: 1rem;
+            padding: 13.5px;
             border-radius: 8px;
-            border: 1px solid #ccc;
+            border: none;
             width: 100%;
             font-size: 20px;
             color: #232323;
@@ -90,7 +90,7 @@
         }
 
         button {
-            padding: 1rem;
+            padding: 7px;
             border-radius: 8px;
             border: none;
             background-color: #444444;
