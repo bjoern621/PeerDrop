@@ -19,5 +19,5 @@ jobs:
 
             - name: Run Prettier
               run: |-
-                  npx prettier --check "**/*.{ts,tsx,js,css,scss,html}"
+                  npx prettier --check "**/*.{ts,tsx,js,css,scss,hmtl}" --end-of-line lf
               working-directory: frontend
