@@ -8,7 +8,7 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
-        name: Build Docker images
+        name: Build Docker Images
 
         steps:
             - name: Checkout repository
