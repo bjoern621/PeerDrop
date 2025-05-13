@@ -86,7 +86,6 @@ export default function LandingPage() {
         console.log("Trying to connect to peer with token:", remoteToken);
 
         await websocket.sendTokenToRemotePeer(remoteToken);
-
     };
 
     return (
@@ -118,7 +117,7 @@ export default function LandingPage() {
                             </>
                         )}
                     ></OTPInput>
-                    <button onClick={() => connectToPeer()}>&gt;</button>
+                    <button onClick={() => void connectToPeer()}>&gt;</button>
                 </div>
                 <div>Anderes Token eingeben, um Verbindung aufzubauen</div>
             </div>
