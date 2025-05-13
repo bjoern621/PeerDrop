@@ -1,7 +1,9 @@
 name: Prettier
 
 on:
-    workflow_call:
+    pull_request:
+        branches:
+            - main
     push:
         paths:
             - "frontend/**"
@@ -17,5 +19,5 @@ jobs:
 
             - name: Run Prettier
               run: |-
-                  npx prettier --check "**/*.{ts,tsx,js,css,scss}"
+                  npx prettier --check "**/*.{ts,tsx,js,css,scss,html}"
               working-directory: frontend

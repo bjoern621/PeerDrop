@@ -1,4 +1,4 @@
-name: CI
+name: Docker Build
 
 on:
     pull_request:
@@ -6,14 +6,9 @@ on:
             - main
 
 jobs:
-    lint-check:
-        name: Run ESLint
-        uses: ./.github/workflows/eslint.yml
-
     build:
         runs-on: ubuntu-latest
-        name: Build Docker images
-        needs: lint-check
+        name: Build Docker Images
 
         steps:
             - name: Checkout repository

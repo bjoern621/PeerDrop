@@ -1,14 +1,16 @@
 name: ESLint
 
 on:
-    workflow_call:
+    pull_request:
+        branches:
+            - main
     push:
         paths:
             - "frontend/**"
 
 jobs:
     eslint:
-        name: Run eslint scanning
+        name: Run ESLint scanning
         runs-on: ubuntu-latest
 
         steps:
