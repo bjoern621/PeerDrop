@@ -1,24 +1,161 @@
-body {
-    margin: 0;
-    height: 100%;
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+    padding: 3rem;
+    height: 100vh;
 
-    --white: #fefff9;
-    --black: #101016;
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        font-size: 22px;
+        margin-bottom: 1rem;
 
-    background-color: var(--white);
-    color: var(--black);
+        .left {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
 
-    font-family: sans-serif;
+            p {
+                margin: 2rem;
+            }
+        }
 
-    fill: var(--white); // SVG fill color
-}
+        button {
+            width: 220px;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            background-color: #444444;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            font-size: 23px;
+            margin-top: 0.5rem;
+            margin-bottom: 5px;
 
-.heading {
-    font-size: 2.5rem;
-    text-align: center;
-}
+            &:hover {
+                background-color: #333;
+            }
+        }
+    }
 
-.button {
-    color: grey;
-    background-color: black;
+    .dropArea {
+        width: 100%;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        justify-content: start;
+        overflow-y: auto;
+
+        .dropAreaText {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+
+            img {
+                width: 200px;
+                height: 200px;
+            }
+
+            p {
+                font-size: 75px;
+                font-weight: bold;
+                color: #C9C9C9;
+                margin-bottom: 1rem;
+                margin-top: 0;
+            }
+        }
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        border-spacing: 0;
+        font-size: 25px;
+
+        thead {
+            text-align: left;
+            position: sticky;
+            position: -webkit-sticky;
+            top: 0;
+            background-color: #FFF;
+            z-index: 1;
+            box-shadow: 0 4px 0 0 #444; // Border under header for correct sticky behaviour
+            
+            th {
+                position: relative;
+                font-weight: normal;
+                padding: 0.2rem 1rem;
+
+                &:not(:last-child)::after {
+                    content: "";
+                    position: absolute;
+                    top: 0.4rem;
+                    bottom: 0.4rem;
+                    right: 0;
+                    width: 3px;
+                    background-color: #444;
+                }
+            }
+        }
+
+        tbody {
+            tr:nth-child(even) {
+                background-color: #DADADA;
+            }
+
+            td {
+                padding: 0.2rem 1rem;
+                vertical-align: middle;
+            }
+
+            .longColumn {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 1px; // Why the fuck does this work??
+            }
+
+            .smallColumn {
+                width: 1%;
+                white-space: nowrap;
+
+                progress[value] {
+                    height: 20px;
+                    width: 200px;
+                    margin-left: 1rem;
+
+                    // Remove default appearance
+                    appearance: none;
+
+                    border: none;
+                }
+
+                progress[value]::-webkit-progress-bar {
+                    background-color: #EBEBEB;
+                    border-radius: 8px;
+                }
+
+                progress[value]::-webkit-progress-value {
+                    background-color: #444;
+                    border-radius: 8px 0 0 8px;
+                }
+
+                progress[value]::-moz-progress-bar {
+                    background-color: #444;
+                }
+
+                span {
+                    margin-left: 1rem;
+                }
+            }
+        }
+    }
 }
