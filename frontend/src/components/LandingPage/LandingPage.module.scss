@@ -9,77 +9,77 @@
     padding-bottom: 15%;
 
     --grey: #414141;
-}
 
-.logo {
-    height: 150px;
-}
-
-.own-token-container {
-    border-radius: 50px;
-    border: 5px solid var(--black);
-    position: relative;
-    text-align: center;
-
-    padding: 20px 30px;
-}
-
-.tooltip {
-    position: absolute;
-    top: -20px;
-    left: 50px;
-
-    background-color: var(--white);
-    color: var(--black);
-
-    padding: 0 5px;
-
-    font-size: 1.8rem;
-    font-weight: bold;
-}
-
-.token {
-    font-size: 8rem;
-    font-weight: bold;
-    letter-spacing: 1.5rem;
-}
-
-.peer-token-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-button {
-    width: 80px;
-    height: 80px;
-
-    background-color: var(--grey);
-    color: var(--white);
-
-    border-radius: 15px;
-
-    text-align: center;
-
-    font-size: 3rem;
-    font-weight: bold;
-
-    &:hover {
-        background-color: var(--black);
+    .logo {
+        height: 150px;
     }
-}
 
-.input-container {
-    display: flex;
-    flex-direction: row;
-    gap: 15px;
-}
+    .own-token-container {
+        border-radius: 50px;
+        border: 5px solid var(--black);
+        position: relative;
+        text-align: center;
+    
+        padding: 20px 30px;
 
-.slots-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
+        .tooltip {
+            position: absolute;
+            top: -20px;
+            left: 50px;
+        
+            background-color: var(--white);
+            color: var(--black);
+        
+            padding: 0 5px;
+        
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .token {
+            font-size: 8rem;
+            font-weight: bold;
+            letter-spacing: 1.5rem;
+        }
+    }
+    
+    .peer-token-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    
+        .input-container {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+    
+            .slots-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+    
+        button {
+            width: 80px;
+            height: 80px;
+        
+            background-color: var(--grey);
+            color: var(--white);
+        
+            border-radius: 15px;
+        
+            text-align: center;
+        
+            font-size: 3rem;
+            font-weight: bold;
+        
+            &:hover {
+                background-color: var(--black);
+            }
+        }
+    }
 }
 
 .otp-slot {
