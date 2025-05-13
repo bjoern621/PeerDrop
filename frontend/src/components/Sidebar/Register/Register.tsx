@@ -111,7 +111,12 @@ export const Register = () => {
 
     return (
         <div className={css.container}>
-            <form onSubmit={(e) => { void onSubmit(e); }} noValidate>
+            <form
+                onSubmit={e => {
+                    void onSubmit(e);
+                }}
+                noValidate
+            >
                 <input
                     type="text"
                     placeholder="Benutzername"
