@@ -1,4 +1,4 @@
-name: ESLint
+name: Prettier
 
 on:
     pull_request:
@@ -9,18 +9,15 @@ on:
             - "frontend/**"
 
 jobs:
-    eslint:
-        name: Run ESLint scanning
+    prettier:
+        name: Run Prettier format check
         runs-on: ubuntu-latest
 
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Install modules
-              run: npm install
-              working-directory: frontend
-
-            - name: Run ESLint
-              run: npm run lint -- --max-warnings 0
+            - name: Run Prettier
+              run: |-
+                  npx prettier --check "**/*.{ts,tsx,js,css,scss,html}"
               working-directory: frontend
