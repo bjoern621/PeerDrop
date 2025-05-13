@@ -149,12 +149,12 @@ public static class WebSocketHandler
             if (result.MessageType == WebSocketMessageType.Close)
                 break;
 
-            var messageJSON = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            // Console.WriteLine($"Received message from {clientToken}: {messageJSON}");
+            var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            // Console.WriteLine($"Received message from {clientToken}: {messageJson}");
 
             try
             {
-                using var document = JsonDocument.Parse(messageJSON);
+                using var document = JsonDocument.Parse(messageJson);
                 var root = document.RootElement;
 
                 // Check if the message has the expected structure
