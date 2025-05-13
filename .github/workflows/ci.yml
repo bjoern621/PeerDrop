@@ -10,10 +10,16 @@ jobs:
         name: Run ESLint
         uses: ./.github/workflows/eslint.yml
 
+    format-check:
+        name: Run Prettier
+        uses: ./.github/workflows/prettier.yml
+
     build:
         runs-on: ubuntu-latest
         name: Build Docker images
-        needs: lint-check
+        needs:
+            - lint-check
+            - format-check
 
         steps:
             - name: Checkout repository
