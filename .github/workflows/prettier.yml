@@ -1,0 +1,21 @@
+name: Prettier
+
+on:
+    workflow_call:
+    push:
+        paths:
+            - "frontend/**"
+
+jobs:
+    prettier:
+        name: Run Prettier format check
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Run Prettier
+              run: |-
+                  npx prettier --check "**/*.{ts,tsx,js,css,scss}"
+              working-directory: frontend
