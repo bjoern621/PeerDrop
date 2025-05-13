@@ -22,9 +22,6 @@ public class AccountRepository : IAccountRepository
         _dataSource = NpgsqlDataSource.Create(connString);
     }
     
-    // TODO  : Implement Password Length Checking
-    // TODO : Entität
-    
     public Task<int> DeleteAsync(int id)
     {
         throw new NotImplementedException();
