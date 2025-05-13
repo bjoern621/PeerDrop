@@ -107,7 +107,7 @@ export function DataSharingPage() {
     return (
         <div className={css.container}>
             <div className={css.header}>
-                <div className={css.left}>
+                <div className={css.headerLeft}>
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -116,10 +116,10 @@ export function DataSharingPage() {
                         hidden={true}
                         style={{ display: 'none' }}
                     />
-                    <button type="button" onClick={() => fileInputRef.current?.click()}>Datei hinzufügen</button>
-                    <p>Partner: {getPartnerName()}</p>
+                    <button type="button" className={css.headerButton} onClick={() => fileInputRef.current?.click()}>Datei hinzufügen</button>
+                    <p className={css.headerPartnerText}>Partner: {getPartnerName()}</p>
                 </div>
-                <button type="button" onClick={onDisconnect}>Verbindung trennen</button>
+                <button type="button" className={css.headerButton} onClick={onDisconnect}>Verbindung trennen</button>
             </div>
             <div
                 onDrop={(e) => {
@@ -134,36 +134,36 @@ export function DataSharingPage() {
                 }}
                 className={css.dropArea}
             >
-                <table>
-                    <thead>
+                <table className={css.fileTable}>
+                    <thead className={css.fileTableHeader}>
                         <tr>
-                            <th>Name</th>
-                            <th>Fortschritt</th>
-                            <th>Größe</th>
-                            <th>Zeitstempel</th>
+                            <th className={css.fileTableHeaderCell}>Name</th>
+                            <th className={css.fileTableHeaderCell}>Fortschritt</th>
+                            <th className={css.fileTableHeaderCell}>Größe</th>
+                            <th className={css.fileTableHeaderCell}>Zeitstempel</th>
                         </tr>
                     </thead>
                     <tbody>
                         {files.map((file, index) => (
-                            <tr key={index}>
-                                <td className={css.longColumn}>{file.name}</td>
-                                <td className={css.smallColumn}>
+                            <tr key={index} className={index % 2 === 0 ? '' : css.fileTableRowEven}>
+                                <td className={`${css.fileTableCell} ${css.longColumn}`}>{file.name}</td>
+                                <td className={`${css.fileTableCell} ${css.smallColumn}`}>
                                     {file.direction === FileDirection.DOWN ? '↓' : '↑'}
                                     {file.progress === 1 ? (
-                                        <span>Fertig!</span>
+                                        <span className={css.progressStatusText}>Fertig!</span>
                                     ) : (
-                                        <progress value={file.progress} max={1} />
+                                        <progress className={css.fileProgress} value={file.progress} max={1} />
                                     )}
                                 </td>
-                                <td className={css.smallColumn}>{getSizeInHumanReadableFormat(file.size)}</td>
-                                <td className={css.smallColumn}>{getTimeInHumanReadableFormat(file.time)}</td>
+                                <td className={`${css.fileTableCell} ${css.smallColumn}`}>{getSizeInHumanReadableFormat(file.size)}</td>
+                                <td className={`${css.fileTableCell} ${css.smallColumn}`}>{getTimeInHumanReadableFormat(file.time)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-                <div className={css.dropAreaText}>
-                    <img src={dragdropicon} alt="Drag and drop icon" />
-                    <p>Drag and Drop</p>
+                <div className={css.dropAreaTextContainer}>
+                    <img src={dragdropicon} alt="Drag and drop icon" className={css.dropAreaIcon} />
+                    <p className={css.dropAreaMessage}>Drag and Drop</p>
                 </div>
             </div>
         </div>
