@@ -1,7 +1,8 @@
-import errorAsValue from "../../util/ErrorAsValue";
+import errorAsValue from "../../../util/ErrorAsValue";
 import { useState } from "react";
-import { UserLoginDto } from "../dtos/UserLoginDto";
-import { assert } from "../../util/Assert";
+import { UserLoginDto } from "../../dtos/UserLoginDto";
+import { assert } from "../../../util/Assert";
+import css from "./Register.module.scss";
 
 export const Register = () => {
     const [username, setUsername] = useState("");
@@ -64,12 +65,12 @@ export const Register = () => {
             username: username,
             password: password,
         };
-        
+
         setButtonDisabled(true);
         await registerUser(userData);
         setButtonDisabled(false);
     }
-    
+
     async function registerUser(userData: UserLoginDto) {
         const [response, err1] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
@@ -80,7 +81,7 @@ export const Register = () => {
                 body: JSON.stringify(userData),
             })
         )
-        
+
         if (err1) {
             console.error("Fehler beim Registrieren:", err1);
             return;
@@ -104,40 +105,38 @@ export const Register = () => {
     }
 
     return (
-        <div className="form-container">
+        <div className={css.container}>
             <form onSubmit={onSubmit} noValidate>
-                <p>
-                    <input
-                        type="text" 
-                        placeholder="Benutzername" 
-                        name="username" 
-                        value={username}
-                        className={usernameError ? "errorField" : ""}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                    {usernameError && <small className="error">{usernameError}</small>}
-                    <input 
-                        type="password" 
-                        placeholder="Passwort" 
-                        name="password" 
-                        value={password}
-                        className={passwordError ? "errorField" : ""}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                    {passwordError && <small className="error">{passwordError}</small>}
-                    <input
-                        type="password"
-                        placeholder="Passwort wiederholen"
-                        name="passwordRepeat"
-                        value={passwordRepeat}
-                        className={passwordRepeatError ? "errorField" : ""}
-                        onChange={(e) => setPasswordRepeat(e.target.value)}
-                    />
-                    {passwordRepeatError && <small className="error">{passwordRepeatError}</small>}
-                </p>
-                <button type="submit" disabled={buttonDisabled}>Registrieren</button>
+                <input
+                    type="text"
+                    placeholder="Benutzername"
+                    name="username"
+                    value={username}
+                    className={[usernameError ? css.errorField : '', css.inputfield].join(' ')}
+                    onChange={(e) => setUsername(e.target.value)}
+                />
+                {usernameError && <small className={css.error}>{usernameError}</small>}
+                <input
+                    type="password"
+                    placeholder="Passwort"
+                    name="password"
+                    value={password}
+                    className={[usernameError ? css.errorField : '', css.inputfield].join(' ')}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                {passwordError && <small className={css.error}>{passwordError}</small>}
+                <input
+                    type="password"
+                    placeholder="Passwort wiederholen"
+                    name="passwordRepeat"
+                    value={passwordRepeat}
+                    className={[usernameError ? css.errorField : '', css.inputfield].join(' ')}
+                    onChange={(e) => setPasswordRepeat(e.target.value)}
+                />
+                {passwordRepeatError && <small className={css.error}>{passwordRepeatError}</small>}
+                <button type="submit" disabled={buttonDisabled} className={css.submitbutton}>Registrieren</button>
             </form>
-            <p>oder <button type="button" onClick={onSwitchToLogin}>Login</button></p>
+            <p className={css.loginlink}>oder <button type="button" onClick={onSwitchToLogin}>Login</button></p>
         </div>
     )
 }

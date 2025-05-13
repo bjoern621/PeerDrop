@@ -1,7 +1,7 @@
-import { Register } from "./Register"
-import { useState } from "react"
-import smallLogo from "../../assets/logo_small.png"
-import "./Sidebar.scss"
+import { Register } from "./Register/Register";
+import { useState } from "react";
+import smallLogo from "../../assets/logo_small.png";
+import css from "./Sidebar.module.scss";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -11,17 +11,20 @@ export const Sidebar = () => {
     }
 
     return (
-        <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
-            <div className="sidebar-header">
-                <h2>Benutzer</h2>
-                <button type="button" onClick={onCollapseSidebar}>
+        <div className={isCollapsed ? css.collapsed : css.expanded}>
+            <div className={css.sidebarHeader}>
+                {!isCollapsed ? 
+                    <h2>Benutzer</h2> :
+                    <></>
+                }
+                <button type="button" onClick={onCollapseSidebar} className={css.collapseButton}>
                     {isCollapsed ? ">" : "<"}
                 </button>
             </div>
             {!isCollapsed && (
                 <>
                     <Register />
-                    <img src={smallLogo} alt="Logo" className="logo" />
+                    <img src={smallLogo} alt="Logo" className={css.logo} />
                 </>
             )
             }
