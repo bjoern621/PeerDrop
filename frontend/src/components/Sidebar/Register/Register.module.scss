@@ -15,7 +15,7 @@
     border: none;
     width: 100%;
     font-size: 20px;
-    color: #232323;
+    color: var(--black);
     padding-left: 10px;
 
     ::placeholder {
@@ -46,7 +46,7 @@
     height: 50px;
 
     &:hover {
-        background-color: #333;
+        background-color: var(--black);
     }
 
     &:disabled {
@@ -57,7 +57,7 @@
 
 .loginlink {
     margin: 0;
-    color: #444444;
+    color: var(--black);
 
     button {
         text-decoration: underline;
