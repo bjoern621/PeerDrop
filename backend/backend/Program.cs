@@ -2,6 +2,8 @@ using System.Net.WebSockets;
 using backend;
 using backend.endpoints.websocket;
 using Microsoft.AspNetCore.WebSockets;
+using backend;
+using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
@@ -18,11 +20,17 @@ var frontendOrigin = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN") ??
 builder.Services.AddCors(options => options.AddPolicy(
     corsAllowFrontendOrigin,
     policyBuilder =>
-        policyBuilder.WithOrigins(frontendOrigin)));
+        policyBuilder.WithOrigins(frontendOrigin)
+                     .WithHeaders("Content-Type")
+                     .WithExposedHeaders("Location")
+        ));
 
 builder.Services.AddWebSockets(options => { });
 
 var app = builder.Build();
+
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
@@ -62,7 +70,7 @@ app.MapGet("/weatherforecast", async () =>
         var connectionString = $"Host={host};Username={username};Password={password};Database={databaseName}";
         await using var dataSource = NpgsqlDataSource.Create(connectionString);
 
-        await using var cmd = dataSource.CreateCommand("INSERT INTO users (display_name) VALUES ('testname')");
+        await using var cmd = dataSource.CreateCommand("INSERT INTO users (display_name,passwort) VALUES ('testname','aaa')");
         await cmd.ExecuteNonQueryAsync();
 
 
@@ -70,6 +78,30 @@ app.MapGet("/weatherforecast", async () =>
     })
     .WithName("GetWeatherForecast");
 
+/*
+ * Custom Mappings für Account-Erstellung
+ */
+app.MapPost("/accounts", async ([FromBody] AccountCreateDto acc) =>
+{
+    var repo = new AccountRepository();
+    var accountobj = await repo.GetByNameAsync(acc.DisplayName);
+
+    if (accountobj == null) {
+        // the account has not been created yet
+
+        // throw Exceptions if the username or password is invalid
+        Account.ValidateUsernameFormat(acc.DisplayName);
+        Account.ValidatePasswordFormat(acc.Password);
+        
+        var account = Account.of(acc);
+        
+        var newId = await repo.SaveAsync(account);
+        return Results.Created($"/users/{newId}", new { Id = newId });
+    }
+
+    // the username is already taken
+    return Results.StatusCode(StatusCodes.Status409Conflict);
+});
 
 /*
  * Erzeugt Fehler: Im Client wird fetch() fehlschlagen (err1)

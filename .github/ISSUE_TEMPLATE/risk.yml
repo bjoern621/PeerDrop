@@ -1,0 +1,63 @@
+name: Risiko-Item
+description: Erfasse ein Risiko
+title: "[Risk]: "
+body:
+  - type: textarea
+    attributes:
+      label: Beschreibung
+      description: Beschreibung des Risikos ("Was könnte passieren?").
+      placeholder: Testinfrastruktur nicht verfügbar.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Folgen
+      description: Beschreibung der Folgen, falls das Risiko zum Problem wird.
+      placeholder: Verzögerung im Projektablauf.
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Eintrittswahrscheinlichkeit
+      description: Wahrscheinlichkeit für die Materialisierung des Risikos als tatsächliches Problem.
+      options:
+      - Hoch
+      - Mittel
+      - Gering
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Auswirkungen
+      description: Kosten, Verzögerungen.
+      options:
+      - Hoch
+      - Mittel
+      - Gering
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Priorität
+      description: Eintrittswahrscheinlichkeit x Auswirkungen (z.B. Hoch (3) x Hoch (3) = 9)
+      placeholder: "9"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Maßnahmen
+      description: Aktionen, die der Abschwächung dienen (inkl. Zeitplan und Verantwortlichen).
+      placeholder: Lieferant XY als Backup, ab 27.07.2009 verfügbar
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Status
+      description: Statusklasse
+      placeholder: Offen, Geschlossen, In Behandlung, Irrelevant
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        **Verfolgung**: Dieses Risiko sollte im Backlog getrackt und regelmäßig bewertet werden.

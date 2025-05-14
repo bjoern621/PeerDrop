@@ -117,7 +117,12 @@ export default function LandingPage() {
                             </>
                         )}
                     ></OTPInput>
-                    <button onClick={() => void connectToPeer()}>&gt;</button>
+                    <button
+                        onClick={() => void connectToPeer()}
+                        className={css.button}
+                    >
+                        &gt;
+                    </button>
                 </div>
                 <div>Anderes Token eingeben, um Verbindung aufzubauen</div>
             </div>
