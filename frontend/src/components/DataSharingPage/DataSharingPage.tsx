@@ -145,7 +145,7 @@ export function DataSharingPage() {
                     </thead>
                     <tbody>
                         {files.map((file, index) => (
-                            <tr key={index} className={index % 2 === 0 ? '' : css.fileTableRowEven}>
+                            <tr key={index}>
                                 <td className={`${css.fileTableCell} ${css.longColumn}`}>{file.name}</td>
                                 <td className={`${css.fileTableCell} ${css.smallColumn}`}>
                                     {file.direction === FileDirection.DOWN ? '↓' : '↑'}
@@ -161,6 +161,9 @@ export function DataSharingPage() {
                         ))}
                     </tbody>
                 </table>
+                {files.length === 0 && (
+                        <p className={css.noFilesText}>Keine Dateien hinzugefügt</p>
+                )}
                 <div className={css.dropAreaTextContainer}>
                     <img src={dragdropicon} alt="Drag and drop icon" className={css.dropAreaIcon} />
                     <p className={css.dropAreaMessage}>Drag and Drop</p>

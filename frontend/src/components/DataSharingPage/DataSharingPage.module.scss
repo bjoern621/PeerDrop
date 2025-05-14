@@ -80,6 +80,10 @@
     width: 100%;
     border-spacing: 0;
     font-size: 25px;
+
+    tr:nth-child(even) {
+        background-color: #DADADA;
+    }
 }
 
 .fileTableHeader {
@@ -108,8 +112,9 @@
     }
 }
 
-.fileTableRowEven {
-    background-color: #DADADA;
+.noFilesText {
+    font-size: 25px;
+    margin-top: 20px;
 }
 
 .fileTableCell {
