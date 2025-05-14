@@ -1,0 +1,161 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+    padding: 3rem;
+    height: 100vh;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-size: 22px;
+    margin-bottom: 1rem;
+}
+
+.headerLeft {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.headerPartnerText {
+    margin: 0 0 0 2rem;
+}
+
+.headerButton {
+    width: 220px;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: none;
+    background-color: #444444;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 23px;
+    margin-top: 0.5rem;
+    margin-bottom: 5px;
+
+    &:hover {
+        background-color: #333;
+    }
+}
+
+.dropArea {
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: start;
+    overflow-y: auto;
+}
+
+.dropAreaTextContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.dropAreaIcon {
+    width: 200px;
+    height: 200px;
+}
+
+.dropAreaMessage {
+    font-size: 75px;
+    font-weight: bold;
+    color: #c9c9c9;
+    margin-bottom: 1rem;
+    margin-top: 0;
+}
+
+.fileTable {
+    border-collapse: collapse;
+    width: 100%;
+    border-spacing: 0;
+    font-size: 25px;
+
+    tr:nth-child(even) {
+        background-color: #dadada;
+    }
+}
+
+.fileTableHeader {
+    text-align: left;
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
+    box-shadow: 0 4px 0 0 #444;
+}
+
+.fileTableHeaderCell {
+    position: relative;
+    font-weight: normal;
+    padding: 0.2rem 1rem;
+
+    &:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 0.4rem;
+        bottom: 0.4rem;
+        right: 0;
+        width: 3px;
+        background-color: #444;
+    }
+}
+
+.noFilesText {
+    font-size: 25px;
+    margin-top: 20px;
+}
+
+.fileTableCell {
+    padding: 0.2rem 1rem;
+    vertical-align: middle;
+}
+
+.longColumn {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 1px;
+}
+
+.smallColumn {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.fileProgress {
+    height: 20px;
+    width: 200px;
+    margin-left: 1rem;
+    appearance: none;
+    border: none;
+}
+
+.fileProgress::-webkit-progress-bar {
+    background-color: #ebebeb;
+    border-radius: 8px;
+}
+
+.fileProgress::-webkit-progress-value {
+    background-color: #444;
+    border-radius: 8px 0 0 8px;
+}
+
+.fileProgress::-moz-progress-bar {
+    background-color: #444;
+}
+
+.progressStatusText {
+    margin-left: 1rem;
+}
