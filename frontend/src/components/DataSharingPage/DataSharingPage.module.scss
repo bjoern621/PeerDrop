@@ -70,7 +70,7 @@
 .dropAreaMessage {
     font-size: 75px;
     font-weight: bold;
-    color: #C9C9C9;
+    color: #c9c9c9;
     margin-bottom: 1rem;
     margin-top: 0;
 }
@@ -82,7 +82,7 @@
     font-size: 25px;
 
     tr:nth-child(even) {
-        background-color: #DADADA;
+        background-color: #dadada;
     }
 }
 
@@ -91,9 +91,9 @@
     position: sticky;
     position: -webkit-sticky;
     top: 0;
-    background-color: #FFF;
+    background-color: #fff;
     z-index: 1;
-    box-shadow: 0 4px 0 0 #444; 
+    box-shadow: 0 4px 0 0 #444;
 }
 
 .fileTableHeaderCell {
@@ -126,7 +126,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 1px; 
+    max-width: 1px;
 }
 
 .smallColumn {
@@ -143,7 +143,7 @@
 }
 
 .fileProgress::-webkit-progress-bar {
-    background-color: #EBEBEB;
+    background-color: #ebebeb;
     border-radius: 8px;
 }
 
