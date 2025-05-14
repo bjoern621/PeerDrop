@@ -7,6 +7,7 @@ import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
 import { OTPInput, SlotProps } from "input-otp";
+import { useNavigate } from "react-router";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -22,6 +23,8 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
 };
 
 export default function LandingPage() {
+    const navigate = useNavigate();
+
     const webSocketServiceRef = useRef<WebSocketService | undefined>(undefined);
     if (!webSocketServiceRef.current) {
         webSocketServiceRef.current = new WebSocketService();
@@ -82,6 +85,8 @@ export default function LandingPage() {
         }
 
         console.log("Connecting to peer with token:", peerToken);
+
+        void navigate("/share");
     };
 
     return (

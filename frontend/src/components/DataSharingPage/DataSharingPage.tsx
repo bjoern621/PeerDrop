@@ -1,6 +1,7 @@
 import css from "./DataSharingPage.module.scss";
 import { useRef, useState } from "react";
 import dragdropicon from "../../assets/dragdropicon.svg";
+import { useNavigate } from "react-router";
 
 enum FileDirection {
     UP = 'up',
@@ -48,6 +49,7 @@ const mockData: FileDisplay[] = [
 
 export function DataSharingPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
 
     const [files, setFiles] = useState<FileDisplay[]>(mockData);
 
@@ -101,7 +103,8 @@ export function DataSharingPage() {
     };
 
     const onDisconnect = () => {
-        throw new Error('Disconnect not implemented');
+        void navigate('/'); // Redirect to home page
+        throw new Error('Cleanup not implemented yet');
     };
 
     return (
@@ -161,9 +164,6 @@ export function DataSharingPage() {
                         ))}
                     </tbody>
                 </table>
-                {files.length === 0 && (
-                        <p className={css.noFilesText}>Keine Dateien hinzugefügt</p>
-                )}
                 <div className={css.dropAreaTextContainer}>
                     <img src={dragdropicon} alt="Drag and drop icon" className={css.dropAreaIcon} />
                     <p className={css.dropAreaMessage}>Drag and Drop</p>
