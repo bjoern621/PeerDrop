@@ -58,6 +58,19 @@ export class WebSocketService {
         (window as any).webSocketService = this;
     }
 
+    /**
+     * Sends a typed message to the server and returns a Promise that resolves or rejects
+     * based on the first success or error response received from the server.
+     *
+     * The method subscribes to both success and error message types, and automatically
+     * unsubscribes the response handler after receiving a relevant response.
+     *
+     * Note: If multiple requests of the same type are sent in parallel, responses may be mismatched.
+     * For robust correlation, use a unique requestId in each message and response.
+     *
+     * @param message The typed message to send to the server.
+     * @returns A Promise that resolves with a success message or rejects with an error message.
+     */
     public sendMessageAndWaitForResponse<T>(
         message: TypedMessage<T>
     ): Promise<TypedMessage<ErrorMessage | SuccessMessage>> {
