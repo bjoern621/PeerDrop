@@ -40,7 +40,7 @@ body:
     attributes:
       label: Priorität
       description: Eintrittswahrscheinlichkeit x Auswirkungen (z.B. Hoch (3) x Hoch (3) = 9)
-      placeholder: 9
+      placeholder: "9"
     validations:
       required: true
   - type: textarea
