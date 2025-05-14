@@ -28,6 +28,10 @@ public static class WebSocketHandler
     private static readonly Random Random = new();
     private static readonly ConcurrentDictionary<MessageType, List<MessageHandlerDelegate>> MessageHandlers = new();
 
+    public static bool RemoteTokenExists(string remoteToken)
+    {
+        return ActiveConnections.ContainsKey(remoteToken);
+    }
     private static string GenerateClientToken()
     {
         const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
@@ -144,6 +148,7 @@ public static class WebSocketHandler
 
             if (result.MessageType == WebSocketMessageType.Close)
                 break;
+
             var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
             // Console.WriteLine($"Received message from {clientToken}: {messageJson}");
 

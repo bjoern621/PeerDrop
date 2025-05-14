@@ -150,6 +150,110 @@ WebSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, me
     await WebSocketHandler.SendMessage(clientId, response);
 });
 
+const string REMOTE_TOKEN_MESSAGE_TYPE = "remote-token";
+const string ERROR_MESSAGE_TYPE = "error-message";
+const string SUCCESS_MESSAGE_TYPE = "success-message";
+
+WebSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(REMOTE_TOKEN_MESSAGE_TYPE, async (clientId, message) =>
+    {
+        //Console.WriteLine($"Raw message received from {clientId}: {JsonSerializer.Serialize(message)}");
+        Console.WriteLine($"from {clientId}: Local Token");
+        string remoteToken = message.RemoteToken;
+
+        if (!WebSocketHandler.RemoteTokenExists(remoteToken))
+        {
+            TypedMessage<ErrorMessage> exception = new()
+            {
+                Type = ERROR_MESSAGE_TYPE,
+                Msg = new ErrorMessage
+                {
+                    Description = $"Remote token {remoteToken} does not exist"
+                }
+            };
+            
+            await WebSocketHandler.SendMessage(clientId, exception);
+            Console.WriteLine($"to {clientId}: ERROR: Remote token {remoteToken} does not exist");
+        }
+        else
+        {
+
+            TypedMessage<SuccessMessage> success = new()
+            {
+                Type = SUCCESS_MESSAGE_TYPE,
+                Msg = new SuccessMessage
+                {
+                    Description = $"Token {remoteToken} exists, OK"
+                }
+            };
+            
+            TypedMessage<RemoteTokenMessage> response = new()
+            {
+
+                Type = REMOTE_TOKEN_MESSAGE_TYPE,
+                Msg = new RemoteTokenMessage
+                {
+                    RemoteToken = clientId
+                }
+            };
+
+            await WebSocketHandler.SendMessage(clientId, success);
+            Console.WriteLine($"to {clientId}: SUCCESS: Remote token {remoteToken} exists");
+            
+            await WebSocketHandler.SendMessage(remoteToken, response);
+            Console.WriteLine($"to {remoteToken}: Remote Token");
+            //Console.WriteLine($"Send raw message to {remoteToken}: {JsonSerializer.Serialize(response)}");
+        }
+    }
+    );
+
+const string ICE_CANDIDATE_MESSAGE_TYPE = "ice-candidate";
+
+WebSocketHandler.SubscribeToMessageType<IceCandidateMessage>(ICE_CANDIDATE_MESSAGE_TYPE, async (clientId, message) =>
+{
+    //Console.WriteLine($"Raw message received from {clientId}: {JsonSerializer.Serialize(message)}");
+    Console.WriteLine($"from {clientId}: Local ICE Candidate");
+    string remoteToken = message.RemoteToken;
+
+    TypedMessage<IceCandidateMessage> response = new()
+    {
+        Type = ICE_CANDIDATE_MESSAGE_TYPE,
+        Msg = new IceCandidateMessage()
+        {
+            RemoteToken = clientId.ToString(),
+            IceCandidate = message.IceCandidate
+        }
+    };
+
+    await WebSocketHandler.SendMessage(remoteToken, response);
+    Console.WriteLine($"to {remoteToken}: Remote ICE Candidate");
+    //Console.WriteLine($"Send raw message to {remoteToken}: {JsonSerializer.Serialize(response)}");
+
+});
+
+const string SDP_MESSAGE_TYPE = "sdp-message";
+
+WebSocketHandler.SubscribeToMessageType<SDPMessage>(SDP_MESSAGE_TYPE, async (clientId, message) =>
+{
+    //Console.WriteLine($"Raw message received from {clientId}: {JsonSerializer.Serialize(message)}");
+    Console.WriteLine($"from {clientId}: Local SDP");
+    string remoteToken = message.RemoteToken;
+
+    TypedMessage<SDPMessage> response = new()
+    {
+        Type = SDP_MESSAGE_TYPE,
+        Msg = new SDPMessage()
+        {
+            RemoteToken = clientId.ToString(),
+            Description = message.Description
+        }
+    };
+
+    await WebSocketHandler.SendMessage(remoteToken, response);
+    Console.WriteLine($"to {remoteToken}: Remote SDP");
+    //Console.WriteLine($"Send raw message to {remoteToken}: {JsonSerializer.Serialize(response)}");
+
+});
+
 app.Run();
 
 internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
