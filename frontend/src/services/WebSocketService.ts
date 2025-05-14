@@ -67,7 +67,8 @@ export class WebSocketService {
         this.waitForRemoteClientToken();
 
         // WebSocketService global verfügbar machen für die Konsole im Browser (dev mode)
-        //(window as any).webSocketService = this;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        (window as any).webSocketService = this;
     }
 
     public sendMessageAndWaitForResponse<T>(
