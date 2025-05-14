@@ -32,8 +32,8 @@ export class WebRTCConnection {
     private isSettingRemoteAnswerPending: boolean = false;
     private readonly polite: boolean;
 
-    public constructor(signalingChannel: WebSocketService) {
-        this.remoteToken = signalingChannel.getRemoteClientToken()!;
+    public constructor(signalingChannel: WebSocketService, remoteToken: ClientToken) {
+        this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
         this.polite =
             signalingChannel.getLocalClientToken()! < this.remoteToken;

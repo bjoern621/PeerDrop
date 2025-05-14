@@ -1,6 +1,4 @@
 import { assert, never } from "../util/Assert";
-import errorAsValue from "../util/ErrorAsValue";
-import { WebRTCConnection } from "./WebRTCConnection";
 
 export type MessageHandler = (typedMessage: TypedMessage<unknown>) => unknown;
 
@@ -21,10 +19,6 @@ export type SuccessMessage = {
     description: string;
 };
 
-export type RemoteTokenMessage = {
-    remoteToken: ClientToken;
-};
-
 export type ClientTokenMessage = {
     token: ClientToken;
 };
@@ -32,7 +26,6 @@ export type ClientTokenMessage = {
 export type ClientToken = string;
 
 const CLIENT_TOKEN_MESSAGE_TYPE: string = "client-token";
-const REMOTE_TOKEN_MESSAGE_TYPE: string = "remote-token";
 const ERROR_MESSAGE_TYPE: string = "error-message";
 const SUCCESS_MESSAGE_TYPE: string = "success-message";
 
@@ -51,10 +44,6 @@ export class WebSocketService {
 
     private localToken: ClientToken | undefined;
 
-    private remoteToken: ClientToken | undefined;
-
-    private peer: WebRTCConnection | undefined;
-
     /**
      * Initializes a new instance of the WebSocketService class.
      * It connects to the server.
@@ -64,10 +53,8 @@ export class WebSocketService {
 
         this.waitForLocalClientToken();
 
-        this.waitForRemoteClientToken();
-
         // WebSocketService global verfügbar machen für die Konsole im Browser (dev mode)
-        //(window as any).webSocketService = this;
+        (window as any).webSocketService = this;
     }
 
     public sendMessageAndWaitForResponse<T>(
@@ -179,80 +166,6 @@ export class WebSocketService {
     }
 
     /**
-     * Waits for the remote peer token to be received via a message of type `REMOTE_TOKEN_MESSAGE_TYPE`.
-     *
-     * This method subscribes to messages of the specified type and sets the `remoteToken` property
-     * when a message containing the remote peer token is received. Once the remote token is obtained, the
-     * subscription to the message type is automatically removed.
-     */
-    private waitForRemoteClientToken() {
-        const handleRemoteTokenMessage = (
-            message: TypedMessage<RemoteTokenMessage>
-        ) => {
-            console.log("Received remote token:", message.msg.remoteToken);
-
-            this.remoteToken = message.msg.remoteToken;
-
-            this.unsubscribeMessage(
-                REMOTE_TOKEN_MESSAGE_TYPE,
-                handleRemoteTokenMessage as MessageHandler
-            );
-
-            this.peer = new WebRTCConnection(this);
-        };
-
-        this.subscribeMessage(
-            REMOTE_TOKEN_MESSAGE_TYPE,
-            handleRemoteTokenMessage as MessageHandler
-        );
-    }
-
-    /**
-     * Stores the remote peer's token locally and sends a message to the signaling server containing this token.
-     * The signaling server then swaps the `msg.remoteToken` with the token of the sender (the peer that sent the message),
-     * effectively making the sender's token the `msg.remoteToken` for the recipient.
-     * Finally all (only one) handlers for the `REMOTE_TOKEN_MESSAGE_TYPE` are unsubscribed fot this instance.
-     *
-     * @param otherPeerToken The token of the other peer as a strring.
-     */
-    public async sendTokenToRemotePeer(otherPeerToken: string) {
-        const otherToken: ClientToken = otherPeerToken;
-
-        const tokenMessage: TypedMessage<RemoteTokenMessage> = {
-            type: REMOTE_TOKEN_MESSAGE_TYPE,
-            msg: {
-                remoteToken: otherToken,
-            },
-        };
-
-        const [, err] = await errorAsValue(
-            this.sendMessageAndWaitForResponse<RemoteTokenMessage>(tokenMessage)
-        );
-        if (err) {
-            console.error("Error sending remote token:", err.message);
-            return;
-        }
-
-        this.remoteToken = otherToken;
-
-        console.log("Sent remote token to signaling server:", otherToken);
-
-        //unsubscribe all handlers for the REMOTE_TOKEN_MESSAGE_TYPE
-        const handlersRemoteToken = this.messageHandlers.get(
-            REMOTE_TOKEN_MESSAGE_TYPE
-        );
-        if (handlersRemoteToken) {
-            handlersRemoteToken.forEach(handler => {
-                this.unsubscribeMessage(REMOTE_TOKEN_MESSAGE_TYPE, handler);
-            });
-        }
-
-        this.peer = new WebRTCConnection(this);
-
-        this.peer.testMethodDataChannelInitializier();
-    }
-
-    /**
      * Closes the currently active WebSocket connection if it exists and is open.
      * There must be an active connection (with any connection state).
      *
@@ -326,11 +239,7 @@ export class WebSocketService {
         return this.localToken;
     }
 
-    public getRemoteClientToken(): ClientToken | undefined {
-        return this.remoteToken;
-    }
-
-    public getPeer(): WebRTCConnection | undefined {
-        return this.peer;
+    public getHandlers(messageType: MessageType): MessageHandler[] | undefined {
+        return this.messageHandlers.get(messageType);
     }
 }
