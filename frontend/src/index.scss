@@ -6,7 +6,7 @@ html {
     height: 100%;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap'); // Import for Source Sans 3
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"); // Import for Source Sans 3
 
 body {
     margin: 0;
@@ -17,10 +17,12 @@ body {
 
     background-color: var(--white);
     color: var(--black);
+    --shadow-rgb: 39, 39, 42;
+    --shadow: rgba(var(--shadow-rgb), 0.1);
 
     font-family: "Source Sans 3", sans-serif;
 
-    fill: var(--white); // SVG fill color
+    fill: var(--black); // SVG fill color
 }
 
 #root {
