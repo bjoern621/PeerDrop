@@ -39,7 +39,9 @@ const mockData: FileDisplay[] = [
         time: new Date(),
     },
     {
-        name: "super_log_filename_12345678901234567890_abcdefghijklmnopqrstuvwxyzilename_12345678901234567890_abcdefghijklmnopqrstuvwxyz.txt",
+        name: "super_log_filename_12345678901234567890_a\
+            bcdefghijklmnopqrstuvwxyzilename_12345678901\
+            234567890_abcdefghijklmnopqrstuvwxyz.txt",
         direction: FileDirection.UP,
         progress: 0.7,
         size: 30,

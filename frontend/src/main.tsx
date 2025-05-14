@@ -8,7 +8,7 @@ import { CSSModulesExamples } from "./components/CSSModulesExample/CSSModulesExa
 import { Fetch } from "./components/Fetch/Fetch.tsx";
 import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import { Layout } from "./Layout/Layout.tsx";
-import { DataSharingPage } from './components/DataSharingPage/DataSharingPage.tsx';
+import { DataSharingPage } from "./components/DataSharingPage/DataSharingPage.tsx";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
