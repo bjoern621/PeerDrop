@@ -4,8 +4,8 @@ import dragdropicon from "../../assets/dragdropicon.svg";
 import { useNavigate } from "react-router";
 
 enum FileDirection {
-    UP = 'up',
-    DOWN = 'down',
+    UP = "up",
+    DOWN = "down",
 }
 
 interface FileDisplay {
@@ -18,28 +18,28 @@ interface FileDisplay {
 
 const mockData: FileDisplay[] = [
     {
-        name: 'Datei01-final.png',
+        name: "Datei01-final.png",
         direction: FileDirection.DOWN,
         progress: 0.01,
         size: 200_000,
         time: new Date(),
     },
     {
-        name: 'Datei02.pdf',
+        name: "Datei02.pdf",
         direction: FileDirection.DOWN,
         progress: 1,
         size: 147_000,
         time: new Date(),
     },
     {
-        name: 'File-XYZ.txt',
+        name: "File-XYZ.txt",
         direction: FileDirection.UP,
         progress: 0.7,
         size: 30,
         time: new Date(),
     },
     {
-        name: 'super_log_filename_12345678901234567890_abcdefghijklmnopqrstuvwxyzilename_12345678901234567890_abcdefghijklmnopqrstuvwxyz.txt',
+        name: "super_log_filename_12345678901234567890_abcdefghijklmnopqrstuvwxyzilename_12345678901234567890_abcdefghijklmnopqrstuvwxyz.txt",
         direction: FileDirection.UP,
         progress: 0.7,
         size: 30,
@@ -54,7 +54,7 @@ export function DataSharingPage() {
     const [files, setFiles] = useState<FileDisplay[]>(mockData);
 
     function getSizeInHumanReadableFormat(size: number): string {
-        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const units = ["B", "KB", "MB", "GB", "TB"];
         let unitIndex = 0;
 
         while (size >= 1024 && unitIndex < units.length - 1) {
@@ -66,13 +66,17 @@ export function DataSharingPage() {
     }
 
     function getTimeInHumanReadableFormat(date: Date): string {
-        return ("0" + date.getHours()).slice(-2) + ':' +
-            ("0" + date.getMinutes()).slice(-2) + ':' +
-            ("0" + date.getSeconds()).slice(-2);
+        return (
+            ("0" + date.getHours()).slice(-2) +
+            ":" +
+            ("0" + date.getMinutes()).slice(-2) +
+            ":" +
+            ("0" + date.getSeconds()).slice(-2)
+        );
     }
 
     const getPartnerName = () => {
-        return '7 0 K 3 N';
+        return "7 0 K 3 N";
     };
 
     const onAddFile = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,18 +97,18 @@ export function DataSharingPage() {
             });
         }
 
-        setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+        setFiles(prevFiles => [...prevFiles, ...newFiles]);
         // TODO: Implement file upload logic here
 
         // Reset input to allow re-adding the same file
         if (event.target) {
-            event.target.value = '';
+            event.target.value = "";
         }
     };
 
     const onDisconnect = () => {
-        void navigate('/'); // Redirect to home page
-        throw new Error('Cleanup not implemented yet');
+        void navigate("/"); // Redirect to home page
+        throw new Error("Cleanup not implemented yet");
     };
 
     return (
@@ -117,22 +121,38 @@ export function DataSharingPage() {
                         multiple
                         onChange={onAddFile}
                         hidden={true}
-                        style={{ display: 'none' }}
+                        style={{ display: "none" }}
                     />
-                    <button type="button" className={css.headerButton} onClick={() => fileInputRef.current?.click()}>Datei hinzufügen</button>
-                    <p className={css.headerPartnerText}>Partner: {getPartnerName()}</p>
+                    <button
+                        type="button"
+                        className={css.headerButton}
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        Datei hinzufügen
+                    </button>
+                    <p className={css.headerPartnerText}>
+                        Partner: {getPartnerName()}
+                    </p>
                 </div>
-                <button type="button" className={css.headerButton} onClick={onDisconnect}>Verbindung trennen</button>
+                <button
+                    type="button"
+                    className={css.headerButton}
+                    onClick={onDisconnect}
+                >
+                    Verbindung trennen
+                </button>
             </div>
             <div
-                onDrop={(e) => {
+                onDrop={e => {
                     e.preventDefault();
                     const files = e.dataTransfer.files;
                     if (files.length > 0) {
-                        onAddFile({ target: { files } } as React.ChangeEvent<HTMLInputElement>);
+                        onAddFile({
+                            target: { files },
+                        } as React.ChangeEvent<HTMLInputElement>);
                     }
                 }}
-                onDragOver={(e) => {
+                onDragOver={e => {
                     e.preventDefault();
                 }}
                 className={css.dropArea}
@@ -141,31 +161,63 @@ export function DataSharingPage() {
                     <thead className={css.fileTableHeader}>
                         <tr>
                             <th className={css.fileTableHeaderCell}>Name</th>
-                            <th className={css.fileTableHeaderCell}>Fortschritt</th>
+                            <th className={css.fileTableHeaderCell}>
+                                Fortschritt
+                            </th>
                             <th className={css.fileTableHeaderCell}>Größe</th>
-                            <th className={css.fileTableHeaderCell}>Zeitstempel</th>
+                            <th className={css.fileTableHeaderCell}>
+                                Zeitstempel
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         {files.map((file, index) => (
                             <tr key={index}>
-                                <td className={`${css.fileTableCell} ${css.longColumn}`}>{file.name}</td>
-                                <td className={`${css.fileTableCell} ${css.smallColumn}`}>
-                                    {file.direction === FileDirection.DOWN ? '↓' : '↑'}
+                                <td
+                                    className={`${css.fileTableCell} ${css.longColumn}`}
+                                >
+                                    {file.name}
+                                </td>
+                                <td
+                                    className={`${css.fileTableCell} ${css.smallColumn}`}
+                                >
+                                    {file.direction === FileDirection.DOWN
+                                        ? "↓"
+                                        : "↑"}
                                     {file.progress === 1 ? (
-                                        <span className={css.progressStatusText}>Fertig!</span>
+                                        <span
+                                            className={css.progressStatusText}
+                                        >
+                                            Fertig!
+                                        </span>
                                     ) : (
-                                        <progress className={css.fileProgress} value={file.progress} max={1} />
+                                        <progress
+                                            className={css.fileProgress}
+                                            value={file.progress}
+                                            max={1}
+                                        />
                                     )}
                                 </td>
-                                <td className={`${css.fileTableCell} ${css.smallColumn}`}>{getSizeInHumanReadableFormat(file.size)}</td>
-                                <td className={`${css.fileTableCell} ${css.smallColumn}`}>{getTimeInHumanReadableFormat(file.time)}</td>
+                                <td
+                                    className={`${css.fileTableCell} ${css.smallColumn}`}
+                                >
+                                    {getSizeInHumanReadableFormat(file.size)}
+                                </td>
+                                <td
+                                    className={`${css.fileTableCell} ${css.smallColumn}`}
+                                >
+                                    {getTimeInHumanReadableFormat(file.time)}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
                 <div className={css.dropAreaTextContainer}>
-                    <img src={dragdropicon} alt="Drag and drop icon" className={css.dropAreaIcon} />
+                    <img
+                        src={dragdropicon}
+                        alt="Drag and drop icon"
+                        className={css.dropAreaIcon}
+                    />
                     <p className={css.dropAreaMessage}>Drag and Drop</p>
                 </div>
             </div>
