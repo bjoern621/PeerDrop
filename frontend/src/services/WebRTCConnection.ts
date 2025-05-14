@@ -177,4 +177,23 @@ export class WebRTCConnection {
             }
         };
     }
+
+    public closePeerConnection() {
+        console.log("Closing peer connection");
+
+        this.peerConnection.close();
+        this.peerConnection.onicecandidate = null;
+        this.peerConnection.onnegotiationneeded = null;
+        this.peerConnection.oniceconnectionstatechange = null;
+        this.peerConnection.ondatachannel = null;
+
+        this.signalingChannel.unsubscribeMessage(
+            ICE_CANDIDATE_MESSAGE_TYPE,
+            this.handleIncomingICECandidates
+        );
+        this.signalingChannel.unsubscribeMessage(
+            SDP_MESSAGE_TYPE,
+            this.handleSDPPackage
+        );
+    }
 }

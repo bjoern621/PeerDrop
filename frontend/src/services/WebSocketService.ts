@@ -9,17 +9,17 @@ export type TypedMessage<T = unknown> = {
     msg: T;
 };
 
-export type ErrorMessage = {
+type ErrorMessage = {
     description: string;
     expected?: string;
     actual?: string;
 };
 
-export type SuccessMessage = {
+type SuccessMessage = {
     description: string;
 };
 
-export type ClientTokenMessage = {
+type ClientTokenMessage = {
     token: ClientToken;
 };
 

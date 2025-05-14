@@ -52,12 +52,6 @@ export default function LandingPage() {
 
         assert(websocket, "WebSocketService is not initialized.");
 
-        const peerConnectionManager = PeerConnectionManagerRef.current;
-        assert(
-            peerConnectionManager,
-            "PeerConnectionManager is not initialized."
-        );
-
         const TEST_MESSAGE_TYPE = "test";
 
         websocket.subscribeMessage(TEST_MESSAGE_TYPE, message => {
