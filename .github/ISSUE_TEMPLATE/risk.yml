@@ -1,15 +1,15 @@
-name: Risikomanagement Item
+name: Risiko-Item
 description: Erfasse ein Risiko
 title: "[Risk]: "
 body:
-  - type: input
+  - type: textarea
     attributes:
       label: Beschreibung
       description: Beschreibung des Risikos ("Was könnte passieren?").
       placeholder: Testinfrastruktur nicht verfügbar.
     validations:
       required: true
-  - type: input
+  - type: textarea
     attributes:
       label: Folgen
       description: Beschreibung der Folgen, falls das Risiko zum Problem wird.
