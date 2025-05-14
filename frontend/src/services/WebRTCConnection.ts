@@ -1,3 +1,4 @@
+import { assert } from "../util/Assert";
 import errorAsValue from "../util/ErrorAsValue";
 import {
     ClientToken,
@@ -182,18 +183,36 @@ export class WebRTCConnection {
         console.log("Closing peer connection");
 
         this.peerConnection.close();
+
+        assert(this.peerConnection.connectionState === "closed");
+
         this.peerConnection.onicecandidate = null;
         this.peerConnection.onnegotiationneeded = null;
         this.peerConnection.oniceconnectionstatechange = null;
         this.peerConnection.ondatachannel = null;
 
-        this.signalingChannel.unsubscribeMessage(
-            ICE_CANDIDATE_MESSAGE_TYPE,
-            this.handleIncomingICECandidates
+        const iceHandlers = this.signalingChannel.getHandlers(
+            ICE_CANDIDATE_MESSAGE_TYPE
         );
-        this.signalingChannel.unsubscribeMessage(
-            SDP_MESSAGE_TYPE,
-            this.handleSDPPackage
-        );
+
+        if (iceHandlers) {
+            iceHandlers.forEach(handler => {
+                this.signalingChannel.unsubscribeMessage(
+                    ICE_CANDIDATE_MESSAGE_TYPE,
+                    handler
+                );
+            });
+        }
+
+        const spdHandlers = this.signalingChannel.getHandlers(SDP_MESSAGE_TYPE);
+
+        if (spdHandlers) {
+            spdHandlers.forEach(handler => {
+                this.signalingChannel.unsubscribeMessage(
+                    SDP_MESSAGE_TYPE,
+                    handler
+                );
+            });
+        }
     }
 }
