@@ -1,6 +1,11 @@
 import errorAsValue from "../util/ErrorAsValue";
 import { WebRTCConnection } from "./WebRTCConnection";
-import { MessageHandler, TypedMessage, WebSocketService, ClientToken } from "./WebSocketService";
+import {
+    MessageHandler,
+    TypedMessage,
+    WebSocketService,
+    ClientToken,
+} from "./WebSocketService";
 
 export type RemoteTokenMessage = {
     remoteToken: ClientToken;
@@ -9,17 +14,15 @@ export type RemoteTokenMessage = {
 const REMOTE_TOKEN_MESSAGE_TYPE: string = "remote-token";
 
 export class PeerConnectionManager {
-
     private remoteToken: ClientToken | undefined;
     private connection: WebRTCConnection | undefined;
 
-    constructor(private readonly signaling: WebSocketService) {
-
+    public constructor(private readonly signaling: WebSocketService) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         (window as any).PeerConnectionManager = this;
 
         this.waitForRemoteClientToken();
     }
-
 
     /**
      * Waits for the remote peer token to be received via a message of type `REMOTE_TOKEN_MESSAGE_TYPE`.
@@ -41,7 +44,10 @@ export class PeerConnectionManager {
                 handleRemoteTokenMessage as MessageHandler
             );
 
-            this.connection = new WebRTCConnection(this.signaling, this.remoteToken);
+            this.connection = new WebRTCConnection(
+                this.signaling,
+                this.remoteToken
+            );
         };
 
         this.signaling.subscribeMessage(
@@ -49,7 +55,6 @@ export class PeerConnectionManager {
             handleRemoteTokenMessage as MessageHandler
         );
     }
-
 
     /**
      * Stores the remote peer's token locally and sends a message to the signaling server containing this token.
@@ -70,7 +75,9 @@ export class PeerConnectionManager {
         };
 
         const [, err] = await errorAsValue(
-            this.signaling.sendMessageAndWaitForResponse<RemoteTokenMessage>(tokenMessage)
+            this.signaling.sendMessageAndWaitForResponse<RemoteTokenMessage>(
+                tokenMessage
+            )
         );
         if (err) {
             console.error("Error sending remote token:", err.message);
@@ -82,17 +89,24 @@ export class PeerConnectionManager {
         console.log("Sent remote token to signaling server:", otherToken);
 
         //unsubscribe all handlers for the REMOTE_TOKEN_MESSAGE_TYPE
-        const handlersRemoteToken = this.signaling.getHandlers(REMOTE_TOKEN_MESSAGE_TYPE);
+        const handlersRemoteToken = this.signaling.getHandlers(
+            REMOTE_TOKEN_MESSAGE_TYPE
+        );
         if (handlersRemoteToken) {
             handlersRemoteToken.forEach(handler => {
-                this.signaling.unsubscribeMessage(REMOTE_TOKEN_MESSAGE_TYPE, handler);
+                this.signaling.unsubscribeMessage(
+                    REMOTE_TOKEN_MESSAGE_TYPE,
+                    handler
+                );
             });
 
-        this.connection = new WebRTCConnection(this.signaling, this.remoteToken);
+            this.connection = new WebRTCConnection(
+                this.signaling,
+                this.remoteToken
+            );
 
-        this.connection.testMethodDataChannelInitializier();
-    }
-
+            this.connection.testMethodDataChannelInitializier();
+        }
     }
 
     public getConnection() {

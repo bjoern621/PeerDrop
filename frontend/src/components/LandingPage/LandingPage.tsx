@@ -28,10 +28,17 @@ export default function LandingPage() {
         webSocketServiceRef.current = new WebSocketService();
     }
 
-    const PeerConnectionManagerRef = useRef<PeerConnectionManager | undefined>(undefined);
+    const PeerConnectionManagerRef = useRef<PeerConnectionManager | undefined>(
+        undefined
+    );
     if (!PeerConnectionManagerRef.current) {
-        assert(webSocketServiceRef.current, "WebSocketService is not initialized.");
-        PeerConnectionManagerRef.current = new PeerConnectionManager(webSocketServiceRef.current);
+        assert(
+            webSocketServiceRef.current,
+            "WebSocketService is not initialized."
+        );
+        PeerConnectionManagerRef.current = new PeerConnectionManager(
+            webSocketServiceRef.current
+        );
     }
 
     const [clientToken, setClientToken] = useState<string | null>(null);
@@ -43,7 +50,10 @@ export default function LandingPage() {
         assert(websocket, "WebSocketService is not initialized.");
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
-        assert(peerConnectionManager, "PeerConnectionManager is not initialized.");
+        assert(
+            peerConnectionManager,
+            "PeerConnectionManager is not initialized."
+        );
 
         const TEST_MESSAGE_TYPE = "test";
 
@@ -91,7 +101,10 @@ export default function LandingPage() {
         }
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
-        assert(peerConnectionManager, "PeerConnectionManager is not initialized.");
+        assert(
+            peerConnectionManager,
+            "PeerConnectionManager is not initialized."
+        );
 
         console.log("Trying to connect to peer with token:", remoteToken);
 
@@ -139,3 +152,4 @@ export default function LandingPage() {
         </div>
     );
 }
+
