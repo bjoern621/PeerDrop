@@ -1,4 +1,4 @@
-using backend.SignalingComponent.Common.Datatype;
+using backend.SignalingComponent.Common.DTOs;
 using backend.SignalingComponent.Facade.Api;
 using backend.SignalingComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Api;

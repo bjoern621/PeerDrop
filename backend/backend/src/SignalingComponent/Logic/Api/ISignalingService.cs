@@ -1,4 +1,4 @@
-using backend.SignalingComponent.Common.Datatype;
+using backend.SignalingComponent.Common.DTOs;
 
 namespace backend.SignalingComponent.Logic.Api;
 

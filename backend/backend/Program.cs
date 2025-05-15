@@ -10,6 +10,7 @@ using backend.SignalingComponent.Facade.Api;
 using backend.SignalingComponent.Facade.Impl;
 using backend.SignalingComponent.Logic.Api;
 using backend.SignalingComponent.Logic.Impl;
+using backend.WebSocketComponent.Common.DTOs;
 using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;

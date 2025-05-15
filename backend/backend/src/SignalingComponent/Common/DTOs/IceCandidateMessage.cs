@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace backend.SignalingComponent.Common.Datatype;
+namespace backend.SignalingComponent.Common.DTOs;
 
 public struct IceCandidateMessage
 {
