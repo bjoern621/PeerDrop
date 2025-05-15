@@ -20,91 +20,88 @@ public class SignalingService : ISignalingService
         _webSocketHandler = webSocketHandler;
     }
 
-    public void SubscribeToMessageHandlers()
+    public async Task HandleRemoteTokenMessage(string clientId, RemoteTokenMessage message)
     {
-        _webSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(REMOTE_TOKEN_MESSAGE_TYPE, async (clientId, message) =>
+        Console.WriteLine($"from {clientId}: Local Token");
+        string remoteToken = message.RemoteToken;
+
+        if (!_webSocketHandler.RemoteTokenExists(remoteToken))
         {
-            Console.WriteLine($"from {clientId}: Local Token");
-            string remoteToken = message.RemoteToken;
-
-            if (!_webSocketHandler.RemoteTokenExists(remoteToken))
+            var exception = new TypedMessage<ErrorMessage>()
             {
-                var exception = new TypedMessage<ErrorMessage>()
+                Type = ERROR_MESSAGE_TYPE,
+                Msg = new ErrorMessage
                 {
-                    Type = ERROR_MESSAGE_TYPE,
-                    Msg = new ErrorMessage
-                    {
-                        Description = $"Remote token {remoteToken} does not exist"
-                    }
-                };
-
-                await _webSocketHandler.SendMessage(clientId, exception);
-                Console.WriteLine($"to {clientId}: ERROR: Remote token {remoteToken} does not exist");
-            }
-            else
-            {
-                var success = new TypedMessage<SuccessMessage>()
-                {
-                    Type = SUCCESS_MESSAGE_TYPE,
-                    Msg = new SuccessMessage
-                    {
-                        Description = $"Token {remoteToken} exists, OK"
-                    }
-                };
-
-                var response = new TypedMessage<RemoteTokenMessage>()
-                {
-                    Type = REMOTE_TOKEN_MESSAGE_TYPE,
-                    Msg = new RemoteTokenMessage
-                    {
-                        RemoteToken = clientId
-                    }
-                };
-
-                await _webSocketHandler.SendMessage(clientId, success);
-                Console.WriteLine($"to {clientId}: SUCCESS: Remote token {remoteToken} exists");
-
-                await _webSocketHandler.SendMessage(remoteToken, response);
-                Console.WriteLine($"to {remoteToken}: Remote Token");
-            }
-        });
-
-        _webSocketHandler.SubscribeToMessageType<IceCandidateMessage>(ICE_CANDIDATE_MESSAGE_TYPE, async (clientId, message) =>
-        {
-            Console.WriteLine($"from {clientId}: Local ICE Candidate");
-            string remoteToken = message.RemoteToken;
-
-            var response = new TypedMessage<IceCandidateMessage>()
-            {
-                Type = ICE_CANDIDATE_MESSAGE_TYPE,
-                Msg = new IceCandidateMessage()
-                {
-                    RemoteToken = clientId.ToString(),
-                    IceCandidate = message.IceCandidate
+                    Description = $"Remote token {remoteToken} does not exist"
                 }
             };
 
-            await _webSocketHandler.SendMessage(remoteToken, response);
-            Console.WriteLine($"to {remoteToken}: Remote ICE Candidate");
-        });
-
-        _webSocketHandler.SubscribeToMessageType<SdpMessage>(SDP_MESSAGE_TYPE, async (clientId, message) =>
+            await _webSocketHandler.SendMessage(clientId, exception);
+            Console.WriteLine($"to {clientId}: ERROR: Remote token {remoteToken} does not exist");
+        }
+        else
         {
-            Console.WriteLine($"from {clientId}: Local SDP");
-            string remoteToken = message.RemoteToken;
-
-            var response = new TypedMessage<SdpMessage>()
+            var success = new TypedMessage<SuccessMessage>()
             {
-                Type = SDP_MESSAGE_TYPE,
-                Msg = new SdpMessage()
+                Type = SUCCESS_MESSAGE_TYPE,
+                Msg = new SuccessMessage
                 {
-                    RemoteToken = clientId.ToString(),
-                    Description = message.Description
+                    Description = $"Token {remoteToken} exists, OK"
                 }
             };
 
+            var response = new TypedMessage<RemoteTokenMessage>()
+            {
+                Type = REMOTE_TOKEN_MESSAGE_TYPE,
+                Msg = new RemoteTokenMessage
+                {
+                    RemoteToken = clientId
+                }
+            };
+
+            await _webSocketHandler.SendMessage(clientId, success);
+            Console.WriteLine($"to {clientId}: SUCCESS: Remote token {remoteToken} exists");
+
             await _webSocketHandler.SendMessage(remoteToken, response);
-            Console.WriteLine($"to {remoteToken}: Remote SDP");
-        });
+            Console.WriteLine($"to {remoteToken}: Remote Token");
+        }
+    }
+
+    public async Task HandleIceCandidateMessage(string clientId, IceCandidateMessage message)
+    {
+        Console.WriteLine($"from {clientId}: Local ICE Candidate");
+        string remoteToken = message.RemoteToken;
+
+        var response = new TypedMessage<IceCandidateMessage>()
+        {
+            Type = ICE_CANDIDATE_MESSAGE_TYPE,
+            Msg = new IceCandidateMessage()
+            {
+                RemoteToken = clientId,
+                IceCandidate = message.IceCandidate
+            }
+        };
+
+        await _webSocketHandler.SendMessage(remoteToken, response);
+        Console.WriteLine($"to {remoteToken}: Remote ICE Candidate");
+    }
+
+    public async Task HandleSdpMessage(string clientId, SdpMessage message)
+    {
+        Console.WriteLine($"from {clientId}: Local SDP");
+        string remoteToken = message.RemoteToken;
+
+        var response = new TypedMessage<SdpMessage>()
+        {
+            Type = SDP_MESSAGE_TYPE,
+            Msg = new SdpMessage()
+            {
+                RemoteToken = clientId,
+                Description = message.Description
+            }
+        };
+
+        await _webSocketHandler.SendMessage(remoteToken, response);
+        Console.WriteLine($"to {remoteToken}: Remote SDP");
     }
 }

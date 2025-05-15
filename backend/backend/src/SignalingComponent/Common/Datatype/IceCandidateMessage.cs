@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace backend.SignalingComponent.Common.Datatype;
 
-struct IceCandidateMessage
+public struct IceCandidateMessage
 {
     
     [JsonPropertyName("remoteToken")]

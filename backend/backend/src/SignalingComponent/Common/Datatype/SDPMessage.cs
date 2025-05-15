@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace backend.SignalingComponent.Common.Datatype;
 
-struct SdpMessage
+public struct SdpMessage
 {
     [JsonPropertyName("remoteToken")]
     
