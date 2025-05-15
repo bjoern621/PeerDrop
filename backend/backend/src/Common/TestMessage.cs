@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace backend.endpoints.websocket;
+namespace backend.Common;
 
 public struct TestMessage
 {

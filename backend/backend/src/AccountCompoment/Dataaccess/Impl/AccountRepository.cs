@@ -1,6 +1,8 @@
-﻿using Npgsql;
+﻿using backend.AccountCompoment.Dataaccess.Api.Entity;
+using backend.AccountCompoment.Dataaccess.Api.Repo;
+using Npgsql;
 
-namespace backend;
+namespace backend.AccountCompoment.Dataaccess.Impl;
 
 public class AccountRepository : IAccountRepository
 {

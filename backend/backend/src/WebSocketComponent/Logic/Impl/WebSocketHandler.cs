@@ -1,34 +1,24 @@
-﻿using System.Net.WebSockets;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Collections.Concurrent;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
-using System.Diagnostics;
+using backend.Common;
+using backend.WebSocketComponent.Common.Datatype;
+using backend.WebSocketComponent.Logic.Api;
 
-namespace backend.endpoints.websocket;
+namespace backend.WebSocketComponent.Logic.Impl;
 
 using MessageType = string;
 
-public struct TypedMessage<T>
-{
-    [JsonPropertyName("type")]
-    public MessageType Type { get; set; }
-
-    [JsonPropertyName("msg")]
-    public T Msg { get; set; }
-}
-
-public delegate Task MessageHandlerDelegate(string clientToken, JsonElement messageData);
-public delegate Task TypedMessageHandlerDelegate<T>(string clientToken, T messageData);
-
-public static class WebSocketHandler
+public class WebSocketHandler : IWebSocketHandler
 {
     private static readonly ConcurrentDictionary<string, WebSocket> ActiveConnections = new();
     private static readonly Random Random = new();
     private static readonly ConcurrentDictionary<MessageType, List<MessageHandlerDelegate>> MessageHandlers = new();
 
-    public static bool RemoteTokenExists(string remoteToken)
+    public bool RemoteTokenExists(string remoteToken)
     {
         return ActiveConnections.ContainsKey(remoteToken);
     }
@@ -55,7 +45,7 @@ public static class WebSocketHandler
     /// <summary>
     /// Removes a WebSocket connection from the active connections list. The client token must be valid and the client connected. 
     /// </summary>
-    private static void RemoveConnection(string clientToken)
+    private void RemoveConnection(string clientToken)
     {
         var result = ActiveConnections.TryRemove(clientToken, out _);
 
@@ -65,7 +55,7 @@ public static class WebSocketHandler
     /// <summary>
     /// Sends a typed message to a specific client. The client ID must be valid and connected. Returns true if the message was sent successfully, false otherwise.
     /// </summary>
-    public static async Task<bool> SendMessage<T>(string clientToken, TypedMessage<T> message)
+    public async Task<bool> SendMessage<T>(string clientToken, TypedMessage<T> message)
     {
         var result = ActiveConnections.TryGetValue(clientToken, out var webSocket);
 
@@ -90,7 +80,7 @@ public static class WebSocketHandler
         }
     }
 
-    public static async Task HandleConnect(HttpContext context)
+    public async Task HandleConnect(HttpContext context)
     {
         if (!context.WebSockets.IsWebSocketRequest)
         {
@@ -115,7 +105,7 @@ public static class WebSocketHandler
         public string ClientToken { get; set; }
     }
 
-    private static async Task SendClientTokenAsync(string clientToken)
+    private async Task SendClientTokenAsync(string clientToken)
     {
         TypedMessage<ClientTokenMessage> message = new()
         {
@@ -132,7 +122,7 @@ public static class WebSocketHandler
     /// <summary>
     /// Continuously listens for messages from the WebSocket connection. If a message is received, it is deserialized and forwarded to typed message listeners. If the message is too large or cannot be deserialized, the connection is closed.
     /// </summary>
-    private static async Task ListenForMessages(WebSocket webSocket, string clientToken)
+    private async Task ListenForMessages(WebSocket webSocket, string clientToken)
     {
         var buffer = new byte[1024];
 
@@ -188,7 +178,7 @@ public static class WebSocketHandler
         CloseConnection(webSocket);
     }
 
-    private static void CloseConnection(WebSocket webSocket,
+    private void CloseConnection(WebSocket webSocket,
         WebSocketCloseStatus closeStatus = WebSocketCloseStatus.NormalClosure)
     {
         webSocket.CloseAsync(closeStatus, null, CancellationToken.None);
@@ -199,7 +189,7 @@ public static class WebSocketHandler
     /// When messages of the specified type are received, the handler will be invoked.
     /// The handler should not be registered multiple times for the same message type.
     /// </summary>
-    private static void SubscribeToMessageType(MessageType messageType, MessageHandlerDelegate handler)
+    private void SubscribeToMessageType(MessageType messageType, MessageHandlerDelegate handler)
     {
         var handlers = MessageHandlers.GetOrAdd(messageType, _ => []);
 
@@ -217,7 +207,7 @@ public static class WebSocketHandler
     /// to the specified type T before being passed to the handler.
     /// The handler should not be registered multiple times for the same message type.
     /// </summary>
-    public static void SubscribeToMessageType<T>(MessageType messageType, TypedMessageHandlerDelegate<T> handler)
+    public void SubscribeToMessageType<T>(MessageType messageType, TypedMessageHandlerDelegate<T> handler)
     {
         Task wrapper(string clientToken, JsonElement messageData)
         {
@@ -249,7 +239,7 @@ public static class WebSocketHandler
     /// Unregisters a handler for a specific message type.
     /// The handler must have been registered previously for the same message type.
     /// </summary>
-    public static void UnsubscribeFromMessageType(MessageType messageType, MessageHandlerDelegate handler)
+    public void UnsubscribeFromMessageType(MessageType messageType, MessageHandlerDelegate handler)
     {
         MessageHandlers.TryGetValue(messageType, out var handlers);
 
@@ -266,7 +256,7 @@ public static class WebSocketHandler
     /// <summary>
     /// Forwards a message to all registered handlers for its message type.
     /// </summary>
-    private static void ForwardMessageToHandlers(string senderClientToken, MessageType messageType, JsonElement messageData)
+    private void ForwardMessageToHandlers(string senderClientToken, MessageType messageType, JsonElement messageData)
     {
         if (!MessageHandlers.TryGetValue(messageType, out var handlers))
         {

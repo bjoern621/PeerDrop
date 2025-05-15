@@ -18,4 +18,18 @@
         </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="src\AccountCompoment\Common\Datatype\" />
+      <Folder Include="src\SignalingComponent\Common\Exception\" />
+      <Folder Include="src\SignalingComponent\Dataaccess\Api\Entity\" />
+      <Folder Include="src\SignalingComponent\Dataaccess\Api\Repo\" />
+      <Folder Include="src\SignalingComponent\Dataaccess\Impl\" />
+      <Folder Include="src\SignalingComponent\Facade\Api\" />
+      <Folder Include="src\SignalingComponent\Facade\Impl\" />
+      <Folder Include="src\WebSocketComponent\Common\Exception\" />
+      <Folder Include="src\WebSocketComponent\Dataaccess\Api\Entity\" />
+      <Folder Include="src\WebSocketComponent\Dataaccess\Api\Repo\" />
+      <Folder Include="src\WebSocketComponent\Dataaccess\Impl\" />
+    </ItemGroup>
+
 </Project>

@@ -1,4 +1,6 @@
-﻿namespace backend;
+﻿using backend.AccountCompoment.Common.Exception;
+
+namespace backend.Common;
 
 public class ExceptionHandlingMiddleware
 {

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace backend.endpoints.websocket;
+namespace backend.SignalingComponent.Common.Datatype;
 
 struct IceCandidateMessage
 {
