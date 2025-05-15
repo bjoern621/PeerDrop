@@ -1,0 +1,68 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    font-size: 23px;
+}
+
+.inputfield {
+    margin-top: 15px;
+    height: 50px;
+    border-radius: 8px;
+    border: none;
+    width: 100%;
+    font-size: 20px;
+    color: var(--black);
+    padding-left: 10px;
+
+    ::placeholder {
+        color: #aaaaaa;
+    }
+}
+
+.error {
+    color: red;
+    font-size: 16px;
+}
+
+.errorField {
+    border: 1px solid red;
+}
+
+.submitbutton {
+    border-radius: 8px;
+    border: none;
+    background-color: #444444;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 25px;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    width: 100%;
+    height: 50px;
+
+    &:hover {
+        background-color: black;
+    }
+
+    &:disabled {
+        background-color: #aaaaaa;
+        cursor: not-allowed;
+    }
+}
+
+.loginlink {
+    margin: 0;
+    color: var(--black);
+
+    button {
+        text-decoration: underline;
+
+        &:hover {
+            color: black;
+        }
+    }
+}
