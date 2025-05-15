@@ -32,6 +32,7 @@ body {
 a,
 button {
     all: unset;
+    box-sizing: border-box;
     outline: revert; /* Enables accessibility outline */
     cursor: pointer;
 }
