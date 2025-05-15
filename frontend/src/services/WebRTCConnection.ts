@@ -71,8 +71,22 @@ export class WebRTCConnection {
                 const [, err] = await errorAsValue(
                     this.peerConnection.addIceCandidate(candidate)
                 );
+
                 if (err) {
-                    console.error("Error adding ICE candidate: ", err);
+                    if (!this.ignoreOffer) {
+                        new Error(
+                            "Failed to add ICE candidate (not ignoring them, because ignoreOffer is " +
+                                this.ignoreOffer +
+                                ")"
+                        );
+                        console.error("Error: ", err);
+                    } else {
+                        console.log(
+                            "Ignoring remote ICE candidate because ignoreOffer = " +
+                                this.ignoreOffer +
+                                " and the related SDP offer was rejected"
+                        );
+                    }
                 }
             }
         );
