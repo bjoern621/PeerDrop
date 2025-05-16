@@ -10,13 +10,6 @@ public class SignalingService : ISignalingService
 {
     private readonly IWebSocketHandler _webSocketHandler;
 
-    private const string REMOTE_TOKEN_MESSAGE_TYPE = "remote-token";
-    private const string ERROR_MESSAGE_TYPE = "error-message";
-    private const string SUCCESS_MESSAGE_TYPE = "success-message";
-    private const string ICE_CANDIDATE_MESSAGE_TYPE = "ice-candidate";
-    private const string SDP_MESSAGE_TYPE = "sdp-message";
-    private const string CLOSE_CONNECTION_MESSAGE_TYPE = "close-connection-message";
-
     public SignalingService(IWebSocketHandler webSocketHandler)
     {
         _webSocketHandler = webSocketHandler;
@@ -32,7 +25,7 @@ public class SignalingService : ISignalingService
         {
             var exception = new TypedMessage<ErrorMessage>()
             {
-                Type = ERROR_MESSAGE_TYPE,
+                Type = MessageType.Error,
                 Msg = new ErrorMessage
                 {
                     RequestId = requestId,
@@ -47,7 +40,7 @@ public class SignalingService : ISignalingService
         {
             var success = new TypedMessage<SuccessMessage>()
             {
-                Type = SUCCESS_MESSAGE_TYPE,
+                Type = MessageType.Success,
                 Msg = new SuccessMessage
                 {
                     RequestId = requestId,
@@ -57,7 +50,7 @@ public class SignalingService : ISignalingService
 
             var response = new TypedMessage<RemoteTokenMessage>()
             {
-                Type = REMOTE_TOKEN_MESSAGE_TYPE,
+                Type = MessageType.RemoteToken,
                 Msg = new RemoteTokenMessage
                 {
                     RequestId = requestId,
@@ -80,7 +73,7 @@ public class SignalingService : ISignalingService
 
         var response = new TypedMessage<IceCandidateMessage>()
         {
-            Type = ICE_CANDIDATE_MESSAGE_TYPE,
+            Type = MessageType.IceCandidate,
             Msg = new IceCandidateMessage()
             {
                 RemoteToken = clientId,
@@ -99,7 +92,7 @@ public class SignalingService : ISignalingService
 
         var response = new TypedMessage<SdpMessage>()
         {
-            Type = SDP_MESSAGE_TYPE,
+            Type = MessageType.SdpMessage,
             Msg = new SdpMessage()
             {
                 RemoteToken = clientId,
@@ -118,7 +111,7 @@ public class SignalingService : ISignalingService
 
         var response = new TypedMessage<RemoteTokenMessage>()
         {
-            Type = CLOSE_CONNECTION_MESSAGE_TYPE,
+            Type = MessageType.CloseConnection,
             Msg = new RemoteTokenMessage()
             {
                 RemoteToken = clientId

@@ -10,8 +10,6 @@ using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.WebSocketComponent.Logic.Impl;
 
-using MessageType = string;
-
 public class WebSocketHandler : IWebSocketHandler
 {
     private static readonly ConcurrentDictionary<string, WebSocket> ActiveConnections = new();
@@ -64,7 +62,7 @@ public class WebSocketHandler : IWebSocketHandler
 
         try
         {
-            var messageJson = JsonSerializer.Serialize(message);
+            var messageJson = JsonSerializer.Serialize(message.GetSerializableObject());
             var messageBytes = Encoding.UTF8.GetBytes(messageJson);
             await webSocket.SendAsync(
                 new ArraySegment<byte>(messageBytes),
@@ -97,8 +95,6 @@ public class WebSocketHandler : IWebSocketHandler
         RemoveConnection(clientToken);
     }
 
-    const string CLIENT_TOKEN_MESSAGE_TYPE = "client-token";
-
     struct ClientTokenMessage
     {
         [JsonPropertyName("token")]
@@ -109,7 +105,7 @@ public class WebSocketHandler : IWebSocketHandler
     {
         TypedMessage<ClientTokenMessage> message = new()
         {
-            Type = CLIENT_TOKEN_MESSAGE_TYPE,
+            Type = MessageType.ClientToken,
             Msg = new ClientTokenMessage
             {
                 ClientToken = clientToken
@@ -166,7 +162,7 @@ public class WebSocketHandler : IWebSocketHandler
                     return;
                 }
 
-                ForwardMessageToHandlers(clientToken, messageType, msgElement);
+                ForwardMessageToHandlers(clientToken, MessageType.GetMessageType(messageType), msgElement);
             }
             catch (JsonException)
             {

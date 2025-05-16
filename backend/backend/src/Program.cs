@@ -62,13 +62,13 @@ signalingFacade.SubscribeToMessageHandlers();
 var accountRoutes = app.Services.GetRequiredService<IAccountRoutes>();
 accountRoutes.RegisterRoutes(app);
 var webSocketHandler = app.Services.GetRequiredService<IWebSocketHandler>();
-webSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
+webSocketHandler.SubscribeToMessageType<TestMessage>(MessageType.Test, async (clientId, message) =>
 {
     Console.WriteLine($"Received message from client {clientId}: {message.Message}");
 
     TypedMessage<TestMessage> response = new()
     {
-        Type = "test",
+        Type = MessageType.Test,
         Msg = new TestMessage
         {
             Message = "Hallo vom Server!"
