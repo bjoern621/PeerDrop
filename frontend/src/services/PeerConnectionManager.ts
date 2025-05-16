@@ -176,7 +176,7 @@ export class PeerConnectionManager {
                     console.error(
                         "Received response with different requestID:",
                         response.msg.requestID,
-                        "so igniring it"
+                        "so ignoring it"
                     );
                     return; // Ignore this response
                 }
@@ -226,12 +226,9 @@ export class PeerConnectionManager {
      * This ensures both peers close their connections and are ready for a new connection.
      */
     public closePeerConnection() {
-        if (!this.connection) {
-            console.error("No active connection to close.");
-        }
+        assert(this.connection, "No active connection to close.");
 
         console.log("Closing peer connection");
-        assert(this.connection);
 
         this.connection.closePeerConnection();
 
@@ -268,10 +265,7 @@ export class PeerConnectionManager {
                 message.msg.remoteToken
             );
 
-            if (!this.connection) {
-                console.error("No active connection to close.");
-                return;
-            }
+            assert(this.connection, "No active connection to close.");
 
             console.log("Closing peer connection");
 
