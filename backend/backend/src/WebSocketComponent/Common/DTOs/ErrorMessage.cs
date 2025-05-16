@@ -4,6 +4,9 @@ namespace backend.WebSocketComponent.Common.DTOs;
 
 public struct ErrorMessage
 {
+    [JsonPropertyName("requestID")]
+    public string RequestId { get; set; }
+    
     [JsonPropertyName("description")]
     public string Description { get; set; }
     

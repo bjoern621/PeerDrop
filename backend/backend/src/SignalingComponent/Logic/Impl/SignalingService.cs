@@ -25,6 +25,7 @@ public class SignalingService : ISignalingService
     {
         Console.WriteLine($"from {clientId}: Local Token");
         string remoteToken = message.RemoteToken;
+        string requestId = message.RequestId;
 
         if (!_webSocketHandler.RemoteTokenExists(remoteToken))
         {
@@ -33,6 +34,7 @@ public class SignalingService : ISignalingService
                 Type = ERROR_MESSAGE_TYPE,
                 Msg = new ErrorMessage
                 {
+                    RequestId = requestId,
                     Description = $"Remote token {remoteToken} does not exist"
                 }
             };
@@ -47,6 +49,7 @@ public class SignalingService : ISignalingService
                 Type = SUCCESS_MESSAGE_TYPE,
                 Msg = new SuccessMessage
                 {
+                    RequestId = requestId,
                     Description = $"Token {remoteToken} exists, OK"
                 }
             };
@@ -56,6 +59,7 @@ public class SignalingService : ISignalingService
                 Type = REMOTE_TOKEN_MESSAGE_TYPE,
                 Msg = new RemoteTokenMessage
                 {
+                    RequestId = requestId,
                     RemoteToken = clientId
                 }
             };

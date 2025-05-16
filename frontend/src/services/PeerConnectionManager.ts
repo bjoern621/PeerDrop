@@ -101,6 +101,11 @@ export class PeerConnectionManager {
             },
         };
 
+        console.log(
+            "Created and sending TypedMessage with requestID:",
+            requestID
+        );
+
         const [, err] = await errorAsValue(
             this.sendMessageAndWaitForResponse(tokenMessage)
         );
@@ -157,8 +162,18 @@ export class PeerConnectionManager {
             ) => {
                 const requestID = message.msg.requestID;
                 if (response.msg.requestID !== requestID) {
+                    console.error(
+                        "Received response with different requestID:",
+                        response.msg.requestID,
+                        "so igniring it"
+                    );
                     return; // Ignore this response
                 }
+
+                console.log(
+                    "Received response with requestID:",
+                    response.msg.requestID
+                );
 
                 this.signaling.unsubscribeMessage(
                     SUCCESS_MESSAGE_TYPE,
