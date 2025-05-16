@@ -1,0 +1,147 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    font-size: 22px;
+}
+
+.profilePicture {
+    margin: 10px;
+    height: 200px;
+}
+
+.greeting {
+    margin: 0;
+    font-weight: normal;
+    font-size: 2.5rem;
+}
+
+.registeredDevices {
+    width: 100%;
+    h4 {
+        margin: 0;
+        font-weight: normal;
+    }
+}
+
+.deviceList {
+    margin: 0;
+    padding: 0;
+}
+
+.deviceListItem {
+    --buttonheight: 50px;
+
+    height: var(--buttonheight);
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.currentDevice {
+    width: 100%;
+    height: 100%;
+    border-radius: 100px;
+    background-color: var(--black);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0 0 15px;
+}
+
+.addCurrentDeviceButton {
+    width: 100%;
+    height: 100%;
+    border-radius: 100px;
+    background-color: var(--black);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 15px;
+
+    &:hover {
+        background-color: black;
+    }
+
+    &:disabled {
+        border-color: #aaaaaa;
+        background-color: #aaaaaa;
+        cursor: not-allowed;
+    }
+}
+
+.addIcon {
+    height: 20px;
+    margin-right: 15px;
+}
+
+.connectButton {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    border-radius: 100px;
+    padding: 0 0 0 15px;
+
+    &:hover {
+        background-color: white;
+    }
+}
+
+.selected {
+    background-color: white;
+}
+
+.deleteButtonContainer {
+    height: 100%;
+    width: var(--buttonheight);
+    padding: 5px;
+}
+
+.deleteButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100%;
+    height: 100%;
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+}
+
+.deviceInfo {
+    display: flex;
+    align-items: center;
+
+    img {
+        width: 20px;
+        height: 20px;
+        margin-right: 15px;
+    }
+}
+
+.deviceOnline {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    background-color: green;
+    margin-right: 15px;
+}
+
+.deviceOffline {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    background-color: red;
+    margin-right: 15px;
+}

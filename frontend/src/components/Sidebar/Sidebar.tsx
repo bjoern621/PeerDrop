@@ -2,9 +2,11 @@ import { Register } from "./Register/Register";
 import { useState } from "react";
 import smallLogo from "../../assets/logo_small.png";
 import css from "./Sidebar.module.scss";
+import { UserProfile } from "./UserProfile/UserProfile";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const login = true;
 
     function onCollapseSidebar() {
         setIsCollapsed(!isCollapsed);
@@ -24,7 +26,7 @@ export const Sidebar = () => {
             </div>
             {!isCollapsed && (
                 <>
-                    <Register />
+                    {login ? <UserProfile /> : <Register />}
                     <img src={smallLogo} alt="Logo" className={css.logo} />
                 </>
             )}
