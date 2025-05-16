@@ -137,7 +137,7 @@ export const Register = () => {
                     name="password"
                     value={password}
                     className={[
-                        usernameError ? css.errorField : "",
+                        passwordError ? css.errorField : "",
                         css.inputfield,
                     ].join(" ")}
                     onChange={e => setPassword(e.target.value)}
@@ -151,7 +151,7 @@ export const Register = () => {
                     name="passwordRepeat"
                     value={passwordRepeat}
                     className={[
-                        usernameError ? css.errorField : "",
+                        passwordRepeatError ? css.errorField : "",
                         css.inputfield,
                     ].join(" ")}
                     onChange={e => setPasswordRepeat(e.target.value)}
