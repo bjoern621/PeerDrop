@@ -9,16 +9,6 @@ export type TypedMessage<T = unknown> = {
     msg: T;
 };
 
-type ErrorMessage = {
-    description: string;
-    expected?: string;
-    actual?: string;
-};
-
-type SuccessMessage = {
-    description: string;
-};
-
 type ClientTokenMessage = {
     token: ClientToken;
 };
@@ -26,8 +16,6 @@ type ClientTokenMessage = {
 export type ClientToken = string;
 
 const CLIENT_TOKEN_MESSAGE_TYPE: string = "client-token";
-const ERROR_MESSAGE_TYPE: string = "error-message";
-const SUCCESS_MESSAGE_TYPE: string = "success-message";
 
 /**
  * The `WebSocketService` class provides functionality for managing the WebSocket connection
@@ -56,67 +44,6 @@ export class WebSocketService {
         // WebSocketService global verfügbar machen für die Konsole im Browser (dev mode)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         (window as any).webSocketService = this;
-    }
-
-    /**
-     * Sends a typed message to the server and returns a Promise that resolves or rejects
-     * based on the first success or error response received from the server.
-     *
-     * The method subscribes to both success and error message types, and automatically
-     * unsubscribes the response handler after receiving a relevant response.
-     *
-     * Note: If multiple requests of the same type are sent in parallel, responses may be mismatched.
-     * For robust correlation, use a unique requestId in each message and response.
-     *
-     * @param message The typed message to send to the server.
-     * @returns A Promise that resolves with a success message or rejects with an error message.
-     */
-    public sendMessageAndWaitForResponse<T>(
-        message: TypedMessage<T>
-    ): Promise<TypedMessage<ErrorMessage | SuccessMessage>> {
-        return new Promise((resolve, reject) => {
-            const handlerResponse = (
-                response: TypedMessage<ErrorMessage | SuccessMessage>
-            ) => {
-                if (response.type == ERROR_MESSAGE_TYPE) {
-                    this.unsubscribeMessage(
-                        SUCCESS_MESSAGE_TYPE,
-                        handlerResponse as MessageHandler
-                    );
-                    this.unsubscribeMessage(
-                        ERROR_MESSAGE_TYPE,
-                        handlerResponse as MessageHandler
-                    );
-
-                    reject(
-                        new Error((response.msg as ErrorMessage).description)
-                    );
-                }
-                if (response.type == SUCCESS_MESSAGE_TYPE) {
-                    this.unsubscribeMessage(
-                        SUCCESS_MESSAGE_TYPE,
-                        handlerResponse as MessageHandler
-                    );
-                    this.unsubscribeMessage(
-                        ERROR_MESSAGE_TYPE,
-                        handlerResponse as MessageHandler
-                    );
-
-                    resolve(response as TypedMessage<SuccessMessage>);
-                }
-            };
-
-            this.subscribeMessage(
-                SUCCESS_MESSAGE_TYPE,
-                handlerResponse as MessageHandler
-            );
-            this.subscribeMessage(
-                ERROR_MESSAGE_TYPE,
-                handlerResponse as MessageHandler
-            );
-
-            this.sendMessage(message);
-        });
     }
 
     private connectToServer() {
