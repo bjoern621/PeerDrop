@@ -50,7 +50,7 @@ export const UserProfile = () => {
             fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
                 method: "POST",
                 headers: {
-                    "Authorization": "Bearer " + localStorage.getItem("token"),
+                    Authorization: "Bearer " + localStorage.getItem("token"),
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(device),
@@ -84,7 +84,7 @@ export const UserProfile = () => {
             fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
                 method: "DELETE",
                 headers: {
-                    "Authorization": "Bearer " + localStorage.getItem("token"),
+                    Authorization: "Bearer " + localStorage.getItem("token"),
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(currentDevice),
@@ -138,7 +138,9 @@ export const UserProfile = () => {
                                 <span className={css.deleteButtonContainer}>
                                     <span
                                         className={css.deleteButton}
-                                        onClick={() => void deleteCurrentDevice()}
+                                        onClick={() =>
+                                            void deleteCurrentDevice()
+                                        }
                                     >
                                         <img src={deleteIconLight} />
                                     </span>
