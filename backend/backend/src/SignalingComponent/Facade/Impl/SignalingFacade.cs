@@ -13,6 +13,7 @@ public class SignalingFacade : ISignalingFacade
     private const string REMOTE_TOKEN_MESSAGE_TYPE = "remote-token";
     private const string ICE_CANDIDATE_MESSAGE_TYPE = "ice-candidate";
     private const string SDP_MESSAGE_TYPE = "sdp-message";
+    private const string CLOSE_CONNECTION_MESSAGE_TYPE = "close-connection-message";
 
     public SignalingFacade(IWebSocketHandler webSocketHandler, ISignalingService signalingService)
     {
@@ -30,5 +31,8 @@ public class SignalingFacade : ISignalingFacade
 
         _webSocketHandler.SubscribeToMessageType<SdpMessage>(SDP_MESSAGE_TYPE,
             (clientId, message) => _signalingService.HandleSdpMessage(clientId, message));
+        
+        _webSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(CLOSE_CONNECTION_MESSAGE_TYPE,
+            (clientId, message) => _signalingService.HandleCloseConnection(clientId, message));
     }
 }

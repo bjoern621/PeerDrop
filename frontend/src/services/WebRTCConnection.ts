@@ -194,39 +194,32 @@ export class WebRTCConnection {
     }
 
     public closePeerConnection() {
-        console.log("Closing peer connection");
-
         this.peerConnection.close();
-
-        assert(this.peerConnection.connectionState === "closed");
-
-        this.peerConnection.onicecandidate = null;
-        this.peerConnection.onnegotiationneeded = null;
-        this.peerConnection.oniceconnectionstatechange = null;
-        this.peerConnection.ondatachannel = null;
 
         const iceHandlers = this.signalingChannel.getHandlers(
             ICE_CANDIDATE_MESSAGE_TYPE
         );
 
         if (iceHandlers) {
-            iceHandlers.forEach(handler => {
+            iceHandlers.forEach(handler =>
                 this.signalingChannel.unsubscribeMessage(
                     ICE_CANDIDATE_MESSAGE_TYPE,
                     handler
-                );
-            });
+                )
+            );
         }
 
-        const spdHandlers = this.signalingChannel.getHandlers(SDP_MESSAGE_TYPE);
+        const sdpHandlers = this.signalingChannel.getHandlers(SDP_MESSAGE_TYPE);
 
-        if (spdHandlers) {
-            spdHandlers.forEach(handler => {
+        if (sdpHandlers) {
+            sdpHandlers.forEach(handler =>
                 this.signalingChannel.unsubscribeMessage(
                     SDP_MESSAGE_TYPE,
                     handler
-                );
-            });
+                )
+            );
         }
+
+        assert(this.peerConnection.connectionState === "closed");
     }
 }

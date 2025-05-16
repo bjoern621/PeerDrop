@@ -15,6 +15,7 @@ public class SignalingService : ISignalingService
     private const string SUCCESS_MESSAGE_TYPE = "success-message";
     private const string ICE_CANDIDATE_MESSAGE_TYPE = "ice-candidate";
     private const string SDP_MESSAGE_TYPE = "sdp-message";
+    private const string CLOSE_CONNECTION_MESSAGE_TYPE = "close-connection-message";
 
     public SignalingService(IWebSocketHandler webSocketHandler)
     {
@@ -108,5 +109,23 @@ public class SignalingService : ISignalingService
 
         await _webSocketHandler.SendMessage(remoteToken, response);
         Console.WriteLine($"to {remoteToken}: Remote SDP");
+    }
+
+    public async Task HandleCloseConnection(string clientId, RemoteTokenMessage message)
+    {
+        Console.WriteLine($"from {clientId}: Close Connection");
+        string remoteToken = message.RemoteToken;
+
+        var response = new TypedMessage<RemoteTokenMessage>()
+        {
+            Type = CLOSE_CONNECTION_MESSAGE_TYPE,
+            Msg = new RemoteTokenMessage()
+            {
+                RemoteToken = clientId
+            }
+        };
+        
+        await _webSocketHandler.SendMessage(remoteToken, response);
+        Console.WriteLine($"to {remoteToken}: Close Connection");
     }
 }
