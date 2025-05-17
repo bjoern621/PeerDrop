@@ -66,8 +66,6 @@ export class WebRTCConnection {
 
                 console.log("Adding ICE candidate");
 
-                console.warn(candidate);
-
                 const [, err] = await errorAsValue(
                     this.peerConnection.addIceCandidate(candidate)
                 );
@@ -98,8 +96,6 @@ export class WebRTCConnection {
             async message => {
                 const sdpMessage = message.msg as SDPMessage;
                 const description = sdpMessage.description;
-
-                console.warn(description);
 
                 console.log("Received SDP ", description.type, " message");
 
