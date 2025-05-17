@@ -109,8 +109,7 @@ export function DataSharingPage() {
     };
 
     const onDisconnect = () => {
-        void navigate("/"); // Redirect to home page
-        throw new Error("Cleanup not implemented yet");
+        void navigate("/"); // Redirect to home page#
     };
 
     return (

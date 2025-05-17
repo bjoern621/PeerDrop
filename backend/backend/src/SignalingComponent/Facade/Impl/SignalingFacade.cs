@@ -10,10 +10,6 @@ public class SignalingFacade : ISignalingFacade
     private readonly IWebSocketHandler _webSocketHandler;
     private readonly ISignalingService _signalingService;
 
-    private const string REMOTE_TOKEN_MESSAGE_TYPE = "remote-token";
-    private const string ICE_CANDIDATE_MESSAGE_TYPE = "ice-candidate";
-    private const string SDP_MESSAGE_TYPE = "sdp-message";
-
     public SignalingFacade(IWebSocketHandler webSocketHandler, ISignalingService signalingService)
     {
         _webSocketHandler = webSocketHandler;
@@ -22,13 +18,16 @@ public class SignalingFacade : ISignalingFacade
 
     public void SubscribeToMessageHandlers()
     {
-        _webSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(REMOTE_TOKEN_MESSAGE_TYPE,
+        _webSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(RemoteTokenMessage.TypeString,
             (clientId, message) => _signalingService.HandleRemoteTokenMessage(clientId, message));
 
-        _webSocketHandler.SubscribeToMessageType<IceCandidateMessage>(ICE_CANDIDATE_MESSAGE_TYPE,
+        _webSocketHandler.SubscribeToMessageType<IceCandidateMessage>(IceCandidateMessage.TypeString,
             (clientId, message) => _signalingService.HandleIceCandidateMessage(clientId, message));
 
-        _webSocketHandler.SubscribeToMessageType<SdpMessage>(SDP_MESSAGE_TYPE,
+        _webSocketHandler.SubscribeToMessageType<SdpMessage>(SdpMessage.TypeString,
             (clientId, message) => _signalingService.HandleSdpMessage(clientId, message));
+        
+        _webSocketHandler.SubscribeToMessageType<CloseConnectionMessage>(CloseConnectionMessage.TypeString,
+            (clientId, message) => _signalingService.HandleCloseConnection(clientId, message));
     }
 }

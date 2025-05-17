@@ -66,13 +66,9 @@ webSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, me
 {
     Console.WriteLine($"Received message from client {clientId}: {message.Message}");
 
-    TypedMessage<TestMessage> response = new()
+    TestMessage response = new()
     {
-        Type = "test",
-        Msg = new TestMessage
-        {
-            Message = "Hallo vom Server!"
-        }
+        Message = "Hallo vom Server!"
     };
 
     await webSocketHandler.SendMessage(clientId, response);

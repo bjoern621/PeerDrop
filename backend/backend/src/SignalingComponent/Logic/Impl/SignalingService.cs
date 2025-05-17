@@ -10,12 +10,6 @@ public class SignalingService : ISignalingService
 {
     private readonly IWebSocketHandler _webSocketHandler;
 
-    private const string REMOTE_TOKEN_MESSAGE_TYPE = "remote-token";
-    private const string ERROR_MESSAGE_TYPE = "error-message";
-    private const string SUCCESS_MESSAGE_TYPE = "success-message";
-    private const string ICE_CANDIDATE_MESSAGE_TYPE = "ice-candidate";
-    private const string SDP_MESSAGE_TYPE = "sdp-message";
-
     public SignalingService(IWebSocketHandler webSocketHandler)
     {
         _webSocketHandler = webSocketHandler;
@@ -25,16 +19,14 @@ public class SignalingService : ISignalingService
     {
         Console.WriteLine($"from {clientId}: Local Token");
         string remoteToken = message.RemoteToken;
+        string requestId = message.RequestId!;
 
         if (!_webSocketHandler.RemoteTokenExists(remoteToken))
         {
-            var exception = new TypedMessage<ErrorMessage>()
+            var exception = new ErrorMessage
             {
-                Type = ERROR_MESSAGE_TYPE,
-                Msg = new ErrorMessage
-                {
-                    Description = $"Remote token {remoteToken} does not exist"
-                }
+                RequestId = requestId,
+                Description = $"Remote token {remoteToken} does not exist"
             };
 
             await _webSocketHandler.SendMessage(clientId, exception);
@@ -42,22 +34,16 @@ public class SignalingService : ISignalingService
         }
         else
         {
-            var success = new TypedMessage<SuccessMessage>()
+            var success = new SuccessMessage
             {
-                Type = SUCCESS_MESSAGE_TYPE,
-                Msg = new SuccessMessage
-                {
-                    Description = $"Token {remoteToken} exists, OK"
-                }
+                RequestId = requestId,
+                Description = $"Token {remoteToken} exists, OK"
             };
 
-            var response = new TypedMessage<RemoteTokenMessage>()
+            var response = new RemoteTokenMessage
             {
-                Type = REMOTE_TOKEN_MESSAGE_TYPE,
-                Msg = new RemoteTokenMessage
-                {
-                    RemoteToken = clientId
-                }
+                RequestId = requestId,
+                RemoteToken = clientId
             };
 
             await _webSocketHandler.SendMessage(clientId, success);
@@ -73,14 +59,10 @@ public class SignalingService : ISignalingService
         Console.WriteLine($"from {clientId}: Local ICE Candidate");
         string remoteToken = message.RemoteToken;
 
-        var response = new TypedMessage<IceCandidateMessage>()
+        var response = new IceCandidateMessage
         {
-            Type = ICE_CANDIDATE_MESSAGE_TYPE,
-            Msg = new IceCandidateMessage()
-            {
-                RemoteToken = clientId,
-                IceCandidate = message.IceCandidate
-            }
+            RemoteToken = clientId,
+            IceCandidate = message.IceCandidate
         };
 
         await _webSocketHandler.SendMessage(remoteToken, response);
@@ -92,17 +74,27 @@ public class SignalingService : ISignalingService
         Console.WriteLine($"from {clientId}: Local SDP");
         string remoteToken = message.RemoteToken;
 
-        var response = new TypedMessage<SdpMessage>()
+        var response = new SdpMessage
         {
-            Type = SDP_MESSAGE_TYPE,
-            Msg = new SdpMessage()
-            {
-                RemoteToken = clientId,
-                Description = message.Description
-            }
+            RemoteToken = clientId,
+            Description = message.Description
         };
 
         await _webSocketHandler.SendMessage(remoteToken, response);
         Console.WriteLine($"to {remoteToken}: Remote SDP");
+    }
+
+    public async Task HandleCloseConnection(string clientId, CloseConnectionMessage message)
+    {
+        Console.WriteLine($"from {clientId}: Close Connection");
+        string remoteToken = message.RemoteToken;
+
+        var response = new CloseConnectionMessage
+        {
+            RemoteToken = clientId
+        };
+        
+        await _webSocketHandler.SendMessage(remoteToken, response);
+        Console.WriteLine($"to {remoteToken}: Close Connection");
     }
 }
