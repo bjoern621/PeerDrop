@@ -42,19 +42,95 @@ export class WebRTCConnection {
         this.polite =
             signalingChannel.getLocalClientToken()! < this.remoteToken;
         this.peerConnection = new RTCPeerConnection(iceServers);
+        this.setupReceivingDataChannel();
 
         this.handleIncomingICECandidates();
         this.handleNegotiationNeeded();
         this.handleSDPPackage();
         this.handleRemoteICECandidates();
 
-        this.testMethodDataChannelInitializier();
+        this.initializePeerConnection();
     }
 
-    public testMethodDataChannelInitializier() {
-        this.peerConnection.createDataChannel(
-            "testing, testing, attention please"
+    /**
+     * Sends a file to the remote peer over a dedicated RTCDataChannel.
+     *
+     * This method creates a new DataChannel for the given file and transmits the file in 16 KB chunks.
+     * Each chunk is read asynchronously using a FileReader and sent as an ArrayBuffer.
+     * After the entire file has been sent, an "EOF" message is transmitted to signal the end of the file,
+     * and the DataChannel is closed.
+     *
+     * @param file The file to be sent to the remote peer.
+     */
+    public sendFileOverDataChannel(file: File) {
+        console.log(
+            `File is ${[
+                file.name,
+                file.size,
+                file.type,
+                file.lastModified,
+            ].join(" ")}`
         );
+        const dataChannel = this.peerConnection.createDataChannel(
+            `file-${file.name}`
+        );
+
+        dataChannel.binaryType = "arraybuffer";
+        const chunkSize = 16 * 1024; //16 KB
+        let offset = 0;
+
+        dataChannel.onopen = () => {
+            const reader = new FileReader();
+
+            reader.onload = e => {
+                if (e.target && e.target.result) {
+                    dataChannel.send(e.target.result as ArrayBuffer);
+                    offset += (e.target.result as ArrayBuffer).byteLength;
+                    sendNextChunk(); //reads the next chunk, which triggers again the onload event
+                }
+            };
+
+            const sendNextChunk = () => {
+                if (offset < file.size) {
+                    const slice = file.slice(offset, offset + chunkSize);
+                    reader.readAsArrayBuffer(slice); //triggers the onload event on the reader
+                } else {
+                    dataChannel.send("EOF");
+                    dataChannel.close();
+                }
+            };
+
+            sendNextChunk(); //start reading and sending first chunk
+        };
+    }
+
+    private setupReceivingDataChannel() {
+        this.peerConnection.ondatachannel = event => {
+            console.log("Received data channel");
+
+            const dataChannel = event.channel;
+            dataChannel.onmessage = event => {
+                console.log("Received message: ", event.data);
+                // Handle incoming messages here, hier musst dann mit den FrontEnd Atzen gekocht werden
+            };
+            dataChannel.onopen = () => {
+                console.log("Data channel is open");
+            };
+            dataChannel.onclose = () => {
+                console.log("Data channel is closed");
+            };
+            dataChannel.onerror = error => {
+                console.error("Data channel error: ", error);
+            };
+        };
+    }
+
+    /**
+     * To trigger the negotiationneeded event, we create a data channel.
+     * After that, the WebRTC Connection is goint to start (handshake).
+     */
+    private initializePeerConnection() {
+        this.peerConnection.createDataChannel("init");
     }
 
     private handleRemoteICECandidates() {
