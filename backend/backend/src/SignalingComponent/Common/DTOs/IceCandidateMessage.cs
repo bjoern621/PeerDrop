@@ -1,17 +1,20 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using backend.WebSocketComponent.Common.DTOs;
 
 namespace backend.SignalingComponent.Common.DTOs;
 
-public struct IceCandidateMessage
+public class IceCandidateMessage : TypedMessage
 {
-    
+    public override string GetTypeString()
+    {
+        return "ice-candidate-message";
+    }
+
     [JsonPropertyName("remoteToken")]
-    
-    public string RemoteToken { get; set; }
+        public required string RemoteToken { get; set; }
     
     [JsonPropertyName("iceCandidate")]
-    
     public JsonElement IceCandidate { get; set; }
     
 }

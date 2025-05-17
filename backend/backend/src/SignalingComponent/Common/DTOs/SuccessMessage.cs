@@ -2,11 +2,16 @@ using System.Text.Json.Serialization;
 
 namespace backend.WebSocketComponent.Common.DTOs;
 
-public struct SuccessMessage
+public class SuccessMessage : TypedMessage
 {
+    public override string GetTypeString()
+    {
+        return "success-message";
+    }
+
     [JsonPropertyName("requestID")]
-    public string RequestId { get; set; }
+    public required string RequestId { get; set; }
     
     [JsonPropertyName("description")]
-    public string Description { get; set; }
+    public required string Description { get; set; }
 }

@@ -2,13 +2,18 @@ using System.Text.Json.Serialization;
 
 namespace backend.WebSocketComponent.Common.DTOs;
 
-public struct ErrorMessage
+public class ErrorMessage : TypedMessage
 {
+    public override string GetTypeString()
+    {
+        return "error-message";
+    }
+
     [JsonPropertyName("requestID")]
-    public string RequestId { get; set; }
+    public required string RequestId { get; set; }
     
     [JsonPropertyName("description")]
-    public string Description { get; set; }
+    public required string Description { get; set; }
     
     [JsonPropertyName("expected")]
     public string? Expected { get; set; }

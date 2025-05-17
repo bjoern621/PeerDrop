@@ -1,12 +1,24 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace backend.WebSocketComponent.Common.DTOs;
 
-public struct TypedMessage<T>
+public abstract class TypedMessage
 {
-    [JsonPropertyName("type")]
-    public String Type { get; set; }
+    public abstract string GetTypeString();
 
-    [JsonPropertyName("msg")]
-    public T Msg { get; set; }
+    public string ToJson()
+    {
+        var wrapper = new
+        {
+            type = GetTypeString(),
+            msg = JsonSerializer.Deserialize<object>(JsonSerializer.Serialize(this, this.GetType()))
+        };
+
+        Console.WriteLine($"Serialised msg: {JsonSerializer.Serialize(this)}");
+        
+        Console.WriteLine(JsonSerializer.Serialize(wrapper));
+        return JsonSerializer.Serialize(wrapper);
+
+    }
 }

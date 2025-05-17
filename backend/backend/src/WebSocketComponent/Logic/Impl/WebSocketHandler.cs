@@ -55,7 +55,7 @@ public class WebSocketHandler : IWebSocketHandler
     /// <summary>
     /// Sends a typed message to a specific client. The client ID must be valid and connected. Returns true if the message was sent successfully, false otherwise.
     /// </summary>
-    public async Task<bool> SendMessage<T>(string clientToken, TypedMessage<T> message)
+    public async Task<bool> SendMessage(string clientToken, TypedMessage message)
     {
         var result = ActiveConnections.TryGetValue(clientToken, out var webSocket);
 
@@ -64,8 +64,7 @@ public class WebSocketHandler : IWebSocketHandler
 
         try
         {
-            var messageJson = JsonSerializer.Serialize(message);
-            var messageBytes = Encoding.UTF8.GetBytes(messageJson);
+            var messageBytes = Encoding.UTF8.GetBytes(message.ToJson());
             await webSocket.SendAsync(
                 new ArraySegment<byte>(messageBytes),
                 WebSocketMessageType.Text,
@@ -96,24 +95,11 @@ public class WebSocketHandler : IWebSocketHandler
 
         RemoveConnection(clientToken);
     }
-
-    const string CLIENT_TOKEN_MESSAGE_TYPE = "client-token";
-
-    struct ClientTokenMessage
-    {
-        [JsonPropertyName("token")]
-        public string ClientToken { get; set; }
-    }
-
     private async Task SendClientTokenAsync(string clientToken)
     {
-        TypedMessage<ClientTokenMessage> message = new()
+        var message = new ClientTokenMessage
         {
-            Type = CLIENT_TOKEN_MESSAGE_TYPE,
-            Msg = new ClientTokenMessage
-            {
-                ClientToken = clientToken
-            }
+            ClientToken = clientToken
         };
 
         await SendMessage(clientToken, message);
