@@ -7,6 +7,7 @@ public class RemoteTokenMessage : ITypedMessage
 {
     public static string TypeString => "remote-token";
 
+    [JsonIgnore]
     public string InstanceTypeString => TypeString;
 
     [JsonPropertyName("requestID")]

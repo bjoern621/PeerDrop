@@ -7,6 +7,7 @@ public class CloseConnectionMessage : ITypedMessage
 {
     public static string TypeString => "close-connection";
 
+    [JsonIgnore]
     public string InstanceTypeString => TypeString;
 
     [JsonPropertyName("requestID")]

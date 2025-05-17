@@ -7,6 +7,7 @@ public class TestMessage : ITypedMessage
 {
     public static string TypeString => "test";
 
+    [JsonIgnore]
     public string InstanceTypeString => TypeString;
     
     [JsonPropertyName("message")]

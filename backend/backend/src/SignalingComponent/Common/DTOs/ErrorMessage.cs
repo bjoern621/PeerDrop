@@ -6,6 +6,7 @@ public class ErrorMessage : ITypedMessage
 {
     public static string TypeString => "error";
 
+    [JsonIgnore]
     public string InstanceTypeString => TypeString;
 
     [JsonPropertyName("requestID")]

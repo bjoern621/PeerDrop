@@ -6,6 +6,7 @@ public class SuccessMessage : ITypedMessage
 {
     public static string TypeString => "success";
 
+    [JsonIgnore]
     public string InstanceTypeString => TypeString;
 
     [JsonPropertyName("requestID")]

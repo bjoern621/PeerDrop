@@ -8,6 +8,7 @@ public class SdpMessage : ITypedMessage
 {
     public static string TypeString => "sdp";
 
+    [JsonIgnore]
     public string InstanceTypeString => TypeString;
     
     [JsonPropertyName("remoteToken")]

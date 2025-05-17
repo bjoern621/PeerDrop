@@ -8,6 +8,7 @@ public class IceCandidateMessage : ITypedMessage
 {
     public static string TypeString => "ice-candidate";
 
+    [JsonIgnore]
     public string InstanceTypeString => TypeString;
 
     [JsonPropertyName("remoteToken")]
