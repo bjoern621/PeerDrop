@@ -3,9 +3,9 @@ using backend.WebSocketComponent.Common.DTOs;
 
 namespace backend.SignalingComponent.Common.DTOs;
 
-public class RemoteTokenMessage : ITypedMessage
+public class CloseConnectionMessage : ITypedMessage
 {
-    public static string TypeString => "remote-token";
+    public static string TypeString => "close-connection";
 
     public string InstanceTypeString => TypeString;
 

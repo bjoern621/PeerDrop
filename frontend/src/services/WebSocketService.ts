@@ -1,8 +1,7 @@
 import { assert, never } from "../util/Assert";
+import { MessageType } from "./MessageType";
 
 export type MessageHandler = (typedMessage: TypedMessage<unknown>) => unknown;
-
-export type MessageType = string;
 
 export type TypedMessage<T = unknown> = {
     type: MessageType;
@@ -14,8 +13,6 @@ type ClientTokenMessage = {
 };
 
 export type ClientToken = string;
-
-const CLIENT_TOKEN_MESSAGE_TYPE: string = "client-token";
 
 /**
  * The `WebSocketService` class provides functionality for managing the WebSocket connection
@@ -95,13 +92,13 @@ export class WebSocketService {
             this.localToken = message.msg.token;
 
             this.unsubscribeMessage(
-                CLIENT_TOKEN_MESSAGE_TYPE,
+                MessageType.CLIENT_TOKEN,
                 handleClientTokenMessage as MessageHandler
             );
         };
 
         this.subscribeMessage(
-            CLIENT_TOKEN_MESSAGE_TYPE,
+            MessageType.CLIENT_TOKEN,
             handleClientTokenMessage as MessageHandler
         );
     }

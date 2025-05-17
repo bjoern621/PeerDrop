@@ -2,12 +2,11 @@ using System.Text.Json.Serialization;
 
 namespace backend.WebSocketComponent.Common.DTOs;
 
-public class ErrorMessage : TypedMessage
+public class ErrorMessage : ITypedMessage
 {
-    public override string GetTypeString()
-    {
-        return "error-message";
-    }
+    public static string TypeString => "error";
+
+    public string InstanceTypeString => TypeString;
 
     [JsonPropertyName("requestID")]
     public required string RequestId { get; set; }

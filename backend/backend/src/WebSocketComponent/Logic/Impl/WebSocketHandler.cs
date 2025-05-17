@@ -55,7 +55,7 @@ public class WebSocketHandler : IWebSocketHandler
     /// <summary>
     /// Sends a typed message to a specific client. The client ID must be valid and connected. Returns true if the message was sent successfully, false otherwise.
     /// </summary>
-    public async Task<bool> SendMessage(string clientToken, TypedMessage message)
+    public async Task<bool> SendMessage(string clientToken, ITypedMessage message)
     {
         var result = ActiveConnections.TryGetValue(clientToken, out var webSocket);
 

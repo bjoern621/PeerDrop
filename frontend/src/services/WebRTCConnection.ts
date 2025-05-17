@@ -5,6 +5,7 @@ import {
     TypedMessage,
     WebSocketService,
 } from "./WebSocketService";
+import { MessageType } from "./MessageType";
 
 const iceServers: RTCConfiguration = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -19,9 +20,6 @@ export type SDPMessage = {
     remoteToken: ClientToken;
     description: RTCSessionDescriptionInit;
 };
-
-const ICE_CANDIDATE_MESSAGE_TYPE: string = "ice-candidate";
-const SDP_MESSAGE_TYPE: string = "sdp-message";
 
 export class WebRTCConnection {
     private readonly remoteToken: ClientToken;
@@ -59,7 +57,7 @@ export class WebRTCConnection {
 
     private handleRemoteICECandidates() {
         this.signalingChannel.subscribeMessage(
-            ICE_CANDIDATE_MESSAGE_TYPE,
+            MessageType.ICE_CANDIDATE,
             async message => {
                 console.log("Received REMOTE ICE candidate message");
 
@@ -94,7 +92,7 @@ export class WebRTCConnection {
 
     private handleSDPPackage() {
         this.signalingChannel.subscribeMessage(
-            SDP_MESSAGE_TYPE,
+            MessageType.SDP,
             async message => {
                 const sdpMessage = message.msg as SDPMessage;
                 const description = sdpMessage.description;
@@ -135,7 +133,7 @@ export class WebRTCConnection {
 
                     await this.peerConnection.setLocalDescription();
                     const descriptionMessage: TypedMessage<SDPMessage> = {
-                        type: SDP_MESSAGE_TYPE,
+                        type: MessageType.SDP,
                         msg: {
                             remoteToken: this.remoteToken,
                             description: this.peerConnection.localDescription!,
@@ -161,7 +159,7 @@ export class WebRTCConnection {
             await this.peerConnection.setLocalDescription();
 
             const descriptionMessage: TypedMessage<SDPMessage> = {
-                type: SDP_MESSAGE_TYPE,
+                type: MessageType.SDP,
                 msg: {
                     remoteToken: this.remoteToken,
                     description: this.peerConnection.localDescription!,
@@ -182,7 +180,7 @@ export class WebRTCConnection {
 
             if (event.candidate) {
                 const iceCandidateMessage: TypedMessage<IceCandidateMessage> = {
-                    type: ICE_CANDIDATE_MESSAGE_TYPE,
+                    type: MessageType.ICE_CANDIDATE,
                     msg: {
                         remoteToken: this.remoteToken,
                         iceCandidate: event.candidate,
@@ -197,24 +195,24 @@ export class WebRTCConnection {
         this.peerConnection.close();
 
         const iceHandlers = this.signalingChannel.getHandlers(
-            ICE_CANDIDATE_MESSAGE_TYPE
+            MessageType.ICE_CANDIDATE
         );
 
         if (iceHandlers) {
             iceHandlers.forEach(handler =>
                 this.signalingChannel.unsubscribeMessage(
-                    ICE_CANDIDATE_MESSAGE_TYPE,
+                    MessageType.ICE_CANDIDATE,
                     handler
                 )
             );
         }
 
-        const sdpHandlers = this.signalingChannel.getHandlers(SDP_MESSAGE_TYPE);
+        const sdpHandlers = this.signalingChannel.getHandlers(MessageType.SDP);
 
         if (sdpHandlers) {
             sdpHandlers.forEach(handler =>
                 this.signalingChannel.unsubscribeMessage(
-                    SDP_MESSAGE_TYPE,
+                    MessageType.SDP,
                     handler
                 )
             );

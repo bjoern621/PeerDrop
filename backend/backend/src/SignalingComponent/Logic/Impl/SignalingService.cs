@@ -84,12 +84,12 @@ public class SignalingService : ISignalingService
         Console.WriteLine($"to {remoteToken}: Remote SDP");
     }
 
-    public async Task HandleCloseConnection(string clientId, RemoteTokenMessage message)
+    public async Task HandleCloseConnection(string clientId, CloseConnectionMessage message)
     {
         Console.WriteLine($"from {clientId}: Close Connection");
         string remoteToken = message.RemoteToken;
 
-        var response = new RemoteTokenMessage
+        var response = new CloseConnectionMessage
         {
             RemoteToken = clientId
         };

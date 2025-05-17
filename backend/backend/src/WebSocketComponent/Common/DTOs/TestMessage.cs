@@ -3,13 +3,12 @@ using backend.WebSocketComponent.Common.DTOs;
 
 namespace backend.WebSocketComponent.Common.DTOs;
 
-public class TestMessage : TypedMessage
+public class TestMessage : ITypedMessage
 {
-    public override string GetTypeString()
-    {
-        return "test-message";
-    }
+    public static string TypeString => "test";
 
+    public string InstanceTypeString => TypeString;
+    
     [JsonPropertyName("message")]
     public required string Message { get; set; }
 }

@@ -3,22 +3,24 @@ using System.Text.Json.Serialization;
 
 namespace backend.WebSocketComponent.Common.DTOs;
 
-public abstract class TypedMessage
+public interface ITypedMessage
 {
-    public abstract string GetTypeString();
+    static abstract string TypeString { get; }
 
-    public string ToJson()
+    [JsonIgnore]
+    string InstanceTypeString { get; }
+
+    /// <summary>
+    /// Serializes the message to a JSON string, including its type.
+    /// </summary>
+    string ToJson()
     {
         var wrapper = new
         {
-            type = GetTypeString(),
+            type = this.InstanceTypeString,
             msg = JsonSerializer.Deserialize<object>(JsonSerializer.Serialize(this, this.GetType()))
         };
 
-        Console.WriteLine($"Serialised msg: {JsonSerializer.Serialize(this)}");
-        
-        Console.WriteLine(JsonSerializer.Serialize(wrapper));
         return JsonSerializer.Serialize(wrapper);
-
     }
 }

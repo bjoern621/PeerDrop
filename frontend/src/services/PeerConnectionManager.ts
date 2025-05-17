@@ -7,6 +7,7 @@ import {
     WebSocketService,
     ClientToken,
 } from "./WebSocketService";
+import { MessageType } from "./MessageType";
 
 export type RemoteTokenMessage = {
     requestID?: string;
@@ -24,11 +25,6 @@ type SuccessMessage = {
     requestID: string;
     description: string;
 };
-
-const REMOTE_TOKEN_MESSAGE_TYPE: string = "remote-token";
-const ERROR_MESSAGE_TYPE: string = "error-message";
-const SUCCESS_MESSAGE_TYPE: string = "success-message";
-const CLOSE_CONNECTION_MESSAGE_TYPE: string = "close-connection-message";
 
 export class PeerConnectionManager {
     private remoteToken: ClientToken | undefined;
@@ -63,7 +59,7 @@ export class PeerConnectionManager {
             // einer passenden Nachricht)
 
             this.signaling.unsubscribeMessage(
-                REMOTE_TOKEN_MESSAGE_TYPE,
+                MessageType.REMOTE_TOKEN,
                 handleRemoteTokenMessage as MessageHandler
             );
 
@@ -74,7 +70,7 @@ export class PeerConnectionManager {
         };
 
         this.signaling.subscribeMessage(
-            REMOTE_TOKEN_MESSAGE_TYPE,
+            MessageType.REMOTE_TOKEN,
             handleRemoteTokenMessage as MessageHandler
         );
     }
@@ -103,7 +99,7 @@ export class PeerConnectionManager {
         const requestID: string = crypto.randomUUID();
 
         const tokenMessage: TypedMessage<RemoteTokenMessage> = {
-            type: REMOTE_TOKEN_MESSAGE_TYPE,
+            type: MessageType.REMOTE_TOKEN,
             msg: {
                 requestID: requestID,
                 remoteToken: otherToken,
@@ -132,12 +128,12 @@ export class PeerConnectionManager {
 
         //unsubscribe all handlers for the REMOTE_TOKEN_MESSAGE_TYPE
         const handlersRemoteToken = this.signaling.getHandlers(
-            REMOTE_TOKEN_MESSAGE_TYPE
+            MessageType.REMOTE_TOKEN
         );
         if (handlersRemoteToken) {
             handlersRemoteToken.forEach(handler => {
                 this.signaling.unsubscribeMessage(
-                    REMOTE_TOKEN_MESSAGE_TYPE,
+                    MessageType.REMOTE_TOKEN,
                     handler
                 );
             });
@@ -187,30 +183,30 @@ export class PeerConnectionManager {
                 );
 
                 this.signaling.unsubscribeMessage(
-                    SUCCESS_MESSAGE_TYPE,
+                    MessageType.SUCCESS,
                     handlerResponse as MessageHandler
                 );
                 this.signaling.unsubscribeMessage(
-                    ERROR_MESSAGE_TYPE,
+                    MessageType.ERROR,
                     handlerResponse as MessageHandler
                 );
 
-                if (response.type == ERROR_MESSAGE_TYPE) {
+                if (response.type == MessageType.ERROR) {
                     reject(
                         new Error((response.msg as ErrorMessage).description)
                     );
                 }
-                if (response.type == SUCCESS_MESSAGE_TYPE) {
+                if (response.type == MessageType.SUCCESS) {
                     resolve(response as TypedMessage<SuccessMessage>);
                 }
             };
 
             this.signaling.subscribeMessage(
-                SUCCESS_MESSAGE_TYPE,
+                MessageType.SUCCESS,
                 handlerResponse as MessageHandler
             );
             this.signaling.subscribeMessage(
-                ERROR_MESSAGE_TYPE,
+                MessageType.ERROR,
                 handlerResponse as MessageHandler
             );
 
@@ -233,7 +229,7 @@ export class PeerConnectionManager {
         this.connection.closePeerConnection();
 
         const closeConnectionMessage: TypedMessage<RemoteTokenMessage> = {
-            type: CLOSE_CONNECTION_MESSAGE_TYPE,
+            type: MessageType.CLOSE_CONNECTION,
             msg: {
                 remoteToken: this.remoteToken!,
             },
@@ -277,7 +273,7 @@ export class PeerConnectionManager {
         };
 
         this.signaling.subscribeMessage(
-            CLOSE_CONNECTION_MESSAGE_TYPE,
+            MessageType.CLOSE_CONNECTION,
             handleCloseConnectionRequest as MessageHandler
         );
     }

@@ -4,12 +4,11 @@ using backend.WebSocketComponent.Common.DTOs;
 
 namespace backend.SignalingComponent.Common.DTOs;
 
-public class SdpMessage : TypedMessage
+public class SdpMessage : ITypedMessage
 {
-    public override string GetTypeString()
-    {
-        return "sdp-message";
-    }
+    public static string TypeString => "sdp-message";
+
+    public string InstanceTypeString => TypeString;
     
     [JsonPropertyName("remoteToken")]
     
