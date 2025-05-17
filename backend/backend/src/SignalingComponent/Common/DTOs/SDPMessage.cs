@@ -6,7 +6,7 @@ namespace backend.SignalingComponent.Common.DTOs;
 
 public class SdpMessage : ITypedMessage
 {
-    public static string TypeString => "sdp-message";
+    public static string TypeString => "sdp";
 
     public string InstanceTypeString => TypeString;
     
