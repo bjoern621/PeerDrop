@@ -96,6 +96,9 @@ export class WebRTCConnection {
                     reader.readAsArrayBuffer(slice); //triggers the onload event on the reader
                 } else {
                     dataChannel.send("EOF");
+
+                    console.log("File sent, EOF reached, closing data channel");
+
                     dataChannel.close();
                 }
             };
@@ -109,9 +112,38 @@ export class WebRTCConnection {
             console.log("Received data channel");
 
             const dataChannel = event.channel;
+            const receivedChunks: ArrayBuffer[] = [];
+
             dataChannel.onmessage = event => {
-                console.log("Received message: ", event.data);
-                // Handle incoming messages here, hier musst dann mit den FrontEnd Atzen gekocht werden
+                if (typeof event.data === "string" && event.data === "EOF") {
+                    const blob = new Blob(receivedChunks);
+
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+                    (window as any).lastReceivedFile = blob;
+                    console.log(
+                        "Empfangener Blob im window.lastReceivedFile:",
+                        blob
+                    );
+                    // Optional: Direkt als Text oder URL anzeigen
+                    blob.text()
+                        .then(text =>
+                            console.log("Datei-Inhalt als Text:", text)
+                        )
+                        .catch(error =>
+                            console.error("Error reading blob as text:", error)
+                        );
+                    // Oder als URL anzeigen
+                    const url = URL.createObjectURL(blob);
+                    console.log("Blob-URL:", url);
+                } else if (event.data instanceof ArrayBuffer) {
+                    receivedChunks.push(event.data);
+                    console.log(
+                        "Chunk empfangen, Größe:",
+                        event.data.byteLength
+                    );
+                } else {
+                    console.log("Unbekannter Nachrichtentyp:", event.data);
+                }
             };
             dataChannel.onopen = () => {
                 console.log("Data channel is open");
