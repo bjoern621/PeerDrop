@@ -72,7 +72,6 @@ public class AccountHandler(IAccountRepository repo) : IAccountHandler
             return Results.BadRequest("Invalid username");
         }
         
-        Console.WriteLine("Verifying password " + acc.Password);
         // accountobj contains the password hash from the database, acc contains the password from the request
         bool valid = Account.VerifyPassword(acc.Password, accountobj.Password);
 

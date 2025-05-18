@@ -35,15 +35,11 @@ public class AccountRepository : IAccountRepository
         string displayName = account.GetName();
         string password = account.GetPassword();
         
-        byte[] saltx = account.GetSalt();
-        string salt = Convert.ToBase64String(saltx);
-
         await using var cmd = _dataSource.CreateCommand(
-            "INSERT INTO users (display_name,passwort,salt) VALUES (@name,@password,@salt) RETURNING id");
+            "INSERT INTO users (display_name,passwort) VALUES (@name,@password) RETURNING id");
         // supply each parameter separately:
         cmd.Parameters.AddWithValue("name",    displayName);
         cmd.Parameters.AddWithValue("password", password);
-        cmd.Parameters.AddWithValue("salt", salt);
         
         var result = await cmd.ExecuteScalarAsync();
         if (result is int id)
