@@ -31,8 +31,8 @@ public class AccountRepository : IAccountRepository
     
     public async Task<int> SaveAsync(Account account)
     {
-        string displayName = account.getName();
-        string password = account.getPassword();
+        string displayName = account.GetName();
+        string password = account.GetPassword();
         
         await using var cmd = _dataSource.CreateCommand(
             "INSERT INTO users (display_name,passwort) VALUES (@name,@password) RETURNING id");
@@ -40,8 +40,11 @@ public class AccountRepository : IAccountRepository
         cmd.Parameters.AddWithValue("name",    displayName);
         cmd.Parameters.AddWithValue("password", password);
         
-        // will never return null although warning indicates otherwise
-        return (int)await cmd.ExecuteScalarAsync();
+        var result = await cmd.ExecuteScalarAsync();
+        if (result is int id)
+            return id;
+
+        throw new InvalidOperationException("Insert did not return an ID.");
     }
     
     public async Task<Account?> GetByNameAsync(string name)

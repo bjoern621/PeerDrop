@@ -41,8 +41,8 @@ builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
 builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
-builder.Services.AddSingleton<IAccountHandler, AccountHandler>();
-builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IAccountHandler, AccountHandler>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
 var app = builder.Build();
 
