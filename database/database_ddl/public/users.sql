@@ -5,7 +5,8 @@
             primary key,
     display_name text not null
         constraint uq_display_name UNIQUE,
-    passwort text not null
+    passwort text not null,
+    salt text not null
 );
 
 alter table users

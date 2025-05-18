@@ -9,6 +9,7 @@ public class Account
 {
     private readonly string _displayName;
     private readonly string _password;
+    private byte[] _salt;
     
     // vielleicht auch statt displayname die email angeben können..
     public Account(string displayName, string password)
@@ -18,6 +19,8 @@ public class Account
             throw new ArgumentException("Please provide both displayName and password");
         }
         _displayName = displayName;
+        
+        
         _password = EncryptPassword(password);
     }
 
@@ -27,6 +30,11 @@ public class Account
 
     public string GetPassword() {
         return _password;
+    }
+
+    public byte[] GetSalt()
+    {
+        return _salt;
     }
     
     public static Account Of(AccountCreateDto accountCreateDto) {
@@ -56,24 +64,22 @@ public class Account
      */
     private string EncryptPassword(string password)
     {
-        // Generate a random salt
-        byte[] salt = GenerateSalt();
-
+        _salt = GenerateSalt();
         // Combine password and salt
         byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-        byte[] saltedPassword = new byte[passwordBytes.Length + salt.Length];
+        byte[] saltedPassword = new byte[passwordBytes.Length + _salt.Length];
         Buffer.BlockCopy(passwordBytes, 0, saltedPassword, 0, passwordBytes.Length);
-        Buffer.BlockCopy(salt, 0, saltedPassword, passwordBytes.Length, salt.Length);
+        Buffer.BlockCopy(_salt, 0, saltedPassword, passwordBytes.Length, _salt.Length);
 
         // Hash the salted password
         using SHA256 sha256 = SHA256.Create();
         byte[] hashBytes = sha256.ComputeHash(saltedPassword);
 
         // Combine the salt and hash (salt comes first)
-        byte[] hashWithSalt = new byte[hashBytes.Length + salt.Length];
-        Buffer.BlockCopy(salt, 0, hashWithSalt, 0, salt.Length);
-        Buffer.BlockCopy(hashBytes, 0, hashWithSalt, salt.Length, hashBytes.Length);
-
+        byte[] hashWithSalt = new byte[hashBytes.Length + _salt.Length];
+        Buffer.BlockCopy(_salt, 0, hashWithSalt, 0, _salt.Length);
+        Buffer.BlockCopy(hashBytes, 0, hashWithSalt, _salt.Length, hashBytes.Length);
+        
         // Convert to base64 for easy storage or transmission
         return Convert.ToBase64String(hashWithSalt);
     }
