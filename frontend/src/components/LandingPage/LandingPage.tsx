@@ -128,6 +128,10 @@ export default function LandingPage() {
                         maxLength={5}
                         value={remoteToken}
                         onChange={setRemoteToken}
+                        inputMode="text"
+                        data-bwignore="true"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
                         render={({ slots }) => (
                             <>
                                 <div className={css.slotsContainer}>
