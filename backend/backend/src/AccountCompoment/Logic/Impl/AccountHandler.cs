@@ -45,4 +45,41 @@ public class AccountHandler(IAccountRepository repo) : IAccountHandler
         // the username is already taken
         return Results.StatusCode(StatusCodes.Status409Conflict);
     }
+    
+    public async Task<IResult> HandleLogin(HttpContext context)
+    {
+        // Deserialize the request body
+        AccountCreateDto? acc;
+        
+        try
+        {
+            acc = await JsonSerializer.DeserializeAsync<AccountCreateDto>(
+                context.Request.Body,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+        }
+        catch (Exception)
+        {
+            return Results.BadRequest("Invalid JSON format.");
+        }
+        
+        if (acc == null)
+            return Results.BadRequest("Missing account data.");
+        
+        var accountobj = await repo.GetByNameAsync(acc.DisplayName);
+
+        if (accountobj == null) {
+            return Results.BadRequest("Invalid username");
+        }
+        
+        Console.WriteLine("Verifying password " + acc.Password);
+        // accountobj contains the password hash from the database, acc contains the password from the request
+        bool valid = Account.VerifyPassword(acc.Password, accountobj.Password);
+
+        if (valid) {
+            return Results.Ok();
+        }
+
+        return Results.BadRequest("Invalid password");
+    }
 }

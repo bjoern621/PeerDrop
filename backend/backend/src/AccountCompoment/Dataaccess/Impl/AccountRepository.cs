@@ -1,4 +1,5 @@
-﻿using backend.AccountCompoment.Dataaccess.Api.Entity;
+﻿using backend.AccountCompoment.Common.DTOs;
+using backend.AccountCompoment.Dataaccess.Api.Entity;
 using backend.AccountCompoment.Dataaccess.Api.Repo;
 using Npgsql;
 
@@ -51,7 +52,7 @@ public class AccountRepository : IAccountRepository
         throw new InvalidOperationException("Insert did not return an ID.");
     }
     
-    public async Task<Account?> GetByNameAsync(string name)
+    public async Task<AccountCreateDto?> GetByNameAsync(string name)
     {
         await using var cmd = _dataSource.CreateCommand(
             "SELECT id, display_name, passwort FROM users WHERE display_name = @name");
@@ -59,10 +60,13 @@ public class AccountRepository : IAccountRepository
 
         await using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync()) return null;
-
-        return new Account(
-            reader.GetString(1),
-            reader.GetString(2)
-        );
+        
+        // DTO since we dont want to encrypt the password 
+        var account = new AccountCreateDto
+        {
+            DisplayName = reader.GetString(1),
+            Password = reader.GetString(2)
+        };
+        return account;
     }
 }

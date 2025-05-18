@@ -9,5 +9,7 @@ public class AccountRoutes : IAccountRoutes
     {
         app.MapPost("/accounts", (IAccountHandler handler, HttpContext context) =>
             handler.HandleAccounts(context));
+        app.MapPost("/login", (IAccountHandler handler, HttpContext context) =>
+            handler.HandleLogin(context));
     }
 }

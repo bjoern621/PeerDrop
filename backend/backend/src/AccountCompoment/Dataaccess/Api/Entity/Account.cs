@@ -9,7 +9,7 @@ public class Account
 {
     private readonly string _displayName;
     private readonly string _password;
-    private byte[] _salt;
+    private byte[]? _salt;
     
     // vielleicht auch statt displayname die email angeben können..
     public Account(string displayName, string password)
@@ -20,8 +20,9 @@ public class Account
         }
         _displayName = displayName;
         
-        
-        _password = EncryptPassword(password);
+        // salt is global variable because it needs to be stored in the database
+        _salt = GenerateSalt();
+        _password = EncryptPassword(password, _salt);
     }
 
     public string GetName() {
@@ -62,23 +63,22 @@ public class Account
     /**
      * Hash und Salt des Passwortes.
      */
-    private string EncryptPassword(string password)
+    private string EncryptPassword(string password, byte[] salt)
     {
-        _salt = GenerateSalt();
         // Combine password and salt
         byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-        byte[] saltedPassword = new byte[passwordBytes.Length + _salt.Length];
+        byte[] saltedPassword = new byte[passwordBytes.Length + salt.Length];
         Buffer.BlockCopy(passwordBytes, 0, saltedPassword, 0, passwordBytes.Length);
-        Buffer.BlockCopy(_salt, 0, saltedPassword, passwordBytes.Length, _salt.Length);
+        Buffer.BlockCopy(salt, 0, saltedPassword, passwordBytes.Length, salt.Length);
 
         // Hash the salted password
         using SHA256 sha256 = SHA256.Create();
         byte[] hashBytes = sha256.ComputeHash(saltedPassword);
 
         // Combine the salt and hash (salt comes first)
-        byte[] hashWithSalt = new byte[hashBytes.Length + _salt.Length];
-        Buffer.BlockCopy(_salt, 0, hashWithSalt, 0, _salt.Length);
-        Buffer.BlockCopy(hashBytes, 0, hashWithSalt, _salt.Length, hashBytes.Length);
+        byte[] hashWithSalt = new byte[hashBytes.Length + salt.Length];
+        Buffer.BlockCopy(salt, 0, hashWithSalt, 0, salt.Length);
+        Buffer.BlockCopy(hashBytes, 0, hashWithSalt, salt.Length, hashBytes.Length);
         
         // Convert to base64 for easy storage or transmission
         return Convert.ToBase64String(hashWithSalt);
@@ -93,35 +93,33 @@ public class Account
         return salt;
     }
 
-    // Method to verify password
-    public static bool VerifyPassword(string inputPassword, string storedPassword)
+    public static bool VerifyPassword(string inputPassword, string storedPasswordBase64)
     {
-        // Convert the stored password from base64 to bytes
-        byte[] storedPasswordBytes = Convert.FromBase64String(storedPassword);
+        // Decode the stored salt+hash
+        byte[] storedHashWithSalt = Convert.FromBase64String(storedPasswordBase64);
 
-        // Extract the salt (first 16 bytes)
-        byte[] salt = new byte[16];
-        Buffer.BlockCopy(storedPasswordBytes, 0, salt, 0, salt.Length);
+        // SHA256 hash size = 32 bytes (256 bits)
+        const int hashSize = 32;
+        if (storedHashWithSalt.Length < hashSize)
+            return false;
 
-        // Combine input password with the salt
+        // Extract salt and hash from stored value
+        int saltLength = storedHashWithSalt.Length - hashSize;
+        byte[] salt = new byte[saltLength];
+        byte[] storedHash = new byte[hashSize];
+        Buffer.BlockCopy(storedHashWithSalt, 0, salt, 0, saltLength);
+        Buffer.BlockCopy(storedHashWithSalt, saltLength, storedHash, 0, hashSize);
+
+        // Hash the input password with the extracted salt
         byte[] inputPasswordBytes = Encoding.UTF8.GetBytes(inputPassword);
         byte[] saltedInputPassword = new byte[inputPasswordBytes.Length + salt.Length];
         Buffer.BlockCopy(inputPasswordBytes, 0, saltedInputPassword, 0, inputPasswordBytes.Length);
         Buffer.BlockCopy(salt, 0, saltedInputPassword, inputPasswordBytes.Length, salt.Length);
 
-        // Hash the salted input password
         using SHA256 sha256 = SHA256.Create();
-        byte[] inputPasswordHash = sha256.ComputeHash(saltedInputPassword);
+        byte[] inputHash = sha256.ComputeHash(saltedInputPassword);
 
-        // Compare the hashes (excluding the salt part)
-        for (int i = 0; i < inputPasswordHash.Length; i++)
-        {
-            if (inputPasswordHash[i] != storedPasswordBytes[i + salt.Length])
-            {
-                return false;
-            }
-        }
-
-        return true;
+        // Use constant-time comparison
+        return CryptographicOperations.FixedTimeEquals(inputHash, storedHash);
     }
 }
