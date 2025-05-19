@@ -119,7 +119,7 @@ export default function LandingPage() {
             <div className={css.ownTokenContainer}>
                 <span className={css.tooltip}>Dein Token</span>
                 <span className={css.token}>
-                    {clientToken ? clientToken : "Lädt..."}
+                    {clientToken ? clientToken : "_____"}
                 </span>
             </div>
             <div className={css.peerTokenContainer}>
