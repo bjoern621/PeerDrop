@@ -127,6 +127,10 @@ export default function LandingPage() {
                     <OTPInput
                         maxLength={5}
                         value={remoteToken}
+                        inputMode="text"
+                        data-bwignore="true"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
                         onChange={value => setRemoteToken(value.toUpperCase())}
                         render={({ slots }) => (
                             <>
