@@ -45,7 +45,10 @@
     color: black;
     font-size: 8rem;
     font-weight: bold;
-    letter-spacing: 1.5rem;
+
+    --spacing: 1.5rem;
+    letter-spacing: var(--spacing);
+    margin-right: calc(var(--spacing) * -1);
 
     font-family: "Roboto Mono";
 }
