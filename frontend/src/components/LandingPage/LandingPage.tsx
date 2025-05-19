@@ -127,7 +127,7 @@ export default function LandingPage() {
                     <OTPInput
                         maxLength={5}
                         value={remoteToken}
-                        onChange={setRemoteToken}
+                        onChange={value => setRemoteToken(value.toUpperCase())}
                         render={({ slots }) => (
                             <>
                                 <div className={css.slotsContainer}>
