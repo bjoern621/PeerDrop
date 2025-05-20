@@ -78,7 +78,7 @@ export const Login = ({ onSwitchToRegister }: LoginProps) => {
 
         // TODO: Handle successful login
     }
-    
+
     return (
         <div className={css.container}>
             <form
