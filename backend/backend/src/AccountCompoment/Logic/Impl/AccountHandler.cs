@@ -1,13 +1,12 @@
 using System.Text.Json;
 using backend.AccountCompoment.Common.DTOs;
 using backend.AccountCompoment.Dataaccess.Api.Entity;
-using backend.AccountCompoment.Dataaccess.Impl;
+using backend.AccountCompoment.Dataaccess.Api.Repo;
 using backend.AccountCompoment.Logic.Api;
-using Microsoft.AspNetCore.Mvc;
 
 namespace backend.AccountCompoment.Logic.Impl;
 
-public class AccountHandler : IAccountHandler
+public class AccountHandler(IAccountRepository repo) : IAccountHandler
 {
     public async Task<IResult> HandleAccounts(HttpContext context)
     {
@@ -28,7 +27,6 @@ public class AccountHandler : IAccountHandler
         if (acc == null)
             return Results.BadRequest("Missing account data.");
         
-        var repo = new AccountRepository();
         var accountobj = await repo.GetByNameAsync(acc.DisplayName);
 
         if (accountobj == null) {
@@ -38,7 +36,7 @@ public class AccountHandler : IAccountHandler
             Account.ValidateUsernameFormat(acc.DisplayName);
             Account.ValidatePasswordFormat(acc.Password);
     
-            var account = Account.of(acc);
+            var account = Account.Of(acc);
     
             var newId = await repo.SaveAsync(account);
             return Results.Created($"/users/{newId}", new { Id = newId });
@@ -46,5 +44,41 @@ public class AccountHandler : IAccountHandler
 
         // the username is already taken
         return Results.StatusCode(StatusCodes.Status409Conflict);
+    }
+    
+    public async Task<IResult> HandleLogin(HttpContext context)
+    {
+        // Deserialize the request body
+        AccountCreateDto? acc;
+        
+        try
+        {
+            acc = await JsonSerializer.DeserializeAsync<AccountCreateDto>(
+                context.Request.Body,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+        }
+        catch (Exception)
+        {
+            return Results.BadRequest("Invalid JSON format.");
+        }
+        
+        if (acc == null)
+            return Results.BadRequest("Missing account data.");
+        
+        var accountobj = await repo.GetByNameAsync(acc.DisplayName);
+
+        if (accountobj == null) {
+            return Results.BadRequest("Invalid username");
+        }
+        
+        // accountobj contains the password hash from the database, acc contains the password from the request
+        bool valid = Account.VerifyPassword(acc.Password, accountobj.Password);
+
+        if (valid) {
+            return Results.Ok();
+        }
+
+        return Results.BadRequest("Invalid password");
     }
 }
