@@ -1,13 +1,19 @@
 import { Register } from "./Register/Register";
+import { Login } from "./Login/Login";
 import { useState } from "react";
 import smallLogo from "../../assets/logo_small.png";
 import css from "./Sidebar.module.scss";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [showLogin, setShowLogin] = useState(false);
 
     function onCollapseSidebar() {
         setIsCollapsed(!isCollapsed);
+    }
+
+    function toggleLoginRegister() {
+        setShowLogin(!showLogin);
     }
 
     return (
@@ -24,7 +30,11 @@ export const Sidebar = () => {
             </div>
             {!isCollapsed && (
                 <>
-                    <Register />
+                    {showLogin ? (
+                        <Login onSwitchToRegister={toggleLoginRegister} />
+                    ) : (
+                        <Register onSwitchToLogin={toggleLoginRegister} />
+                    )}
                     <img src={smallLogo} alt="Logo" className={css.logo} />
                 </>
             )}
