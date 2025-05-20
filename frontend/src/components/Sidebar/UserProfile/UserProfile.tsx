@@ -72,6 +72,7 @@ export const UserProfile = () => {
 
     const connectDevice = (device: DeviceDisplay) => {
         if (connectedDevice?.name === device.name) return;
+        console.log("Connecting to device " + device.name);
         setConnectedDevice(device);
     };
 
