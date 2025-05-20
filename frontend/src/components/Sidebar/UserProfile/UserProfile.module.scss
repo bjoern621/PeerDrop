@@ -96,6 +96,7 @@
 }
 
 .selected {
+    cursor: unset;
     background-color: white;
 }
 
@@ -106,6 +107,7 @@
 }
 
 .deleteButton {
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
