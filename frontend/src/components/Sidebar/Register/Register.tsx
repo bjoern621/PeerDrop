@@ -6,9 +6,10 @@ import css from "./Register.module.scss";
 
 interface RegisterProps {
     onSwitchToLogin: () => void;
+    onLogin: () => void;
 }
 
-export const Register = ({ onSwitchToLogin }: RegisterProps) => {
+export const Register = ({ onSwitchToLogin, onLogin }: RegisterProps) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [passwordRepeat, setPasswordRepeat] = useState("");
@@ -107,6 +108,7 @@ export const Register = ({ onSwitchToLogin }: RegisterProps) => {
             import.meta.env.VITE_BACKEND_URL
         }${newUserLocation}`;
         console.log("Benutzer registriert:", newUserEndpoint);
+        onLogin();
     }
 
     return (
