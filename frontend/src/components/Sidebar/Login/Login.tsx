@@ -5,9 +5,10 @@ import css from "./Login.module.scss";
 
 interface LoginProps {
     onSwitchToRegister: () => void;
+    onLogin: () => void;
 }
 
-export const Login = ({ onSwitchToRegister }: LoginProps) => {
+export const Login = ({ onSwitchToRegister, onLogin }: LoginProps) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
@@ -76,7 +77,7 @@ export const Login = ({ onSwitchToRegister }: LoginProps) => {
             return;
         }
 
-        // TODO: Handle successful login
+        onLogin();
     }
 
     return (

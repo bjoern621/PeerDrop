@@ -8,6 +8,7 @@ import { UserProfile } from "./UserProfile/UserProfile";
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
+    const [loggedIn, setLoggedIn] = useState(false);
 
     function onCollapseSidebar() {
         setIsCollapsed(!isCollapsed);
@@ -15,6 +16,10 @@ export const Sidebar = () => {
 
     function toggleLoginRegister() {
         setShowLogin(!showLogin);
+    }
+
+    function onLogin() {
+        setLoggedIn(true);
     }
 
     return (
@@ -31,10 +36,18 @@ export const Sidebar = () => {
             </div>
             {!isCollapsed && (
                 <>
-                    {showLogin ? (
-                        <Login onSwitchToRegister={toggleLoginRegister} />
+                    {loggedIn ? (
+                        <UserProfile />
+                    ) : showLogin ? (
+                        <Login
+                            onSwitchToRegister={toggleLoginRegister}
+                            onLogin={onLogin}
+                        />
                     ) : (
-                        <Register onSwitchToLogin={toggleLoginRegister} />
+                        <Register
+                            onSwitchToLogin={toggleLoginRegister}
+                            onLogin={onLogin}
+                        />
                     )}
                     <img src={smallLogo} alt="Logo" className={css.logo} />
                 </>
