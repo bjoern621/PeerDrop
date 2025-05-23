@@ -9,6 +9,7 @@ import bannerLogo from "../../assets/banner_logo.png";
 import { OTPInput, SlotProps } from "input-otp";
 import { PeerConnectionManager } from "../../services/PeerConnectionManager";
 import { useNavigate } from "react-router";
+import { MessageType } from "../../services/MessageType";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -52,9 +53,7 @@ export default function LandingPage() {
 
         assert(websocket, "WebSocketService is not initialized.");
 
-        const TEST_MESSAGE_TYPE = "test";
-
-        websocket.subscribeMessage(TEST_MESSAGE_TYPE, message => {
+        websocket.subscribeMessage(MessageType.TEST, message => {
             console.log("Received message:", message);
         });
 
@@ -63,7 +62,7 @@ export default function LandingPage() {
         };
 
         const testMessage: TypedMessage<TestMessage> = {
-            type: TEST_MESSAGE_TYPE,
+            type: MessageType.TEST,
             msg: {
                 message: "Hallo Server",
             },
@@ -124,7 +123,7 @@ export default function LandingPage() {
             <div className={css.ownTokenContainer}>
                 <span className={css.tooltip}>Dein Token</span>
                 <span className={css.token}>
-                    {clientToken ? clientToken : "Lädt..."}
+                    {clientToken ? clientToken : "_____"}
                 </span>
             </div>
             <div className={css.peerTokenContainer}>
@@ -132,7 +131,11 @@ export default function LandingPage() {
                     <OTPInput
                         maxLength={5}
                         value={remoteToken}
-                        onChange={setRemoteToken}
+                        inputMode="text"
+                        data-bwignore="true"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
+                        onChange={value => setRemoteToken(value.toUpperCase())}
                         render={({ slots }) => (
                             <>
                                 <div className={css.slotsContainer}>
