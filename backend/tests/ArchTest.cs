@@ -1,8 +1,5 @@
-using ArchUnitNET.Fluent;
 using ArchUnitNET.Loader;
 using ArchUnitNET.NUnit;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
-using backend.AccountCompoment.Logic.Impl;
 
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
@@ -11,7 +8,7 @@ namespace tests;
 public class ArchTest
 {
     public static readonly ArchUnitNET.Domain.Architecture Architecture = new ArchLoader().LoadAssembly(
-       typeof(AccountHandler).Assembly).Build();
+       System.Reflection.Assembly.Load("backend")).Build();
 
 
     [Test]
@@ -54,6 +51,18 @@ public class ArchTest
              .Should().NotDependOnAny(
                  Types().That().ResideInNamespace("Dataaccess", true)
              );
+
+        rule.Check(Architecture);
+    }
+
+    [Test]
+    public void ComponentsCannotUseImplClasses()
+    {
+        var rule = Types().That().ResideInNamespace("Component", true)
+            .And().DoNotResideInNamespace("Impl", true)
+            .Should().NotDependOnAny(
+                Types().That().ResideInNamespace("Impl", true)
+            );
 
         rule.Check(Architecture);
     }
