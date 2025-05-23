@@ -315,4 +315,16 @@ export class WebRTCConnection {
             });
         }
     }
+
+    public setOnConnectedCallback(callback: () => void) {
+        this.peerConnection.onconnectionstatechange = () => {
+            if (this.peerConnection.connectionState === "connected") {
+                callback();
+            }
+        };
+    }
+
+    public getPeerConnection(): RTCPeerConnection {
+        return this.peerConnection;
+    }
 }

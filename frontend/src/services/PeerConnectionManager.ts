@@ -1,3 +1,4 @@
+import { assert } from "../util/Assert";
 import errorAsValue from "../util/ErrorAsValue";
 import { WebRTCConnection } from "./WebRTCConnection";
 import {
@@ -105,6 +106,11 @@ export class PeerConnectionManager {
                 this.remoteToken
             );
         }
+    }
+
+    public setOnConnectedCallback(cb: () => void) {
+        assert(this.connection, "Connection is not initialized.");
+        this.connection.setOnConnectedCallback(cb);
     }
 
     public getConnection() {

@@ -89,8 +89,14 @@ export default function LandingPage() {
             return () => clearInterval(checkToken);
         }
 
+        const pcm = PeerConnectionManagerRef.current;
+        assert(pcm, "PeerConnectionManager is not initialized.");
+        pcm.setOnConnectedCallback(() => {
+            void navigate("/share");
+        });
+
         console.log("LandingPage component mounted");
-    }, []);
+    }, [navigate]);
 
     const connectToPeer = async () => {
         if (remoteToken.length !== 5) {
@@ -106,8 +112,6 @@ export default function LandingPage() {
         console.log("Trying to connect to peer with token:", remoteToken);
 
         await peerConnectionManager.sendTokenToRemotePeer(remoteToken);
-
-        void navigate("/share");
     };
 
     return (
