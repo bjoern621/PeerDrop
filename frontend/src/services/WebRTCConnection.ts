@@ -118,23 +118,15 @@ export class WebRTCConnection {
                 if (typeof event.data === "string" && event.data === "EOF") {
                     const blob = new Blob(receivedChunks);
 
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-                    (window as any).lastReceivedFile = blob;
-                    console.log(
-                        "Empfangener Blob im window.lastReceivedFile:",
-                        blob
-                    );
-                    // Optional: Direkt als Text oder URL anzeigen
-                    blob.text()
-                        .then(text =>
-                            console.log("Datei-Inhalt als Text:", text)
-                        )
-                        .catch(error =>
-                            console.error("Error reading blob as text:", error)
-                        );
-                    // Oder als URL anzeigen
                     const url = URL.createObjectURL(blob);
-                    console.log("Blob-URL:", url);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "received-file";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    console.log("File downloaded");
                 } else if (event.data instanceof ArrayBuffer) {
                     receivedChunks.push(event.data);
                     console.log(
