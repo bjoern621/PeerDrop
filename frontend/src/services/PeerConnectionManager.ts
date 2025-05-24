@@ -30,11 +30,9 @@ export class PeerConnectionManager {
     private remoteToken: ClientToken | undefined;
     private connection: WebRTCConnection | undefined;
     private onConnectedCallback?: () => void;
+    private onDisconnectedCallback?: () => void;
 
     public constructor(private readonly signaling: WebSocketService) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        (window as any).PeerConnectionManager = this;
-
         this.waitForRemoteClientToken();
 
         this.waitForCloseConnectionRequest();
@@ -292,6 +290,12 @@ export class PeerConnectionManager {
                     "onConnectedCallback is not set."
                 );
                 this.onConnectedCallback();
+            } else if (state === "closed" || state === "disconnected") {
+                assert(
+                    this.onDisconnectedCallback,
+                    "onDisconnectedCallback is not set."
+                );
+                this.onDisconnectedCallback();
             }
         });
     }
@@ -306,6 +310,12 @@ export class PeerConnectionManager {
      */
     public setOnConnectedCallback(cb: () => void) {
         this.onConnectedCallback = cb;
+        console.log("OnConnectedCallback:", this.onConnectedCallback);
+    }
+
+    public setOnDisconnectedCallback(cb: () => void) {
+        this.onDisconnectedCallback = cb;
+        console.log("OnDisconnectedCallback:", this.onDisconnectedCallback);
     }
 
     public getConnection() {

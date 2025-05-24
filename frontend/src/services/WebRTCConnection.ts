@@ -161,7 +161,8 @@ export class WebRTCConnection {
      * After that, the WebRTC Connection is goint to start (handshake).
      */
     private initializePeerConnection() {
-        this.peerConnection.createDataChannel("init");
+        const dc = this.peerConnection.createDataChannel("init");
+        dc.close();
     }
 
     private handleRemoteICECandidates() {
@@ -328,14 +329,10 @@ export class WebRTCConnection {
         }
 
         assert(this.peerConnection.connectionState === "closed");
-    }
-
-    public setOnConnectedCallback(callback: () => void) {
-        this.peerConnection.onconnectionstatechange = () => {
-            if (this.peerConnection.connectionState === "connected") {
-                callback();
-            }
-        };
+        console.log(
+            "ConnectionState after closing:",
+            this.peerConnection.connectionState
+        );
     }
 
     /**
@@ -343,7 +340,8 @@ export class WebRTCConnection {
      * This includes listening for changes in the connection state.
      */
     private setupEmittedEvents() {
-        this.peerConnection.onconnectionstatechange = () => {
+        this.peerConnection.onconnectionstatechange = ev => {
+            console.log("Event triggered", ev);
             this.emitter.emit(
                 "connectionstatechange",
                 this.peerConnection.connectionState

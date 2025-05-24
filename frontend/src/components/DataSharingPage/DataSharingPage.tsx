@@ -1,7 +1,9 @@
 import css from "./DataSharingPage.module.scss";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dragdropicon from "../../assets/dragdropicon.svg";
 import { useNavigate } from "react-router";
+import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
+import { assert } from "../../util/Assert";
 
 enum FileDirection {
     UP = "up",
@@ -50,10 +52,32 @@ const mockData: FileDisplay[] = [
 ];
 
 export function DataSharingPage() {
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
 
+    const peerConnectionManager = usePeerConnectionManager();
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<FileDisplay[]>(mockData);
+
+    useEffect(() => {
+        assert(
+            peerConnectionManager,
+            "PeerConnectionManager is not initialized."
+        );
+        if (
+            !peerConnectionManager.getConnection() ||
+            peerConnectionManager.getConnection()?.getPeerConnection()
+                .connectionState !== "connected"
+        ) {
+            void navigate("/"); // Redirect to home page if no connection exists
+            return;
+        }
+
+        peerConnectionManager.setOnDisconnectedCallback(() => {
+            void navigate("/");
+            // Redirect to home page when disconnected
+        });
+    }, [peerConnectionManager, navigate]);
 
     function getSizeInHumanReadableFormat(size: number): string {
         const units = ["B", "KB", "MB", "GB", "TB"];
@@ -109,7 +133,7 @@ export function DataSharingPage() {
     };
 
     const onDisconnect = () => {
-        void navigate("/"); // Redirect to home page#
+        peerConnectionManager.closePeerConnection();
     };
 
     return (

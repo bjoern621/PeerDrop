@@ -37,10 +37,6 @@ export class WebSocketService {
         this.connectToServer();
 
         this.waitForLocalClientToken();
-
-        // WebSocketService global verfügbar machen für die Konsole im Browser (dev mode)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        (window as any).webSocketService = this;
     }
 
     private connectToServer() {
