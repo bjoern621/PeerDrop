@@ -48,9 +48,9 @@ public class ArchTest
     public void FacadeClassesShouldOnlyDependOnLogic()
     {
         var rule = Types().That().ResideInNamespace("Facade", true)
-             .Should().NotDependOnAny(
-                 Types().That().ResideInNamespace("Dataaccess", true)
-             );
+            .Should().NotDependOnAny(
+                Types().That().ResideInNamespace("Dataaccess", true)
+            );
 
         rule.Check(Architecture);
     }
