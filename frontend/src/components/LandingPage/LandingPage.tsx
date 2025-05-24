@@ -92,6 +92,7 @@ export default function LandingPage() {
     const connectToPeer = async () => {
         if (remoteToken.length !== 5) {
             console.warn("Peer token must be 5 characters long.");
+            return;
         }
         console.log("Trying to connect to peer with token:", remoteToken);
 
