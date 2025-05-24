@@ -49,6 +49,7 @@ export default function LandingPage() {
     const [remoteToken, setRemoteToken] = useState<string>("");
 
     useEffect(() => {
+        console.log("useEffect triggered");
         const websocket = webSocketServiceRef.current;
 
         assert(websocket, "WebSocketService is not initialized.");
@@ -88,13 +89,20 @@ export default function LandingPage() {
             return () => clearInterval(checkToken);
         }
 
+        console.log("LandingPage component mounted");
+    }, []);
+
+    // Initialize PeerConnectionManager and set up callback
+    useEffect(() => {
+        console.log("PeerConnectionManager initialization useEffect triggered");
+
         const pcm = PeerConnectionManagerRef.current;
         assert(pcm, "PeerConnectionManager is not initialized.");
         pcm.setOnConnectedCallback(() => {
             void navigate("/share");
         });
 
-        console.log("LandingPage component mounted");
+        console.log("PeerConnectionManager callback set");
     }, [navigate]);
 
     const connectToPeer = async () => {

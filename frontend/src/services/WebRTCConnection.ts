@@ -6,9 +6,15 @@ import {
     WebSocketService,
 } from "./WebSocketService";
 import { MessageType } from "./MessageType";
+import mitt, { Emitter } from "mitt";
 
 const iceServers: RTCConfiguration = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+};
+
+// Define the events that can be emitted by the WebRTCConnection class
+type WebRTCConnectionEvents = {
+    connectionstatechange: string;
 };
 
 export type IceCandidateMessage = {
@@ -25,6 +31,8 @@ export class WebRTCConnection {
     private readonly remoteToken: ClientToken;
     private readonly signalingChannel: WebSocketService;
     private readonly peerConnection: RTCPeerConnection;
+    private readonly emitter: Emitter<WebRTCConnectionEvents> =
+        mitt<WebRTCConnectionEvents>();
 
     private makingOffer: boolean = false;
     private ignoreOffer: boolean = false;
@@ -40,13 +48,14 @@ export class WebRTCConnection {
         this.polite =
             signalingChannel.getLocalClientToken()! < this.remoteToken;
         this.peerConnection = new RTCPeerConnection(iceServers);
-        this.setupReceivingDataChannel();
 
+        this.setupEmittedEvents();
+
+        this.setupReceivingDataChannel();
         this.handleIncomingICECandidates();
         this.handleNegotiationNeeded();
         this.handleSDPPackage();
         this.handleRemoteICECandidates();
-
         this.initializePeerConnection();
     }
 
@@ -327,6 +336,40 @@ export class WebRTCConnection {
                 callback();
             }
         };
+    }
+
+    /**
+     * Sets up the event listeners for emitted events from the peer connection.
+     * This includes listening for changes in the connection state.
+     */
+    private setupEmittedEvents() {
+        this.peerConnection.onconnectionstatechange = () => {
+            this.emitter.emit(
+                "connectionstatechange",
+                this.peerConnection.connectionState
+            );
+        };
+    }
+
+    public on<K extends keyof WebRTCConnectionEvents>(
+        event: K,
+        handler: (event: WebRTCConnectionEvents[K]) => void
+    ) {
+        this.emitter.on(event, handler);
+    }
+
+    public off<K extends keyof WebRTCConnectionEvents>(
+        event: K,
+        handler: (event: WebRTCConnectionEvents[K]) => void
+    ) {
+        this.emitter.off(event, handler);
+    }
+
+    public emit<K extends keyof WebRTCConnectionEvents>(
+        event: K,
+        data: WebRTCConnectionEvents[K]
+    ) {
+        this.emitter.emit(event, data);
     }
 
     public getPeerConnection(): RTCPeerConnection {

@@ -29,6 +29,7 @@ type SuccessMessage = {
 export class PeerConnectionManager {
     private remoteToken: ClientToken | undefined;
     private connection: WebRTCConnection | undefined;
+    private onConnectedCallback?: () => void;
 
     public constructor(private readonly signaling: WebSocketService) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
@@ -67,6 +68,8 @@ export class PeerConnectionManager {
                 this.signaling,
                 this.remoteToken
             );
+
+            this.setCallbackForPeer();
         };
 
         this.signaling.subscribeMessage(
@@ -142,6 +145,8 @@ export class PeerConnectionManager {
                 this.signaling,
                 this.remoteToken
             );
+
+            this.setCallbackForPeer();
         }
     }
 
@@ -276,9 +281,31 @@ export class PeerConnectionManager {
         );
     }
 
+    // Sets a callback for when the peer connection state changes to "connected".
+    private setCallbackForPeer() {
+        assert(this.connection, "PeerConnection is not initialized.");
+        this.connection.on("connectionstatechange", state => {
+            console.log("Connection state changed to:", state);
+            if (state === "connected") {
+                assert(
+                    this.onConnectedCallback,
+                    "onConnectedCallback is not set."
+                );
+                this.onConnectedCallback();
+            }
+        });
+    }
+
+    /**
+     * Sets a callback to be invoked when the peer connection is established and the state changes to "connected".
+     *
+     * This method allows external components to define a callback function that will be executed when the peer connection
+     * successfully transitions to the "connected" state, indicating that the connection is ready for communication.
+     *
+     * @param cb The callback function to be called when the connection is established.
+     */
     public setOnConnectedCallback(cb: () => void) {
-        assert(this.connection, "Connection is not initialized.");
-        this.connection.setOnConnectedCallback(cb);
+        this.onConnectedCallback = cb;
     }
 
     public getConnection() {

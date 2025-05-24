@@ -9,12 +9,14 @@
         "lint": "eslint ."
     },
     "dependencies": {
+        "mitt": "^3.0.1",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-router": "^7.6.0"
     },
     "devDependencies": {
         "@eslint/js": "^9.22.0",
+        "@types/node": "^22.15.21",
         "@types/react": "^19.0.10",
         "@types/react-dom": "^19.0.4",
         "@vitejs/plugin-react-swc": "^3.8.0",
