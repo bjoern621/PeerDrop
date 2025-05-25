@@ -119,7 +119,7 @@ export default function LandingPage() {
             <div className={css.ownTokenContainer}>
                 <span className={css.tooltip}>Dein Token</span>
                 <span className={css.token}>
-                    {clientToken ? clientToken : "Lädt..."}
+                    {clientToken ? clientToken : "_____"}
                 </span>
             </div>
             <div className={css.peerTokenContainer}>
@@ -127,7 +127,11 @@ export default function LandingPage() {
                     <OTPInput
                         maxLength={5}
                         value={remoteToken}
-                        onChange={setRemoteToken}
+                        inputMode="text"
+                        data-bwignore="true"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
+                        onChange={value => setRemoteToken(value.toUpperCase())}
                         render={({ slots }) => (
                             <>
                                 <div className={css.slotsContainer}>

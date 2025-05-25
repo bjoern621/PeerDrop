@@ -1,3 +1,13 @@
+@font-face {
+    font-family: "Source Sans 3";
+    src: url(assets/Fonts/Source_Sans_3/SourceSans3-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: "Roboto Mono";
+    src: url(assets/Fonts/Roboto_Mono/RobotoMono-VariableFont_wght.ttf);
+}
+
 * {
     box-sizing: border-box;
 }
@@ -5,8 +15,6 @@
 html {
     height: 100%;
 }
-
-@import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"); // Import for Source Sans 3
 
 body {
     margin: 0;
