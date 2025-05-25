@@ -48,7 +48,7 @@ public class AccountRepository : IAccountRepository
         throw new InvalidOperationException("Insert did not return an ID.");
     }
     
-    public async Task<AccountCreateDto?> GetByNameAsync(string name)
+    public async Task<AccountRetrieveDto?> GetByNameAsync(string name)
     {
         await using var cmd = _dataSource.CreateCommand(
             "SELECT id, display_name, passwort FROM users WHERE display_name = @name");
@@ -58,8 +58,9 @@ public class AccountRepository : IAccountRepository
         if (!await reader.ReadAsync()) return null;
         
         // DTO since we dont want to encrypt the password 
-        var account = new AccountCreateDto
+        var account = new AccountRetrieveDto
         {
+            Id = reader.GetInt32(0),
             DisplayName = reader.GetString(1),
             Password = reader.GetString(2)
         };

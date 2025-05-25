@@ -72,13 +72,14 @@ public class AccountHandler(IAccountRepository repo) : IAccountHandler
             return Results.BadRequest("Invalid username");
         }
         
-        // accountobj contains the password hash from the database, acc contains the password from the request
         bool valid = Account.VerifyPassword(acc.Password, accountobj.Password);
 
-        if (valid) {
-            return Results.Ok();
-        }
+        if (!valid)
+            return Results.BadRequest("Invalid password");
 
-        return Results.BadRequest("Invalid password");
+        // Store user ID (or other data) in session
+        context.Session.SetString("UserId", accountobj.Id.ToString());
+
+        return Results.Ok(new { message = "Logged in successfully" });
     }
 }

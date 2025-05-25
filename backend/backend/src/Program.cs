@@ -33,6 +33,7 @@ builder.Services.AddCors(options => options.AddPolicy(
         policyBuilder.WithOrigins(frontendOrigin)
                      .WithHeaders("Content-Type")
                      .WithExposedHeaders("Location")
+                     .AllowCredentials() // Required to allow session cookies
         ));
 
 builder.Services.AddWebSockets(options => { });
@@ -44,6 +45,14 @@ builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
 builder.Services.AddScoped<IAccountHandler, AccountHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
+builder.Services.AddDistributedMemoryCache(); // For in-memory session storage
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.IdleTimeout = TimeSpan.FromMinutes(20); // Adjust as needed
+});
+
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -52,6 +61,8 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
 app.UseCors(corsAllowFrontendOrigin);
+
+app.UseSession(); // Enables session handling on incoming requests
 
 app.UseWebSockets();
 
