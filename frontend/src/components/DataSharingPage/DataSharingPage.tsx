@@ -103,7 +103,7 @@ export function DataSharingPage() {
     }
 
     const getPartnerName = () => {
-        return "7 0 K 3 N";
+        return peerConnectionManager.getRemoteToken();
     };
 
     const onAddFile = (event: React.ChangeEvent<HTMLInputElement>) => {

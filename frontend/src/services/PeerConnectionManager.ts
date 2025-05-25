@@ -321,4 +321,12 @@ export class PeerConnectionManager {
     public getConnection() {
         return this.connection;
     }
+
+    public getRemoteToken() {
+        assert(
+            this.remoteToken,
+            "Remote token is not set. Ensure you have received the remote token."
+        );
+        return this.remoteToken;
+    }
 }
