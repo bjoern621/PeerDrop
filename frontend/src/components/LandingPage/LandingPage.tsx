@@ -76,8 +76,6 @@ export default function LandingPage() {
 
     // Initialize PeerConnectionManager and set up callback
     useEffect(() => {
-        console.log("PeerConnectionManager initialization useEffect triggered");
-
         assert(
             peerConnectionManager,
             "PeerConnectionManager is not initialized."
@@ -86,7 +84,7 @@ export default function LandingPage() {
             void navigate("/share");
         });
 
-        console.log("PeerConnectionManager callback set");
+        console.log("PeerConnectionManager onConnectedCallback set");
     }, [navigate, peerConnectionManager]);
 
     const connectToPeer = async () => {

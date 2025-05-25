@@ -77,6 +77,7 @@ export function DataSharingPage() {
             void navigate("/");
             // Redirect to home page when disconnected
         });
+        console.log("PeerConnectionManager onDisconnectedCallback set");
     }, [peerConnectionManager, navigate]);
 
     function getSizeInHumanReadableFormat(size: number): string {

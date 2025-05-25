@@ -7,6 +7,7 @@ import {
 } from "./WebSocketService";
 import { MessageType } from "./MessageType";
 import mitt, { Emitter } from "mitt";
+import { log, setLogEnabled } from "../util/Logger";
 
 const iceServers: RTCConfiguration = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -43,6 +44,7 @@ export class WebRTCConnection {
         signalingChannel: WebSocketService,
         remoteToken: ClientToken
     ) {
+        setLogEnabled(false); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
         this.polite =
@@ -70,7 +72,7 @@ export class WebRTCConnection {
      * @param file The file to be sent to the remote peer.
      */
     public sendFileOverDataChannel(file: File) {
-        console.log(
+        log(
             `File is ${[
                 file.name,
                 file.size,
@@ -104,7 +106,7 @@ export class WebRTCConnection {
                 } else {
                     dataChannel.send("EOF");
 
-                    console.log("File sent, EOF reached, closing data channel");
+                    log("File sent, EOF reached, closing data channel");
 
                     dataChannel.close();
                 }
@@ -116,7 +118,7 @@ export class WebRTCConnection {
 
     private setupReceivingDataChannel() {
         this.peerConnection.ondatachannel = event => {
-            console.log("Received data channel");
+            log("Received data channel");
 
             const dataChannel = event.channel;
             const receivedChunks: ArrayBuffer[] = [];
@@ -133,25 +135,22 @@ export class WebRTCConnection {
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                    console.log("File downloaded");
+                    log("File downloaded");
                 } else if (event.data instanceof ArrayBuffer) {
                     receivedChunks.push(event.data);
-                    console.log(
-                        "Chunk empfangen, Größe:",
-                        event.data.byteLength
-                    );
+                    log("Chunk empfangen, Größe:", event.data.byteLength);
                 } else {
-                    console.log("Unbekannter Nachrichtentyp:", event.data);
+                    log("Unbekannter Nachrichtentyp:", event.data);
                 }
             };
             dataChannel.onopen = () => {
-                console.log("Data channel is open");
+                log("Data channel is open");
             };
             dataChannel.onclose = () => {
-                console.log("Data channel is closed");
+                log("Data channel is closed");
             };
             dataChannel.onerror = error => {
-                console.error("Data channel error: ", error);
+                log("Data channel error: ", error);
             };
         };
     }
@@ -169,12 +168,12 @@ export class WebRTCConnection {
         this.signalingChannel.subscribeMessage(
             MessageType.ICE_CANDIDATE,
             async message => {
-                console.log("Received REMOTE ICE candidate message");
+                log("Received REMOTE ICE candidate message");
 
                 const iceCandidateMessage = message.msg as IceCandidateMessage;
                 const candidate = iceCandidateMessage.iceCandidate;
 
-                console.log("Adding ICE candidate");
+                log("Adding ICE candidate");
 
                 const [, err] = await errorAsValue(
                     this.peerConnection.addIceCandidate(candidate)
@@ -187,9 +186,9 @@ export class WebRTCConnection {
                                 this.ignoreOffer +
                                 ")"
                         );
-                        console.error("Error: ", err);
+                        log("Error: ", err);
                     } else {
-                        console.log(
+                        log(
                             "Ignoring remote ICE candidate because ignoreOffer = " +
                                 this.ignoreOffer +
                                 " and the related SDP offer was rejected"
@@ -207,7 +206,7 @@ export class WebRTCConnection {
                 const sdpMessage = message.msg as SDPMessage;
                 const description = sdpMessage.description;
 
-                console.log("Received SDP ", description.type, " message");
+                log("Received SDP ", description.type, " message");
 
                 const readyForOffer =
                     !this.makingOffer &&
@@ -220,7 +219,7 @@ export class WebRTCConnection {
                 // ignoreOffer is true, if offerCollision occurs and if this peer is impolite (ignoring SDP and all incoming ICE candidates)
                 this.ignoreOffer = !this.polite && offerCollision;
                 if (this.ignoreOffer) {
-                    console.log(
+                    log(
                         "IGNORING offer, because this peer is impolite and offerCollision occurred"
                     );
 
@@ -230,7 +229,7 @@ export class WebRTCConnection {
                 this.isSettingRemoteAnswerPending =
                     description.type === "answer";
 
-                console.log("Setting REMOTE DESCRIPTION");
+                log("Setting REMOTE DESCRIPTION");
 
                 const [,] = await errorAsValue(
                     this.peerConnection.setRemoteDescription(description)
@@ -238,8 +237,8 @@ export class WebRTCConnection {
                 this.isSettingRemoteAnswerPending = false;
 
                 if (description.type === "offer") {
-                    console.log("Creating ANSWER...");
-                    console.log("Setting LOCAL DESCRIPTION");
+                    log("Creating ANSWER...");
+                    log("Setting LOCAL DESCRIPTION");
 
                     await this.peerConnection.setLocalDescription();
                     const descriptionMessage: TypedMessage<SDPMessage> = {
@@ -250,7 +249,7 @@ export class WebRTCConnection {
                         },
                     };
 
-                    console.log("Sending SDP answer...");
+                    log("Sending SDP answer...");
 
                     this.signalingChannel.sendMessage(descriptionMessage);
                 }
@@ -260,11 +259,11 @@ export class WebRTCConnection {
 
     private handleNegotiationNeeded() {
         this.peerConnection.onnegotiationneeded = async () => {
-            console.log("Making SDP offer...");
+            log("Making SDP offer...");
 
             this.makingOffer = true;
 
-            console.log("Setting local description");
+            log("Setting local description");
 
             await this.peerConnection.setLocalDescription();
 
@@ -276,7 +275,7 @@ export class WebRTCConnection {
                 },
             };
 
-            console.log("Sending SDP offer...");
+            log("Sending SDP offer...");
 
             this.signalingChannel.sendMessage(descriptionMessage);
 
@@ -286,7 +285,7 @@ export class WebRTCConnection {
 
     private handleIncomingICECandidates() {
         this.peerConnection.onicecandidate = event => {
-            console.log("STUN Server ICE Candidate received, forwarding");
+            log("STUN Server ICE Candidate received, forwarding");
 
             if (event.candidate) {
                 const iceCandidateMessage: TypedMessage<IceCandidateMessage> = {
@@ -329,10 +328,7 @@ export class WebRTCConnection {
         }
 
         assert(this.peerConnection.connectionState === "closed");
-        console.log(
-            "ConnectionState after closing:",
-            this.peerConnection.connectionState
-        );
+        this.emitter.emit("connectionstatechange", "closed");
     }
 
     /**
@@ -341,7 +337,7 @@ export class WebRTCConnection {
      */
     private setupEmittedEvents() {
         this.peerConnection.onconnectionstatechange = ev => {
-            console.log("Event triggered", ev);
+            log("Event triggered", ev);
             this.emitter.emit(
                 "connectionstatechange",
                 this.peerConnection.connectionState
