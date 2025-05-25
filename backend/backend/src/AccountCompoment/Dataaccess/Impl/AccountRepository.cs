@@ -66,4 +66,24 @@ public class AccountRepository : IAccountRepository
         };
         return account;
     }
+    
+    public async Task<AccountRetrieveDto?> GetByIdAsync(int id)
+    {
+        await using var cmd = _dataSource.CreateCommand(
+            "SELECT id, display_name, passwort FROM users WHERE id = @id");
+        cmd.Parameters.AddWithValue("id", id);
+
+        await using var reader = await cmd.ExecuteReaderAsync();
+        if (!await reader.ReadAsync()) return null;
+
+        // DTO since we dont want to encrypt the password 
+        var account = new AccountRetrieveDto
+        {
+            Id = reader.GetInt32(0),
+            DisplayName = reader.GetString(1),
+            Password = reader.GetString(2)
+        };
+
+        return account;
+    }
 }

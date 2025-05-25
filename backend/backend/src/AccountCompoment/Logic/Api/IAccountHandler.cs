@@ -5,4 +5,6 @@ public interface IAccountHandler
     public Task<IResult> HandleAccounts(HttpContext context);
     
     public  Task<IResult> HandleLogin(HttpContext context);
+    
+    public Task<IResult> HandleGetCurrentUser(HttpContext context);
 }

@@ -11,5 +11,7 @@ public class AccountRoutes : IAccountRoutes
             handler.HandleAccounts(context));
         app.MapPost("/login", (IAccountHandler handler, HttpContext context) =>
             handler.HandleLogin(context));
+        app.MapGet("/me", (IAccountHandler handler, HttpContext context) =>
+            handler.HandleGetCurrentUser(context));
     }
 }

@@ -1,0 +1,70 @@
+﻿using System.Text;
+using System.Text.Json;
+using backend.AccountCompoment.Common.DTOs;
+using backend.AccountCompoment.Dataaccess.Api.Entity;
+using backend.AccountCompoment.Dataaccess.Api.Repo;
+using backend.AccountCompoment.Logic.Impl;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Moq;
+
+namespace backend.tests.AccountComponent.Logic;
+
+public class Tests
+{
+    
+    [Test]
+    public async Task Login_Then_GetCurrentUser_ReturnsUser()
+    {
+        // Arrange
+        var repo = new Mock<IAccountRepository>();
+        var handler = new AccountHandler(repo.Object);
+        var passwordHasher = new PasswordHasher();
+
+        var userId = 1;
+        var plainPassword = "secret";
+        var accountInDb = new AccountRetrieveDto
+        {
+            Id = userId,
+            DisplayName = "alice",
+            Password = passwordHasher.HashPassword(plainPassword)
+        };
+
+        // Setup repository for both login and user retrieval
+        repo.Setup(r => r.GetByNameAsync("alice")).ReturnsAsync(accountInDb);
+        repo.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(accountInDb);
+
+        // Build the request body for login
+        var loginDto = new AccountCreateDto { DisplayName = "alice", Password = plainPassword };
+        var requestJson = JsonSerializer.Serialize(loginDto);
+        var requestStream = new MemoryStream(Encoding.UTF8.GetBytes(requestJson));
+
+        // Create a shared context with a mock session
+        var context = CreateMockHttpContext(requestStream);
+
+        // Act 1: Login
+        var loginResult = await handler.HandleLogin(context);
+        
+        var okkResult = loginResult as Ok<LoginResponse>;
+        Assert.That(okkResult, Is.Not.Null);
+        Assert.That(okkResult!.Value.Message, Is.EqualTo("Logged in successfully"));
+        
+        // Act 2: Get current user using same context (with preserved session)
+        var userResult = await handler.HandleGetCurrentUser(context);
+        var userResultS = userResult as Ok<LoginResponse>;
+        
+        Assert.That(userResultS, Is.Not.Null);
+        Assert.That(userResultS!.Value.Message, Is.EqualTo("alice"));
+        
+    }
+
+    
+    HttpContext CreateMockHttpContext(Stream requestBodyStream)
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Body = requestBodyStream;
+        context.Session = new SessionSetup();
+        return context;
+    }
+
+}

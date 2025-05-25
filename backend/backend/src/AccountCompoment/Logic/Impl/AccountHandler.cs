@@ -80,6 +80,23 @@ public class AccountHandler(IAccountRepository repo) : IAccountHandler
         // Store user ID (or other data) in session
         context.Session.SetString("UserId", accountobj.Id.ToString());
 
-        return Results.Ok(new { message = "Logged in successfully" });
+        return Results.Ok(new LoginResponse("Logged in successfully"));
+    }
+    
+    // retrieves the current user from the session if exists, otherwise returns 401
+    public async Task<IResult> HandleGetCurrentUser(HttpContext context)
+    {
+        var userIdStr = context.Session.GetString("UserId");
+        if (userIdStr == null)
+            return Results.Unauthorized(); // No active session / not logged in
+
+        if (!int.TryParse(userIdStr, out int userId))
+            return Results.Unauthorized();
+
+        var user = await repo.GetByIdAsync(userId);
+        if (user == null)
+            return Results.Unauthorized(); // User no longer exists
+
+        return Results.Ok(new LoginResponse(user.DisplayName));
     }
 }
