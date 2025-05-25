@@ -58,6 +58,7 @@ export function DataSharingPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<FileDisplay[]>(mockData);
+    const [partnerName, setPartnerName] = useState<string | null>(null);
 
     useEffect(() => {
         assert(
@@ -71,6 +72,8 @@ export function DataSharingPage() {
         ) {
             void navigate("/"); // Redirect to home page if no connection exists
             return;
+        } else {
+            setPartnerName(peerConnectionManager.getRemoteToken());
         }
 
         peerConnectionManager.setOnDisconnectedCallback(() => {
@@ -101,10 +104,6 @@ export function DataSharingPage() {
             ("0" + date.getSeconds()).slice(-2)
         );
     }
-
-    const getPartnerName = () => {
-        return peerConnectionManager.getRemoteToken();
-    };
 
     const onAddFile = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -157,7 +156,7 @@ export function DataSharingPage() {
                         Datei hinzufügen
                     </button>
                     <p className={css.headerPartnerText}>
-                        Partner: {getPartnerName()}
+                        Partner: {partnerName ?? "Unbekannt"}
                     </p>
                 </div>
                 <button
