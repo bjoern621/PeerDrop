@@ -4,6 +4,7 @@ using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
 namespace backend.tests.Common;
 
+[Category("Architecture")]
 public class ArchTest
 {
     public static readonly ArchUnitNET.Domain.Architecture Architecture = new ArchLoader().LoadAssembly(
