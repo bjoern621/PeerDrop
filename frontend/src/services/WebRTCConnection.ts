@@ -44,7 +44,7 @@ export class WebRTCConnection {
         signalingChannel: WebSocketService,
         remoteToken: ClientToken
     ) {
-        setLogEnabled(false); // Disable logging by default, can be enabled later if needed
+        setLogEnabled(true); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
         this.polite =
@@ -160,8 +160,10 @@ export class WebRTCConnection {
      * After that, the WebRTC Connection is goint to start (handshake).
      */
     private initializePeerConnection() {
-        const dc = this.peerConnection.createDataChannel("init");
-        dc.close();
+        if (this.polite) {
+            const dc = this.peerConnection.createDataChannel("init");
+            dc.close();
+        }
     }
 
     private handleRemoteICECandidates() {
@@ -265,19 +267,25 @@ export class WebRTCConnection {
 
             log("Setting local description");
 
-            await this.peerConnection.setLocalDescription();
+            const [, err] = await errorAsValue(
+                this.peerConnection.setLocalDescription()
+            );
 
-            const descriptionMessage: TypedMessage<SDPMessage> = {
-                type: MessageType.SDP,
-                msg: {
-                    remoteToken: this.remoteToken,
-                    description: this.peerConnection.localDescription!,
-                },
-            };
+            if (!err) {
+                const descriptionMessage: TypedMessage<SDPMessage> = {
+                    type: MessageType.SDP,
+                    msg: {
+                        remoteToken: this.remoteToken,
+                        description: this.peerConnection.localDescription!,
+                    },
+                };
 
-            log("Sending SDP offer...");
+                log("Sending SDP offer...");
 
-            this.signalingChannel.sendMessage(descriptionMessage);
+                this.signalingChannel.sendMessage(descriptionMessage);
+            } else {
+                log("Error during setting local description: ", err);
+            }
 
             this.makingOffer = false;
         };
