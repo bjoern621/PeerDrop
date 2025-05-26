@@ -66,4 +66,14 @@ public class ArchTest
 
         rule.Check(Architecture);
     }
+
+    [Test]
+    public void ComponentsCanDependOnOtherComponentOnlyThroughApiNamespace()
+    {
+        var typesInComponents = Types().That().ResideInNamespace("Component", true).GetObjects(Architecture);
+
+        var rule = new DependOnOtherComponentOnlyThroughApiCustomCondition();
+
+        rule.Check(typesInComponents, Architecture);
+    }
 }
