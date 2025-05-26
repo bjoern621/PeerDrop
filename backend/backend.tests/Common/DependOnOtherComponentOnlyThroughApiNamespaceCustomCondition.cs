@@ -1,7 +1,7 @@
 using ArchUnitNET.Domain;
 using ArchUnitNET.Fluent.Conditions;
 
-namespace tests
+namespace backend.tests.Common
 {
     public class DependOnOtherComponentOnlyThroughApiCustomCondition : ICondition<IType>
     {

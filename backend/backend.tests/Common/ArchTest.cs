@@ -1,9 +1,8 @@
 using ArchUnitNET.Loader;
 using ArchUnitNET.NUnit;
-
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
-namespace tests;
+namespace backend.tests.Common;
 
 public class ArchTest
 {
