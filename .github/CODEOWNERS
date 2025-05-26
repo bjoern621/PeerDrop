@@ -2,4 +2,4 @@
 /frontend/ @eggibotting
 /backend/backend/ @NovaCaller
 /database/ @HomeMichi
-/backend/tests/ @Elias153
+/backend/backend.tests/ @Elias153
