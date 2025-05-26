@@ -69,10 +69,11 @@ public class ArchTest
     [Test]
     public void ComponentsCanDependOnOtherComponentOnlyThroughApiNamespace()
     {
-        var typesInComponents = Types().That().ResideInNamespace("Component", true).GetObjects(Architecture);
+        var typesInComponents = Types().That().ResideInNamespace("Component", true);
 
-        var rule = new DependOnOtherComponentOnlyThroughApiCustomCondition();
+        var rule = typesInComponents.Should().FollowCustomCondition(new DependOnOtherComponentOnlyThroughApiCustomCondition());
 
-        rule.Check(typesInComponents, Architecture);
+        rule.Check(Architecture);
+
     }
 }
