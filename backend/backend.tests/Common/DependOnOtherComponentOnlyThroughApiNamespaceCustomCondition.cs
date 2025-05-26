@@ -45,6 +45,7 @@ namespace backend.tests.Common
 
                 bool overallPassForSourceType = true;
                 var failureDetails = new List<string>();
+                var failedTestCount = 0;
 
                 foreach (var dependency in sourceType.Dependencies)
                 {
@@ -75,18 +76,20 @@ namespace backend.tests.Common
                         if (!isApiDependency)
                         {
                             overallPassForSourceType = false;
-                            failureDetails.Add($"depends on {targetType.FullName} (in component {targetComponentName}) which is not in an 'Api' namespace of that component (namespace: {targetFullNamespace})");
+                            failureDetails.Add($"{failedTestCount + 1} - depends on {targetType.FullName} (in component {targetComponentName}) which is not in an 'Api' namespace of that component");
+
+                            failedTestCount++;
                         }
                     }
                 }
 
                 if (overallPassForSourceType)
                 {
-                    results.Add(new ConditionResult(sourceType, true, $"Type {sourceType.FullName} adheres to inter-component API dependency rules."));
+                    results.Add(new ConditionResult(sourceType, true, $"Type {sourceType.FullName} adheres to inter-component API dependency rules.\n"));
                 }
                 else
                 {
-                    results.Add(new ConditionResult(sourceType, false, $"Type {sourceType.FullName} (in component {sourceComponentName}) violates inter-component API dependency rules: {string.Join("; ", failureDetails)}."));
+                    results.Add(new ConditionResult(sourceType, false, $"Type {sourceType.FullName} (in component {sourceComponentName}) violates inter-component API dependency rules: \n{string.Join("; \n", failureDetails)}."));
                 }
             }
 
