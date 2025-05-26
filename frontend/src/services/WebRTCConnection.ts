@@ -161,8 +161,7 @@ export class WebRTCConnection {
      */
     private initializePeerConnection() {
         if (this.polite) {
-            const dc = this.peerConnection.createDataChannel("init");
-            dc.close();
+            this.peerConnection.createDataChannel("init");
         }
     }
 
