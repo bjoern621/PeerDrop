@@ -1,12 +1,12 @@
 import { Outlet } from "react-router";
-import { Sidebar } from "../components/Sidebar/Sidebar";
-import "./Layout.scss";
+import { Sidebar } from "../Sidebar/Sidebar";
+import css from "./Layout.module.scss";
 
 export const Layout = () => {
     return (
-        <div className="layout-container">
+        <div className={css.container}>
             <Sidebar />
-            <main className="content">
+            <main className={css.content}>
                 <Outlet /> {}
             </main>
         </div>
