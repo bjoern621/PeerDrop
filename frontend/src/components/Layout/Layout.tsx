@@ -7,7 +7,7 @@ export const Layout = () => {
         <div className={css.container}>
             <Sidebar />
             <main className={css.content}>
-                <Outlet /> { }
+                <Outlet /> {}
             </main>
         </div>
     );
