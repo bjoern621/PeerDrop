@@ -11,9 +11,16 @@ export function ConnectionProvider({
     children: React.ReactNode;
 }) {
     const navigate = useNavigate();
-    const wsRef = useRef(new WebSocketService());
-    console.log("Now Calling Constructor of PeerConnectionManager");
-    const pcmRef = useRef(new PeerConnectionManager(wsRef.current));
+    const wsRef = useRef<WebSocketService | undefined>(undefined);
+    if (!wsRef.current) {
+        wsRef.current = new WebSocketService();
+    }
+
+    const pcmRef = useRef<PeerConnectionManager | undefined>(undefined);
+    if (!pcmRef.current) {
+        console.log("Now Calling Constructor of PeerConnectionManager");
+        pcmRef.current = new PeerConnectionManager(wsRef.current);
+    }
 
     pcmRef.current.setOnConnectedCallback(() => {
         void navigate("/share");
