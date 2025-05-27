@@ -32,4 +32,8 @@ export class Observable<T> implements IObservable<T>, IObservableOnce<T> {
         };
         this.subscribe(wrapper);
     }
+
+    public unsubscribeAll(): void {
+        this.observers = [];
+    }
 }

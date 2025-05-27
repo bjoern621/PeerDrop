@@ -6,16 +6,11 @@ import {
     WebSocketService,
 } from "./WebSocketService";
 import { MessageType } from "./MessageType";
-import mitt, { Emitter } from "mitt";
 import { log, setLogEnabled } from "../util/Logger";
+import { Observable } from "../util/observer/Observable";
 
 const iceServers: RTCConfiguration = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-};
-
-// Define the events that can be emitted by the WebRTCConnection class
-type WebRTCConnectionEvents = {
-    connectionstatechange: string;
 };
 
 export type IceCandidateMessage = {
@@ -28,13 +23,12 @@ export type SDPMessage = {
     description: RTCSessionDescriptionInit;
 };
 
-export class WebRTCConnection {
+export class WebRTCConnection extends Observable<string> {
     private readonly remoteToken: ClientToken;
     private readonly signalingChannel: WebSocketService;
     private readonly peerConnection: RTCPeerConnection;
-    private readonly emitter: Emitter<WebRTCConnectionEvents> =
-        mitt<WebRTCConnectionEvents>();
 
+    // Perfect Negotiation Pattern variables
     private makingOffer: boolean = false;
     private ignoreOffer: boolean = false;
     private isSettingRemoteAnswerPending: boolean = false;
@@ -44,7 +38,8 @@ export class WebRTCConnection {
         signalingChannel: WebSocketService,
         remoteToken: ClientToken
     ) {
-        setLogEnabled(true); // Disable logging by default, can be enabled later if needed
+        super();
+        setLogEnabled(false); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
         this.polite =
@@ -335,7 +330,9 @@ export class WebRTCConnection {
         }
 
         assert(this.peerConnection.connectionState === "closed");
-        this.emitter.emit("connectionstatechange", "closed");
+        this.notify("closed");
+
+        this.unsubscribeAll();
     }
 
     /**
@@ -345,32 +342,8 @@ export class WebRTCConnection {
     private setupEmittedEvents() {
         this.peerConnection.onconnectionstatechange = ev => {
             log("Event triggered", ev);
-            this.emitter.emit(
-                "connectionstatechange",
-                this.peerConnection.connectionState
-            );
+            this.notify(this.peerConnection.connectionState);
         };
-    }
-
-    public on<K extends keyof WebRTCConnectionEvents>(
-        event: K,
-        handler: (event: WebRTCConnectionEvents[K]) => void
-    ) {
-        this.emitter.on(event, handler);
-    }
-
-    public off<K extends keyof WebRTCConnectionEvents>(
-        event: K,
-        handler: (event: WebRTCConnectionEvents[K]) => void
-    ) {
-        this.emitter.off(event, handler);
-    }
-
-    public emit<K extends keyof WebRTCConnectionEvents>(
-        event: K,
-        data: WebRTCConnectionEvents[K]
-    ) {
-        this.emitter.emit(event, data);
     }
 
     public getPeerConnection(): RTCPeerConnection {

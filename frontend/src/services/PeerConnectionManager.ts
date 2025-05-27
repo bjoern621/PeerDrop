@@ -14,6 +14,11 @@ export type RemoteTokenMessage = {
     remoteToken: ClientToken;
 };
 
+type CloseConnectionMessage = {
+    requestID?: string;
+    remoteToken: ClientToken;
+};
+
 type ErrorMessage = {
     requestID: string;
     description: string;
@@ -34,7 +39,7 @@ export class PeerConnectionManager {
 
     public constructor(private readonly signaling: WebSocketService) {
         this.waitForRemoteClientToken();
-
+        console.log("Executing PeerConnectionManager constructor");
         this.waitForCloseConnectionRequest();
     }
 
@@ -223,13 +228,16 @@ export class PeerConnectionManager {
      * This ensures both peers close their connections and are ready for a new connection.
      */
     public closePeerConnection() {
-        assert(this.connection, "No active connection to close.");
+        if (!this.connection) {
+            console.warn("No active connection to close.");
+            return;
+        }
 
         console.log("Closing peer connection");
 
         this.connection.closePeerConnection();
 
-        const closeConnectionMessage: TypedMessage<RemoteTokenMessage> = {
+        const closeConnectionMessage: TypedMessage<CloseConnectionMessage> = {
             type: MessageType.CLOSE_CONNECTION,
             msg: {
                 remoteToken: this.remoteToken!,
@@ -254,15 +262,19 @@ export class PeerConnectionManager {
      * The subscription to the message type remains active to handle future close requests.
      */
     private waitForCloseConnectionRequest() {
+        console.log("Executing waitForCloseConnectionRequest Method");
         const handleCloseConnectionRequest = (
-            message: TypedMessage<RemoteTokenMessage>
+            message: TypedMessage<CloseConnectionMessage>
         ) => {
             console.log(
                 "Received close connection request:",
                 message.msg.remoteToken
             );
 
-            assert(this.connection, "No active connection to close.");
+            if (!this.connection) {
+                console.warn("No active connection to close.");
+                return;
+            }
 
             console.log("Closing peer connection");
 
@@ -271,6 +283,11 @@ export class PeerConnectionManager {
             this.remoteToken = undefined;
             this.connection = undefined;
             this.waitForRemoteClientToken();
+
+            /*this.signaling.unsubscribeMessage(
+                MessageType.CLOSE_CONNECTION,
+                handleCloseConnectionRequest as MessageHandler
+            );*/
         };
 
         this.signaling.subscribeMessage(
@@ -282,15 +299,26 @@ export class PeerConnectionManager {
     // Sets a callback for when the peer connection state changes to "connected".
     private setCallbackForPeer() {
         assert(this.connection, "PeerConnection is not initialized.");
-        this.connection.on("connectionstatechange", state => {
-            console.log("Connection state changed to:", state);
+        this.connection.subscribe(state => {
             if (state === "connected") {
+                console.log(
+                    "PEERCONNECTIONMANAGER ::: state",
+                    state,
+                    "and onConnectedCallback is:",
+                    this.onConnectedCallback
+                );
                 assert(
                     this.onConnectedCallback,
                     "onConnectedCallback is not set."
                 );
                 this.onConnectedCallback();
             } else if (state === "closed" || state === "disconnected") {
+                console.log(
+                    "PEERCONNECTIONMANAGER ::: state:",
+                    state,
+                    " and onDisconnectedCallback is:",
+                    this.onDisconnectedCallback
+                );
                 assert(
                     this.onDisconnectedCallback,
                     "onDisconnectedCallback is not set."
@@ -310,12 +338,18 @@ export class PeerConnectionManager {
      */
     public setOnConnectedCallback(cb: () => void) {
         this.onConnectedCallback = cb;
-        console.log("OnConnectedCallback:", this.onConnectedCallback);
+        console.log(
+            "PEERCONNECTIONMANAGER ::: Set OnConnectedCallback to:",
+            this.onConnectedCallback
+        );
     }
 
     public setOnDisconnectedCallback(cb: () => void) {
         this.onDisconnectedCallback = cb;
-        console.log("OnDisconnectedCallback:", this.onDisconnectedCallback);
+        console.log(
+            "PEERCONNECTIONMANAGER ::: Set OnDisconnectedCallback to:",
+            this.onDisconnectedCallback
+        );
     }
 
     public getConnection() {

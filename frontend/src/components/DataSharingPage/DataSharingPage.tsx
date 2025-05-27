@@ -75,12 +75,12 @@ export function DataSharingPage() {
         } else {
             setPartnerName(peerConnectionManager.getRemoteToken());
         }
-
+        /*
         peerConnectionManager.setOnDisconnectedCallback(() => {
             void navigate("/");
             // Redirect to home page when disconnected
         });
-        console.log("PeerConnectionManager onDisconnectedCallback set");
+        console.log("PeerConnectionManager onDisconnectedCallback set");*/
     }, [peerConnectionManager, navigate]);
 
     function getSizeInHumanReadableFormat(size: number): string {

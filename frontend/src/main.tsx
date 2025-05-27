@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+//import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.scss";
 import App from "./components/App/App.tsx";
@@ -12,23 +12,23 @@ import { DataSharingPage } from "./components/DataSharingPage/DataSharingPage.ts
 import { ConnectionProvider } from "./context/ConnectionProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-        <BrowserRouter>
-            <ConnectionProvider>
-                <Routes>
-                    <Route element={<Layout />}>
-                        <Route path="/" element={<LandingPage />} />
-                        <Route path="/share" element={<DataSharingPage />} />
-                        <Route path="app" element={<App />} />
-                        <Route
-                            path="/module-example"
-                            element={<CSSModulesExamples />}
-                        />
-                        <Route path="/fetch" element={<Fetch />} />
-                        <Route path="*" element={<PageNotFound />} />
-                    </Route>
-                </Routes>
-            </ConnectionProvider>
-        </BrowserRouter>
-    </StrictMode>
+    //<StrictMode>
+    <BrowserRouter>
+        <ConnectionProvider>
+            <Routes>
+                <Route element={<Layout />}>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/share" element={<DataSharingPage />} />
+                    <Route path="app" element={<App />} />
+                    <Route
+                        path="/module-example"
+                        element={<CSSModulesExamples />}
+                    />
+                    <Route path="/fetch" element={<Fetch />} />
+                    <Route path="*" element={<PageNotFound />} />
+                </Route>
+            </Routes>
+        </ConnectionProvider>
+    </BrowserRouter>
+    //</StrictMode>
 );

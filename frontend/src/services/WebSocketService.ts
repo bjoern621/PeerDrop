@@ -35,7 +35,7 @@ export class WebSocketService {
      * It connects to the server.
      */
     public constructor() {
-        setLogEnabled(true); // Disable logging by default, can be enabled later if needed
+        setLogEnabled(false); // Disable logging by default, can be enabled later if needed
         this.connectToServer();
 
         this.waitForLocalClientToken();

@@ -4,7 +4,7 @@ import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
 import { OTPInput, SlotProps } from "input-otp";
-import { useNavigate } from "react-router";
+//import { useNavigate } from "react-router";
 import { MessageType } from "../../services/MessageType";
 import { useWebSocketService } from "../../context/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
@@ -23,7 +23,7 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
 };
 
 export default function LandingPage() {
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
     const websocket = useWebSocketService();
     const peerConnectionManager = usePeerConnectionManager();
@@ -36,9 +36,10 @@ export default function LandingPage() {
 
         assert(websocket, "WebSocketService is not initialized.");
 
-        websocket.subscribeMessage(MessageType.TEST, message => {
+        const handler = (message: unknown) => {
             console.log("Received message:", message);
-        });
+        };
+        websocket.subscribeMessage(MessageType.TEST, handler);
 
         type TestMessage = {
             message: string;
@@ -68,12 +69,17 @@ export default function LandingPage() {
                 }
             }, 500);
 
-            return () => clearInterval(checkToken);
+            return () => {
+                clearInterval(checkToken);
+                websocket.unsubscribeMessage(MessageType.TEST, handler);
+            };
         }
 
-        console.log("LandingPage component mounted");
+        return () => {
+            websocket.unsubscribeMessage(MessageType.TEST, handler);
+        };
     }, [websocket]);
-
+    /*
     // Initialize PeerConnectionManager and set up callback
     useEffect(() => {
         assert(
@@ -85,7 +91,7 @@ export default function LandingPage() {
         });
 
         console.log("PeerConnectionManager onConnectedCallback set");
-    }, [navigate, peerConnectionManager]);
+    }, [navigate, peerConnectionManager]);*/
 
     const connectToPeer = async () => {
         if (remoteToken.length !== 5) {
