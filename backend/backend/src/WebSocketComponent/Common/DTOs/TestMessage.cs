@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using backend.WebSocketComponent.Common.DTOs.Api;
 
 namespace backend.WebSocketComponent.Common.DTOs;
 

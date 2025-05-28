@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using backend.WebSocketComponent.Common.DTOs;
+using backend.WebSocketComponent.Common.DTOs.Api;
 
 namespace backend.SignalingComponent.Common.DTOs;
 
@@ -12,7 +12,7 @@ public class SuccessMessage : ITypedMessage
 
     [JsonPropertyName("requestID")]
     public required string RequestId { get; set; }
-    
+
     [JsonPropertyName("description")]
     public required string Description { get; set; }
 }
