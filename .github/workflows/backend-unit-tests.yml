@@ -1,0 +1,27 @@
+name: Backend Unit Tests
+
+on:
+    pull_request:
+        branches:
+            - main
+    push:
+        paths:
+            - "backend/**"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        name: Run Backend Unit Tests
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 9.0.x
+
+            - name: Run Unit Tests
+              run: dotnet test backend.tests --filter TestCategory!=Architecture
+              working-directory: backend
