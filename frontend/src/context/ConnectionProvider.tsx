@@ -18,16 +18,15 @@ export function ConnectionProvider({
 
     const pcmRef = useRef<PeerConnectionManager | undefined>(undefined);
     if (!pcmRef.current) {
-        console.log("Now Calling Constructor of PeerConnectionManager");
         pcmRef.current = new PeerConnectionManager(wsRef.current);
-    }
 
-    pcmRef.current.setOnConnectedCallback(() => {
-        void navigate("/share");
-    });
-    pcmRef.current.setOnDisconnectedCallback(() => {
-        void navigate("/");
-    });
+        pcmRef.current.setOnConnectedCallback(() => {
+            void navigate("/share");
+        });
+        pcmRef.current.setOnDisconnectedCallback(() => {
+            void navigate("/");
+        });
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
     (window as any).ws = wsRef.current; // For debugging purposes, remove in production

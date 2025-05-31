@@ -121,10 +121,11 @@ export function DataSharingPage() {
                 size: file.size,
                 time: new Date(),
             });
+
+            peerConnectionManager.sendFile(file);
         }
 
         setFiles(prevFiles => [...prevFiles, ...newFiles]);
-        // TODO: Implement file upload logic here
 
         // Reset input to allow re-adding the same file
         if (event.target) {

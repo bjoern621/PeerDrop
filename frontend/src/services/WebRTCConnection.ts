@@ -39,7 +39,7 @@ export class WebRTCConnection extends Observable<string> {
         remoteToken: ClientToken
     ) {
         super();
-        setLogEnabled(false); // Disable logging by default, can be enabled later if needed
+        setLogEnabled(true); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
         this.polite =
@@ -84,6 +84,13 @@ export class WebRTCConnection extends Observable<string> {
         let offset = 0;
 
         dataChannel.onopen = () => {
+            // Send first Metadata about the file
+            const meta = JSON.stringify({
+                name: file.name,
+                type: file.type,
+            });
+            dataChannel.send(meta);
+
             const reader = new FileReader();
 
             reader.onload = e => {
@@ -117,15 +124,29 @@ export class WebRTCConnection extends Observable<string> {
 
             const dataChannel = event.channel;
             const receivedChunks: ArrayBuffer[] = [];
+            let fileMeta: { name: string; type: string } | null = null;
+            let firstMessage = true;
 
             dataChannel.onmessage = event => {
+                if (firstMessage && typeof event.data === "string") {
+                    fileMeta = JSON.parse(event.data) as {
+                        name: string;
+                        type: string;
+                    };
+                    firstMessage = false;
+                    log("Received file metadata:", fileMeta);
+                    return;
+                }
+
                 if (typeof event.data === "string" && event.data === "EOF") {
-                    const blob = new Blob(receivedChunks);
+                    const blob = new Blob(receivedChunks, {
+                        type: fileMeta?.type,
+                    });
 
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = "received-file";
+                    a.download = fileMeta?.name ?? "received-file";
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
