@@ -37,9 +37,10 @@ export class PeerConnectionManager {
     private connection: WebRTCConnection | undefined;
     private onConnectedCallback?: () => void;
     private onDisconnectedCallback?: () => void;
+    private onReceivedFileCallback?: (name: string, size: number) => void;
 
     public constructor(private readonly signaling: WebSocketService) {
-        setLogEnabled(false);
+        setLogEnabled(true);
         this.waitForRemoteClientToken();
 
         this.waitForCloseConnectionRequest();
@@ -74,7 +75,7 @@ export class PeerConnectionManager {
                 this.remoteToken
             );
 
-            this.setCallbackForPeer();
+            this.triggerCallback();
         };
 
         this.signaling.subscribeMessage(
@@ -148,7 +149,7 @@ export class PeerConnectionManager {
                 this.remoteToken
             );
 
-            this.setCallbackForPeer();
+            this.triggerCallback();
         }
     }
 
@@ -285,10 +286,10 @@ export class PeerConnectionManager {
         );
     }
 
-    // Sets a callback for when the peer connection state changes to "connected".
-    private setCallbackForPeer() {
+    // Triggers a callback for when the peer emits a specific event.
+    private triggerCallback() {
         assert(this.connection, "PeerConnection is not initialized.");
-        this.connection.subscribe(state => {
+        this.connection.subscribeTo("connectionstatechange", state => {
             if (state === "connected") {
                 log(
                     "PEERCONNECTIONMANAGER ::: state",
@@ -338,6 +339,14 @@ export class PeerConnectionManager {
         log(
             "PEERCONNECTIONMANAGER ::: Set OnDisconnectedCallback to:",
             this.onDisconnectedCallback
+        );
+    }
+
+    public setOnReceivedFileCallback(cb: (name: string, size: number) => void) {
+        this.onReceivedFileCallback = cb;
+        log(
+            "PEERCONNECTIONMANAGER ::: Set OnReceivedFileCallback to:",
+            this.onReceivedFileCallback
         );
     }
 

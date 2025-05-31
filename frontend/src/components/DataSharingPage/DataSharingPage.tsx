@@ -75,12 +75,7 @@ export function DataSharingPage() {
         } else {
             setPartnerName(peerConnectionManager.getRemoteToken());
         }
-        /*
-        peerConnectionManager.setOnDisconnectedCallback(() => {
-            void navigate("/");
-            // Redirect to home page when disconnected
-        });
-        console.log("PeerConnectionManager onDisconnectedCallback set");*/
+        peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
     }, [peerConnectionManager, navigate]);
 
     function getSizeInHumanReadableFormat(size: number): string {
@@ -131,6 +126,18 @@ export function DataSharingPage() {
         if (event.target) {
             event.target.value = "";
         }
+    };
+
+    const onReceivedFile = (name: string, size: number) => {
+        const newFile: FileDisplay = {
+            name: name,
+            direction: FileDirection.DOWN,
+            progress: 0,
+            size: size,
+            time: new Date(),
+        };
+
+        setFiles(prevFiles => [...prevFiles, newFile]);
     };
 
     const onDisconnect = () => {

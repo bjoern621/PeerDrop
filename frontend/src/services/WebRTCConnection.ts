@@ -23,10 +23,13 @@ export type SDPMessage = {
     description: RTCSessionDescriptionInit;
 };
 
-export class WebRTCConnection extends Observable<string> {
+export class WebRTCConnection {
     private readonly remoteToken: ClientToken;
     private readonly signalingChannel: WebSocketService;
     private readonly peerConnection: RTCPeerConnection;
+
+    private readonly eventHandlers: Map<string, Observable<unknown>> =
+        new Map();
 
     // Perfect Negotiation Pattern variables
     private makingOffer: boolean = false;
@@ -38,7 +41,6 @@ export class WebRTCConnection extends Observable<string> {
         signalingChannel: WebSocketService,
         remoteToken: ClientToken
     ) {
-        super();
         setLogEnabled(true); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
@@ -351,9 +353,9 @@ export class WebRTCConnection extends Observable<string> {
         }
 
         assert(this.peerConnection.connectionState === "closed");
-        this.notify("closed");
+        this.emitEvent("connectionstatechange", "closed");
 
-        this.unsubscribeAll();
+        this.unsubscribeAllHandlers();
     }
 
     /**
@@ -363,11 +365,43 @@ export class WebRTCConnection extends Observable<string> {
     private setupEmittedEvents() {
         this.peerConnection.onconnectionstatechange = ev => {
             log("Event triggered", ev);
-            this.notify(this.peerConnection.connectionState);
+            this.emitEvent(
+                "connectionstatechange",
+                this.peerConnection.connectionState
+            );
         };
     }
 
     public getPeerConnection(): RTCPeerConnection {
         return this.peerConnection;
+    }
+
+    public subscribeTo(event: string, handler: (data: unknown) => void) {
+        if (!this.eventHandlers.has(event)) {
+            this.eventHandlers.set(event, new Observable<unknown>());
+        }
+        this.eventHandlers.get(event)?.subscribe(handler);
+    }
+
+    public unsubscribeFrom(event: string, handler: (data: unknown) => void) {
+        assert(
+            this.eventHandlers.has(event),
+            `Event ${event} not found in eventHandlers`
+        );
+        this.eventHandlers.get(event)?.unsubscribe(handler);
+    }
+
+    private emitEvent(event: string, data: unknown) {
+        assert(
+            this.eventHandlers.has(event),
+            `Event ${event} not found in eventHandlers`
+        );
+        this.eventHandlers.get(event)?.notify(data);
+    }
+
+    private unsubscribeAllHandlers() {
+        this.eventHandlers.forEach(observable => {
+            observable.unsubscribeAll();
+        });
     }
 }
