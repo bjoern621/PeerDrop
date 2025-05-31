@@ -316,6 +316,24 @@ export class PeerConnectionManager {
                 this.onDisconnectedCallback();
             }
         });
+
+        this.connection.subscribeTo("fileMetaReceived", (data: unknown) => {
+            const { name, size } = data as {
+                name: string;
+                size: number;
+            };
+            log(
+                "PEERCONNECTIONMANAGER ::: Received file:",
+                name,
+                "of size:",
+                size
+            );
+            assert(
+                this.onReceivedFileCallback,
+                "onReceivedFileCallback is not set."
+            );
+            this.onReceivedFileCallback(name, size);
+        });
     }
 
     /**

@@ -48,7 +48,7 @@ export class WebRTCConnection {
             signalingChannel.getLocalClientToken()! < this.remoteToken;
         this.peerConnection = new RTCPeerConnection(iceServers);
 
-        this.setupEmittedEvents();
+        this.setupEmittedWebRTCEvents();
 
         this.setupReceivingDataChannel();
         this.handleIncomingICECandidates();
@@ -72,8 +72,8 @@ export class WebRTCConnection {
         log(
             `File is ${[
                 file.name,
-                file.size,
                 file.type,
+                file.size,
                 file.lastModified,
             ].join(" ")}`
         );
@@ -89,7 +89,7 @@ export class WebRTCConnection {
             // Send first Metadata about the file
             const meta = JSON.stringify({
                 name: file.name,
-                type: file.type,
+                size: file.size,
             });
             dataChannel.send(meta);
 
@@ -126,24 +126,27 @@ export class WebRTCConnection {
 
             const dataChannel = event.channel;
             const receivedChunks: ArrayBuffer[] = [];
-            let fileMeta: { name: string; type: string } | null = null;
+            let fileMeta: { name: string; size: number } | null = null;
             let firstMessage = true;
 
             dataChannel.onmessage = event => {
                 if (firstMessage && typeof event.data === "string") {
                     fileMeta = JSON.parse(event.data) as {
                         name: string;
-                        type: string;
+                        size: number;
                     };
                     firstMessage = false;
                     log("Received file metadata:", fileMeta);
+
+                    this.emitEvent("fileMetaReceived", {
+                        name: fileMeta.name,
+                        size: fileMeta.size,
+                    });
                     return;
                 }
 
                 if (typeof event.data === "string" && event.data === "EOF") {
-                    const blob = new Blob(receivedChunks, {
-                        type: fileMeta?.type,
-                    });
+                    const blob = new Blob(receivedChunks);
 
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
@@ -359,10 +362,9 @@ export class WebRTCConnection {
     }
 
     /**
-     * Sets up the event listeners for emitted events from the peer connection.
-     * This includes listening for changes in the connection state.
+     * Sets up the event listeners for emitted WebRTC events from the peer connection.
      */
-    private setupEmittedEvents() {
+    private setupEmittedWebRTCEvents() {
         this.peerConnection.onconnectionstatechange = ev => {
             log("Event triggered", ev);
             this.emitEvent(
