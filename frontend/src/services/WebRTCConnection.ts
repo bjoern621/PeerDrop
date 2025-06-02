@@ -46,7 +46,7 @@ export class WebRTCConnection {
         this.handleSDPPackage();
         this.handleRemoteICECandidates();
 
-        this.testMethodDataChannelInitializier();
+        // this.testMethodDataChannelInitializier(); // <- Warum wird diese Methode hier aufgerufen? Sollte sie nicht ausschließlich in PeerConnectionManager aufgerufen werden?
     }
 
     public testMethodDataChannelInitializier() {
