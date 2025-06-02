@@ -155,104 +155,6 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Wait for a remote token message. Only the first message with the expected remote token will be accepted. Creates a new WebRTCConnection to respond to the remote peer.
-     *
-     * This method subscribes to messages of the specified type and sets the `remoteToken` property
-     * when a message containing the remote peer token is received. Once the remote token is obtained, the
-     * subscription to the message type is automatically removed.
-     */
-    // private waitForConnectionResponse() {
-    //     const handleRemoteTokenMessage = (
-    //         message: TypedMessage<RemoteTokenMessage>
-    //     ) => {
-    //         if (this.expectedRemoteToken !== message.msg.remoteToken) {
-    //             return;
-    //         }
-
-    //         console.log("Received remote token:", message.msg.remoteToken);
-
-    //         this.signaling.unsubscribeMessage(
-    //             MessageType.REMOTE_TOKEN,
-    //             handleRemoteTokenMessage as MessageHandler
-    //         );
-
-    //         this.webrtcConnection = new WebRTCConnection(
-    //             this.signaling,
-    //             this.expectedRemoteToken
-    //         );
-    //     };
-
-    //     this.signaling.subscribeMessage(
-    //         MessageType.REMOTE_TOKEN,
-    //         handleRemoteTokenMessage as MessageHandler
-    //     );
-    // }
-
-    /**
-     * Stores the remote peer's token locally and sends a message with this token to the signaling server.
-     * The signaling server then swaps the `msg.remoteToken` with the sender's token, so that the recipient
-     * receives the sender's token as `msg.remoteToken`.
-     *
-     * To avoid race conditions, each request is assigned a unique `requestID`. The response messages
-     * (success or error) contain the same `requestID`, ensuring that only the response matching the request is processed.
-     * All other responses are ignored.
-     *
-     * After a successful response, all handlers for the message type `REMOTE_TOKEN_MESSAGE_TYPE` are removed.
-     *
-     * @param otherPeerToken The token of the other peer as a string.
-     */
-    // public async createLocalWebRTCAndSendTokenToRemotePeer(
-    //     otherPeerToken: string
-    // ) {
-    //     const otherToken: ClientToken = otherPeerToken;
-
-    //     if (this.signaling.getLocalClientToken() === otherToken) {
-    //         console.error("Cannot send token to self:", otherToken);
-    //         return;
-    //     }
-
-    //     const requestID: string = crypto.randomUUID();
-
-    //     const tokenMessage: TypedMessage<RemoteTokenMessage> = {
-    //         type: MessageType.REMOTE_TOKEN,
-    //         msg: {
-    //             requestID: requestID,
-    //             remoteToken: otherToken,
-    //         },
-    //     };
-
-    //     const [, err] = await errorAsValue(
-    //         this.sendMessageAndWaitForResponse(tokenMessage)
-    //     );
-    //     if (err) {
-    //         console.error("Error sending remote token:", err.message);
-    //         return;
-    //     }
-
-    //     this.expectedRemoteToken = otherToken;
-
-    //     //unsubscribe all handlers for the REMOTE_TOKEN_MESSAGE_TYPE
-    //     const handlersRemoteToken = this.signaling.getHandlers(
-    //         MessageType.REMOTE_TOKEN
-    //     );
-    //     if (handlersRemoteToken) {
-    //         handlersRemoteToken.forEach(handler => {
-    //             this.signaling.unsubscribeMessage(
-    //                 MessageType.REMOTE_TOKEN,
-    //                 handler
-    //             );
-    //         });
-
-    //         this.webrtcConnection = new WebRTCConnection(
-    //             this.signaling,
-    //             this.expectedRemoteToken
-    //         );
-
-    //         this.webrtcConnection.testMethodDataChannelInitializier();
-    //     }
-    // }
-
-    /**
      * Sends a message to the signaling server and asynchronously waits for a response.
      *
      * This method:
@@ -344,8 +246,6 @@ export class PeerConnectionManager {
 
         this.expectedRemoteToken = undefined;
         this.webrtcConnection = undefined;
-
-        // this.waitForConnectionResponse();
     }
 
     /**
@@ -373,7 +273,6 @@ export class PeerConnectionManager {
 
             this.expectedRemoteToken = undefined;
             this.webrtcConnection = undefined;
-            // this.waitForConnectionResponse();
         };
 
         this.signaling.subscribeMessage(
