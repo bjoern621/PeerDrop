@@ -4,14 +4,12 @@ using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.SignalingComponent.Logic.Impl;
 
-public class SignalingService : ISignalingService
+public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingService
 {
-    private readonly IWebSocketHandler _webSocketHandler;
+    private readonly IWebSocketHandler _webSocketHandler = webSocketHandler;
 
-    public SignalingService(IWebSocketHandler webSocketHandler)
-    {
-        _webSocketHandler = webSocketHandler;
-    }
+    // This dictionary keeps track of open connection requests. It maps the requesting client token to the  token of the client they are trying to connect to.
+    private readonly Dictionary<string, string> openRequests = [];
 
     public async Task HandleRemoteTokenMessage(string clientId, RemoteTokenMessage message)
     {
@@ -113,6 +111,8 @@ public class SignalingService : ISignalingService
             return;
         }
 
+        openRequests[clientId] = remoteToken;
+
         var forwardedConnectionRequest = new ConnectionRequestMessage
         {
             RemoteToken = clientId
@@ -123,14 +123,25 @@ public class SignalingService : ISignalingService
 
     public async Task HandleConnectionResponse(string clientId, ConnectionResponseMessage message)
     {
-        if (!_webSocketHandler.RemoteTokenExists(message.RemoteToken))
+        var requestingClientToken = message.RemoteToken;
+
+        if (!_webSocketHandler.RemoteTokenExists(requestingClientToken))
         {
             // Client that sent the request completely disconnected while waiting for a response.
             // Or the client that sent the response made a mistake.
+            openRequests.Remove(requestingClientToken); // Probably better to remove the request in disconnect handler.
             return;
         }
 
-        await _webSocketHandler.SendMessage(message.RemoteToken, message);
+        if (!openRequests.TryGetValue(requestingClientToken, out var respondingClientToken) || respondingClientToken != clientId)
+        {
+            // The requesting client does not have an open request for this responding client.
+            return;
+        }
+
+        openRequests.Remove(requestingClientToken);
+
+        await _webSocketHandler.SendMessage(requestingClientToken, message);
 
         // Tell clients that they should start the connection process.
         if (message.Accepted)
@@ -140,7 +151,7 @@ public class SignalingService : ISignalingService
                 RemoteToken = clientId
             };
 
-            _ = _webSocketHandler.SendMessage(message.RemoteToken, establishConnectionMessageToRequestingClient);
+            _ = _webSocketHandler.SendMessage(requestingClientToken, establishConnectionMessageToRequestingClient);
 
             var establishConnectionMessageToRespondingClient = new EstablishConnectionMessage
             {
