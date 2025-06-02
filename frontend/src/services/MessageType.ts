@@ -9,4 +9,5 @@ export const enum MessageType {
     TEST = "test",
     CONNECTION_REQUEST = "connection-request",
     CONNECTION_RESPONSE = "connection-response",
+    ESTABLISH_CONNECTION = "establish-connection",
 }

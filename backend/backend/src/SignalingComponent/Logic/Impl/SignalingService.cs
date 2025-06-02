@@ -95,4 +95,59 @@ public class SignalingService : ISignalingService
         await _webSocketHandler.SendMessage(remoteToken, response);
         Console.WriteLine($"to {remoteToken}: Close Connection");
     }
+
+    public async Task HandleConnectionRequest(string clientId, ConnectionRequestMessage message)
+    {
+        string remoteToken = message.RemoteToken;
+
+        if (!_webSocketHandler.RemoteTokenExists(remoteToken))
+        {
+            var rejectedMessage = new ConnectionResponseMessage
+            {
+                Accepted = false,
+                RemoteToken = remoteToken,
+            };
+
+            await _webSocketHandler.SendMessage(clientId, rejectedMessage);
+
+            return;
+        }
+
+        var forwardedConnectionRequest = new ConnectionRequestMessage
+        {
+            RemoteToken = clientId
+        };
+
+        await _webSocketHandler.SendMessage(remoteToken, forwardedConnectionRequest);
+    }
+
+    public async Task HandleConnectionResponse(string clientId, ConnectionResponseMessage message)
+    {
+        if (!_webSocketHandler.RemoteTokenExists(message.RemoteToken))
+        {
+            // Client that sent the request completely disconnected while waiting for a response.
+            // Or the client that sent the response made a mistake.
+            return;
+        }
+
+        await _webSocketHandler.SendMessage(message.RemoteToken, message);
+
+        // Tell clients that they should start the connection process.
+        if (message.Accepted)
+        {
+            var establishConnectionMessageToRequestingClient = new EstablishConnectionMessage
+            {
+                RemoteToken = clientId
+            };
+
+            _ = _webSocketHandler.SendMessage(message.RemoteToken, establishConnectionMessageToRequestingClient);
+
+            var establishConnectionMessageToRespondingClient = new EstablishConnectionMessage
+            {
+                RemoteToken = message.RemoteToken
+            };
+
+            _ = _webSocketHandler.SendMessage(clientId, establishConnectionMessageToRespondingClient);
+        }
+    }
 }

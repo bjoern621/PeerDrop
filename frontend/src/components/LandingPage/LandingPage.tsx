@@ -8,7 +8,6 @@ import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
 import { OTPInput, SlotProps } from "input-otp";
 import { PeerConnectionManager } from "../../services/PeerConnectionManager";
-import { useNavigate } from "react-router";
 import { MessageType } from "../../services/MessageType";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
@@ -25,8 +24,6 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
 };
 
 export default function LandingPage() {
-    const navigate = useNavigate();
-
     const webSocketServiceRef = useRef<WebSocketService | undefined>(undefined);
     if (!webSocketServiceRef.current) {
         webSocketServiceRef.current = new WebSocketService();
@@ -91,7 +88,7 @@ export default function LandingPage() {
         console.log("LandingPage component mounted");
     }, []);
 
-    const connectToPeer = async () => {
+    const connectToPeer = () => {
         if (remoteToken.length !== 5) {
             console.warn("Peer token must be 5 characters long.");
         }
@@ -104,9 +101,7 @@ export default function LandingPage() {
 
         console.log("Trying to connect to peer with token:", remoteToken);
 
-        await peerConnectionManager.sendTokenToRemotePeer(remoteToken);
-
-        void navigate("/share");
+        peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
     };
 
     return (

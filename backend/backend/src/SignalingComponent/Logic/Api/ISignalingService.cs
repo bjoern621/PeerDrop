@@ -8,4 +8,6 @@ public interface ISignalingService
     Task HandleIceCandidateMessage(string clientId, IceCandidateMessage message);
     Task HandleSdpMessage(string clientId, SdpMessage message);
     Task HandleCloseConnection(string clientId, CloseConnectionMessage message);
+    Task HandleConnectionRequest(string clientId, ConnectionRequestMessage message);
+    Task HandleConnectionResponse(string clientId, ConnectionResponseMessage message);
 }
