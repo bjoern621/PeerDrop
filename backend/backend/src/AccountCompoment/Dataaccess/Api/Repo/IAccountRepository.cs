@@ -1,5 +1,4 @@
 ﻿using backend.AccountCompoment.Dataaccess.Api.Entity;
-using backend.DeviceComponent.Dataaccess.Api.Entity;
 
 namespace backend.AccountCompoment.Dataaccess.Api.Repo;
 

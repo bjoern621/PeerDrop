@@ -1,4 +1,4 @@
-using backend.AccountCompoment.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 using Npgsql;
 
@@ -38,7 +38,7 @@ public class DeviceRepository : IDeviceRepository
         throw new InvalidOperationException("Insert failed.");
     }
 
-    public async Task<Device?> GetByUuidAsync(Guid uuid)
+    public async Task<Device?> GetDeviceByUuidAsync(Guid uuid)
     {
         await using var cmd = _dataSource.CreateCommand(
             "SELECT uuid, display_name, account_id FROM devices WHERE uuid = @uuid"

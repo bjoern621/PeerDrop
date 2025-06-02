@@ -34,14 +34,14 @@ public class Device
         return _accountId;
     }
 
-    public static Device Of(DeviceCreateDto deviceCreateDto)
+    public static Device Of(DeviceRegisterDto dto, string displayName)
     {
-        ValidateDisplayNameFormat(deviceCreateDto.DisplayName);
+        ValidateDisplayNameFormat(displayName);
 
         return new Device(
-            deviceCreateDto.DisplayName,
+            displayName,
             Guid.NewGuid(),
-            deviceCreateDto.AccountId
+            dto.AccountId
         );
     }
 
