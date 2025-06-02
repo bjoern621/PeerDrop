@@ -7,4 +7,6 @@ export const enum MessageType {
     ICE_CANDIDATE = "ice-candidate",
     SDP = "sdp",
     TEST = "test",
+    CONNECTION_REQUEST = "connection-request",
+    CONNECTION_RESPONSE = "connection-response",
 }
