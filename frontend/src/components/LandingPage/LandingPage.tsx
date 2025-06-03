@@ -49,8 +49,8 @@ export default function LandingPage() {
 
     const [clientToken, setClientToken] = useState<string | null>(null);
     const [remoteToken, setRemoteToken] = useState<string>("");
-    const [isWaiting, setIsWaiting] = useState(false);
-    const [isConfirming, setIsConfirming] = useState(true);
+    const waitingDialog = useRef<HTMLDialogElement | null>(null);
+    const confirmDialog = useRef<HTMLDialogElement | null>(null);
 
     useEffect(() => {
         const websocket = webSocketServiceRef.current;
@@ -103,7 +103,8 @@ export default function LandingPage() {
             return;
         }
 
-        setIsWaiting(true);
+
+        waitingDialog.current?.showModal();
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
         assert(
@@ -119,15 +120,15 @@ export default function LandingPage() {
     };
 
     const interruptWaiting = () => {
-        setIsWaiting(false);
+        waitingDialog.current?.close();
+        console.log("interrupted");
     }
 
     const interruptConfirming = () => {
-        setIsConfirming(false);
+        console.log("interrupted");
     }
 
     const confirmConnection = () => {
-
     }
 
     return (
@@ -168,16 +169,8 @@ export default function LandingPage() {
                 </div>
                 <div>Anderes Token eingeben, um Verbindung aufzubauen</div>
             </div>
-            {isWaiting &&
-                createPortal(
-                    <WaitingDialog onCancel={() => interruptWaiting()} />,
-                    document.body
-                )}
-            {isConfirming &&
-                createPortal(
-                    <ConfirmDialog onCancel={() => interruptConfirming()} onConfirm={() => confirmConnection()} token={"88888"} />,
-                    document.body
-                )}
+            <WaitingDialog ref={waitingDialog} onCancel={() => interruptWaiting()} />
+            <ConfirmDialog ref={confirmDialog} onCancel={() => interruptConfirming()} onConfirm={() => confirmConnection()} token={"88888"} />
         </div>
     );
 }
