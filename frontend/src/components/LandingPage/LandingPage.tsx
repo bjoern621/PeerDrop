@@ -100,7 +100,6 @@ export default function LandingPage() {
             return;
         }
 
-
         waitingDialog.current?.showModal();
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
@@ -119,14 +118,13 @@ export default function LandingPage() {
     const interruptWaiting = () => {
         waitingDialog.current?.close();
         console.log("interrupted");
-    }
+    };
 
     const interruptConfirming = () => {
         console.log("interrupted");
-    }
+    };
 
-    const confirmConnection = () => {
-    }
+    const confirmConnection = () => {};
 
     return (
         <div className={css.container}>
@@ -170,8 +168,16 @@ export default function LandingPage() {
                 </div>
                 <div>Anderes Token eingeben, um Verbindung aufzubauen</div>
             </div>
-            <WaitingDialog ref={waitingDialog} onCancel={() => interruptWaiting()} />
-            <ConfirmDialog ref={confirmDialog} onCancel={() => interruptConfirming()} onConfirm={() => confirmConnection()} token={"88888"} />
+            <WaitingDialog
+                ref={waitingDialog}
+                onCancel={() => interruptWaiting()}
+            />
+            <ConfirmDialog
+                ref={confirmDialog}
+                onCancel={() => interruptConfirming()}
+                onConfirm={() => confirmConnection()}
+                token={"88888"}
+            />
         </div>
     );
 }

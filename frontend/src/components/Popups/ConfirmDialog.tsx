@@ -8,11 +8,7 @@ type ConfirmDialogProps = {
 };
 
 export const ConfirmDialog = forwardRef<HTMLDialogElement, ConfirmDialogProps>(
-    ({
-        token,
-        onConfirm,
-        onCancel,
-    }: ConfirmDialogProps, ref) => {
+    ({ token, onConfirm, onCancel }: ConfirmDialogProps, ref) => {
         return (
             <dialog ref={ref}>
                 <div className={css.container}>
