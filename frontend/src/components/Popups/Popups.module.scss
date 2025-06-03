@@ -15,16 +15,40 @@
     font-size: 2rem;
     margin: 20px;
     color: white;
+    margin: 0;
 }
 
-.cancelButton {
+.tokenContainer {
+    display: flex;
+    justify-content: center;
+    
+    padding: 0 20px;
+    background-color: black;
+    border-radius: 8px;
+}
+
+.token {
+    font-size: 3rem;
+    --spacing: 1.5rem;
+    letter-spacing: var(--spacing);
+    margin-right: calc(var(--spacing) * -1);
+
+    font-family: "Roboto Mono";
+
+    color: var(--white);
+}
+
+.buttonbar {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.button {
+    margin: 5px;
     font-size: 1.5rem;
     background-color: #EBEBEB;
     color: var(--black);
     border-radius: 8px;
     padding: 0 20px;
-}
-
-:global(.layout-container.modal-blur-active) {
-    filter: blur(5px);
 }

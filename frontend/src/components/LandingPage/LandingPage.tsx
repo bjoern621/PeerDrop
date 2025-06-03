@@ -10,6 +10,7 @@ import { OTPInput, SlotProps } from "input-otp";
 import { PeerConnectionManager } from "../../services/PeerConnectionManager";
 //import { useNavigate } from "react-router";
 import { WaitingDialog } from "../Popups/WaitingDialog";
+import { ConfirmDialog } from "../Popups/ConfirmDialog";
 import { createPortal } from "react-dom";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
@@ -49,7 +50,7 @@ export default function LandingPage() {
     const [clientToken, setClientToken] = useState<string | null>(null);
     const [remoteToken, setRemoteToken] = useState<string>("");
     const [isWaiting, setIsWaiting] = useState(false);
-    //const [connectionRequested, setConnectionRequested] = useState(false);
+    const [isConfirming, setIsConfirming] = useState(true);
 
     useEffect(() => {
         const websocket = webSocketServiceRef.current;
@@ -121,6 +122,14 @@ export default function LandingPage() {
         setIsWaiting(false);
     }
 
+    const interruptConfirming = () => {
+        setIsConfirming(false);
+    }
+
+    const confirmConnection = () => {
+
+    }
+
     return (
         <div className={css.container}>
             <img
@@ -162,6 +171,11 @@ export default function LandingPage() {
             {isWaiting &&
                 createPortal(
                     <WaitingDialog onCancel={() => interruptWaiting()} />,
+                    document.body
+                )}
+            {isConfirming &&
+                createPortal(
+                    <ConfirmDialog onCancel={() => interruptConfirming()} onConfirm={() => confirmConnection()} token={"88888"} />,
                     document.body
                 )}
         </div>

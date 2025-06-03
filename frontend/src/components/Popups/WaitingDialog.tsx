@@ -10,9 +10,11 @@ export const WaitingDialog = ({ onCancel }: WaitingDialogProps) => {
             <span className={css.message}>
                 Warte auf Bestätigung des Partners...
             </span>
-            <button className={css.cancelButton} onClick={onCancel}>
-                Abbruch
-            </button>
+            <span className={css.buttonBar}>
+                <button className={css.button} onClick={onCancel}>
+                    Abbruch
+                </button>
+            </span>
         </div>
     );
 };
