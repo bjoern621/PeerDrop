@@ -101,6 +101,7 @@ export default function LandingPage() {
         }
 
         waitingDialog.current?.showModal();
+        // TODO: Handle waiting state via PeerConnectionManager
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
         assert(
@@ -117,15 +118,17 @@ export default function LandingPage() {
 
     const interruptWaiting = () => {
         waitingDialog.current?.close();
-        console.log("interrupted");
+        // TODO: Handle interrupt via PeerConnectionManager
     };
 
     const interruptConfirming = () => {
         confirmDialog.current?.close();
-        console.log("interrupted");
+        // TODO: Handle interrupt via PeerConnectionManager
     };
 
-    const confirmConnection = () => { };
+    const confirmConnection = () => {
+        // TODO: Handle confirmation via PeerConnectionManager
+    };
 
     return (
         <div className={css.container}>
