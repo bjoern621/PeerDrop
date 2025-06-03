@@ -41,8 +41,8 @@ builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
 builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
-builder.Services.AddSingleton<IAccountHandler, AccountHandler>();
-builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IAccountHandler, AccountHandler>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
 var app = builder.Build();
 
@@ -66,13 +66,9 @@ webSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, me
 {
     Console.WriteLine($"Received message from client {clientId}: {message.Message}");
 
-    TypedMessage<TestMessage> response = new()
+    TestMessage response = new()
     {
-        Type = "test",
-        Msg = new TestMessage
-        {
-            Message = "Hallo vom Server!"
-        }
+        Message = "Hallo vom Server!"
     };
 
     await webSocketHandler.SendMessage(clientId, response);
