@@ -1,4 +1,4 @@
-import { forwardRef, useRef } from "react";
+import { forwardRef } from "react";
 import css from "./Popups.module.scss";
 
 type WaitingDialogProps = {
