@@ -19,8 +19,7 @@
 }
 
 .message {
-    font-size: 2rem;
-    margin: 20px;
+    font-size: 1.7rem;
     color: white;
     margin: 0;
     text-align: center;
@@ -30,18 +29,19 @@
     display: flex;
     justify-content: center;
 
-    padding: 0 20px;
+    padding: 0 0.5rem;
     background-color: black;
     border-radius: 8px;
 }
 
 .token {
-    font-size: 3rem;
+    font-size: 2rem;
     --spacing: 0.5rem;
     letter-spacing: var(--spacing);
     margin-right: calc(var(--spacing) * -1);
 
     font-family: "Roboto Mono";
+    font-weight: lighter;
 
     color: var(--white);
 }
@@ -53,7 +53,7 @@
 }
 
 .button {
-    margin: 5px;
+    margin: 10px 10px 0 10px;
     font-size: 1.5rem;
     background-color: #ebebeb;
     color: var(--black);
