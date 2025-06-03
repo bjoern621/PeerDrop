@@ -10,7 +10,7 @@ type ConfirmDialogProps = {
 export const ConfirmDialog = forwardRef<HTMLDialogElement, ConfirmDialogProps>(
     ({ token, onConfirm, onCancel }: ConfirmDialogProps, ref) => {
         return (
-            <dialog ref={ref}>
+            <dialog ref={ref} className={css.dialog}>
                 <div className={css.container}>
                     <span className={css.message}>
                         Ein User möchte sich mit Ihnen verbinden:
