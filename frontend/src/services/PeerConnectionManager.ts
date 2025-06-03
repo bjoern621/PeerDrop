@@ -142,8 +142,6 @@ export class PeerConnectionManager {
                 this.signaling,
                 this.remoteToken
             );
-
-            this.connection.testMethodDataChannelInitializier();
         }
     }
 
