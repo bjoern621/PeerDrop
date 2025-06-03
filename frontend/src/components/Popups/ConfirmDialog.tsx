@@ -19,11 +19,11 @@ export const ConfirmDialog = forwardRef<HTMLDialogElement, ConfirmDialogProps>(
                         <span className={css.token}>{token}</span>
                     </div>
                     <span className={css.buttonBar}>
+                        <button className={css.button} onClick={onConfirm}>
+                            Verbinden
+                        </button>
                         <button className={css.button} onClick={onCancel}>
                             Abbruch
-                        </button>
-                        <button className={css.button} onClick={onConfirm}>
-                            Zulassen
                         </button>
                     </span>
                 </div>
