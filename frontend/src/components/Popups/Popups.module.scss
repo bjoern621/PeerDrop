@@ -1,4 +1,12 @@
 .dialog {
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+
+    &::backdrop {
+        backdrop-filter: blur(5px);
+    }
 }
 
 .container {
