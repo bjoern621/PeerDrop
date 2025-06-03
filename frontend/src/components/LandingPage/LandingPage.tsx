@@ -121,10 +121,11 @@ export default function LandingPage() {
     };
 
     const interruptConfirming = () => {
+        confirmDialog.current?.close();
         console.log("interrupted");
     };
 
-    const confirmConnection = () => {};
+    const confirmConnection = () => { };
 
     return (
         <div className={css.container}>
