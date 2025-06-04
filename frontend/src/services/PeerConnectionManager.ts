@@ -8,7 +8,6 @@ import {
 } from "./WebSocketService";
 import { MessageType } from "./MessageType";
 import { IObservable, Observable } from "../util/observer/Observable";
-import { Observer } from "../util/observer/Observer";
 
 export type RemoteTokenMessage = {
     requestID?: string;
@@ -43,12 +42,30 @@ type EstablishConnectionMessage = {
     remoteToken: ClientToken;
 };
 
-export class PeerConnectionManager implements IObservable<boolean> {
+export class PeerConnectionManager {
     private expectedRemoteToken: ClientToken | undefined; // The token of the remote peer we accept connections from.
     private webrtcConnection: WebRTCConnection | undefined;
 
-    private readonly waitingObservable: IObservable<boolean> =
-        new Observable<boolean>();
+    private readonly onConnectionRequestSentObservable: IObservable<void> =
+        new Observable<void>();
+    private readonly onConnectionResponseReceivedObservable: IObservable<boolean> =
+        new Observable<boolean>(); // Boolean is true if the connection request was accepted, false otherwise.
+    private readonly onConnectionRequestReceivedObservable: IObservable<string> =
+        new Observable<string>(); // String is the remote token of the requesting peer.
+
+    public setOnConnectionRequestSentCallback(callback: () => void) {
+        this.onConnectionRequestSentObservable.subscribe(callback);
+    }
+    public setOnConnectionResponseReceivedCallback(
+        callback: (accepted: boolean) => void
+    ) {
+        this.onConnectionResponseReceivedObservable.subscribe(callback);
+    }
+    public setOnConnectionRequestReceivedCallback(
+        callback: (remoteToken: string) => void
+    ) {
+        this.onConnectionRequestReceivedObservable.subscribe(callback);
+    }
 
     public constructor(private readonly signaling: WebSocketService) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
@@ -59,18 +76,6 @@ export class PeerConnectionManager implements IObservable<boolean> {
         this.handleConnectionRequestMessages();
 
         this.waitForCloseConnectionRequest();
-    }
-
-    public subscribe(observer: Observer<boolean>): void {
-        this.waitingObservable.subscribe(observer);
-    }
-
-    public unsubscribe(observer: Observer<boolean>): void {
-        this.waitingObservable.unsubscribe(observer);
-    }
-
-    public notify(data: boolean): void {
-        this.waitingObservable.notify(data);
     }
 
     private handleConnectionResponseMessages() {
@@ -86,13 +91,9 @@ export class PeerConnectionManager implements IObservable<boolean> {
                 onConnectionResponseReceived as MessageHandler
             );
 
-            if (message.msg.accepted) {
-                console.log("ACCEPTED:", message.msg.remoteToken);
-                // this.waitingObservable.notify(false);
-            } else {
-                console.log("REJECTED:", message.msg.remoteToken);
-                this.waitingObservable.notify(false);
-            }
+            this.onConnectionResponseReceivedObservable.notify(
+                message.msg.accepted
+            );
         };
 
         this.signaling.subscribeMessage(
@@ -101,26 +102,41 @@ export class PeerConnectionManager implements IObservable<boolean> {
         );
     }
 
+    public acceptConnectionRequest(remoteToken: ClientToken) {
+        const connectionResponseMessage: TypedMessage<ConnectionResponseMessage> =
+            {
+                type: MessageType.CONNECTION_RESPONSE,
+                msg: {
+                    accepted: true,
+                    remoteToken: remoteToken,
+                },
+            };
+
+        this.signaling.sendMessage(connectionResponseMessage);
+    }
+
+    public rejectConnectionRequest(remoteToken: ClientToken) {
+        const connectionResponseMessage: TypedMessage<ConnectionResponseMessage> =
+            {
+                type: MessageType.CONNECTION_RESPONSE,
+                msg: {
+                    accepted: false,
+                    remoteToken: remoteToken,
+                },
+            };
+
+        this.signaling.sendMessage(connectionResponseMessage);
+    }
+
     private handleConnectionRequestMessages() {
         const onConnectionRequestReceived = (
             message: TypedMessage<EstablishConnectionMessage>
         ) => {
             console.log("DO YOU WANT TO CONNECT TO:", message.msg.remoteToken);
 
-            setTimeout(() => {
-                console.log("YES");
-
-                const connectionResponseMessage: TypedMessage<ConnectionResponseMessage> =
-                    {
-                        type: MessageType.CONNECTION_RESPONSE,
-                        msg: {
-                            accepted: true,
-                            remoteToken: message.msg.remoteToken,
-                        },
-                    };
-
-                this.signaling.sendMessage(connectionResponseMessage);
-            }, 3000);
+            this.onConnectionRequestReceivedObservable.notify(
+                message.msg.remoteToken
+            );
         };
 
         this.signaling.subscribeMessage(
@@ -177,7 +193,7 @@ export class PeerConnectionManager implements IObservable<boolean> {
 
         console.log("WAITING FOR RESPONSE");
 
-        this.waitingObservable.notify(true);
+        this.onConnectionRequestSentObservable.notify();
     }
 
     /**
