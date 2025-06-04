@@ -69,12 +69,12 @@ export const UserProfile = () => {
             console.error("Error parsing user name response:", err2);
             return;
         }
-        
+
         const loginData = data as LoginResponse;
         assert(loginData && loginData.message, "Invalid user name response");
 
         setUserName(loginData.message);
-    }
+    };
 
     const registerCurrentDevice = async () => {
         setRegisterButtonDisabled(true);
