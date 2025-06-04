@@ -1,6 +1,6 @@
 ﻿using backend.AccountCompoment.Common.Exception;
 
-namespace backend.Common;
+namespace backend.CommonComponent;
 
 public class ExceptionHandlingMiddleware
 {
@@ -31,7 +31,7 @@ public class ExceptionHandlingMiddleware
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = exception switch
         {
-            InvalidPasswordFormatException  => StatusCodes.Status400BadRequest,
+            InvalidPasswordFormatException => StatusCodes.Status400BadRequest,
             InvalidUsernameFormatException => StatusCodes.Status400BadRequest,
             //NotFoundException => StatusCodes.Status404NotFound,
             _ => StatusCodes.Status500InternalServerError

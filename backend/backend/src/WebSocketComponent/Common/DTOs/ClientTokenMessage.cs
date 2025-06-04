@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
-using backend.WebSocketComponent.Common.DTOs;
+using backend.WebSocketComponent.Common.DTOs.Api;
+
+namespace backend.WebSocketComponent.Common.DTOs;
 
 public class ClientTokenMessage : ITypedMessage
 {

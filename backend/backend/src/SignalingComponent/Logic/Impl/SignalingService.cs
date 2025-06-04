@@ -1,7 +1,5 @@
-using backend.Common;
 using backend.SignalingComponent.Common.DTOs;
 using backend.SignalingComponent.Logic.Api;
-using backend.WebSocketComponent.Common.DTOs;
 using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.SignalingComponent.Logic.Impl;
@@ -93,7 +91,7 @@ public class SignalingService : ISignalingService
         {
             RemoteToken = clientId
         };
-        
+
         await _webSocketHandler.SendMessage(remoteToken, response);
         Console.WriteLine($"to {remoteToken}: Close Connection");
     }
