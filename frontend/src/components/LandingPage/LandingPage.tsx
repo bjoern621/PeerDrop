@@ -8,6 +8,8 @@ import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
 import { OTPInput, SlotProps } from "input-otp";
 import { PeerConnectionManager } from "../../services/PeerConnectionManager";
+import { WaitingDialog } from "../Popups/WaitingDialog";
+import { ConfirmDialog } from "../Popups/ConfirmDialog";
 import { MessageType } from "../../services/MessageType";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
@@ -24,6 +26,8 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
 };
 
 export default function LandingPage() {
+    //const navigate = useNavigate();
+
     const webSocketServiceRef = useRef<WebSocketService | undefined>(undefined);
     if (!webSocketServiceRef.current) {
         webSocketServiceRef.current = new WebSocketService();
@@ -44,6 +48,8 @@ export default function LandingPage() {
 
     const [clientToken, setClientToken] = useState<string | null>(null);
     const [remoteToken, setRemoteToken] = useState<string>("");
+    const waitingDialog = useRef<HTMLDialogElement | null>(null);
+    const confirmDialog = useRef<HTMLDialogElement | null>(null);
 
     useEffect(() => {
         const websocket = webSocketServiceRef.current;
@@ -91,7 +97,11 @@ export default function LandingPage() {
     const connectToPeer = () => {
         if (remoteToken.length !== 5) {
             console.warn("Peer token must be 5 characters long.");
+            return;
         }
+
+        waitingDialog.current?.showModal();
+        // TODO: Handle waiting state via PeerConnectionManager
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
         assert(
@@ -102,6 +112,22 @@ export default function LandingPage() {
         console.log("Trying to connect to peer with token:", remoteToken);
 
         peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
+
+        //void navigate("/share");
+    };
+
+    const interruptWaiting = () => {
+        waitingDialog.current?.close();
+        // TODO: Handle interrupt via PeerConnectionManager
+    };
+
+    const interruptConfirming = () => {
+        confirmDialog.current?.close();
+        // TODO: Handle interrupt via PeerConnectionManager
+    };
+
+    const confirmConnection = () => {
+        // TODO: Handle confirmation via PeerConnectionManager
     };
 
     return (
@@ -146,6 +172,16 @@ export default function LandingPage() {
                 </div>
                 <div>Anderes Token eingeben, um Verbindung aufzubauen</div>
             </div>
+            <WaitingDialog
+                ref={waitingDialog}
+                onCancel={() => interruptWaiting()}
+            />
+            <ConfirmDialog
+                ref={confirmDialog}
+                onCancel={() => interruptConfirming()}
+                onConfirm={() => confirmConnection()}
+                token={"88888"}
+            />
         </div>
     );
 }
