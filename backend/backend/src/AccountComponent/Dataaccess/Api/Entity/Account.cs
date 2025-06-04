@@ -1,9 +1,9 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using backend.AccountCompoment.Common.DTOs;
-using backend.AccountCompoment.Common.Exception;
+using backend.AccountComponent.Common.DTOs;
+using backend.AccountComponent.Common.Exception;
 
-namespace backend.AccountCompoment.Dataaccess.Api.Entity;
+namespace backend.AccountComponent.Dataaccess.Api.Entity;
 
 public class Account
 {

@@ -1,4 +1,4 @@
-namespace backend.AccountCompoment.Facade.Api;
+namespace backend.AccountComponent.Facade.Api;
 
 public interface IAccountRoutes
 {

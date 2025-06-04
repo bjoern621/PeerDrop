@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace backend.AccountCompoment.Common.DTOs;
+namespace backend.AccountComponent.Common.DTOs;
 
 public class AccountCreateDto
 {

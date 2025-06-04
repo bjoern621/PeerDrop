@@ -1,4 +1,4 @@
-﻿using backend.AccountCompoment.Common.Exception;
+﻿using backend.AccountComponent.Common.Exception;
 
 namespace backend.CommonComponent;
 

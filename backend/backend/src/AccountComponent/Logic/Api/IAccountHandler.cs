@@ -1,4 +1,4 @@
-namespace backend.AccountCompoment.Logic.Api;
+namespace backend.AccountComponent.Logic.Api;
 
 public interface IAccountHandler
 {

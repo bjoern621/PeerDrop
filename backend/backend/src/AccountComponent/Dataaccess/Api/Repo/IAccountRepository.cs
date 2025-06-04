@@ -1,6 +1,6 @@
-﻿using backend.AccountCompoment.Dataaccess.Api.Entity;
+﻿using backend.AccountComponent.Dataaccess.Api.Entity;
 
-namespace backend.AccountCompoment.Dataaccess.Api.Repo;
+namespace backend.AccountComponent.Dataaccess.Api.Repo;
 
 public interface IAccountRepository
 {

@@ -1,7 +1,7 @@
-using backend.AccountCompoment.Facade.Api;
-using backend.AccountCompoment.Logic.Api;
+using backend.AccountComponent.Facade.Api;
+using backend.AccountComponent.Logic.Api;
 
-namespace backend.AccountCompoment.Facade.Impl;
+namespace backend.AccountComponent.Facade.Impl;
 
 public class AccountRoutes : IAccountRoutes
 {

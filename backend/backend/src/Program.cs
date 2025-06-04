@@ -1,10 +1,10 @@
+using backend.AccountComponent.Dataaccess.Api.Repo;
+using backend.AccountComponent.Dataaccess.Impl;
+using backend.AccountComponent.Facade.Api;
+using backend.AccountComponent.Facade.Impl;
+using backend.AccountComponent.Logic.Api;
+using backend.AccountComponent.Logic.Impl;
 using Microsoft.AspNetCore.WebSockets;
-using backend.AccountCompoment.Dataaccess.Api.Repo;
-using backend.AccountCompoment.Dataaccess.Impl;
-using backend.AccountCompoment.Facade.Api;
-using backend.AccountCompoment.Facade.Impl;
-using backend.AccountCompoment.Logic.Api;
-using backend.AccountCompoment.Logic.Impl;
 using backend.CommonComponent;
 using backend.SignalingComponent.Facade.Api;
 using backend.SignalingComponent.Facade.Impl;

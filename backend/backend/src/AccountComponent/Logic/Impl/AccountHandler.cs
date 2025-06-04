@@ -1,10 +1,10 @@
 using System.Text.Json;
-using backend.AccountCompoment.Common.DTOs;
-using backend.AccountCompoment.Dataaccess.Api.Entity;
-using backend.AccountCompoment.Dataaccess.Api.Repo;
-using backend.AccountCompoment.Logic.Api;
+using backend.AccountComponent.Common.DTOs;
+using backend.AccountComponent.Dataaccess.Api.Entity;
+using backend.AccountComponent.Dataaccess.Api.Repo;
+using backend.AccountComponent.Logic.Api;
 
-namespace backend.AccountCompoment.Logic.Impl;
+namespace backend.AccountComponent.Logic.Impl;
 
 public class AccountHandler(IAccountRepository repo) : IAccountHandler
 {
