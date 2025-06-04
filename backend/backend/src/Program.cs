@@ -15,6 +15,11 @@ using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Impl;
+using backend.DeviceComponent.Facade.Api;
+using backend.DeviceComponent.Facade.Impl;
+using backend.DeviceComponent.Logic.Api;
+using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Dataaccess.Impl;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
@@ -31,7 +36,7 @@ builder.Services.AddCors(options => options.AddPolicy(
     corsAllowFrontendOrigin,
     policyBuilder =>
         policyBuilder.WithOrigins(frontendOrigin)
-                     .WithHeaders("Content-Type")
+                     .WithHeaders("Content-Type", "User-Agent")
                      .WithExposedHeaders("Location")
         ));
 
@@ -43,6 +48,9 @@ builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
 builder.Services.AddScoped<IAccountHandler, AccountHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
+builder.Services.AddScoped<IDeviceHandler, DeviceHandler>();
+builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 
 var app = builder.Build();
 
@@ -61,6 +69,8 @@ var signalingFacade = app.Services.GetRequiredService<ISignalingFacade>();
 signalingFacade.SubscribeToMessageHandlers();
 var accountRoutes = app.Services.GetRequiredService<IAccountRoutes>();
 accountRoutes.RegisterRoutes(app);
+var deviceRoutes = app.Services.GetRequiredService<IDeviceRoutes>();
+deviceRoutes.RegisterRoutes(app);
 var webSocketHandler = app.Services.GetRequiredService<IWebSocketHandler>();
 webSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
 {
