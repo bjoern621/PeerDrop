@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using backend.WebSocketComponent.Common.DTOs;
+using backend.WebSocketComponent.Common.DTOs.Api;
 
 namespace backend.SignalingComponent.Common.DTOs;
 
@@ -10,12 +10,12 @@ public class SdpMessage : ITypedMessage
 
     [JsonIgnore]
     public string InstanceTypeString => TypeString;
-    
+
     [JsonPropertyName("remoteToken")]
-    
+
     public required string RemoteToken { get; set; }
-    
+
     [JsonPropertyName("description")]
-    
+
     public JsonElement Description { get; set; }
 }

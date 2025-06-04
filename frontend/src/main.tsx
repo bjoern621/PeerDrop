@@ -7,7 +7,7 @@ import { PageNotFound } from "./components/PageNotFound/PageNotFound.tsx";
 import { CSSModulesExamples } from "./components/CSSModulesExample/CSSModulesExamples.tsx";
 import { Fetch } from "./components/Fetch/Fetch.tsx";
 import LandingPage from "./components/LandingPage/LandingPage.tsx";
-import { Layout } from "./Layout/Layout.tsx";
+import { Layout } from "./components/Layout/Layout.tsx";
 import { DataSharingPage } from "./components/DataSharingPage/DataSharingPage.tsx";
 
 createRoot(document.getElementById("root")!).render(
