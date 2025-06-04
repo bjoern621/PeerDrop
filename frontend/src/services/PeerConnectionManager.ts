@@ -7,6 +7,8 @@ import {
     ClientToken,
 } from "./WebSocketService";
 import { MessageType } from "./MessageType";
+import { IObservable, Observable } from "../util/observer/Observable";
+import { Observer } from "../util/observer/Observer";
 
 export type RemoteTokenMessage = {
     requestID?: string;
@@ -41,9 +43,12 @@ type EstablishConnectionMessage = {
     remoteToken: ClientToken;
 };
 
-export class PeerConnectionManager {
+export class PeerConnectionManager implements IObservable<boolean> {
     private expectedRemoteToken: ClientToken | undefined; // The token of the remote peer we accept connections from.
     private webrtcConnection: WebRTCConnection | undefined;
+
+    private readonly waitingObservable: IObservable<boolean> =
+        new Observable<boolean>();
 
     public constructor(private readonly signaling: WebSocketService) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
@@ -54,6 +59,18 @@ export class PeerConnectionManager {
         this.handleConnectionRequestMessages();
 
         this.waitForCloseConnectionRequest();
+    }
+
+    public subscribe(observer: Observer<boolean>): void {
+        this.waitingObservable.subscribe(observer);
+    }
+
+    public unsubscribe(observer: Observer<boolean>): void {
+        this.waitingObservable.unsubscribe(observer);
+    }
+
+    public notify(data: boolean): void {
+        this.waitingObservable.notify(data);
     }
 
     private handleConnectionResponseMessages() {
@@ -71,8 +88,10 @@ export class PeerConnectionManager {
 
             if (message.msg.accepted) {
                 console.log("ACCEPTED:", message.msg.remoteToken);
+                // this.waitingObservable.notify(false);
             } else {
                 console.log("REJECTED:", message.msg.remoteToken);
+                this.waitingObservable.notify(false);
             }
         };
 
@@ -132,6 +151,11 @@ export class PeerConnectionManager {
     }
 
     public requestConnectionToRemotePeer(remoteToken: ClientToken) {
+        if (remoteToken.length !== 5) {
+            console.warn("Peer token must be 5 characters long.");
+            return;
+        }
+
         if (this.signaling.getLocalClientToken() === remoteToken) {
             console.error("Cannot send token to self.");
             return;
@@ -152,6 +176,8 @@ export class PeerConnectionManager {
         this.signaling.sendMessage(connectionRequestMessage);
 
         console.log("WAITING FOR RESPONSE");
+
+        this.waitingObservable.notify(true);
     }
 
     /**

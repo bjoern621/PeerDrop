@@ -141,7 +141,13 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
 
         openRequests.Remove(requestingClientToken);
 
-        await _webSocketHandler.SendMessage(requestingClientToken, message);
+        // Forward the response to the requesting client.
+        var messageForRequestingClient = new ConnectionResponseMessage
+        {
+            Accepted = message.Accepted,
+            RemoteToken = clientId
+        };
+        await _webSocketHandler.SendMessage(requestingClientToken, messageForRequestingClient);
 
         // Tell clients that they should start the connection process.
         if (message.Accepted)

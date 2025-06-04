@@ -76,40 +76,49 @@ export default function LandingPage() {
         }, 1000);
 
         const token = websocket.getLocalClientToken();
+        let checkToken: number | undefined = undefined;
         if (token) {
             setClientToken(token);
         } else {
             // If not available immediately, set up polling
-            const checkToken = setInterval(() => {
+            checkToken = setInterval(() => {
                 const token = websocket.getLocalClientToken();
                 if (token) {
                     setClientToken(token);
                     clearInterval(checkToken);
                 }
             }, 500);
-
-            return () => clearInterval(checkToken);
         }
-
-        console.log("LandingPage component mounted");
-    }, []);
-
-    const connectToPeer = () => {
-        if (remoteToken.length !== 5) {
-            console.warn("Peer token must be 5 characters long.");
-            return;
-        }
-
-        waitingDialog.current?.showModal();
-        // TODO: Handle waiting state via PeerConnectionManager
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
         assert(
             peerConnectionManager,
             "PeerConnectionManager is not initialized."
         );
+        peerConnectionManager.subscribe(handleWaitingStateChange);
 
-        console.log("Trying to connect to peer with token:", remoteToken);
+        console.log("LandingPage component mounted");
+
+        return () => clearInterval(checkToken);
+    }, []);
+
+    // This is called when the waiting state of PeerConnectionManager changes
+    const handleWaitingStateChange = (state: boolean) => {
+        console.log("Waiting state changed:", state);
+
+        if (state) {
+            waitingDialog.current?.showModal();
+        } else {
+            waitingDialog.current?.close();
+        }
+    };
+
+    const connectToPeer = () => {
+        const peerConnectionManager = PeerConnectionManagerRef.current;
+        assert(
+            peerConnectionManager,
+            "PeerConnectionManager is not initialized."
+        );
 
         peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
 
@@ -121,7 +130,7 @@ export default function LandingPage() {
         // TODO: Handle interrupt via PeerConnectionManager
     };
 
-    const interruptConfirming = () => {
+    const declineConnection = () => {
         confirmDialog.current?.close();
         // TODO: Handle interrupt via PeerConnectionManager
     };
@@ -178,7 +187,7 @@ export default function LandingPage() {
             />
             <ConfirmDialog
                 ref={confirmDialog}
-                onCancel={() => interruptConfirming()}
+                onCancel={() => declineConnection()}
                 onConfirm={() => confirmConnection()}
                 token={"88888"}
             />
