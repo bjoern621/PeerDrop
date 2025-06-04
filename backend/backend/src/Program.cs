@@ -5,7 +5,7 @@ using backend.AccountCompoment.Facade.Api;
 using backend.AccountCompoment.Facade.Impl;
 using backend.AccountCompoment.Logic.Api;
 using backend.AccountCompoment.Logic.Impl;
-using backend.Common;
+using backend.CommonComponent;
 using backend.SignalingComponent.Facade.Api;
 using backend.SignalingComponent.Facade.Impl;
 using backend.SignalingComponent.Logic.Api;
