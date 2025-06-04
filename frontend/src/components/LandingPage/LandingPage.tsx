@@ -117,6 +117,7 @@ export default function LandingPage() {
         peerConnectionManager.setOnConnectionRequestCancelledReceivedCallback(
             () => {
                 confirmDialog.current!.close();
+                // TODO close loading dialog if it is open
             }
         );
 
@@ -190,6 +191,8 @@ export default function LandingPage() {
         peerConnectionManager.acceptConnectionRequest(
             remoteTokenOfRequestingPeer
         );
+
+        showLoadingDialog();
     };
 
     return (
