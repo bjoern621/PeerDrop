@@ -10,4 +10,5 @@ export const enum MessageType {
     CONNECTION_REQUEST = "connection-request",
     CONNECTION_RESPONSE = "connection-response",
     ESTABLISH_CONNECTION = "establish-connection",
+    CONNECTION_REQUEST_CANCELLED = "connection-request-cancelled",
 }

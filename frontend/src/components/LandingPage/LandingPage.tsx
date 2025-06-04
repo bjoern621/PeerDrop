@@ -96,17 +96,15 @@ export default function LandingPage() {
             peerConnectionManager,
             "PeerConnectionManager is not initialized."
         );
-        peerConnectionManager.setOnConnectionRequestSentCallback(() =>
-            waitingDialog.current!.showModal()
-        );
         peerConnectionManager.setOnConnectionResponseReceivedCallback(
-            accepted => {
-                if (!accepted) {
-                    console.log("ACCEPTED:", remoteTokenOfRequestingPeer);
-                    waitingDialog.current!.close();
-                } else {
-                    console.log("REJECTED:", remoteTokenOfRequestingPeer);
+            (accepted: boolean) => {
+                if (accepted) {
+                    console.log("ACCEPTED");
+                    // intionally not closing the dialog here
                     showLoadingDialog();
+                } else {
+                    console.log("REJECTED");
+                    waitingDialog.current!.close();
                 }
             }
         );
@@ -114,6 +112,11 @@ export default function LandingPage() {
             (requestingPeerToken: string) => {
                 setRemoteTokenOfRequestingPeer(requestingPeerToken);
                 confirmDialog.current!.showModal();
+            }
+        );
+        peerConnectionManager.setOnConnectionRequestCancelledReceivedCallback(
+            () => {
+                confirmDialog.current!.close();
             }
         );
 
@@ -129,7 +132,12 @@ export default function LandingPage() {
             "PeerConnectionManager is not initialized."
         );
 
-        peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
+        const successfullySent =
+            peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
+
+        if (successfullySent) {
+            waitingDialog.current!.showModal();
+        }
     };
 
     // Shows a loading dialog while the connection is being established
@@ -139,12 +147,19 @@ export default function LandingPage() {
     };
 
     const interruptWaiting = () => {
-        waitingDialog.current!.close();
-        // TODO: Handle interrupt via PeerConnectionManager
+        const peerConnectionManager = PeerConnectionManagerRef.current;
+        assert(
+            peerConnectionManager,
+            "PeerConnectionManager is not initialized."
+        );
+
+        if (peerConnectionManager.cancelConnectionRequest(remoteToken)) {
+            waitingDialog.current!.close();
+        }
     };
 
     const declineConnection = () => {
-        console.log(`NO ${remoteToken}`);
+        console.log(`NO ${remoteTokenOfRequestingPeer}`);
 
         confirmDialog.current!.close();
 
@@ -161,7 +176,9 @@ export default function LandingPage() {
     };
 
     const confirmConnection = () => {
-        console.log(`YES ${remoteToken}`);
+        console.log(`YES ${remoteTokenOfRequestingPeer}`);
+
+        // intionally not closing the dialog here
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
         assert(

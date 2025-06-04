@@ -8,7 +8,7 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
 {
     private readonly IWebSocketHandler _webSocketHandler = webSocketHandler;
 
-    // This dictionary keeps track of open connection requests. It maps the requesting client token to the  token of the client they are trying to connect to.
+    // This dictionary keeps track of open connection requests. It maps the requesting client token to the token of the client they are trying to connect to.
     private readonly Dictionary<string, string> openRequests = [];
 
     public async Task HandleRemoteTokenMessage(string clientId, RemoteTokenMessage message)
@@ -129,13 +129,14 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
         {
             // Client that sent the request completely disconnected while waiting for a response.
             // Or the client that sent the response made a mistake.
-            openRequests.Remove(requestingClientToken); // Probably better to remove the request in disconnect handler.
+            openRequests.Remove(requestingClientToken); // Probably better to remove the request in disconnect handler or with timeout.
             return;
         }
 
         if (!openRequests.TryGetValue(requestingClientToken, out var respondingClientToken) || respondingClientToken != clientId)
         {
             // The requesting client does not have an open request for this responding client.
+            // Console.WriteLine($"Connection response from {clientId} for unknown request {requestingClientToken}. Ignoring.");
             return;
         }
 
@@ -166,5 +167,36 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
 
             _ = _webSocketHandler.SendMessage(clientId, establishConnectionMessageToRespondingClient);
         }
+    }
+
+    public async Task HandleConnectionRequestCancelled(string clientToken, ConnectionRequestCancelledMessage messageData)
+    {
+        // Note: The received messageData.RemoteToken is not checked / used. This means that the requesting client can cancel their active request even if their messageData is faulty.
+
+        openRequests.TryGetValue(clientToken, out var remoteToken);
+        if (remoteToken == null)
+        {
+            // The requesting client does not have an open request.
+            return;
+        }
+
+        openRequests.Remove(clientToken);
+
+        if (!_webSocketHandler.RemoteTokenExists(remoteToken))
+        {
+            // The requesting client cancelled their request, but the remote token does not exist.
+            // This can happen if the remote client disconnected while the request was open.
+            return;
+        }
+
+        // Console.WriteLine($"Connection request from {clientToken} cancelled.");
+
+        // Forward the cancellation to the client that was requested.
+        var msg = new ConnectionRequestCancelledMessage
+        {
+            RemoteToken = clientToken
+        };
+
+        await _webSocketHandler.SendMessage(remoteToken, msg);
     }
 }

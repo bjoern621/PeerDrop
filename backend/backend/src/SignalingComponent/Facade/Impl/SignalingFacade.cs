@@ -33,5 +33,7 @@ public class SignalingFacade : ISignalingFacade
         _webSocketHandler.SubscribeToMessageType<ConnectionRequestMessage>(ConnectionRequestMessage.TypeString, _signalingService.HandleConnectionRequest);
 
         _webSocketHandler.SubscribeToMessageType<ConnectionResponseMessage>(ConnectionResponseMessage.TypeString, _signalingService.HandleConnectionResponse);
+
+        _webSocketHandler.SubscribeToMessageType<ConnectionRequestCancelledMessage>(ConnectionRequestCancelledMessage.TypeString, _signalingService.HandleConnectionRequestCancelled);
     }
 }

@@ -31,6 +31,11 @@ type ConnectionRequestMessage = {
     remoteToken: ClientToken;
 };
 
+// This message is sent to the signaling server to cancel a connection request.
+type ConnectionRequestCancelledMessage = {
+    remoteToken?: ClientToken;
+};
+
 // This message is the response to a connection request. It may be successful or not.
 type ConnectionResponseMessage = {
     accepted: boolean; // true if the connection request was accepted by the remote peer, false otherwise or if the remote peer is not available.
@@ -46,17 +51,13 @@ export class PeerConnectionManager {
     private expectedRemoteToken: ClientToken | undefined; // The token of the remote peer we accept connections from.
     private webrtcConnection: WebRTCConnection | undefined;
 
-    private readonly onConnectionRequestSentObservable: IObservable<void> =
-        new Observable<void>();
     private readonly onConnectionResponseReceivedObservable: IObservable<boolean> =
         new Observable<boolean>(); // Boolean is true if the connection request was accepted, false otherwise.
     private readonly onConnectionRequestReceivedObservable: IObservable<string> =
         new Observable<string>(); // String is the remote token of the requesting peer.
+    private readonly onConnectionRequestCancelledReceivedObservable: IObservable<string> =
+        new Observable<string>(); // String is the remote token of the requesting peer.
 
-    public setOnConnectionRequestSentCallback(callback: () => void) {
-        this.onConnectionRequestSentObservable.clear();
-        this.onConnectionRequestSentObservable.subscribe(callback);
-    }
     public setOnConnectionResponseReceivedCallback(
         callback: (accepted: boolean) => void
     ) {
@@ -69,16 +70,77 @@ export class PeerConnectionManager {
         this.onConnectionRequestReceivedObservable.clear();
         this.onConnectionRequestReceivedObservable.subscribe(callback);
     }
+    public setOnConnectionRequestCancelledReceivedCallback(
+        callback: (remoteToken: string) => void
+    ) {
+        this.onConnectionRequestCancelledReceivedObservable.clear();
+        this.onConnectionRequestCancelledReceivedObservable.subscribe(callback);
+    }
 
     public constructor(private readonly signaling: WebSocketService) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         (window as any).PeerConnectionManager = this;
 
-        this.handleConnectionEstablishmentMessages();
+        this.handleConnectionEstablishmentMessage();
 
-        this.handleConnectionRequestMessages();
+        this.handleConnectionRequestMessage();
+
+        this.handleConnectionRequestCancelledMessage();
 
         this.waitForCloseConnectionRequest();
+    }
+
+    private handleConnectionRequestCancelledMessage() {
+        const onConnectionRequestCancelledReceived = (
+            message: TypedMessage<ConnectionRequestCancelledMessage>
+        ) => {
+            const requestingPeerToken = message.msg.remoteToken;
+
+            if (!requestingPeerToken) {
+                console.error(
+                    "Received connection request cancelled message without remote token by server."
+                );
+                return;
+            }
+
+            this.onConnectionRequestCancelledReceivedObservable.notify(
+                requestingPeerToken
+            );
+        };
+
+        this.signaling.subscribeMessage(
+            MessageType.CONNECTION_REQUEST_CANCELLED,
+            onConnectionRequestCancelledReceived as MessageHandler
+        );
+    }
+
+    /**
+     * Returns true if the connection request was successfully cancelled, false otherwise.
+     */
+    public cancelConnectionRequest(remoteToken: ClientToken): boolean {
+        if (!this.expectedRemoteToken) {
+            console.warn("No connection request to cancel.");
+            return false;
+        }
+
+        if (remoteToken !== this.expectedRemoteToken) {
+            console.warn(
+                "Cannot cancel connection request to a different remote token."
+            );
+            return false;
+        }
+
+        const connectionRequestCancelMessage: TypedMessage<ConnectionRequestCancelledMessage> =
+            {
+                type: MessageType.CONNECTION_REQUEST_CANCELLED,
+                msg: {},
+            };
+
+        this.signaling.sendMessage(connectionRequestCancelMessage);
+
+        this.expectedRemoteToken = undefined;
+
+        return true;
     }
 
     private handleConnectionResponseMessages() {
@@ -93,6 +155,8 @@ export class PeerConnectionManager {
                 MessageType.CONNECTION_RESPONSE,
                 onConnectionResponseReceived as MessageHandler
             );
+
+            this.expectedRemoteToken = undefined;
 
             this.onConnectionResponseReceivedObservable.notify(
                 message.msg.accepted
@@ -131,12 +195,10 @@ export class PeerConnectionManager {
         this.signaling.sendMessage(connectionResponseMessage);
     }
 
-    private handleConnectionRequestMessages() {
+    private handleConnectionRequestMessage() {
         const onConnectionRequestReceived = (
             message: TypedMessage<EstablishConnectionMessage>
         ) => {
-            console.log("DO YOU WANT TO CONNECT TO:", message.msg.remoteToken);
-
             this.onConnectionRequestReceivedObservable.notify(
                 message.msg.remoteToken
             );
@@ -151,7 +213,7 @@ export class PeerConnectionManager {
     /**
      * Instantly aborts the current WebRTC connection (if there is one) and establishes a new one with the remote peer.
      */
-    private handleConnectionEstablishmentMessages() {
+    private handleConnectionEstablishmentMessage() {
         const onEstablishConnectionReceived = (
             message: TypedMessage<EstablishConnectionMessage>
         ) => {
@@ -169,15 +231,18 @@ export class PeerConnectionManager {
         );
     }
 
-    public requestConnectionToRemotePeer(remoteToken: ClientToken) {
+    /**
+     * Returns true if the connection request was successfully sent, false otherwise.
+     */
+    public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
         if (remoteToken.length !== 5) {
             console.warn("Peer token must be 5 characters long.");
-            return;
+            return false;
         }
 
         if (this.signaling.getLocalClientToken() === remoteToken) {
             console.error("Cannot send token to self.");
-            return;
+            return false;
         }
 
         this.expectedRemoteToken = remoteToken;
@@ -194,9 +259,7 @@ export class PeerConnectionManager {
 
         this.signaling.sendMessage(connectionRequestMessage);
 
-        console.log("WAITING FOR RESPONSE");
-
-        this.onConnectionRequestSentObservable.notify();
+        return true;
     }
 
     /**

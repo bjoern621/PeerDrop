@@ -10,4 +10,5 @@ public interface ISignalingService
     Task HandleCloseConnection(string clientId, CloseConnectionMessage message);
     Task HandleConnectionRequest(string clientId, ConnectionRequestMessage message);
     Task HandleConnectionResponse(string clientId, ConnectionResponseMessage message);
+    Task HandleConnectionRequestCancelled(string clientToken, ConnectionRequestCancelledMessage messageData);
 }
