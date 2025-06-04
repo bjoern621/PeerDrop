@@ -1,7 +1,6 @@
-﻿namespace backend.tests.Common;
+﻿namespace backend.tests.SignalingComponent.Logic.Impl;
 
-
-public class Tests
+public class SignalingServiceTest
 {
     [SetUp]
     public void Setup()

@@ -1,6 +1,6 @@
-﻿namespace backend.tests.AccountComponent;
+﻿namespace backend.tests.WebSocketComponent.Facade.Impl;
 
-public class Tests
+public class WebSocketRoutesTest
 {
     [SetUp]
     public void Setup()

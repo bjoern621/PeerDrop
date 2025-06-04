@@ -1,6 +1,6 @@
-﻿namespace backend.tests.WebSocketComponent;
+﻿namespace backend.tests.AccountComponent.Dataaccess.Impl;
 
-public class Tests
+public class AccountRepositoryTest
 {
     [SetUp]
     public void Setup()

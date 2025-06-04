@@ -1,6 +1,6 @@
-﻿namespace backend.tests.SignalingComponent;
+﻿namespace backend.tests.AccountComponent.Logic.Impl;
 
-public class Tests
+public class AccountHandlerTest
 {
     [SetUp]
     public void Setup()
