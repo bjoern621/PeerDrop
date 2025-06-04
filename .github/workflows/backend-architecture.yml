@@ -1,0 +1,27 @@
+name: Backend Architecture
+
+on:
+    pull_request:
+        branches:
+            - main
+    push:
+        paths:
+            - "backend/**"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        name: Check Backend Architecture
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 9.0.x
+
+            - name: Run architecture check
+              run: dotnet test backend.tests --filter TestCategory=Architecture -c Debug
+              working-directory: backend

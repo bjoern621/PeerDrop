@@ -3,9 +3,8 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using backend.Common;
 using backend.WebSocketComponent.Common.DTOs;
+using backend.WebSocketComponent.Common.DTOs.Api;
 using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.WebSocketComponent.Logic.Impl;
