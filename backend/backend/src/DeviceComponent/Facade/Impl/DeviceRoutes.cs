@@ -8,10 +8,10 @@ public class DeviceRoutes : IDeviceRoutes
     public Task RegisterRoutes(WebApplication app)
     {
         app.MapPost("/device/register", (IDeviceHandler handler, HttpContext context) =>
-            handler.RegisterDeviceAsync(context)); // ✔️ handler already returns Task<IResult>
+            handler.RegisterDeviceAsync(context));
 
         app.MapPost("/device/login", (IDeviceHandler handler, HttpContext context) =>
-            handler.GetDeviceByUuidAsync(context)); // ✔️ same pattern
+            handler.GetDeviceByUuidAsync(context)); 
 
         return Task.CompletedTask;
     }
