@@ -70,7 +70,7 @@ signalingFacade.SubscribeToMessageHandlers();
 var accountRoutes = app.Services.GetRequiredService<IAccountRoutes>();
 accountRoutes.RegisterRoutes(app);
 var deviceRoutes = app.Services.GetRequiredService<IDeviceRoutes>();
-deviceRoutes.RegisterRoutes(app);
+await deviceRoutes.RegisterRoutes(app);
 var webSocketHandler = app.Services.GetRequiredService<IWebSocketHandler>();
 webSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
 {
