@@ -80,6 +80,7 @@ export const Register = ({ onSwitchToLogin, onLogin }: RegisterProps) => {
         const [response, err1] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
