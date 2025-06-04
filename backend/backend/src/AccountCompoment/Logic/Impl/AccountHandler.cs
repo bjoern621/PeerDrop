@@ -39,6 +39,10 @@ public class AccountHandler(IAccountRepository repo) : IAccountHandler
             var account = Account.Of(acc);
     
             var newId = await repo.SaveAsync(account);
+            
+            // Store user ID (or other data) in session
+            context.Session.SetString("UserId", newId.ToString());
+            
             return Results.Created($"/users/{newId}", new { Id = newId });
         }
 

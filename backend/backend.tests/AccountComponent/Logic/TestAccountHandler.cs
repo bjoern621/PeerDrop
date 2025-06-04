@@ -16,7 +16,6 @@ public class Tests
     [Test]
     public async Task Login_Then_GetCurrentUser_ReturnsUser()
     {
-        // Arrange
         var repo = new Mock<IAccountRepository>();
         var handler = new AccountHandler(repo.Object);
         var passwordHasher = new PasswordHasher();
@@ -42,14 +41,14 @@ public class Tests
         // Create a shared context with a mock session
         var context = CreateMockHttpContext(requestStream);
 
-        // Act 1: Login
+        // Login
         var loginResult = await handler.HandleLogin(context);
         
         var okkResult = loginResult as Ok<LoginResponse>;
         Assert.That(okkResult, Is.Not.Null);
         Assert.That(okkResult!.Value.Message, Is.EqualTo("Logged in successfully"));
         
-        // Act 2: Get current user using same context (with preserved session)
+        // Get current user using same context (with preserved session)
         var userResult = await handler.HandleGetCurrentUser(context);
         var userResultS = userResult as Ok<LoginResponse>;
         
