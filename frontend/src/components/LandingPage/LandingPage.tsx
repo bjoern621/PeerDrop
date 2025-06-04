@@ -100,7 +100,7 @@ export default function LandingPage() {
             (accepted: boolean) => {
                 if (accepted) {
                     // console.log("ACCEPTED");
-                    // intionally not closing the dialog here
+                    // intentionally not closing the dialog here
                     showLoadingDialog();
                 } else {
                     // console.log("REJECTED");
@@ -178,7 +178,7 @@ export default function LandingPage() {
     const confirmConnection = () => {
         // console.log(`YES ${remoteTokenOfRequestingPeer}`);
 
-        // intionally not closing the dialog here
+        // intentionally not closing the dialog here
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
         assert(
