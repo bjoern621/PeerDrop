@@ -99,11 +99,11 @@ export default function LandingPage() {
         peerConnectionManager.setOnConnectionResponseReceivedCallback(
             (accepted: boolean) => {
                 if (accepted) {
-                    console.log("ACCEPTED");
+                    // console.log("ACCEPTED");
                     // intionally not closing the dialog here
                     showLoadingDialog();
                 } else {
-                    console.log("REJECTED");
+                    // console.log("REJECTED");
                     waitingDialog.current!.close();
                 }
             }
@@ -159,7 +159,7 @@ export default function LandingPage() {
     };
 
     const declineConnection = () => {
-        console.log(`NO ${remoteTokenOfRequestingPeer}`);
+        // console.log(`NO ${remoteTokenOfRequestingPeer}`);
 
         confirmDialog.current!.close();
 
@@ -176,7 +176,7 @@ export default function LandingPage() {
     };
 
     const confirmConnection = () => {
-        console.log(`YES ${remoteTokenOfRequestingPeer}`);
+        // console.log(`YES ${remoteTokenOfRequestingPeer}`);
 
         // intionally not closing the dialog here
 
