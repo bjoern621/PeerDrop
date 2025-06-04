@@ -40,7 +40,7 @@ export class PeerConnectionManager {
     private onReceivedFileCallback?: (name: string, size: number) => void;
 
     public constructor(private readonly signaling: WebSocketService) {
-        setLogEnabled(true);
+        setLogEnabled(false);
         this.waitForRemoteClientToken();
 
         this.waitForCloseConnectionRequest();
@@ -75,7 +75,7 @@ export class PeerConnectionManager {
                 this.remoteToken
             );
 
-            this.triggerCallback();
+            this.setupListeners();
         };
 
         this.signaling.subscribeMessage(
@@ -149,7 +149,7 @@ export class PeerConnectionManager {
                 this.remoteToken
             );
 
-            this.triggerCallback();
+            this.setupListeners();
         }
     }
 
@@ -273,11 +273,6 @@ export class PeerConnectionManager {
             this.remoteToken = undefined;
             this.connection = undefined;
             this.waitForRemoteClientToken();
-
-            /*this.signaling.unsubscribeMessage(
-                MessageType.CLOSE_CONNECTION,
-                handleCloseConnectionRequest as MessageHandler
-            );*/
         };
 
         this.signaling.subscribeMessage(
@@ -286,8 +281,8 @@ export class PeerConnectionManager {
         );
     }
 
-    // Triggers a callback for when the peer emits a specific event.
-    private triggerCallback() {
+    // Sets up event listeners for WebRTCConnection and trigger corresponding callbacks
+    private setupListeners() {
         assert(this.connection, "PeerConnection is not initialized.");
         this.connection.subscribeTo("connectionstatechange", state => {
             if (state === "connected") {

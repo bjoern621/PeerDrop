@@ -41,7 +41,7 @@ export class WebRTCConnection {
         signalingChannel: WebSocketService,
         remoteToken: ClientToken
     ) {
-        setLogEnabled(true); // Disable logging by default, can be enabled later if needed
+        setLogEnabled(false); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
         this.polite =

@@ -4,7 +4,6 @@ import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
 import { OTPInput, SlotProps } from "input-otp";
-//import { useNavigate } from "react-router";
 import { MessageType } from "../../services/MessageType";
 import { useWebSocketService } from "../../context/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
@@ -23,8 +22,6 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
 };
 
 export default function LandingPage() {
-    //const navigate = useNavigate();
-
     const websocket = useWebSocketService();
     const peerConnectionManager = usePeerConnectionManager();
 
@@ -79,19 +76,6 @@ export default function LandingPage() {
             websocket.unsubscribeMessage(MessageType.TEST, handler);
         };
     }, [websocket]);
-    /*
-    // Initialize PeerConnectionManager and set up callback
-    useEffect(() => {
-        assert(
-            peerConnectionManager,
-            "PeerConnectionManager is not initialized."
-        );
-        peerConnectionManager.setOnConnectedCallback(() => {
-            void navigate("/share");
-        });
-
-        console.log("PeerConnectionManager onConnectedCallback set");
-    }, [navigate, peerConnectionManager]);*/
 
     const connectToPeer = async () => {
         if (remoteToken.length !== 5) {

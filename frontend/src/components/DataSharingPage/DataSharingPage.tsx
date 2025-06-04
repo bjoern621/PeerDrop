@@ -70,7 +70,7 @@ export function DataSharingPage() {
             peerConnectionManager.getConnection()?.getPeerConnection()
                 .connectionState !== "connected"
         ) {
-            void navigate("/"); // Redirect to home page if no connection exists
+            void navigate("/");
             return;
         } else {
             setPartnerName(peerConnectionManager.getRemoteToken());
