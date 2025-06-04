@@ -15,7 +15,7 @@ namespace backend.AccountCompoment.Logic.Impl
 {
     public class DeviceHandler(IDeviceRepository repo) : IDeviceHandler
     {
-        public async Task<IResult> HandleDeviceRegistration(HttpContext context)
+        public async Task<IResult> RegisterDeviceAsync(HttpContext context)
         {
             // Deserialize the request body to get the accountId (or other data)
             DeviceRegisterDto? deviceDto;
