@@ -5,7 +5,9 @@ import deleteIcon from "../../../assets/delete_icon.svg";
 import deleteIconLight from "../../../assets/delete_icon_light.svg";
 import addIcon from "../../../assets/add_icon.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { assert } from "../../../util/Assert";
+import { LoginResponse } from "../../dtos/LoginResponse";
 
 enum DeviceStatus {
     ONLINE = "online",
@@ -33,12 +35,46 @@ const mockDevices: DeviceDisplay[] = [
 ];
 
 export const UserProfile = () => {
+    const [userName, setUserName] = useState<string | null>(null);
     const [devices, setDevices] = useState<DeviceDisplay[]>(mockDevices);
     const [connectedDevice, setConnectedDevice] =
         useState<DeviceDisplay | null>(null);
     const [currentDeviceRegistered, setCurrentDeviceRegistered] =
         useState(false);
     const [registerButtonDisabled, setRegisterButtonDisabled] = useState(false);
+
+    useEffect(() => {
+        void fetchUserName();
+    }, []);
+
+    const fetchUserName = async () => {
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/me`, {
+                method: "GET",
+                credentials: "include",
+            })
+        );
+
+        if (err) {
+            console.error("Error fetching user name:", err);
+            return;
+        } else if (!response.ok) {
+            console.error("Error fetching user name:", response.statusText);
+            return;
+        }
+
+        const [data, err2] = await errorAsValue(response.json());
+
+        if (err2) {
+            console.error("Error parsing user name response:", err2);
+            return;
+        }
+        
+        const loginData = data as LoginResponse;
+        assert(loginData && loginData.message, "Invalid user name response");
+
+        setUserName(loginData.message);
+    }
 
     const registerCurrentDevice = async () => {
         setRegisterButtonDisabled(true);
@@ -49,8 +85,8 @@ export const UserProfile = () => {
         const [response, err] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
                 method: "POST",
+                credentials: "include",
                 headers: {
-                    Authorization: "Bearer " + localStorage.getItem("token"),
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(device),
@@ -112,7 +148,7 @@ export const UserProfile = () => {
     return (
         <div className={css.container}>
             <img className={css.profilePicture} src={userIcon}></img>
-            <h3 className={css.greeting}>Hi User!</h3>
+            <h3 className={css.greeting}>Hi {userName}!</h3>
             <div className={css.registeredDevices}>
                 <h4>Registrierte Geräte</h4>
                 <ul className={css.deviceList}>
