@@ -54,16 +54,19 @@ export class PeerConnectionManager {
         new Observable<string>(); // String is the remote token of the requesting peer.
 
     public setOnConnectionRequestSentCallback(callback: () => void) {
+        this.onConnectionRequestSentObservable.clear();
         this.onConnectionRequestSentObservable.subscribe(callback);
     }
     public setOnConnectionResponseReceivedCallback(
         callback: (accepted: boolean) => void
     ) {
+        this.onConnectionResponseReceivedObservable.clear();
         this.onConnectionResponseReceivedObservable.subscribe(callback);
     }
     public setOnConnectionRequestReceivedCallback(
         callback: (remoteToken: string) => void
     ) {
+        this.onConnectionRequestReceivedObservable.clear();
         this.onConnectionRequestReceivedObservable.subscribe(callback);
     }
 
