@@ -106,13 +106,19 @@ export class WebRTCConnection {
             const sendNextChunk = () => {
                 if (offset < file.size) {
                     const slice = file.slice(offset, offset + chunkSize);
-                    reader.readAsArrayBuffer(slice); //triggers the onload event on the reader
+                    reader.readAsArrayBuffer(slice);
                 } else {
-                    dataChannel.send("EOF");
-
-                    log("File sent, EOF reached, closing data channel");
-
-                    dataChannel.close();
+                    // Warten darauf, dass der Buffer leer ist, bevor EOF gesendet wird
+                    const waitForBuffer = () => {
+                        if (dataChannel.bufferedAmount > 0) {
+                            setTimeout(waitForBuffer, 10);
+                        } else {
+                            dataChannel.send("EOF");
+                            log("File sent, EOF reached, closing data channel");
+                            dataChannel.close();
+                        }
+                    };
+                    waitForBuffer();
                 }
             };
 
@@ -125,7 +131,7 @@ export class WebRTCConnection {
             log("Received data channel");
 
             const dataChannel = event.channel;
-            const receivedChunks: ArrayBuffer[] = [];
+            const receivedChunks: (ArrayBuffer | Blob)[] = [];
             let fileMeta: { name: string; size: number } | null = null;
             let firstMessage = true;
 
@@ -137,7 +143,6 @@ export class WebRTCConnection {
                     };
                     firstMessage = false;
                     log("Received file metadata:", fileMeta);
-
                     this.emitEvent("fileMetaReceived", {
                         name: fileMeta.name,
                         size: fileMeta.size,
@@ -147,7 +152,6 @@ export class WebRTCConnection {
 
                 if (typeof event.data === "string" && event.data === "EOF") {
                     const blob = new Blob(receivedChunks);
-
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
@@ -159,11 +163,23 @@ export class WebRTCConnection {
                     log("File downloaded");
                 } else if (event.data instanceof ArrayBuffer) {
                     receivedChunks.push(event.data);
-                    log("Chunk empfangen, Größe:", event.data.byteLength);
+                    log(
+                        "Chunk empfangen, Größe:",
+                        event.data.byteLength,
+                        "Bytes (ArrayBuffer)"
+                    );
+                } else if (event.data instanceof Blob) {
+                    receivedChunks.push(event.data);
+                    log(
+                        "Chunk empfangen, Größe:",
+                        event.data.size,
+                        "Bytes (Blob)"
+                    );
                 } else {
                     log("Unbekannter Nachrichtentyp:", event.data);
                 }
             };
+
             dataChannel.onopen = () => {
                 log("Data channel is open");
             };
