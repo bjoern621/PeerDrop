@@ -136,7 +136,7 @@ export class WebRTCConnection {
             };
 
             // Set up bufferedamountlow event to continue when buffer decreases
-            dataChannel.bufferedAmountLowThreshold = 512; // 512KB
+            dataChannel.bufferedAmountLowThreshold = 512; // 512 KB
 
             dataChannel.onbufferedamountlow = () => {
                 if (waitingForBuffer) {
