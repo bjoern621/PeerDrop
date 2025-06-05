@@ -45,12 +45,12 @@ builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
 builder.Services.AddScoped<IAccountHandler, AccountHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 
-builder.Services.AddDistributedMemoryCache(); // For in-memory session storage
+builder.Services.AddDistributedMemoryCache(); // For in-memory session storage (session gets deleted upon backend restart!!)
 builder.Services.AddSession(options =>
 {
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.IdleTimeout = TimeSpan.FromDays(1); // Adjust as needed
+    options.IdleTimeout = TimeSpan.FromDays(1); // Time for how long the (session-)cookie will be valid
 });
 
 var app = builder.Build();
