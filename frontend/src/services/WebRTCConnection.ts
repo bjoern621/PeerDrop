@@ -86,7 +86,7 @@ export class WebRTCConnection {
         let offset = 0;
 
         // Set a buffer threshold - if bufferedAmount exceeds this, wait before sending more
-        const bufferThreshold = 1024 * 1024; // 1MB buffer threshold
+        const bufferThreshold = 1024 * 1024 * 4; // 4MB buffer threshold
         let waitingForBuffer = false;
 
         dataChannel.onopen = () => {
@@ -136,7 +136,7 @@ export class WebRTCConnection {
             };
 
             // Set up bufferedamountlow event to continue when buffer decreases
-            dataChannel.bufferedAmountLowThreshold = bufferThreshold / 2; // 512KB
+            dataChannel.bufferedAmountLowThreshold = 512; // 512KB
 
             dataChannel.onbufferedamountlow = () => {
                 if (waitingForBuffer) {
