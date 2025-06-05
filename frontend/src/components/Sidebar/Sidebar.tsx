@@ -27,7 +27,10 @@ export const Sidebar = () => {
         }
 
         if (!response.ok) {
-            console.error("Fehler beim Abrufen des Login-Status:", response.statusText);
+            console.error(
+                "Fehler beim Abrufen des Login-Status:",
+                response.statusText
+            );
             return;
         }
 
@@ -38,8 +41,11 @@ export const Sidebar = () => {
             return;
         }
 
-        const statusData = responseBody as StatusResponse
-        assert(statusData && typeof statusData.status === "boolean", "Invalid user status response");
+        const statusData = responseBody as StatusResponse;
+        assert(
+            statusData && typeof statusData.status === "boolean",
+            "Invalid user status response"
+        );
 
         setLoggedIn(statusData.status);
     };
