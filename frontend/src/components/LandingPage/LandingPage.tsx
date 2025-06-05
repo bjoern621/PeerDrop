@@ -1,15 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import {
-    TypedMessage,
-    WebSocketService,
-} from "../../services/WebSocketService";
+import { useEffect, useState } from "react";
+import { TypedMessage } from "../../services/WebSocketService";
 import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
 import { OTPInput, SlotProps } from "input-otp";
-import { PeerConnectionManager } from "../../services/PeerConnectionManager";
-import { useNavigate } from "react-router";
 import { MessageType } from "../../services/MessageType";
+import { useWebSocketService } from "../../context/WebSocketContext";
+import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -25,37 +22,21 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
 };
 
 export default function LandingPage() {
-    const navigate = useNavigate();
-
-    const webSocketServiceRef = useRef<WebSocketService | undefined>(undefined);
-    if (!webSocketServiceRef.current) {
-        webSocketServiceRef.current = new WebSocketService();
-    }
-
-    const PeerConnectionManagerRef = useRef<PeerConnectionManager | undefined>(
-        undefined
-    );
-    if (!PeerConnectionManagerRef.current) {
-        assert(
-            webSocketServiceRef.current,
-            "WebSocketService is not initialized."
-        );
-        PeerConnectionManagerRef.current = new PeerConnectionManager(
-            webSocketServiceRef.current
-        );
-    }
+    const websocket = useWebSocketService();
+    const peerConnectionManager = usePeerConnectionManager();
 
     const [clientToken, setClientToken] = useState<string | null>(null);
     const [remoteToken, setRemoteToken] = useState<string>("");
 
     useEffect(() => {
-        const websocket = webSocketServiceRef.current;
+        console.log("useEffect triggered");
 
         assert(websocket, "WebSocketService is not initialized.");
 
-        websocket.subscribeMessage(MessageType.TEST, message => {
+        const handler = (message: unknown) => {
             console.log("Received message:", message);
-        });
+        };
+        websocket.subscribeMessage(MessageType.TEST, handler);
 
         type TestMessage = {
             message: string;
@@ -85,28 +66,25 @@ export default function LandingPage() {
                 }
             }, 500);
 
-            return () => clearInterval(checkToken);
+            return () => {
+                clearInterval(checkToken);
+                websocket.unsubscribeMessage(MessageType.TEST, handler);
+            };
         }
 
-        console.log("LandingPage component mounted");
-    }, []);
+        return () => {
+            websocket.unsubscribeMessage(MessageType.TEST, handler);
+        };
+    }, [websocket]);
 
     const connectToPeer = async () => {
         if (remoteToken.length !== 5) {
             console.warn("Peer token must be 5 characters long.");
+            return;
         }
-
-        const peerConnectionManager = PeerConnectionManagerRef.current;
-        assert(
-            peerConnectionManager,
-            "PeerConnectionManager is not initialized."
-        );
-
         console.log("Trying to connect to peer with token:", remoteToken);
 
         await peerConnectionManager.sendTokenToRemotePeer(remoteToken);
-
-        void navigate("/share");
     };
 
     return (
