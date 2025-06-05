@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using ArchUnitNET.Domain;
 using ArchUnitNET.Fluent.Conditions;
 
@@ -71,12 +72,15 @@ namespace backend.tests.Common
                     if (sourceComponentName != targetComponentName)
                     {
                         string targetFullNamespace = targetType.Namespace.FullName;
-                        bool isApiDependency = targetFullNamespace.Contains("Api");
+                        Regex apiRegex = new Regex(@"\.Api(?:$|\.)");
+                        bool isApiDependency = apiRegex.IsMatch(targetFullNamespace);
+                        Regex commonRegex = new Regex(@"\.Common(?:$|\.)");
+                        bool isCommonDependency = commonRegex.IsMatch(targetFullNamespace);
 
-                        if (!isApiDependency)
+                        if (!isApiDependency && !isCommonDependency)
                         {
                             overallPassForSourceType = false;
-                            failureDetails.Add($"{failedTestCount + 1} - depends on {targetType.FullName} (in component {targetComponentName}) which is not in an 'Api' namespace of that component");
+                            failureDetails.Add($"{failedTestCount + 1} - depends on {targetType.FullName} (in component {targetComponentName}) which is not in an 'Api' or 'Common' namespace of that component");
 
                             failedTestCount++;
                         }
