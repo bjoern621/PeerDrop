@@ -46,14 +46,17 @@ public class Tests
         
         var okkResult = loginResult as Ok<LoginResponse>;
         Assert.That(okkResult, Is.Not.Null);
-        Assert.That(okkResult!.Value.Message, Is.EqualTo("Logged in successfully"));
+        Assert.That(okkResult.Value, Is.Not.Null);
+        Assert.That(okkResult.Value.Message, Is.EqualTo("Logged in successfully"));
         
         // Get current user using same context (with preserved session)
         var userResult = await handler.HandleGetCurrentUser(context);
         var userResultS = userResult as Ok<LoginResponse>;
         
         Assert.That(userResultS, Is.Not.Null);
-        Assert.That(userResultS!.Value.Message, Is.EqualTo("alice"));
+        Assert.That(userResultS.Value, Is.Not.Null);
+        Assert.That(userResultS.Value.Message, Is.EqualTo("alice"));
+        
         
     }
 
