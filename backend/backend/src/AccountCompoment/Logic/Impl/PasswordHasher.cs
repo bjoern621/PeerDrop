@@ -1,11 +1,13 @@
-﻿namespace backend.AccountCompoment.Dataaccess.Api.Entity;
+﻿using backend.AccountCompoment.Logic.Api;
+
+namespace backend.AccountCompoment.Logic.Impl;
 
 using System;
 using System.Security.Cryptography;
 using System.Text;
 using Konscious.Security.Cryptography;
 
-public class PasswordHasher
+public class PasswordHasher  : IPasswordHasher
 {
     private const int SaltSize = 16; // 128 bits
     private const int HashSize = 32; // 256 bits

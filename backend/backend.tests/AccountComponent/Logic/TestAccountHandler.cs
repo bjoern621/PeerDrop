@@ -3,6 +3,7 @@ using System.Text.Json;
 using backend.AccountCompoment.Common.DTOs;
 using backend.AccountCompoment.Dataaccess.Api.Entity;
 using backend.AccountCompoment.Dataaccess.Api.Repo;
+using backend.AccountCompoment.Logic.Api;
 using backend.AccountCompoment.Logic.Impl;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -16,9 +17,9 @@ public class Tests
     [Test]
     public async Task Login_Then_GetCurrentUser_ReturnsUser()
     {
+        IPasswordHasher hasher = new PasswordHasher();
         var repo = new Mock<IAccountRepository>();
-        var handler = new AccountHandler(repo.Object);
-        var passwordHasher = new PasswordHasher();
+        var handler = new AccountLoginHandler(repo.Object, hasher);
 
         var userId = 1;
         var plainPassword = "secret";
@@ -26,7 +27,7 @@ public class Tests
         {
             Id = userId,
             DisplayName = "alice",
-            Password = passwordHasher.HashPassword(plainPassword)
+            Password = hasher.HashPassword(plainPassword)
         };
 
         // Setup repository for both login and user retrieval

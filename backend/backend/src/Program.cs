@@ -15,6 +15,7 @@ using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Impl;
+using Microsoft.AspNetCore.Identity;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
@@ -42,8 +43,10 @@ builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
 builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
-builder.Services.AddScoped<IAccountHandler, AccountHandler>();
+builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
+builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
 builder.Services.AddDistributedMemoryCache(); // For in-memory session storage (session gets deleted upon backend restart!!)
 builder.Services.AddSession(options =>
