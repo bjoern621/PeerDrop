@@ -47,7 +47,6 @@ export class WebRTCConnection {
         this.polite =
             signalingChannel.getLocalClientToken()! < this.remoteToken;
         this.peerConnection = new RTCPeerConnection(iceServers);
-        this.setupReceivingDataChannel();
 
         this.setupEmittedWebRTCEvents();
 
