@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import css from "./Popups.module.scss";
 
 type ConfirmDialogProps = {
-    token: string;
+    token: string | undefined;
     onConfirm: () => void;
     onCancel: () => void;
 };
