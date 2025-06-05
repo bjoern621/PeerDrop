@@ -7,6 +7,10 @@
     &::backdrop {
         backdrop-filter: blur(5px);
     }
+
+    &:focus-visible {
+        outline: none;
+    }
 }
 
 .container {

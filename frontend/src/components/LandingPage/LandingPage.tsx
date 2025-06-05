@@ -11,6 +11,7 @@ import { PeerConnectionManager } from "../../services/PeerConnectionManager";
 import { WaitingDialog } from "../Popups/WaitingDialog";
 import { ConfirmDialog } from "../Popups/ConfirmDialog";
 import { MessageType } from "../../services/MessageType";
+import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -48,6 +49,7 @@ export default function LandingPage() {
     const [remoteToken, setRemoteToken] = useState<string>("");
     const waitingDialog = useRef<HTMLDialogElement | null>(null);
     const confirmDialog = useRef<HTMLDialogElement | null>(null);
+    const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
 
     const [remoteTokenOfRequestingPeer, setRemoteTokenOfRequestingPeer] =
         useState<string | undefined>(undefined);
@@ -100,7 +102,7 @@ export default function LandingPage() {
             (accepted: boolean) => {
                 if (accepted) {
                     // console.log("ACCEPTED");
-                    // intentionally not closing the dialog here
+                    waitingDialog.current!.close();
                     showLoadingDialog();
                 } else {
                     // console.log("REJECTED");
@@ -144,7 +146,7 @@ export default function LandingPage() {
     // Shows a loading dialog while the connection is being established
     // Will be automatically closed by navigation to DataSharingPage
     const showLoadingDialog = () => {
-        console.log("LOADING SHARE PAGE...");
+        awaitConnectionDialog.current!.showModal();
     };
 
     const interruptWaiting = () => {
@@ -179,7 +181,7 @@ export default function LandingPage() {
     const confirmConnection = () => {
         // console.log(`YES ${remoteTokenOfRequestingPeer}`);
 
-        // intentionally not closing the dialog here
+        confirmDialog.current!.close();
 
         const peerConnectionManager = PeerConnectionManagerRef.current;
         assert(
@@ -247,6 +249,7 @@ export default function LandingPage() {
                 onConfirm={() => confirmConnection()}
                 token={remoteTokenOfRequestingPeer}
             />
+            <AwaitConnectionDialog ref={awaitConnectionDialog} />
         </div>
     );
 }
