@@ -20,17 +20,17 @@ type CloseConnectionMessage = {
     remoteToken: ClientToken;
 };
 
-type ErrorMessage = {
-    requestID: string;
-    description: string;
-    expected?: string;
-    actual?: string;
-};
+// type ErrorMessage = {
+//     requestID: string;
+//     description: string;
+//     expected?: string;
+//     actual?: string;
+// };
 
-type SuccessMessage = {
-    requestID: string;
-    description: string;
-};
+// type SuccessMessage = {
+//     requestID: string;
+//     description: string;
+// };
 
 // This message is sent to a remote peer to request a connection.
 type ConnectionRequestMessage = {
@@ -290,59 +290,59 @@ export class PeerConnectionManager {
      * @param message The message to send, including a unique `requestID`.
      * @returns A promise that resolves with the response message (success or error).
      */
-    private sendMessageAndWaitForResponse(
-        message: TypedMessage<RemoteTokenMessage>
-    ): Promise<TypedMessage<ErrorMessage | SuccessMessage>> {
-        return new Promise((resolve, reject) => {
-            const handlerResponse = (
-                response: TypedMessage<ErrorMessage | SuccessMessage>
-            ) => {
-                const requestID = message.msg.requestID;
-                if (response.msg.requestID !== requestID) {
-                    console.warn(
-                        "Received response with different requestID:",
-                        response.msg.requestID,
-                        "so ignoring it"
-                    );
-                    return; // Ignore this response
-                }
+    // private sendMessageAndWaitForResponse(
+    //     message: TypedMessage<RemoteTokenMessage>
+    // ): Promise<TypedMessage<ErrorMessage | SuccessMessage>> {
+    //     return new Promise((resolve, reject) => {
+    //         const handlerResponse = (
+    //             response: TypedMessage<ErrorMessage | SuccessMessage>
+    //         ) => {
+    //             const requestID = message.msg.requestID;
+    //             if (response.msg.requestID !== requestID) {
+    //                 console.warn(
+    //                     "Received response with different requestID:",
+    //                     response.msg.requestID,
+    //                     "so ignoring it"
+    //                 );
+    //                 return; // Ignore this response
+    //             }
 
-                log(
-                    "Received response with requestID:",
-                    response.msg.requestID
-                );
+    //             log(
+    //                 "Received response with requestID:",
+    //                 response.msg.requestID
+    //             );
 
-                this.signaling.unsubscribeMessage(
-                    MessageType.SUCCESS,
-                    handlerResponse as MessageHandler
-                );
-                this.signaling.unsubscribeMessage(
-                    MessageType.ERROR,
-                    handlerResponse as MessageHandler
-                );
+    //             this.signaling.unsubscribeMessage(
+    //                 MessageType.SUCCESS,
+    //                 handlerResponse as MessageHandler
+    //             );
+    //             this.signaling.unsubscribeMessage(
+    //                 MessageType.ERROR,
+    //                 handlerResponse as MessageHandler
+    //             );
 
-                if (response.type == MessageType.ERROR) {
-                    reject(
-                        new Error((response.msg as ErrorMessage).description)
-                    );
-                }
-                if (response.type == MessageType.SUCCESS) {
-                    resolve(response as TypedMessage<SuccessMessage>);
-                }
-            };
+    //             if (response.type == MessageType.ERROR) {
+    //                 reject(
+    //                     new Error((response.msg as ErrorMessage).description)
+    //                 );
+    //             }
+    //             if (response.type == MessageType.SUCCESS) {
+    //                 resolve(response as TypedMessage<SuccessMessage>);
+    //             }
+    //         };
 
-            this.signaling.subscribeMessage(
-                MessageType.SUCCESS,
-                handlerResponse as MessageHandler
-            );
-            this.signaling.subscribeMessage(
-                MessageType.ERROR,
-                handlerResponse as MessageHandler
-            );
+    //         this.signaling.subscribeMessage(
+    //             MessageType.SUCCESS,
+    //             handlerResponse as MessageHandler
+    //         );
+    //         this.signaling.subscribeMessage(
+    //             MessageType.ERROR,
+    //             handlerResponse as MessageHandler
+    //         );
 
-            this.signaling.sendMessage(message);
-        });
-    }
+    //         this.signaling.sendMessage(message);
+    //     });
+    // }
 
     /**
      * Closes the current WebRTC connection and cleans up all related resources.
