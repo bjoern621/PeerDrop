@@ -169,8 +169,6 @@ export class PeerConnectionManager {
                 onConnectionResponseReceived as MessageHandler
             );
 
-            this.expectedRemoteToken = undefined;
-
             this.onConnectionResponseReceivedObservable.notify(
                 message.msg.accepted
             );
@@ -212,6 +210,8 @@ export class PeerConnectionManager {
         const onConnectionRequestReceived = (
             message: TypedMessage<EstablishConnectionMessage>
         ) => {
+            this.expectedRemoteToken = message.msg.remoteToken;
+
             this.onConnectionRequestReceivedObservable.notify(
                 message.msg.remoteToken
             );
