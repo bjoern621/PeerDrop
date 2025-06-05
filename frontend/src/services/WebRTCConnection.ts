@@ -85,6 +85,10 @@ export class WebRTCConnection {
         const chunkSize = 16 * 1024; //16 KB
         let offset = 0;
 
+        // Set a buffer threshold - if bufferedAmount exceeds this, wait before sending more
+        const bufferThreshold = 1024 * 1024; // 1MB buffer threshold
+        let waitingForBuffer = false;
+
         dataChannel.onopen = () => {
             // Send first Metadata about the file
             const meta = JSON.stringify({
@@ -105,6 +109,15 @@ export class WebRTCConnection {
 
             const sendNextChunk = () => {
                 if (offset < file.size) {
+                    // Check if buffer is getting full before sending more data
+                    if (dataChannel.bufferedAmount > bufferThreshold) {
+                        waitingForBuffer = true;
+                        log(
+                            `Buffer full (${dataChannel.bufferedAmount} bytes), waiting...`
+                        );
+                        return; // Exit and wait for the bufferedamountlow event
+                    }
+
                     const slice = file.slice(offset, offset + chunkSize);
                     reader.readAsArrayBuffer(slice);
                 } else {
@@ -122,7 +135,20 @@ export class WebRTCConnection {
                 }
             };
 
-            sendNextChunk(); //start reading and sending first chunk
+            // Set up bufferedamountlow event to continue when buffer decreases
+            dataChannel.bufferedAmountLowThreshold = bufferThreshold / 2; // 512KB
+
+            dataChannel.onbufferedamountlow = () => {
+                if (waitingForBuffer) {
+                    waitingForBuffer = false;
+                    log(
+                        `Content in buffer decreased to ${dataChannel.bufferedAmount} bytes, continuing...`
+                    );
+                    sendNextChunk();
+                }
+            };
+
+            sendNextChunk(); // Start reading and sending first chunk
         };
     }
 
