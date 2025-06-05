@@ -20,7 +20,6 @@ public class Account
         }
         _displayName = displayName;
         
-        //_password = EncryptPassword(password);
         _password = EncryptPassword(password);
     }
 
