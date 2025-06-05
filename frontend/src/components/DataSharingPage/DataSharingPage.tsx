@@ -18,46 +18,13 @@ interface FileDisplay {
     time: Date;
 }
 
-const mockData: FileDisplay[] = [
-    {
-        name: "Datei01-final.png",
-        direction: FileDirection.DOWN,
-        progress: 0.01,
-        size: 200_000,
-        time: new Date(),
-    },
-    {
-        name: "Datei02.pdf",
-        direction: FileDirection.DOWN,
-        progress: 1,
-        size: 147_000,
-        time: new Date(),
-    },
-    {
-        name: "File-XYZ.txt",
-        direction: FileDirection.UP,
-        progress: 0.7,
-        size: 30,
-        time: new Date(),
-    },
-    {
-        name: "super_log_filename_12345678901234567890_a\
-            bcdefghijklmnopqrstuvwxyzilename_12345678901\
-            234567890_abcdefghijklmnopqrstuvwxyz.txt",
-        direction: FileDirection.UP,
-        progress: 0.7,
-        size: 30,
-        time: new Date(),
-    },
-];
-
 export function DataSharingPage() {
     const navigate = useNavigate();
 
     const peerConnectionManager = usePeerConnectionManager();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [files, setFiles] = useState<FileDisplay[]>(mockData);
+    const [files, setFiles] = useState<FileDisplay[]>([]);
     const [partnerName, setPartnerName] = useState<string | null>(null);
 
     useEffect(() => {
