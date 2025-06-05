@@ -4,6 +4,7 @@ export interface IObservable<T> {
     subscribe(observer: Observer<T>): void;
     unsubscribe(observer: Observer<T>): void;
     notify(data: T): void;
+    unsubscribeAll(): void;
 }
 
 export interface IObservableOnce<T> {

@@ -55,6 +55,7 @@ export class WebRTCConnection {
         this.handleNegotiationNeeded();
         this.handleSDPPackage();
         this.handleRemoteICECandidates();
+
         this.initializePeerConnection();
     }
 
