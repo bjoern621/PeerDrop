@@ -19,7 +19,15 @@ public class SessionSetup : ISession
 
     public void Set(string key, byte[] value) => _sessionStorage[key] = value;
 
-    public bool TryGetValue(string key, out byte[] value) => _sessionStorage.TryGetValue(key, out value);
-    
-    
+    public bool TryGetValue(string key, out byte[] value)
+    {
+        if (_sessionStorage.TryGetValue(key, out var temp))
+        {
+            value = temp;
+            return true;
+        }
+
+        value = [];
+        return false;
+    }
 }
