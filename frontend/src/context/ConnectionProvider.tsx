@@ -28,10 +28,6 @@ export function ConnectionProvider({
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    (window as any).ws = wsRef.current; // For debugging purposes, remove in production
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    (window as any).pcm = pcmRef.current; // For debugging purposes, remove in production
     return (
         <WebSocketContext.Provider value={wsRef.current}>
             <PeerConnectionContext.Provider value={pcmRef.current}>
