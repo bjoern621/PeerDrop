@@ -5,6 +5,8 @@ import smallLogo from "../../assets/logo_small.png";
 import css from "./Sidebar.module.scss";
 import { UserProfile } from "./UserProfile/UserProfile";
 import errorAsValue from "../../util/ErrorAsValue";
+import { StatusResponse } from "../dtos/StatusResponse";
+import { assert } from "../../util/Assert";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -13,7 +15,7 @@ export const Sidebar = () => {
 
     const getLoggedInStatus = async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/me`, {
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/me/status`, {
                 method: "GET",
                 credentials: "include",
             })
@@ -24,7 +26,22 @@ export const Sidebar = () => {
             return;
         }
 
-        setLoggedIn(response.ok);
+        if (!response.ok) {
+            console.error("Fehler beim Abrufen des Login-Status:", response.statusText);
+            return;
+        }
+
+        const [responseBody, parseError] = await errorAsValue(response.json());
+
+        if (parseError) {
+            console.error("Fehler beim Parsen der Antwort:", parseError);
+            return;
+        }
+
+        const statusData = responseBody as StatusResponse
+        assert(statusData && typeof statusData.status === "boolean", "Invalid user status response");
+
+        setLoggedIn(statusData.status);
     };
 
     useEffect(() => {

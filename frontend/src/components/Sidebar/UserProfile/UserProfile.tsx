@@ -63,14 +63,14 @@ export const UserProfile = () => {
             return;
         }
 
-        const [data, err2] = await errorAsValue(response.json());
+        const [responseBody, parseError] = await errorAsValue(response.json());
 
-        if (err2) {
-            console.error("Error parsing user name response:", err2);
+        if (parseError) {
+            console.error("Error parsing user name response:", parseError);
             return;
         }
 
-        const loginData = data as LoginResponse;
+        const loginData = responseBody as LoginResponse;
         assert(loginData && loginData.message, "Invalid user name response");
 
         setUserName(loginData.message);
