@@ -55,6 +55,7 @@ public class AccountRepositoryTest
         var account = new Account("testuser", "testpassword");
         var id = _accountRepository.SaveAsync(account).Result;
         Assert.That(id, Is.EqualTo(1));
+        account = new Account("testuser2", "testpassword");
         id = _accountRepository.SaveAsync(account).Result;
         Assert.That(id, Is.EqualTo(2));
     }
