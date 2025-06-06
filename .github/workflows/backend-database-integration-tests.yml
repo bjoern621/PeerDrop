@@ -1,0 +1,50 @@
+name: Database Integration Tests
+
+on:
+    pull_request:
+        branches:
+            - main
+    push:
+        paths:
+            - "backend/**"
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        name: Run Backend Database Integration Tests
+        
+        services:
+            test-postgres:
+                build:
+                    context: ./database
+                    dockerfile: Dockerfile
+                ports:
+                    - 5432:5432
+                env:
+                    POSTGRES_USER: test_user
+                    POSTGRES_PASSWORD: test_pass
+                    POSTGRES_DB: test_db
+                options: >-
+                    --health-cmd "pg_isready"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        env:
+            DB_HOST: localhost
+            DB_USERNAME: test_user
+            DB_PASSWORD: test_pass
+            DB_DATABASE_NAME: test_db
+        
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 9.0.x
+
+            - name: Run Database Integration Tests
+              run: dotnet test backend.tests --filter TestCategory=DatabaseIntegration
+              working-directory: backend

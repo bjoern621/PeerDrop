@@ -1,5 +1,6 @@
 ﻿namespace backend.tests.AccountComponent.Facade.Impl;
 
+[Category("UnitTest")]
 public class AccountRoutesTest
 {
     [SetUp]

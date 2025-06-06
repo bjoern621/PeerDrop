@@ -1,5 +1,6 @@
 ﻿namespace backend.tests.WebSocketComponent.Logic.Impl;
 
+[Category("UnitTest")]
 public class WebSocketHandlerTest
 {
     [SetUp]

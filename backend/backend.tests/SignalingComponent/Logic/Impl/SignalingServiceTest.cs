@@ -1,5 +1,6 @@
 ﻿namespace backend.tests.SignalingComponent.Logic.Impl;
 
+[Category("UnitTest")]
 public class SignalingServiceTest
 {
     [SetUp]

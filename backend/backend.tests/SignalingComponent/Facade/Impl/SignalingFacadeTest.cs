@@ -1,5 +1,6 @@
 ﻿namespace backend.tests.SignalingComponent.Facade.Impl;
 
+[Category("UnitTest")]
 public class SignalingFacadeTest
 {
     [SetUp]

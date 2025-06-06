@@ -1,5 +1,6 @@
 ﻿namespace backend.tests.WebSocketComponent.Facade.Impl;
 
+[Category("UnitTest")]
 public class WebSocketRoutesTest
 {
     [SetUp]

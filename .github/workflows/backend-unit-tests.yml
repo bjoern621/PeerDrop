@@ -23,5 +23,5 @@ jobs:
                   dotnet-version: 9.0.x
 
             - name: Run Unit Tests
-              run: dotnet test backend.tests --filter TestCategory!=Architecture
+              run: dotnet test backend.tests --filter TestCategory=UnitTest
               working-directory: backend

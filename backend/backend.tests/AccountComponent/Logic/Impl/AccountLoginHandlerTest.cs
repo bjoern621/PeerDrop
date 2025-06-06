@@ -10,7 +10,8 @@ using Moq;
 
 namespace backend.tests.AccountComponent.Logic.Impl;
 
-public class AccountHandlerTest
+[Category("UnitTest")]
+public class AccountLoginHandlerTest
 {
     
     [Test]
