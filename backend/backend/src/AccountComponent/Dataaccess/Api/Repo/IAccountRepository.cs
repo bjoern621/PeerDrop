@@ -1,10 +1,12 @@
-﻿using backend.AccountComponent.Dataaccess.Api.Entity;
+﻿using backend.AccountComponent.Common.DTOs;
+using backend.AccountComponent.Dataaccess.Api.Entity;
 
 namespace backend.AccountComponent.Dataaccess.Api.Repo;
 
 public interface IAccountRepository
 {
     Task<int> SaveAsync(Account account);
-    Task<Account?> GetByNameAsync(string name);
+    Task<AccountRetrieveDto?> GetByNameAsync(string name);
+    Task<AccountRetrieveDto?> GetByIdAsync(int id);
     Task<int> DeleteAsync(int id);
 }

@@ -4,6 +4,7 @@ export interface IObservable<T> {
     subscribe(observer: Observer<T>): void;
     unsubscribe(observer: Observer<T>): void;
     notify(data: T): void;
+    unsubscribeAll(): void;
 }
 
 export interface IObservableOnce<T> {
@@ -31,5 +32,9 @@ export class Observable<T> implements IObservable<T>, IObservableOnce<T> {
             this.unsubscribe(wrapper);
         };
         this.subscribe(wrapper);
+    }
+
+    public unsubscribeAll(): void {
+        this.observers = [];
     }
 }

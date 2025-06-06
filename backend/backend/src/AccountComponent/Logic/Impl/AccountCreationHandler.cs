@@ -1,12 +1,13 @@
 using System.Text.Json;
 using backend.AccountComponent.Common.DTOs;
+using backend.AccountComponent.Common.Exception;
 using backend.AccountComponent.Dataaccess.Api.Entity;
 using backend.AccountComponent.Dataaccess.Api.Repo;
 using backend.AccountComponent.Logic.Api;
 
 namespace backend.AccountComponent.Logic.Impl;
 
-public class AccountHandler(IAccountRepository repo) : IAccountHandler
+public class AccountCreationHandler(IAccountRepository repo, IPasswordHasher hasher) : IAccountCreationHandler
 {
     public async Task<IResult> HandleAccounts(HttpContext context)
     {
@@ -26,23 +27,46 @@ public class AccountHandler(IAccountRepository repo) : IAccountHandler
 
         if (acc == null)
             return Results.BadRequest("Missing account data.");
-        
+
         var accountobj = await repo.GetByNameAsync(acc.DisplayName);
 
-        if (accountobj == null) {
+        if (accountobj == null)
+        {
             // the account has not been created yet
 
             // throw Exceptions if the username or password is invalid
-            Account.ValidateUsernameFormat(acc.DisplayName);
-            Account.ValidatePasswordFormat(acc.Password);
-    
+            ValidateUsernameFormat(acc.DisplayName);
+            ValidatePasswordFormat(acc.Password);
+            
+            acc.Password = hasher.HashPassword(acc.Password);
+
             var account = Account.Of(acc);
-    
+
             var newId = await repo.SaveAsync(account);
+
+            // Store user ID (or other data) in session
+            context.Session.SetString("UserId", newId.ToString());
+
             return Results.Created($"/users/{newId}", new { Id = newId });
         }
 
         // the username is already taken
         return Results.StatusCode(StatusCodes.Status409Conflict);
+    }
+    
+    private void ValidatePasswordFormat(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 6 || password.Contains(' '))
+        {
+            throw new InvalidPasswordFormatException("Password must be at least 6 characters long and contain no whitespace.");
+        }
+    }
+    
+    private void ValidateUsernameFormat(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username) || username.Length < 3 || username.Contains(' '))
+        {
+            throw new InvalidUsernameFormatException("Username must be at least 3 characters long and contain no whitespace.");
+        }
     }
 }

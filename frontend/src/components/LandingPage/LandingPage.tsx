@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import {
-    TypedMessage,
-    WebSocketService,
-} from "../../services/WebSocketService";
+import { TypedMessage } from "../../services/WebSocketService";
 import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
 import { OTPInput, SlotProps } from "input-otp";
-import { PeerConnectionManager } from "../../services/PeerConnectionManager";
-import { useNavigate } from "react-router";
+import { WaitingDialog } from "../Popups/WaitingDialog";
+import { ConfirmDialog } from "../Popups/ConfirmDialog";
+import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 import { MessageType } from "../../services/MessageType";
+import { useWebSocketService } from "../../context/WebSocketContext";
+import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -25,37 +25,27 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
 };
 
 export default function LandingPage() {
-    const navigate = useNavigate();
-
-    const webSocketServiceRef = useRef<WebSocketService | undefined>(undefined);
-    if (!webSocketServiceRef.current) {
-        webSocketServiceRef.current = new WebSocketService();
-    }
-
-    const PeerConnectionManagerRef = useRef<PeerConnectionManager | undefined>(
-        undefined
-    );
-    if (!PeerConnectionManagerRef.current) {
-        assert(
-            webSocketServiceRef.current,
-            "WebSocketService is not initialized."
-        );
-        PeerConnectionManagerRef.current = new PeerConnectionManager(
-            webSocketServiceRef.current
-        );
-    }
+    const websocket = useWebSocketService();
+    const peerConnectionManager = usePeerConnectionManager();
 
     const [clientToken, setClientToken] = useState<string | null>(null);
     const [remoteToken, setRemoteToken] = useState<string>("");
+    const waitingDialog = useRef<HTMLDialogElement | null>(null);
+    const confirmDialog = useRef<HTMLDialogElement | null>(null);
+    const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
+
+    const [remoteTokenOfRequestingPeer, setRemoteTokenOfRequestingPeer] =
+        useState<string | undefined>(undefined);
 
     useEffect(() => {
-        const websocket = webSocketServiceRef.current;
+        console.log("useEffect triggered");
 
         assert(websocket, "WebSocketService is not initialized.");
 
-        websocket.subscribeMessage(MessageType.TEST, message => {
+        const handler = (message: unknown) => {
             console.log("Received message:", message);
-        });
+        };
+        websocket.subscribeMessage(MessageType.TEST, handler);
 
         type TestMessage = {
             message: string;
@@ -73,40 +63,96 @@ export default function LandingPage() {
         }, 1000);
 
         const token = websocket.getLocalClientToken();
+        let checkToken: number | undefined = undefined;
         if (token) {
             setClientToken(token);
         } else {
             // If not available immediately, set up polling
-            const checkToken = setInterval(() => {
+            checkToken = setInterval(() => {
                 const token = websocket.getLocalClientToken();
                 if (token) {
                     setClientToken(token);
                     clearInterval(checkToken);
                 }
             }, 500);
-
-            return () => clearInterval(checkToken);
         }
 
-        console.log("LandingPage component mounted");
-    }, []);
-
-    const connectToPeer = async () => {
-        if (remoteToken.length !== 5) {
-            console.warn("Peer token must be 5 characters long.");
-        }
-
-        const peerConnectionManager = PeerConnectionManagerRef.current;
-        assert(
-            peerConnectionManager,
-            "PeerConnectionManager is not initialized."
+        peerConnectionManager.setOnConnectionResponseReceivedCallback(
+            (accepted: boolean) => {
+                if (accepted) {
+                    // console.log("ACCEPTED");
+                    waitingDialog.current!.close();
+                    showLoadingDialog();
+                } else {
+                    // console.log("REJECTED");
+                    waitingDialog.current!.close();
+                }
+            }
+        );
+        peerConnectionManager.setOnConnectionRequestReceivedCallback(
+            (requestingPeerToken: string) => {
+                setRemoteTokenOfRequestingPeer(requestingPeerToken);
+                confirmDialog.current!.showModal();
+            }
+        );
+        peerConnectionManager.setOnConnectionRequestCancelledReceivedCallback(
+            () => {
+                confirmDialog.current!.close();
+                waitingDialog.current!.close();
+            }
         );
 
-        console.log("Trying to connect to peer with token:", remoteToken);
+        console.log("LandingPage component mounted");
 
-        await peerConnectionManager.sendTokenToRemotePeer(remoteToken);
+        return () => {
+            clearInterval(checkToken);
+            websocket.unsubscribeMessage(MessageType.TEST, handler);
+        };
+    }, [websocket, peerConnectionManager]);
 
-        void navigate("/share");
+    const connectToPeer = () => {
+        const successfullySent =
+            peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
+
+        if (successfullySent) {
+            waitingDialog.current!.showModal();
+        }
+    };
+
+    // Shows a loading dialog while the connection is being established
+    // Will be automatically closed by navigation to DataSharingPage
+    const showLoadingDialog = () => {
+        awaitConnectionDialog.current!.showModal();
+    };
+
+    const interruptWaiting = () => {
+        if (peerConnectionManager.cancelConnectionRequest(remoteToken)) {
+            waitingDialog.current!.close();
+        }
+    };
+
+    const declineConnection = () => {
+        // console.log(`NO ${remoteTokenOfRequestingPeer}`);
+
+        confirmDialog.current!.close();
+
+        assert(remoteTokenOfRequestingPeer, "Remote token is not set.");
+        peerConnectionManager.rejectConnectionRequest(
+            remoteTokenOfRequestingPeer
+        );
+    };
+
+    const confirmConnection = () => {
+        // console.log(`YES ${remoteTokenOfRequestingPeer}`);
+
+        confirmDialog.current!.close();
+
+        assert(remoteTokenOfRequestingPeer, "Remote token is not set.");
+        peerConnectionManager.acceptConnectionRequest(
+            remoteTokenOfRequestingPeer
+        );
+
+        showLoadingDialog();
     };
 
     return (
@@ -151,6 +197,17 @@ export default function LandingPage() {
                 </div>
                 <div>Anderes Token eingeben, um Verbindung aufzubauen</div>
             </div>
+            <WaitingDialog
+                ref={waitingDialog}
+                onCancel={() => interruptWaiting()}
+            />
+            <ConfirmDialog
+                ref={confirmDialog}
+                onCancel={() => declineConnection()}
+                onConfirm={() => confirmConnection()}
+                token={remoteTokenOfRequestingPeer}
+            />
+            <AwaitConnectionDialog ref={awaitConnectionDialog} />
         </div>
     );
 }

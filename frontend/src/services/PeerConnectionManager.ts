@@ -1,5 +1,4 @@
 import { assert } from "../util/Assert";
-import errorAsValue from "../util/ErrorAsValue";
 import { WebRTCConnection } from "./WebRTCConnection";
 import {
     MessageHandler,
@@ -8,240 +7,289 @@ import {
     ClientToken,
 } from "./WebSocketService";
 import { MessageType } from "./MessageType";
+import { IObservable, Observable } from "../util/observer/Observable";
+import { log, setLogEnabled } from "../util/Logger";
 
 export type RemoteTokenMessage = {
     requestID?: string;
     remoteToken: ClientToken;
 };
 
-type ErrorMessage = {
-    requestID: string;
-    description: string;
-    expected?: string;
-    actual?: string;
+type CloseConnectionMessage = {
+    requestID?: string;
+    remoteToken: ClientToken;
 };
 
-type SuccessMessage = {
-    requestID: string;
-    description: string;
+// This message is sent to a remote peer to request a connection.
+type ConnectionRequestMessage = {
+    remoteToken: ClientToken;
+};
+
+// This message is sent to the signaling server to cancel a connection request.
+type ConnectionRequestCancelledMessage = {
+    remoteToken?: ClientToken;
+};
+
+// This message is the response to a connection request. It may be successful or not.
+type ConnectionResponseMessage = {
+    accepted: boolean; // true if the connection request was accepted by the remote peer, false otherwise or if the remote peer is not available.
+    remoteToken: ClientToken;
+};
+
+// This message signals that the local client should immediately establish a WebRTC connection to the specified remote peer. Both peers will receive this message when the server decides they should connect.
+type EstablishConnectionMessage = {
+    remoteToken: ClientToken;
 };
 
 export class PeerConnectionManager {
-    private remoteToken: ClientToken | undefined;
-    private connection: WebRTCConnection | undefined;
+    private expectedRemoteToken: ClientToken | undefined; // The token of the remote peer we accept connections from.
+    private webrtcConnection: WebRTCConnection | undefined;
+
+    private readonly onConnectionResponseReceivedObservable: IObservable<boolean> =
+        new Observable<boolean>(); // Boolean is true if the connection request was accepted, false otherwise.
+    private readonly onConnectionRequestReceivedObservable: IObservable<string> =
+        new Observable<string>(); // String is the remote token of the requesting peer.
+    private readonly onConnectionRequestCancelledReceivedObservable: IObservable<string> =
+        new Observable<string>(); // String is the remote token of the requesting peer.
+
+    public setOnConnectionResponseReceivedCallback(
+        callback: (accepted: boolean) => void
+    ) {
+        this.onConnectionResponseReceivedObservable.unsubscribeAll();
+        this.onConnectionResponseReceivedObservable.subscribe(callback);
+    }
+    public setOnConnectionRequestReceivedCallback(
+        callback: (remoteToken: string) => void
+    ) {
+        this.onConnectionRequestReceivedObservable.unsubscribeAll();
+        this.onConnectionRequestReceivedObservable.subscribe(callback);
+    }
+    public setOnConnectionRequestCancelledReceivedCallback(
+        callback: (remoteToken: string) => void
+    ) {
+        this.onConnectionRequestCancelledReceivedObservable.unsubscribeAll();
+        this.onConnectionRequestCancelledReceivedObservable.subscribe(callback);
+    }
+
+    private onConnectedCallback?: () => void;
+    private onDisconnectedCallback?: () => void;
+    private onReceivedFileCallback?: (name: string, size: number) => void;
 
     public constructor(private readonly signaling: WebSocketService) {
+        setLogEnabled(false);
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         (window as any).PeerConnectionManager = this;
 
-        this.waitForRemoteClientToken();
+        this.handleConnectionEstablishmentMessage();
+
+        this.handleConnectionRequestMessage();
+
+        this.handleConnectionRequestCancelledMessage();
 
         this.waitForCloseConnectionRequest();
     }
 
-    /**
-     * Waits for the remote peer token to be received via a message of type `REMOTE_TOKEN_MESSAGE_TYPE`.
-     *
-     * This method subscribes to messages of the specified type and sets the `remoteToken` property
-     * when a message containing the remote peer token is received. Once the remote token is obtained, the
-     * subscription to the message type is automatically removed.
-     */
-    private waitForRemoteClientToken() {
-        const handleRemoteTokenMessage = (
-            message: TypedMessage<RemoteTokenMessage>
+    private handleConnectionRequestCancelledMessage() {
+        const onConnectionRequestCancelledReceived = (
+            message: TypedMessage<ConnectionRequestCancelledMessage>
         ) => {
-            console.log("Received remote token:", message.msg.remoteToken);
+            const requestingPeerToken = message.msg.remoteToken;
+            log("Received remote token:", message.msg.remoteToken);
 
-            this.remoteToken = message.msg.remoteToken;
+            if (!requestingPeerToken) {
+                console.error(
+                    "Received connection request cancelled message without remote token by server."
+                );
+                return;
+            }
 
-            // Verbindungsbestätigung muss hier hin, dass der Peer die Verbindungsanfrage akzeptieren oder ablehnen kann
-            // (später dann auch, dass falls der andere Peer den Verbindungsaufbau abbricht, dass die Anfrage hier dann auch abbricht mit
-            // einer passenden Nachricht)
-
-            this.signaling.unsubscribeMessage(
-                MessageType.REMOTE_TOKEN,
-                handleRemoteTokenMessage as MessageHandler
-            );
-
-            this.connection = new WebRTCConnection(
-                this.signaling,
-                this.remoteToken
+            this.onConnectionRequestCancelledReceivedObservable.notify(
+                requestingPeerToken
             );
         };
 
         this.signaling.subscribeMessage(
-            MessageType.REMOTE_TOKEN,
-            handleRemoteTokenMessage as MessageHandler
+            MessageType.CONNECTION_REQUEST_CANCELLED,
+            onConnectionRequestCancelledReceived as MessageHandler
         );
     }
 
     /**
-     * Stores the remote peer's token locally and sends a message with this token to the signaling server.
-     * The signaling server then swaps the `msg.remoteToken` with the sender's token, so that the recipient
-     * receives the sender's token as `msg.remoteToken`.
-     *
-     * To avoid race conditions, each request is assigned a unique `requestID`. The response messages
-     * (success or error) contain the same `requestID`, ensuring that only the response matching the request is processed.
-     * All other responses are ignored.
-     *
-     * After a successful response, all handlers for the message type `REMOTE_TOKEN_MESSAGE_TYPE` are removed.
-     *
-     * @param otherPeerToken The token of the other peer as a string.
+     * Returns true if the connection request was successfully cancelled, false otherwise.
      */
-    public async sendTokenToRemotePeer(otherPeerToken: string) {
-        const otherToken: ClientToken = otherPeerToken;
-
-        if (this.signaling.getLocalClientToken() === otherToken) {
-            console.error("Cannot send token to self:", otherToken);
-            return;
+    public cancelConnectionRequest(remoteToken: ClientToken): boolean {
+        if (!this.expectedRemoteToken) {
+            console.warn("No connection request to cancel.");
+            return false;
         }
 
-        const requestID: string = crypto.randomUUID();
-
-        const tokenMessage: TypedMessage<RemoteTokenMessage> = {
-            type: MessageType.REMOTE_TOKEN,
-            msg: {
-                requestID: requestID,
-                remoteToken: otherToken,
-            },
-        };
-
-        console.log(
-            "Created and sending TypedMessage with requestID:",
-            requestID
-        );
-
-        const [, err] = await errorAsValue(
-            this.sendMessageAndWaitForResponse(tokenMessage)
-        );
-        if (err) {
-            console.error("Error sending remote token:", err.message);
-            return;
-        }
-
-        // Verbindungsbestätigung muss hier hin, ein Fenster, bei dem er warten muss auf Bestätigung des anderen Peers
-        // (später dann auch dass er die Verbindungsanfrage abbrechne kann)
-
-        this.remoteToken = otherToken;
-
-        console.log("Sent remote token to signaling server:", otherToken);
-
-        //unsubscribe all handlers for the REMOTE_TOKEN_MESSAGE_TYPE
-        const handlersRemoteToken = this.signaling.getHandlers(
-            MessageType.REMOTE_TOKEN
-        );
-        if (handlersRemoteToken) {
-            handlersRemoteToken.forEach(handler => {
-                this.signaling.unsubscribeMessage(
-                    MessageType.REMOTE_TOKEN,
-                    handler
-                );
-            });
-
-            this.connection = new WebRTCConnection(
-                this.signaling,
-                this.remoteToken
+        if (remoteToken !== this.expectedRemoteToken) {
+            console.warn(
+                "Cannot cancel connection request to a different remote token."
             );
-
-            this.connection.testMethodDataChannelInitializier();
+            return false;
         }
-    }
 
-    /**
-     * Sends a message to the signaling server and asynchronously waits for a response.
-     *
-     * This method:
-     * - Sends the provided message (`message`) to the signaling server.
-     * - Registers temporary handlers for success and error messages (`SUCCESS_MESSAGE_TYPE` and `ERROR_MESSAGE_TYPE`).
-     * - Compares the `requestID` of incoming responses with the sent message to ensure only the matching response is processed.
-     * - Removes the handlers after receiving the matching response.
-     * - Resolves the promise with the success message or rejects it with an error message.
-     *
-     * @param message The message to send, including a unique `requestID`.
-     * @returns A promise that resolves with the response message (success or error).
-     */
-    private sendMessageAndWaitForResponse(
-        message: TypedMessage<RemoteTokenMessage>
-    ): Promise<TypedMessage<ErrorMessage | SuccessMessage>> {
-        return new Promise((resolve, reject) => {
-            const handlerResponse = (
-                response: TypedMessage<ErrorMessage | SuccessMessage>
-            ) => {
-                const requestID = message.msg.requestID;
-                if (response.msg.requestID !== requestID) {
-                    console.error(
-                        "Received response with different requestID:",
-                        response.msg.requestID,
-                        "so ignoring it"
-                    );
-                    return; // Ignore this response
-                }
-
-                console.log(
-                    "Received response with requestID:",
-                    response.msg.requestID
-                );
-
-                this.signaling.unsubscribeMessage(
-                    MessageType.SUCCESS,
-                    handlerResponse as MessageHandler
-                );
-                this.signaling.unsubscribeMessage(
-                    MessageType.ERROR,
-                    handlerResponse as MessageHandler
-                );
-
-                if (response.type == MessageType.ERROR) {
-                    reject(
-                        new Error((response.msg as ErrorMessage).description)
-                    );
-                }
-                if (response.type == MessageType.SUCCESS) {
-                    resolve(response as TypedMessage<SuccessMessage>);
-                }
+        const connectionRequestCancelMessage: TypedMessage<ConnectionRequestCancelledMessage> =
+            {
+                type: MessageType.CONNECTION_REQUEST_CANCELLED,
+                msg: {},
             };
 
-            this.signaling.subscribeMessage(
-                MessageType.SUCCESS,
-                handlerResponse as MessageHandler
-            );
-            this.signaling.subscribeMessage(
-                MessageType.ERROR,
-                handlerResponse as MessageHandler
+        this.signaling.sendMessage(connectionRequestCancelMessage);
+
+        this.expectedRemoteToken = undefined;
+
+        return true;
+    }
+
+    private handleConnectionResponseMessages() {
+        const onConnectionResponseReceived = (
+            message: TypedMessage<ConnectionResponseMessage>
+        ) => {
+            if (this.expectedRemoteToken !== message.msg.remoteToken) {
+                return;
+            }
+
+            this.signaling.unsubscribeMessage(
+                MessageType.CONNECTION_RESPONSE,
+                onConnectionResponseReceived as MessageHandler
             );
 
-            this.signaling.sendMessage(message);
-        });
+            this.onConnectionResponseReceivedObservable.notify(
+                message.msg.accepted
+            );
+        };
+
+        this.signaling.subscribeMessage(
+            MessageType.CONNECTION_RESPONSE,
+            onConnectionResponseReceived as MessageHandler
+        );
+    }
+
+    public acceptConnectionRequest(remoteToken: ClientToken) {
+        const connectionResponseMessage: TypedMessage<ConnectionResponseMessage> =
+            {
+                type: MessageType.CONNECTION_RESPONSE,
+                msg: {
+                    accepted: true,
+                    remoteToken: remoteToken,
+                },
+            };
+
+        this.signaling.sendMessage(connectionResponseMessage);
+    }
+
+    public rejectConnectionRequest(remoteToken: ClientToken) {
+        const connectionResponseMessage: TypedMessage<ConnectionResponseMessage> =
+            {
+                type: MessageType.CONNECTION_RESPONSE,
+                msg: {
+                    accepted: false,
+                    remoteToken: remoteToken,
+                },
+            };
+
+        this.signaling.sendMessage(connectionResponseMessage);
+    }
+
+    private handleConnectionRequestMessage() {
+        const onConnectionRequestReceived = (
+            message: TypedMessage<EstablishConnectionMessage>
+        ) => {
+            this.expectedRemoteToken = message.msg.remoteToken;
+
+            this.onConnectionRequestReceivedObservable.notify(
+                message.msg.remoteToken
+            );
+        };
+
+        this.signaling.subscribeMessage(
+            MessageType.CONNECTION_REQUEST,
+            onConnectionRequestReceived as MessageHandler
+        );
+    }
+
+    /**
+     * Instantly aborts the current WebRTC connection (if there is one) and establishes a new one with the remote peer.
+     */
+    private handleConnectionEstablishmentMessage() {
+        const onEstablishConnectionReceived = (
+            message: TypedMessage<EstablishConnectionMessage>
+        ) => {
+            this.closePeerConnection();
+
+            this.webrtcConnection = new WebRTCConnection(
+                this.signaling,
+                message.msg.remoteToken
+            );
+
+            this.setupListeners();
+        };
+
+        this.signaling.subscribeMessage(
+            MessageType.ESTABLISH_CONNECTION,
+            onEstablishConnectionReceived as MessageHandler
+        );
+    }
+
+    /**
+     * Returns true if the connection request was successfully sent, false otherwise.
+     */
+    public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
+        if (remoteToken.length !== 5) {
+            console.warn("Peer token must be 5 characters long.");
+            return false;
+        }
+
+        if (this.signaling.getLocalClientToken() === remoteToken) {
+            console.error("Cannot send token to self.");
+            return false;
+        }
+
+        this.expectedRemoteToken = remoteToken;
+
+        const connectionRequestMessage: TypedMessage<ConnectionRequestMessage> =
+            {
+                type: MessageType.CONNECTION_REQUEST,
+                msg: {
+                    remoteToken: remoteToken,
+                },
+            };
+
+        this.handleConnectionResponseMessages();
+
+        this.signaling.sendMessage(connectionRequestMessage);
+
+        return true;
     }
 
     /**
      * Closes the current WebRTC connection and cleans up all related resources.
-     *
-     * This method closes the active connection (if any), sends a close connection message to the remote peer,
-     * resets the `remoteToken` and `connection` properties, and starts waiting for a new remote client token.
-     * This ensures both peers close their connections and are ready for a new connection.
+     * The connection may already be closed, in which case this method does nothing because all related resources are already cleaned up.
      */
     public closePeerConnection() {
-        assert(this.connection, "No active connection to close.");
+        if (!this.webrtcConnection) {
+            return;
+        }
 
-        console.log("Closing peer connection");
+        log("Closing peer connection");
 
-        this.connection.closePeerConnection();
+        this.webrtcConnection.closePeerConnection();
 
-        const closeConnectionMessage: TypedMessage<RemoteTokenMessage> = {
+        const closeConnectionMessage: TypedMessage<CloseConnectionMessage> = {
             type: MessageType.CLOSE_CONNECTION,
             msg: {
-                remoteToken: this.remoteToken!,
+                remoteToken: this.expectedRemoteToken!,
             },
         };
 
         this.signaling.sendMessage(closeConnectionMessage);
-        console.log("Sent close connection message to signaling server");
+        log("Sent close connection message to signaling server");
 
-        this.remoteToken = undefined;
-        this.connection = undefined;
-
-        this.waitForRemoteClientToken();
+        this.expectedRemoteToken = undefined;
+        this.webrtcConnection = undefined;
     }
 
     /**
@@ -254,22 +302,18 @@ export class PeerConnectionManager {
      */
     private waitForCloseConnectionRequest() {
         const handleCloseConnectionRequest = (
-            message: TypedMessage<RemoteTokenMessage>
+            message: TypedMessage<CloseConnectionMessage>
         ) => {
-            console.log(
-                "Received close connection request:",
-                message.msg.remoteToken
-            );
+            log("Received close connection request:", message.msg.remoteToken);
 
-            assert(this.connection, "No active connection to close.");
+            assert(this.webrtcConnection, "No active connection to close.");
 
-            console.log("Closing peer connection");
+            log("Closing peer connection");
 
-            this.connection.closePeerConnection();
+            this.webrtcConnection.closePeerConnection();
 
-            this.remoteToken = undefined;
-            this.connection = undefined;
-            this.waitForRemoteClientToken();
+            this.expectedRemoteToken = undefined;
+            this.webrtcConnection = undefined;
         };
 
         this.signaling.subscribeMessage(
@@ -278,7 +322,110 @@ export class PeerConnectionManager {
         );
     }
 
+    // Sets up event listeners for WebRTCConnection and trigger corresponding callbacks
+    private setupListeners() {
+        assert(this.webrtcConnection, "PeerConnection is not initialized.");
+        this.webrtcConnection.subscribeTo("connectionstatechange", state => {
+            if (state === "connected") {
+                log(
+                    "PEERCONNECTIONMANAGER ::: state",
+                    state,
+                    "and onConnectedCallback is:",
+                    this.onConnectedCallback
+                );
+                assert(
+                    this.onConnectedCallback,
+                    "onConnectedCallback is not set."
+                );
+                this.onConnectedCallback();
+            } else if (state === "closed" || state === "disconnected") {
+                log(
+                    "PEERCONNECTIONMANAGER ::: state:",
+                    state,
+                    " and onDisconnectedCallback is:",
+                    this.onDisconnectedCallback
+                );
+                assert(
+                    this.onDisconnectedCallback,
+                    "onDisconnectedCallback is not set."
+                );
+                this.onDisconnectedCallback();
+            }
+        });
+
+        this.webrtcConnection.subscribeTo(
+            "fileMetaReceived",
+            (data: unknown) => {
+                const { name, size } = data as {
+                    name: string;
+                    size: number;
+                };
+                log(
+                    "PEERCONNECTIONMANAGER ::: Received file:",
+                    name,
+                    "of size:",
+                    size
+                );
+                assert(
+                    this.onReceivedFileCallback,
+                    "onReceivedFileCallback is not set."
+                );
+                this.onReceivedFileCallback(name, size);
+            }
+        );
+    }
+
+    /**
+     * Sets a callback to be invoked when the peer connection is established and the state changes to "connected".
+     *
+     * This method allows external components to define a callback function that will be executed when the peer connection
+     * successfully transitions to the "connected" state, indicating that the connection is ready for communication.
+     *
+     * @param cb The callback function to be called when the connection is established.
+     */
+    public setOnConnectedCallback(cb: () => void) {
+        this.onConnectedCallback = cb;
+        log(
+            "PEERCONNECTIONMANAGER ::: Set OnConnectedCallback to:",
+            this.onConnectedCallback
+        );
+    }
+
+    public setOnDisconnectedCallback(cb: () => void) {
+        this.onDisconnectedCallback = cb;
+        log(
+            "PEERCONNECTIONMANAGER ::: Set OnDisconnectedCallback to:",
+            this.onDisconnectedCallback
+        );
+    }
+
+    public setOnReceivedFileCallback(cb: (name: string, size: number) => void) {
+        this.onReceivedFileCallback = cb;
+        log(
+            "PEERCONNECTIONMANAGER ::: Set OnReceivedFileCallback to:",
+            this.onReceivedFileCallback
+        );
+    }
+
     public getConnection() {
-        return this.connection;
+        return this.webrtcConnection;
+    }
+
+    public getRemoteToken() {
+        assert(
+            this.expectedRemoteToken,
+            "Remote token is not set. Ensure you have received the remote token."
+        );
+        return this.expectedRemoteToken;
+    }
+
+    /**
+     * Sends a file to the remote peer using the underlying WebRTCConnection.
+     * Throws if no active connection exists.
+     * @param file The file to send.
+     */
+    public sendFile(file: File) {
+        assert(this.webrtcConnection, "No active connection to send file.");
+        this.webrtcConnection.sendFileOverDataChannel(file);
     }
 }
