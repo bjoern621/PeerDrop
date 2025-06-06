@@ -12,23 +12,6 @@ jobs:
     test:
         runs-on: ubuntu-latest
         name: Run Backend Database Integration Tests
-        
-        services:
-            test-postgres:
-                build:
-                    context: ./database
-                    dockerfile: Dockerfile
-                ports:
-                    - 5432:5432
-                env:
-                    POSTGRES_USER: test_user
-                    POSTGRES_PASSWORD: test_pass
-                    POSTGRES_DB: test_db
-                options: >-
-                    --health-cmd "pg_isready"
-                    --health-interval 10s
-                    --health-timeout 5s
-                    --health-retries 5
 
         env:
             DB_HOST: localhost
@@ -37,6 +20,29 @@ jobs:
             DB_DATABASE_NAME: test_db
         
         steps:
+            - name: Build Custom PostgreSQL Image
+                run: docker build -t custom-postgres ./database
+
+            - name: Run PostgreSQL Container
+                run: |
+                    docker run -d \
+                    --name test-postgres \
+                    -e POSTGRES_USER=test_user \
+                    -e POSTGRES_PASSWORD=test_pass \
+                    -e POSTGRES_DB=test_db \
+                    -p 5432:5432 \
+                    custom-postgres
+                    
+            - name: Wait for PostgreSQL
+                run: |
+                    for i in {1..10}; do
+                    if docker exec test-postgres pg_isready; then
+                        echo "Postgres is ready"
+                        break
+                    fi
+                    sleep 2
+                    done
+        
             - name: Checkout repository
               uses: actions/checkout@v4
 
