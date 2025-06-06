@@ -15,9 +15,9 @@ jobs:
 
     env:
       DB_HOST: localhost
-      DB_USERNAME: test_user
-      DB_PASSWORD: test_pass
-      DB_DATABASE_NAME: test_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: passwort
+      DB_DATABASE_NAME: peerdrop
 
     steps:
       - name: Checkout repository
@@ -33,9 +33,9 @@ jobs:
         run: |
           docker run -d \
             --name test-postgres \
-            -e POSTGRES_USER=test_user \
-            -e POSTGRES_PASSWORD=test_pass \
-            -e POSTGRES_DB=test_db \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=passwort \
+            -e POSTGRES_DB=peerdrop \
             -p 5432:5432 \
             custom-postgres
 
