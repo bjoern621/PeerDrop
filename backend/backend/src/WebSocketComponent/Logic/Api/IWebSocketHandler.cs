@@ -1,4 +1,4 @@
-using backend.WebSocketComponent.Common.DTOs.Api;
+using backend.WebSocketComponent.Common.Api.DTOs;
 using MessageType = string;
 
 namespace backend.WebSocketComponent.Logic.Api;

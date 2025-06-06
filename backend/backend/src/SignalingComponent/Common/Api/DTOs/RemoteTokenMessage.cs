@@ -1,11 +1,11 @@
 using System.Text.Json.Serialization;
-using backend.WebSocketComponent.Common.DTOs.Api;
+using backend.WebSocketComponent.Common.Api.DTOs;
 
-namespace backend.SignalingComponent.Common.DTOs;
+namespace backend.SignalingComponent.Common.Api.DTOs;
 
-public class CloseConnectionMessage : ITypedMessage
+public class RemoteTokenMessage : ITypedMessage
 {
-    public static string TypeString => "close-connection";
+    public static string TypeString => "remote-token";
 
     [JsonIgnore]
     public string InstanceTypeString => TypeString;

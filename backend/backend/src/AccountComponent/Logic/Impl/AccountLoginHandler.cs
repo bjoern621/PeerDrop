@@ -1,5 +1,5 @@
 using System.Text.Json;
-using backend.AccountComponent.Common.DTOs;
+using backend.AccountComponent.Common.Api.DTOs;
 using backend.AccountComponent.Dataaccess.Api.Repo;
 using backend.AccountComponent.Logic.Api;
 

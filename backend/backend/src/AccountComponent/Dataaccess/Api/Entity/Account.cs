@@ -1,4 +1,4 @@
-﻿using backend.AccountComponent.Common.DTOs;
+﻿using backend.AccountComponent.Common.Api.DTOs;
 
 namespace backend.AccountComponent.Dataaccess.Api.Entity;
 

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace backend.WebSocketComponent.Common.DTOs.Api;
+namespace backend.WebSocketComponent.Common.Api.DTOs;
 
 public interface ITypedMessage
 {

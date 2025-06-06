@@ -1,4 +1,4 @@
-﻿namespace backend.AccountComponent.Common.Exception;
+﻿namespace backend.AccountComponent.Common.Api.Exception;
 
 public class InvalidUsernameFormatException : System.Exception
 {

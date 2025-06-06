@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using backend.WebSocketComponent.Common.DTOs.Api;
+using backend.WebSocketComponent.Common.Api.DTOs;
 
-namespace backend.SignalingComponent.Common.DTOs;
+namespace backend.SignalingComponent.Common.Api.DTOs;
 
 public class IceCandidateMessage : ITypedMessage
 {
