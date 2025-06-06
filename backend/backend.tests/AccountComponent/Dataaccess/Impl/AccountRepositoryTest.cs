@@ -2,6 +2,7 @@
 using backend.AccountComponent.Dataaccess.Api.Repo;
 using backend.AccountComponent.Dataaccess.Impl;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace backend.tests.AccountComponent.Dataaccess.Impl;
 
@@ -34,8 +35,9 @@ public class AccountRepositoryTest
     }
     
     [TearDown]
-    public void TearDown()
+    public async Task TearDown()
     {
+        await ResetDatabaseAsync();
         _scope.Dispose();
     }
 
@@ -45,5 +47,27 @@ public class AccountRepositoryTest
         var account = new Account("testuser", "testpassword");
         var id = _accountRepository.SaveAsync(account).Result;
         Assert.That(id, Is.EqualTo(1));
+    }
+    
+    [Test]
+    public void SaveAsync_Returns_Id2()
+    {
+        var account = new Account("testuser", "testpassword");
+        var id = _accountRepository.SaveAsync(account).Result;
+        Assert.That(id, Is.EqualTo(1));
+    }
+    
+    private async Task ResetDatabaseAsync()
+    {
+        var host     = Environment.GetEnvironmentVariable("DB_HOST")!;
+        var user     = Environment.GetEnvironmentVariable("DB_USERNAME")!;
+        var pass     = Environment.GetEnvironmentVariable("DB_PASSWORD")!;
+        var database = Environment.GetEnvironmentVariable("DB_DATABASE_NAME")!;
+    
+        var connString = $"Host={host};Username={user};Password={pass};Database={database}";
+    
+        await using var dataSource = NpgsqlDataSource.Create(connString);
+        await using var cmd = dataSource.CreateCommand("TRUNCATE TABLE users RESTART IDENTITY CASCADE");
+        await cmd.ExecuteNonQueryAsync();
     }
 }
