@@ -21,7 +21,7 @@ using backend.DeviceComponent.Facade.Impl;
 using backend.DeviceComponent.Logic.Api;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Impl;
-using Microsoft.AspNetCore.Identity;
+using backend.AccountCompoment.Logic.Impl;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
@@ -50,10 +50,13 @@ builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
 builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
+builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IDeviceHandler, DeviceHandler>();
+builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 
 builder.Services.AddDistributedMemoryCache(); // For in-memory session storage (session gets deleted upon backend restart!!)
 builder.Services.AddSession(options =>

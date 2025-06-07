@@ -1,4 +1,4 @@
-using backend.AccountCompoment.Dataaccess.Api.Entity;
+using backend.AccountComponent.Dataaccess.Api.Entity;
 using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 

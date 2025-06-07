@@ -1,9 +1,5 @@
 using System;
 using System.Text.Json;
-using backend.AccountCompoment.Common.DTOs;
-using backend.AccountCompoment.Dataaccess.Api.Entity;
-using backend.AccountCompoment.Dataaccess.Api.Repo;
-using backend.AccountCompoment.Logic.Api;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using backend.DeviceComponent.Common.DTOs;
@@ -12,6 +8,8 @@ using backend.DeviceComponent.Logic.Api;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Text.RegularExpressions;
+using backend.AccountComponent.Logic.Api;
+using backend.AccountComponent.Common.Api.DTOs;
 
 namespace backend.AccountCompoment.Logic.Impl
 {

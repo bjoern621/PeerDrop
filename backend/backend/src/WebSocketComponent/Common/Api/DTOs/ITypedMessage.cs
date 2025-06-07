@@ -1,11 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
-<<<<<<<< HEAD:backend/backend/src/WebSocketComponent/Common/DTOs/Api/ITypedMessage.cs
-namespace backend.WebSocketComponent.Common.DTOs.Api;
-========
 namespace backend.WebSocketComponent.Common.Api.DTOs;
->>>>>>>> origin/main:backend/backend/src/WebSocketComponent/Common/Api/DTOs/ITypedMessage.cs
 
 public interface ITypedMessage
 {
