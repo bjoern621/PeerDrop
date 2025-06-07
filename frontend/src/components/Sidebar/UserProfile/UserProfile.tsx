@@ -44,7 +44,7 @@ export const UserProfile = () => {
 
         if (err) {
             console.error("Error fetching devices:", err);
-            return;  
+            return;
         } else if (!response.ok) {
             console.error("Error fetching devices:", response.statusText);
             return;
@@ -59,14 +59,16 @@ export const UserProfile = () => {
 
         const devicesData = responseBody as DeviceResponse;
         assert(devicesData && devicesData.devices, "Invalid device response");
-        const updatedDevices: DeviceDisplay[] = devicesData.devices.map(
-            deviceName => ({
+        const updatedDevices: DeviceDisplay[] = devicesData.devices
+            .map(deviceName => ({
                 name: deviceName.displayName,
                 current: deviceName.isCurrentDevice,
                 status: DeviceStatus.ONLINE, // Hier Status Logik einführen
             }))
             .filter(device => !device.current);
-        const isCurrentDevice = devicesData.devices.some(device => device.isCurrentDevice);
+        const isCurrentDevice = devicesData.devices.some(
+            device => device.isCurrentDevice
+        );
         setRegisterButtonDisabled(isCurrentDevice);
         setCurrentDeviceRegistered(isCurrentDevice);
         setDevices(updatedDevices);
@@ -122,7 +124,6 @@ export const UserProfile = () => {
             return;
         } else if (response.status == 400) {
             setRegisterButtonDisabled(true);
-
         } else if (!response.ok) {
             console.error("Error registering device:", response.statusText);
             return;
