@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace backend.tests.AccountComponent.Logic.Impl;
+namespace backend.tests.TestUtils;
 
 public class SessionSetup : ISession
 {

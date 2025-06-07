@@ -1,10 +1,8 @@
-﻿using System.Text;
-using System.Text.Json;
-using backend.AccountComponent.Common.Api.DTOs;
+﻿using backend.AccountComponent.Common.Api.DTOs;
 using backend.AccountComponent.Dataaccess.Api.Repo;
 using backend.AccountComponent.Logic.Api;
 using backend.AccountComponent.Logic.Impl;
-using Microsoft.AspNetCore.Http;
+using backend.tests.TestUtils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 
@@ -36,11 +34,9 @@ public class AccountLoginHandlerTest
 
         // Build the request body for login 
         var loginDto = new AccountCreateDto { DisplayName = "alice", Password = plainPassword };
-        var requestJson = JsonSerializer.Serialize(loginDto);
-        var requestStream = new MemoryStream(Encoding.UTF8.GetBytes(requestJson));
 
         // Create a shared context with a mock session
-        var context = CreateMockHttpContext(requestStream);
+        var context = HttpUtil.CreateMockHttpContext(loginDto);
 
         // Login
         var loginResult = await handler.HandleLogin(context);
@@ -57,17 +53,5 @@ public class AccountLoginHandlerTest
         Assert.That(userResultS, Is.Not.Null);
         Assert.That(userResultS.Value, Is.Not.Null);
         Assert.That(userResultS.Value.Message, Is.EqualTo("alice"));
-        
-        
     }
-
-    
-    HttpContext CreateMockHttpContext(Stream requestBodyStream)
-    {
-        var context = new DefaultHttpContext();
-        context.Request.Body = requestBodyStream;
-        context.Session = new SessionSetup();
-        return context;
-    }
-
 }

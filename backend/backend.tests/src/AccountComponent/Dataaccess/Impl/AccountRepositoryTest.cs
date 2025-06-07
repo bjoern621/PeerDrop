@@ -1,6 +1,7 @@
 ﻿using backend.AccountComponent.Dataaccess.Api.Entity;
 using backend.AccountComponent.Dataaccess.Api.Repo;
 using backend.AccountComponent.Dataaccess.Impl;
+using backend.tests.TestUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
@@ -32,7 +33,7 @@ public class AccountRepositoryTest
     {
         _scope = _serviceProvider.CreateScope();
         _accountRepository = _scope.ServiceProvider.GetRequiredService<IAccountRepository>();
-        await ResetDatabaseAsync();
+        await DatabaseUtil.ResetDatabaseAsync();
     }
     
     [TearDown]
@@ -135,19 +136,5 @@ public class AccountRepositoryTest
         // get another nonexistent account
         var nonExistentAccount2 = await _accountRepository.GetByIdAsync(2);
         Assert.That(nonExistentAccount2, Is.Null);
-    }
-    
-    private async Task ResetDatabaseAsync()
-    {
-        var host     = Environment.GetEnvironmentVariable("DB_HOST")!;
-        var user     = Environment.GetEnvironmentVariable("DB_USERNAME")!;
-        var pass     = Environment.GetEnvironmentVariable("DB_PASSWORD")!;
-        var database = Environment.GetEnvironmentVariable("DB_DATABASE_NAME")!;
-    
-        var connString = $"Host={host};Username={user};Password={pass};Database={database}";
-    
-        await using var dataSource = NpgsqlDataSource.Create(connString);
-        await using var cmd = dataSource.CreateCommand("TRUNCATE TABLE users RESTART IDENTITY CASCADE");
-        await cmd.ExecuteNonQueryAsync();
     }
 }

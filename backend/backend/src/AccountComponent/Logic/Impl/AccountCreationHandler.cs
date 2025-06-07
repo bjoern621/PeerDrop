@@ -51,7 +51,7 @@ public class AccountCreationHandler(IAccountRepository repo, IPasswordHasher has
         }
 
         // the username is already taken
-        return Results.StatusCode(StatusCodes.Status409Conflict);
+        return Results.Conflict("Username already exists.");
     }
     
     private void ValidatePasswordFormat(string password)
