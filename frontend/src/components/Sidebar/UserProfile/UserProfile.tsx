@@ -20,7 +20,6 @@ interface DeviceDisplay {
     name: string;
 }
 
-
 export const UserProfile = () => {
     const [userName, setUserName] = useState<string | null>(null);
     const [devices, setDevices] = useState<DeviceDisplay[]>([]);
@@ -32,7 +31,7 @@ export const UserProfile = () => {
 
     useEffect(() => {
         void fetchUserName();
-        fetchDevices();
+        void fetchDevices();
     }, []);
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
@@ -59,12 +58,14 @@ export const UserProfile = () => {
 
         const devicesData = responseBody as DeviceResponse;
         assert(devicesData && devicesData.devices, "Invalid device response");
-        const updatedDevices: DeviceDisplay[] = devicesData.devices.map(deviceName => ({
+        const updatedDevices: DeviceDisplay[] = devicesData.devices.map(
+            deviceName => ({
                 name: deviceName,
                 status: DeviceStatus.ONLINE, // Set your status logic here
-            }));
+            })
+        );
         setDevices(updatedDevices);
-    }
+    };
 
     const fetchUserName = async () => {
         const [response, err] = await errorAsValue(
