@@ -1,7 +1,9 @@
 import css from "./DataSharingPage.module.scss";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dragdropicon from "../../assets/dragdropicon.svg";
 import { useNavigate } from "react-router";
+import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
+import { assert } from "../../util/Assert";
 
 enum FileDirection {
     UP = "up",
@@ -16,44 +18,32 @@ interface FileDisplay {
     time: Date;
 }
 
-const mockData: FileDisplay[] = [
-    {
-        name: "Datei01-final.png",
-        direction: FileDirection.DOWN,
-        progress: 0.01,
-        size: 200_000,
-        time: new Date(),
-    },
-    {
-        name: "Datei02.pdf",
-        direction: FileDirection.DOWN,
-        progress: 1,
-        size: 147_000,
-        time: new Date(),
-    },
-    {
-        name: "File-XYZ.txt",
-        direction: FileDirection.UP,
-        progress: 0.7,
-        size: 30,
-        time: new Date(),
-    },
-    {
-        name: "super_log_filename_12345678901234567890_a\
-            bcdefghijklmnopqrstuvwxyzilename_12345678901\
-            234567890_abcdefghijklmnopqrstuvwxyz.txt",
-        direction: FileDirection.UP,
-        progress: 0.7,
-        size: 30,
-        time: new Date(),
-    },
-];
-
 export function DataSharingPage() {
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
 
-    const [files, setFiles] = useState<FileDisplay[]>(mockData);
+    const peerConnectionManager = usePeerConnectionManager();
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [files, setFiles] = useState<FileDisplay[]>([]);
+    const [partnerName, setPartnerName] = useState<string | null>(null);
+
+    useEffect(() => {
+        assert(
+            peerConnectionManager,
+            "PeerConnectionManager is not initialized."
+        );
+        if (
+            !peerConnectionManager.getConnection() ||
+            peerConnectionManager.getConnection()?.getPeerConnection()
+                .connectionState !== "connected"
+        ) {
+            void navigate("/");
+            return;
+        } else {
+            setPartnerName(peerConnectionManager.getRemoteToken());
+        }
+        peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
+    }, [peerConnectionManager, navigate]);
 
     function getSizeInHumanReadableFormat(size: number): string {
         const units = ["B", "KB", "MB", "GB", "TB"];
@@ -77,10 +67,6 @@ export function DataSharingPage() {
         );
     }
 
-    const getPartnerName = () => {
-        return "7 0 K 3 N";
-    };
-
     const onAddFile = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
 
@@ -97,10 +83,11 @@ export function DataSharingPage() {
                 size: file.size,
                 time: new Date(),
             });
+
+            peerConnectionManager.sendFile(file);
         }
 
         setFiles(prevFiles => [...prevFiles, ...newFiles]);
-        // TODO: Implement file upload logic here
 
         // Reset input to allow re-adding the same file
         if (event.target) {
@@ -108,8 +95,20 @@ export function DataSharingPage() {
         }
     };
 
+    const onReceivedFile = (name: string, size: number) => {
+        const newFile: FileDisplay = {
+            name: name,
+            direction: FileDirection.DOWN,
+            progress: 0,
+            size: size,
+            time: new Date(),
+        };
+
+        setFiles(prevFiles => [...prevFiles, newFile]);
+    };
+
     const onDisconnect = () => {
-        void navigate("/"); // Redirect to home page#
+        peerConnectionManager.closePeerConnection();
     };
 
     return (
@@ -132,7 +131,7 @@ export function DataSharingPage() {
                         Datei hinzufügen
                     </button>
                     <p className={css.headerPartnerText}>
-                        Partner: {getPartnerName()}
+                        Partner: {partnerName ?? "Unbekannt"}
                     </p>
                 </div>
                 <button
