@@ -1,0 +1,66 @@
+.dialog {
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+
+    &::backdrop {
+        backdrop-filter: blur(5px);
+    }
+
+    &:focus-visible {
+        outline: none;
+    }
+}
+
+.container {
+    border: 20px solid var(--black);
+    border-radius: 20px;
+    background-color: var(--black);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.message {
+    font-size: 1.7rem;
+    color: white;
+    margin: 0;
+    text-align: center;
+}
+
+.tokenContainer {
+    display: flex;
+    justify-content: center;
+
+    padding: 0 0.5rem;
+    background-color: black;
+    border-radius: 8px;
+}
+
+.token {
+    font-size: 2rem;
+    --spacing: 0.5rem;
+    letter-spacing: var(--spacing);
+    margin-right: calc(var(--spacing) * -1);
+
+    font-family: "Roboto Mono";
+    font-weight: lighter;
+
+    color: var(--white);
+}
+
+.buttonbar {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.button {
+    margin: 10px 10px 0 10px;
+    font-size: 1.5rem;
+    background-color: #ebebeb;
+    color: var(--black);
+    border-radius: 8px;
+    padding: 0 20px;
+}

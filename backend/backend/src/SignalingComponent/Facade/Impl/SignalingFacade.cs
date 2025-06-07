@@ -26,8 +26,14 @@ public class SignalingFacade : ISignalingFacade
 
         _webSocketHandler.SubscribeToMessageType<SdpMessage>(SdpMessage.TypeString,
             (clientId, message) => _signalingService.HandleSdpMessage(clientId, message));
-        
+
         _webSocketHandler.SubscribeToMessageType<CloseConnectionMessage>(CloseConnectionMessage.TypeString,
             (clientId, message) => _signalingService.HandleCloseConnection(clientId, message));
+
+        _webSocketHandler.SubscribeToMessageType<ConnectionRequestMessage>(ConnectionRequestMessage.TypeString, _signalingService.HandleConnectionRequest);
+
+        _webSocketHandler.SubscribeToMessageType<ConnectionResponseMessage>(ConnectionResponseMessage.TypeString, _signalingService.HandleConnectionResponse);
+
+        _webSocketHandler.SubscribeToMessageType<ConnectionRequestCancelledMessage>(ConnectionRequestCancelledMessage.TypeString, _signalingService.HandleConnectionRequestCancelled);
     }
 }

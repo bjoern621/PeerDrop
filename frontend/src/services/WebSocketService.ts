@@ -1,5 +1,6 @@
 import { assert, never } from "../util/Assert";
 import { MessageType } from "./MessageType";
+import { log, setLogEnabled } from "../util/Logger";
 
 export type MessageHandler = (typedMessage: TypedMessage<unknown>) => unknown;
 
@@ -34,13 +35,10 @@ export class WebSocketService {
      * It connects to the server.
      */
     public constructor() {
+        setLogEnabled(false); // Disable logging by default, can be enabled later if needed
         this.connectToServer();
 
         this.waitForLocalClientToken();
-
-        // WebSocketService global verfügbar machen für die Konsole im Browser (dev mode)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        (window as any).webSocketService = this;
     }
 
     private connectToServer() {
@@ -55,7 +53,7 @@ export class WebSocketService {
         assert(this.socket);
 
         this.socket.onmessage = async event => {
-            console.log("response from server: " + event.data);
+            log("response from server: " + event.data);
 
             if (typeof event.data !== "string") {
                 console.error("Invalid message data type:", typeof event.data);
@@ -87,7 +85,7 @@ export class WebSocketService {
         const handleClientTokenMessage = (
             message: TypedMessage<ClientTokenMessage>
         ) => {
-            console.log("Received client token:", message.msg.token);
+            log("Received client token:", message.msg.token);
 
             this.localToken = message.msg.token;
 
@@ -170,7 +168,7 @@ export class WebSocketService {
         assert(index != -1);
 
         handlers.splice(index, 1);
-        console.log("Unsubscribed a handler from message type:", messageType);
+        log("Unsubscribed a handler from message type:", messageType);
     }
 
     public getLocalClientToken(): ClientToken | undefined {

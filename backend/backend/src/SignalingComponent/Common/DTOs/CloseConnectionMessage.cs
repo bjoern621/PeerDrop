@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using backend.WebSocketComponent.Common.DTOs;
+using backend.WebSocketComponent.Common.DTOs.Api;
 
 namespace backend.SignalingComponent.Common.DTOs;
 
@@ -12,7 +12,7 @@ public class CloseConnectionMessage : ITypedMessage
 
     [JsonPropertyName("requestID")]
     public string? RequestId { get; set; }
-    
+
     [JsonPropertyName("remoteToken")]
     public required string RemoteToken { get; set; }
 }

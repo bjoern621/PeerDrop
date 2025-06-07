@@ -4,7 +4,12 @@ import { UserLoginDto } from "../../dtos/UserLoginDto";
 import { assert } from "../../../util/Assert";
 import css from "./Register.module.scss";
 
-export const Register = () => {
+interface RegisterProps {
+    onSwitchToLogin: () => void;
+    onLogin: () => void;
+}
+
+export const Register = ({ onSwitchToLogin, onLogin }: RegisterProps) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [passwordRepeat, setPasswordRepeat] = useState("");
@@ -75,6 +80,7 @@ export const Register = () => {
         const [response, err1] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -103,10 +109,7 @@ export const Register = () => {
             import.meta.env.VITE_BACKEND_URL
         }${newUserLocation}`;
         console.log("Benutzer registriert:", newUserEndpoint);
-    }
-
-    function onSwitchToLogin() {
-        throw new Error("Login-Funktion ist noch nicht implementiert.");
+        onLogin();
     }
 
     return (
