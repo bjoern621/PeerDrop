@@ -23,7 +23,7 @@ public class DeviceRepository : IDeviceRepository
         _dataSource = NpgsqlDataSource.Create(connString);
     }
 
-    public async Task<Guid> SaveAsync(Device device)
+    public async Task<Guid> SaveDeviceAsync(Device device)
     {
         await using var cmd = _dataSource.CreateCommand(
             "INSERT INTO devices (uuid, display_name, account_id) VALUES (@uuid, @name, @accountId)"
@@ -38,40 +38,19 @@ public class DeviceRepository : IDeviceRepository
         throw new InvalidOperationException("Insert failed.");
     }
 
-    public async Task<Device?> GetDeviceByUuidAsync(Guid uuid)
+    public async Task<List<string>> GetAllDisplayNamesForAccountAsync(int accountId)
     {
         await using var cmd = _dataSource.CreateCommand(
-            "SELECT uuid, display_name, account_id FROM devices WHERE uuid = @uuid"
-        );
-        cmd.Parameters.AddWithValue("uuid", uuid);
-
-        await using var reader = await cmd.ExecuteReaderAsync();
-        if (!await reader.ReadAsync()) return null;
-
-        return new Device(
-            reader.GetString(1),      // display_name
-            reader.GetGuid(0),        // uuid
-            reader.GetInt32(2)        // account_id
-        );
-    }
-
-    public async Task<List<Device>> GetAllForAccountAsync(int accountId)
-    {
-        await using var cmd = _dataSource.CreateCommand(
-            "SELECT uuid, display_name, account_id FROM devices WHERE account_id = @accountId"
+            "SELECT display_name FROM devices WHERE account_id = @accountId"
         );
         cmd.Parameters.AddWithValue("accountId", accountId);
 
         await using var reader = await cmd.ExecuteReaderAsync();
-        var devices = new List<Device>();
+        var devices = new List<string>();
 
         while (await reader.ReadAsync())
         {
-            devices.Add(new Device(
-                reader.GetString(1),
-                reader.GetGuid(0),
-                reader.GetInt32(2)
-            ));
+            devices.Add(reader.GetString(0));
         }
 
         return devices;

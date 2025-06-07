@@ -8,6 +8,7 @@ import errorAsValue from "../../../util/ErrorAsValue";
 import { useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
 import { LoginResponse } from "../../dtos/LoginResponse";
+import { DeviceResponse } from "../../dtos/DeviceResponse";
 
 enum DeviceStatus {
     ONLINE = "online",
@@ -19,24 +20,10 @@ interface DeviceDisplay {
     name: string;
 }
 
-const mockDevices: DeviceDisplay[] = [
-    {
-        status: DeviceStatus.ONLINE,
-        name: "MyPhone",
-    },
-    {
-        status: DeviceStatus.OFFLINE,
-        name: "Desktop-01",
-    },
-    {
-        status: DeviceStatus.ONLINE,
-        name: "Desktop-02",
-    },
-];
 
 export const UserProfile = () => {
     const [userName, setUserName] = useState<string | null>(null);
-    const [devices, setDevices] = useState<DeviceDisplay[]>(mockDevices);
+    const [devices, setDevices] = useState<DeviceDisplay[]>([]);
     const [connectedDevice, setConnectedDevice] =
         useState<DeviceDisplay | null>(null);
     const [currentDeviceRegistered, setCurrentDeviceRegistered] =
@@ -45,7 +32,39 @@ export const UserProfile = () => {
 
     useEffect(() => {
         void fetchUserName();
+        fetchDevices();
     }, []);
+    const fetchDevices = async () => {
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/login`, {
+                method: "GET",
+                credentials: "include",
+            })
+        );
+
+        if (err) {
+            console.error("Error fetching devices:", err);
+            return;
+        } else if (!response.ok) {
+            console.error("Error fetching devices:", response.statusText);
+            return;
+        }
+
+        const [responseBody, parseError] = await errorAsValue(response.json());
+
+        if (parseError) {
+            console.error("Error parsing device names:", parseError);
+            return;
+        }
+
+        const devicesData = responseBody as DeviceResponse;
+        assert(devicesData && devicesData.devices, "Invalid device response");
+        const updatedDevices: DeviceDisplay[] = devicesData.devices.map(deviceName => ({
+                name: deviceName,
+                status: DeviceStatus.ONLINE, // Set your status logic here
+            }));
+        setDevices(updatedDevices);
+    }
 
     const fetchUserName = async () => {
         const [response, err] = await errorAsValue(
@@ -78,18 +97,15 @@ export const UserProfile = () => {
 
     const registerCurrentDevice = async () => {
         setRegisterButtonDisabled(true);
-        const device = {
-            name: "Current Device",
-        };
 
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/register`, {
                 method: "POST",
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
+                    "User-Agent": navigator.userAgent,
                 },
-                body: JSON.stringify(device),
             })
         );
 

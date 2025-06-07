@@ -48,10 +48,13 @@ builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
 builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
+builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IDeviceHandler, DeviceHandler>();
+builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 
 builder.Services.AddDistributedMemoryCache(); // For in-memory session storage (session gets deleted upon backend restart!!)
 builder.Services.AddSession(options =>
@@ -60,9 +63,6 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.IdleTimeout = TimeSpan.FromDays(1); // Time for how long the (session-)cookie will be valid
 });
-builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
-builder.Services.AddScoped<IDeviceHandler, DeviceHandler>();
-builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 
 var app = builder.Build();
 
