@@ -89,7 +89,7 @@ public class AccountCreationHandlerTests
         var dto = new AccountCreateDto { DisplayName = "hi", Password = "secure123" };
         var context = HttpUtil.CreateMockHttpContext(dto);
 
-        _repoMock.Setup(r => r.GetByNameAsync("ab")).ReturnsAsync((AccountRetrieveDto?)null);
+        _repoMock.Setup(r => r.GetByNameAsync("hi")).ReturnsAsync((AccountRetrieveDto?)null);
 
         Assert.ThrowsAsync<InvalidUsernameFormatException>(async () =>
         {
@@ -103,7 +103,7 @@ public class AccountCreationHandlerTests
         var dto = new AccountCreateDto { DisplayName = "example user", Password = "secure123" };
         var context = HttpUtil.CreateMockHttpContext(dto);
 
-        _repoMock.Setup(r => r.GetByNameAsync("ab")).ReturnsAsync((AccountRetrieveDto?)null);
+        _repoMock.Setup(r => r.GetByNameAsync("example user")).ReturnsAsync((AccountRetrieveDto?)null);
 
         Assert.ThrowsAsync<InvalidUsernameFormatException>(async () =>
         {
@@ -117,7 +117,7 @@ public class AccountCreationHandlerTests
         var dto = new AccountCreateDto { DisplayName = "", Password = "secure123" };
         var context = HttpUtil.CreateMockHttpContext(dto);
 
-        _repoMock.Setup(r => r.GetByNameAsync("ab")).ReturnsAsync((AccountRetrieveDto?)null);
+        _repoMock.Setup(r => r.GetByNameAsync("")).ReturnsAsync((AccountRetrieveDto?)null);
 
         Assert.ThrowsAsync<InvalidUsernameFormatException>(async () =>
         {
