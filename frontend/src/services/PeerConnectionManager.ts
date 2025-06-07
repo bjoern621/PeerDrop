@@ -73,13 +73,15 @@ export class PeerConnectionManager {
 
     private onConnectedCallback?: () => void;
     private onDisconnectedCallback?: () => void;
-    private onReceivedFileCallback?: (name: string, size: number) => void;
+    private onReceivedFileCallback?: (
+        name: string,
+        size: number,
+        uuid: string
+    ) => void;
+    private onFileProgressCallback?: (uuid: string, progress: number) => void;
 
     public constructor(private readonly signaling: WebSocketService) {
         setLogEnabled(false);
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        (window as any).PeerConnectionManager = this;
 
         this.handleConnectionEstablishmentMessage();
 
@@ -356,9 +358,10 @@ export class PeerConnectionManager {
         this.webrtcConnection.subscribeTo(
             "fileMetaReceived",
             (data: unknown) => {
-                const { name, size } = data as {
+                const { name, size, uuid } = data as {
                     name: string;
                     size: number;
+                    uuid: string;
                 };
                 log(
                     "PEERCONNECTIONMANAGER ::: Received file:",
@@ -370,9 +373,27 @@ export class PeerConnectionManager {
                     this.onReceivedFileCallback,
                     "onReceivedFileCallback is not set."
                 );
-                this.onReceivedFileCallback(name, size);
+                this.onReceivedFileCallback(name, size, uuid);
             }
         );
+
+        this.webrtcConnection.subscribeTo("fileProgress", (data: unknown) => {
+            const { uuid, progress } = data as {
+                uuid: string;
+                progress: number;
+            };
+            log(
+                "PEERCONNECTIONMANAGER ::: File progress:",
+                uuid,
+                "with new progress:",
+                progress
+            );
+            assert(
+                this.onFileProgressCallback,
+                "onFileProgressCallback is not set."
+            );
+            this.onFileProgressCallback(uuid, progress);
+        });
     }
 
     /**
@@ -399,11 +420,23 @@ export class PeerConnectionManager {
         );
     }
 
-    public setOnReceivedFileCallback(cb: (name: string, size: number) => void) {
+    public setOnReceivedFileCallback(
+        cb: (name: string, size: number, uuid: string) => void
+    ) {
         this.onReceivedFileCallback = cb;
         log(
             "PEERCONNECTIONMANAGER ::: Set OnReceivedFileCallback to:",
             this.onReceivedFileCallback
+        );
+    }
+
+    public setOnFileProgressCallback(
+        cb: (uuid: string, progress: number) => void
+    ) {
+        this.onFileProgressCallback = cb;
+        log(
+            "PEERCONNECTIONMANAGER ::: Set OnFileProgressCallback to:",
+            this.onFileProgressCallback
         );
     }
 
@@ -424,8 +457,8 @@ export class PeerConnectionManager {
      * Throws if no active connection exists.
      * @param file The file to send.
      */
-    public sendFile(file: File) {
+    public sendFile(file: File, uuid: string) {
         assert(this.webrtcConnection, "No active connection to send file.");
-        this.webrtcConnection.sendFileOverDataChannel(file);
+        this.webrtcConnection.sendFileOverDataChannel(file, uuid);
     }
 }

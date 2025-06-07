@@ -69,7 +69,7 @@ export class WebRTCConnection {
      *
      * @param file The file to be sent to the remote peer.
      */
-    public sendFileOverDataChannel(file: File) {
+    public sendFileOverDataChannel(file: File, uuid: string) {
         log(
             `File is ${[
                 file.name,
@@ -78,9 +78,7 @@ export class WebRTCConnection {
                 file.lastModified,
             ].join(" ")}`
         );
-        const dataChannel = this.peerConnection.createDataChannel(
-            `file-${file.name}`
-        );
+        const dataChannel = this.peerConnection.createDataChannel(uuid);
 
         dataChannel.binaryType = "arraybuffer";
         const chunkSize = 16 * 1024; //16 KB
@@ -90,11 +88,14 @@ export class WebRTCConnection {
         const bufferThreshold = 1024 * 1024 * 4; // 4MB buffer threshold
         let waitingForBuffer = false;
 
+        let progressInterval: ReturnType<typeof setInterval> | null = null;
+
         dataChannel.onopen = () => {
             // Send first Metadata about the file
             const meta = JSON.stringify({
                 name: file.name,
                 size: file.size,
+                uuid: uuid,
             });
             dataChannel.send(meta);
 
@@ -130,6 +131,7 @@ export class WebRTCConnection {
                             dataChannel.send("EOF");
                             log("File sent, EOF reached, closing data channel");
                             dataChannel.close();
+                            // evtl. 100% Progress-Event senden
                         }
                     };
                     waitForBuffer();
@@ -149,6 +151,20 @@ export class WebRTCConnection {
                 }
             };
 
+            dataChannel.onclose = () => {
+                if (progressInterval) clearInterval(progressInterval);
+            };
+
+            // Progress-Interval starten
+            progressInterval = setInterval(() => {
+                const progress = Math.min(offset / file.size, 1).toFixed(2);
+
+                this.emitEvent("fileProgress", {
+                    uuid: uuid,
+                    progress: parseFloat(progress),
+                });
+            }, 100);
+
             sendNextChunk(); // Start reading and sending first chunk
         };
     }
@@ -159,23 +175,40 @@ export class WebRTCConnection {
 
             const dataChannel = event.channel;
             const receivedChunks: (ArrayBuffer | Blob)[] = [];
-            let fileMeta: { name: string; size: number } | null = null;
+            let fileMeta: { name: string; size: number; uuid: string } | null =
+                null;
             let firstMessage = true;
+            let receivedBytes = 0;
+            let progressInterval: ReturnType<typeof setInterval> | null = null;
 
             dataChannel.onmessage = event => {
                 if (firstMessage && typeof event.data === "string") {
                     fileMeta = JSON.parse(event.data) as {
                         name: string;
                         size: number;
+                        uuid: string;
                     };
                     firstMessage = false;
                     log("Received file metadata:", fileMeta);
                     this.emitEvent("fileMetaReceived", {
                         name: fileMeta.name,
                         size: fileMeta.size,
+                        uuid: fileMeta.uuid,
                     });
                     return;
                 }
+
+                // Progress-Interval starten
+                progressInterval = setInterval(() => {
+                    assert(
+                        fileMeta,
+                        "fileMeta should be defined when progress is emitted"
+                    );
+                    this.emitEvent("fileProgress", {
+                        uuid: fileMeta.uuid,
+                        progress: Math.min(receivedBytes / fileMeta.size, 1),
+                    });
+                }, 100);
 
                 if (typeof event.data === "string" && event.data === "EOF") {
                     const blob = new Blob(receivedChunks);
@@ -190,6 +223,7 @@ export class WebRTCConnection {
                     log("File downloaded");
                 } else if (event.data instanceof ArrayBuffer) {
                     receivedChunks.push(event.data);
+                    receivedBytes += event.data.byteLength;
                     log(
                         "Chunk empfangen, Größe:",
                         event.data.byteLength,
@@ -197,6 +231,7 @@ export class WebRTCConnection {
                     );
                 } else if (event.data instanceof Blob) {
                     receivedChunks.push(event.data);
+                    receivedBytes += event.data.size;
                     log(
                         "Chunk empfangen, Größe:",
                         event.data.size,
@@ -211,9 +246,11 @@ export class WebRTCConnection {
                 log("Data channel is open");
             };
             dataChannel.onclose = () => {
+                if (progressInterval) clearInterval(progressInterval);
                 log("Data channel is closed");
             };
             dataChannel.onerror = error => {
+                if (progressInterval) clearInterval(progressInterval);
                 log("Data channel error: ", error);
             };
         };
