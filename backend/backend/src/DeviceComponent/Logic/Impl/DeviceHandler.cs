@@ -157,8 +157,18 @@ namespace backend.AccountCompoment.Logic.Impl
 
             if (int.TryParse(accountId, out var parsedAccountId))
             {
+                var deviceUuid = context.Request.Cookies["deviceUuid"];
+                List<DeviceLoginDto>? devices = null;
+                if (!string.IsNullOrEmpty(deviceUuid))
+                {
+                    devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceUuid);
+                }
                 // Proceed with fetching the devices for the user
-                var devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId);
+
+                else
+                {
+                    devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId);
+                }
                 var deviceResponse = new DeviceResponse
                 {
                     Message = "success",

@@ -17,6 +17,7 @@ enum DeviceStatus {
 
 interface DeviceDisplay {
     status: DeviceStatus;
+    current: boolean;
     name: string;
 }
 
@@ -43,7 +44,7 @@ export const UserProfile = () => {
 
         if (err) {
             console.error("Error fetching devices:", err);
-            return;
+            return;  
         } else if (!response.ok) {
             console.error("Error fetching devices:", response.statusText);
             return;
@@ -60,10 +61,14 @@ export const UserProfile = () => {
         assert(devicesData && devicesData.devices, "Invalid device response");
         const updatedDevices: DeviceDisplay[] = devicesData.devices.map(
             deviceName => ({
-                name: deviceName,
-                status: DeviceStatus.ONLINE, // Set your status logic here
-            })
-        );
+                name: deviceName.displayName,
+                current: deviceName.isCurrentDevice,
+                status: DeviceStatus.ONLINE, // Hier Status Logik einführen
+            }))
+            .filter(device => !device.current);
+        const isCurrentDevice = devicesData.devices.some(device => device.isCurrentDevice);
+        setRegisterButtonDisabled(isCurrentDevice);
+        setCurrentDeviceRegistered(isCurrentDevice);
         setDevices(updatedDevices);
     };
 
@@ -115,6 +120,9 @@ export const UserProfile = () => {
         if (err) {
             console.error("Error registering device:", err);
             return;
+        } else if (response.status == 400) {
+            setRegisterButtonDisabled(true);
+
         } else if (!response.ok) {
             console.error("Error registering device:", response.statusText);
             return;

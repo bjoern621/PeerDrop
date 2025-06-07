@@ -1,6 +1,7 @@
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 using Npgsql;
+using backend.DeviceComponent.Common.DTOs;
 
 namespace backend.DeviceComponent.Dataaccess.Impl;
 
@@ -38,21 +39,26 @@ public class DeviceRepository : IDeviceRepository
         throw new InvalidOperationException("Insert failed.");
     }
 
-    public async Task<List<string>> GetAllDisplayNamesForAccountAsync(int accountId)
+    public async Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, string uuid = "1294128421414")
     {
         await using var cmd = _dataSource.CreateCommand(
-            "SELECT display_name FROM devices WHERE account_id = @accountId"
+            "SELECT uuid, display_name FROM devices WHERE account_id = @accountId"
         );
         cmd.Parameters.AddWithValue("accountId", accountId);
 
         await using var reader = await cmd.ExecuteReaderAsync();
-        var devices = new List<string>();
+        var devices = new List<DeviceLoginDto>();
 
         while (await reader.ReadAsync())
         {
-            devices.Add(reader.GetString(0));
-        }
 
+            var deviceDto = new DeviceLoginDto
+            {
+                DisplayName = reader.GetString(1),  // Get the display_name (second column)
+                IsCurrentDevice = reader.GetString(0) == uuid
+            };
+            devices.Add(deviceDto);
+        }
         return devices;
     }
 
