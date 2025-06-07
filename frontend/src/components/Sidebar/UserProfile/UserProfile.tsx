@@ -122,8 +122,6 @@ export const UserProfile = () => {
         if (err) {
             console.error("Error registering device:", err);
             return;
-        } else if (response.status == 400) {
-            setRegisterButtonDisabled(true);
         } else if (!response.ok) {
             console.error("Error registering device:", response.statusText);
             return;
