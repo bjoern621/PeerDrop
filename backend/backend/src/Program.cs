@@ -1,20 +1,21 @@
+using backend.AccountComponent.Dataaccess.Api.Repo;
+using backend.AccountComponent.Dataaccess.Impl;
+using backend.AccountComponent.Facade.Api;
+using backend.AccountComponent.Facade.Impl;
+using backend.AccountComponent.Logic.Api;
+using backend.AccountComponent.Logic.Impl;
 using Microsoft.AspNetCore.WebSockets;
-using backend.AccountCompoment.Dataaccess.Api.Repo;
-using backend.AccountCompoment.Dataaccess.Impl;
-using backend.AccountCompoment.Facade.Api;
-using backend.AccountCompoment.Facade.Impl;
-using backend.AccountCompoment.Logic.Api;
-using backend.AccountCompoment.Logic.Impl;
 using backend.CommonComponent;
 using backend.SignalingComponent.Facade.Api;
 using backend.SignalingComponent.Facade.Impl;
 using backend.SignalingComponent.Logic.Api;
 using backend.SignalingComponent.Logic.Impl;
-using backend.WebSocketComponent.Common.DTOs;
+using backend.WebSocketComponent.Common.Api.DTOs;
 using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Impl;
+using Microsoft.AspNetCore.Identity;
 using backend.DeviceComponent.Facade.Api;
 using backend.DeviceComponent.Facade.Impl;
 using backend.DeviceComponent.Logic.Api;
@@ -40,6 +41,7 @@ builder.Services.AddCors(options => options.AddPolicy(
                      .WithHeaders("Content-Type", "User-Agent")
                      .WithExposedHeaders("Location")
                      .AllowCredentials() // Required to allow session cookies
+                     .AllowCredentials() // Required to allow session cookies
         ));
 
 builder.Services.AddWebSockets(options => { });
@@ -48,13 +50,10 @@ builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
 builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
-builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-builder.Services.AddScoped<IDeviceHandler, DeviceHandler>();
-builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 
 builder.Services.AddDistributedMemoryCache(); // For in-memory session storage (session gets deleted upon backend restart!!)
 builder.Services.AddSession(options =>

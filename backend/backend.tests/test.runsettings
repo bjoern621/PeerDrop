@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <EnvironmentVariables>
+      <DB_HOST>localhost:5432</DB_HOST>
+      <DB_USERNAME>postgres</DB_USERNAME>
+      <DB_PASSWORD>passwort</DB_PASSWORD>
+      <DB_DATABASE_NAME>peerdrop</DB_DATABASE_NAME>
+    </EnvironmentVariables>
+  </RunConfiguration>
+</RunSettings>
