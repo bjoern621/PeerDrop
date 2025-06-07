@@ -1,0 +1,60 @@
+name: Database Integration Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    paths:
+      - "backend/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run Backend Database Integration Tests
+
+    env:
+      DB_HOST: localhost
+      DB_USERNAME: postgres
+      DB_PASSWORD: passwort
+      DB_DATABASE_NAME: peerdrop
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build custom Postgres image
+        run: docker build -t custom-postgres ./database
+
+      - name: Run custom Postgres container
+        run: |
+          docker run -d \
+            --name test-postgres \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=passwort \
+            -e POSTGRES_DB=peerdrop \
+            -p 5432:5432 \
+            custom-postgres
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..10}; do
+            if docker exec test-postgres pg_isready; then
+              echo "PostgreSQL is ready"
+              break
+            fi
+            echo "Waiting for PostgreSQL..."
+            sleep 3
+          done
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Run Database Integration Tests
+        run: dotnet test backend.tests --filter TestCategory=DatabaseIntegration
+        working-directory: backend

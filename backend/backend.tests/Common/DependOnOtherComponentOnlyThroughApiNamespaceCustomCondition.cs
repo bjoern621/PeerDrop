@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using ArchUnitNET.Domain;
 using ArchUnitNET.Fluent.Conditions;
 
@@ -71,7 +72,8 @@ namespace backend.tests.Common
                     if (sourceComponentName != targetComponentName)
                     {
                         string targetFullNamespace = targetType.Namespace.FullName;
-                        bool isApiDependency = targetFullNamespace.Contains("Api");
+                        Regex apiRegex = new Regex(@"\.Api(?:$|\.)");
+                        bool isApiDependency = apiRegex.IsMatch(targetFullNamespace);
 
                         if (!isApiDependency)
                         {

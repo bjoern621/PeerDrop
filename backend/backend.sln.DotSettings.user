@@ -1,4 +1,10 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2caf3d72_002Dc79e_002D4a97_002D8c2b_002D507b100f5cad/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from UnitTestStub.cs" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;ProjectFile&gt;130CF344-79E8-49CE-B71C-86CD26C03C49/d:AccountComponent/d:Logic/f:TestAccountHandler.cs&lt;/ProjectFile&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestProjectMapping/=3C792D25_002D9235_002D47C5_002D8976_002DBDB0ADBD1E00/@EntryIndexedValue">130CF344-79E8-49CE-B71C-86CD26C03C49</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestTemplateMapping/=NUnit3x/@EntryIndexedValue">db4927dd-2e12-48a7-9a84-2b7e3e31b9c8</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2caf3d72_002Dc79e_002D4a97_002D8c2b_002D507b100f5cad/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from UnitTestStub.cs" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::130CF344-79E8-49CE-B71C-86CD26C03C49::net9.0::backend.tests.SignalingComponent.Logic.Impl.SignalingServiceTest.HandleConnectionResponse_Accepted_SendsConnectionEstablishedMessages&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::130CF344-79E8-49CE-B71C-86CD26C03C49::net9.0::backend.tests.WebSocketComponent.Logic.Impl.WebSocketHandlerTests.SendMessage_SendsMessageSuccessfully_ReturnsTrue&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::130CF344-79E8-49CE-B71C-86CD26C03C49::net9.0::backend.tests.WebSocketComponent.Logic.Impl.WebSocketHandlerTests.Subscriber_Receives_Subscribed_Message_Type&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
