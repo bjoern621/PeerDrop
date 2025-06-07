@@ -18,11 +18,4 @@
             <Link>.dockerignore</Link>
         </Content>
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="src\AccountComponent\Common\Api\" />
-      <Folder Include="src\SignalingComponent\Common\Api\" />
-      <Folder Include="src\WebSocketComponent\Common\Api\" />
-    </ItemGroup>
-
 </Project>
