@@ -15,12 +15,12 @@ using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Impl;
-using backend.src.DeviceComponent.Facade.Api;
-using backend.src.DeviceComponent.Facade.Impl;
-using backend.src.DeviceComponent.Logic.Api;
-using backend.src.DeviceComponent.Dataaccess.Api.Repo;
-using backend.src.DeviceComponent.Dataaccess.Impl;
-using backend.AccountCompoment.Logic.Impl;
+using backend.DeviceComponent.Facade.Api;
+using backend.DeviceComponent.Facade.Impl;
+using backend.DeviceComponent.Logic.Api;
+using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Dataaccess.Impl;
+using backend.src.DeviceComponent.Logic.Impl;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 

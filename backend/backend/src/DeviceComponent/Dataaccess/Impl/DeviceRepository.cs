@@ -1,9 +1,9 @@
-using backend.src.DeviceComponent.Dataaccess.Api.Repo;
-using backend.src.DeviceComponent.Dataaccess.Api.Entity;
+using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Dataaccess.Api.Entity;
 using Npgsql;
-using backend.src.DeviceComponent.Common.DTOs;
+using backend.DeviceComponent.Common.DTOs;
 
-namespace backend.src.DeviceComponent.Dataaccess.Impl;
+namespace backend.DeviceComponent.Dataaccess.Impl;
 
 public class DeviceRepository : IDeviceRepository
 {

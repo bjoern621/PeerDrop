@@ -1,6 +1,6 @@
-using backend.src.DeviceComponent.Common.Validators;
+using backend.DeviceComponent.Common.Validators;
 
-namespace backend.src.DeviceComponent.Dataaccess.Api.Entity;
+namespace backend.DeviceComponent.Dataaccess.Api.Entity;
 
 public class Device
 {

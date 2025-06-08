@@ -1,4 +1,4 @@
-namespace backend.src.DeviceComponent.Common.Exception;
+namespace backend.DeviceComponent.Common.Exception;
 
 public class InvalidStringFormatException : System.Exception
 {

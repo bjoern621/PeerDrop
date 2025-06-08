@@ -1,7 +1,7 @@
-using backend.src.DeviceComponent.Facade.Api;
-using backend.src.DeviceComponent.Logic.Api;
+using backend.DeviceComponent.Facade.Api;
+using backend.DeviceComponent.Logic.Api;
 
-namespace backend.src.DeviceComponent.Facade.Impl;
+namespace backend.DeviceComponent.Facade.Impl;
 
 public class DeviceRoutes : IDeviceRoutes
 {

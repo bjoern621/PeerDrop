@@ -1,13 +1,13 @@
-using backend.src.DeviceComponent.Common.DTOs;
-using backend.src.DeviceComponent.Dataaccess.Api.Entity;
-using backend.src.DeviceComponent.Logic.Api;
-using backend.src.DeviceComponent.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Common.DTOs;
+using backend.DeviceComponent.Dataaccess.Api.Entity;
+using backend.DeviceComponent.Logic.Api;
+using backend.DeviceComponent.Dataaccess.Api.Repo;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Text.RegularExpressions;
 using backend.AccountComponent.Logic.Api;
 using backend.AccountComponent.Common.Api.DTOs;
 
-namespace backend.AccountCompoment.Logic.Impl;
+namespace backend.src.DeviceComponent.Logic.Impl;
 
 public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) : IDeviceHandler
 {
@@ -20,7 +20,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
         }
         else
         {
-            Console.WriteLine("Session Token received", sessionToken);
+            Console.WriteLine($"Session Token received {sessionToken}");
         }
         if (context.Request.Cookies.ContainsKey("deviceUuid"))
         {
@@ -30,7 +30,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
         var result = await login.HandleGetCurrentUser(context);
         if (result is Ok<LoginResponse> okResult)
         {
-            Console.WriteLine("User is logged in", okResult);
+            Console.WriteLine($"User is logged in: {okResult.Value}");
         }
         else
         {
@@ -146,7 +146,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
         }
         else
         {
-            Results.Unauthorized();
+            return Results.Unauthorized();
         }
 
         // Access the session using the sessionToken or from the session store

@@ -1,7 +1,7 @@
-using backend.src.DeviceComponent.Common.DTOs;
-using backend.src.DeviceComponent.Dataaccess.Api.Entity;
+using backend.DeviceComponent.Common.DTOs;
+using backend.DeviceComponent.Dataaccess.Api.Entity;
 
-namespace backend.src.DeviceComponent.Dataaccess.Api.Repo;
+namespace backend.DeviceComponent.Dataaccess.Api.Repo;
 
 public interface IDeviceRepository
 {

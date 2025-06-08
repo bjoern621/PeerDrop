@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace backend.src.DeviceComponent.Common.DTOs;
+namespace backend.DeviceComponent.Common.DTOs;
 
 public class DeviceLoginDto
 {

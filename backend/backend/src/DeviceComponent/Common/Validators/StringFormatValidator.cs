@@ -1,6 +1,6 @@
-using backend.src.DeviceComponent.Common.Exception;
+using backend.DeviceComponent.Common.Exception;
 
-namespace backend.src.DeviceComponent.Common.Validators;
+namespace backend.DeviceComponent.Common.Validators;
 
 public class StringFormatValidator
 {
