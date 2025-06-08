@@ -11,11 +11,11 @@ public class DeviceRepository : IDeviceRepository
 
     public DeviceRepository()
     {
-        var host     = Environment.GetEnvironmentVariable("DB_HOST")
+        var host = Environment.GetEnvironmentVariable("DB_HOST")
                        ?? throw new ApplicationException("DB_HOST not set");
-        var user     = Environment.GetEnvironmentVariable("DB_USERNAME")
+        var user = Environment.GetEnvironmentVariable("DB_USERNAME")
                        ?? throw new ApplicationException("DB_USERNAME not set");
-        var pass     = Environment.GetEnvironmentVariable("DB_PASSWORD")
+        var pass = Environment.GetEnvironmentVariable("DB_PASSWORD")
                        ?? throw new ApplicationException("DB_PASSWORD not set");
         var database = Environment.GetEnvironmentVariable("DB_DATABASE_NAME")
                        ?? throw new ApplicationException("DB_DATABASE_NAME not set");
@@ -39,7 +39,7 @@ public class DeviceRepository : IDeviceRepository
         throw new InvalidOperationException("Insert failed.");
     }
 
-    public async Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, string uuid = "1294128421414")
+    public async Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, Guid? uuid)
     {
         await using var cmd = _dataSource.CreateCommand(
             "SELECT uuid, display_name FROM devices WHERE account_id = @accountId"
@@ -49,13 +49,18 @@ public class DeviceRepository : IDeviceRepository
         await using var reader = await cmd.ExecuteReaderAsync();
         var devices = new List<DeviceLoginDto>();
 
+        if (uuid == null)
+        {
+            uuid = Guid.Parse("00000000-0000-0000-0001-294128421414"); // Never fails
+        }
+
         while (await reader.ReadAsync())
         {
 
             var deviceDto = new DeviceLoginDto
             {
                 DisplayName = reader.GetString(1),  // Get the display_name (second column)
-                IsCurrentDevice = reader.GetString(0) == uuid
+                IsCurrentDevice = reader.GetGuid(0) == uuid
             };
             devices.Add(deviceDto);
         }
