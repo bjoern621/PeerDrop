@@ -10,8 +10,7 @@ public class Device
 
     public Device(string displayName, Guid uuid, int accountId)
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            throw new ArgumentException("DisplayName cannot be null or empty.");
+        StringFormatValidator.ValidateDisplayNameFormat(displayName);
 
         _displayName = displayName;
         _uuid = uuid;
@@ -35,7 +34,7 @@ public class Device
 
     public static Device Of(string displayName, Guid uuid, int accountId)
     {
-        StringFormatValidator.ValidateStringFormat(displayName);
+        StringFormatValidator.ValidateDisplayNameFormat(displayName);
 
         return new Device(
             displayName,

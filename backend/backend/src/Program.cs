@@ -20,7 +20,7 @@ using backend.DeviceComponent.Facade.Impl;
 using backend.DeviceComponent.Logic.Api;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Impl;
-using backend.src.DeviceComponent.Logic.Impl;
+using backend.DeviceComponent.Logic.Impl;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
@@ -39,7 +39,6 @@ builder.Services.AddCors(options => options.AddPolicy(
         policyBuilder.WithOrigins(frontendOrigin)
                      .WithHeaders("Content-Type", "User-Agent")
                      .WithExposedHeaders("Location")
-                     .AllowCredentials() // Required to allow session cookies
                      .AllowCredentials() // Required to allow session cookies
         ));
 

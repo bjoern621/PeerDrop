@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using backend.AccountComponent.Logic.Api;
 using backend.AccountComponent.Common.Api.DTOs;
 
-namespace backend.src.DeviceComponent.Logic.Impl;
+namespace backend.DeviceComponent.Logic.Impl;
 
 public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) : IDeviceHandler
 {
@@ -34,7 +34,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
         }
         else
         {
-            Results.Unauthorized();
+            return Results.Unauthorized();
         }
         var accountIdCon = context.Session.GetString("UserId");
         if (int.TryParse(accountIdCon, out var accountId))
@@ -69,7 +69,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
         });
 
         // Return the UUID in the response so that it can be stored in the frontend cookie
-        return Results.Ok(new { uuid = deviceUuid });
+        return Results.Ok(new DeviceRegisterDto{ uuid = deviceUuid });
     }
 
     private string GetBrowserAndOs(string userAgent)

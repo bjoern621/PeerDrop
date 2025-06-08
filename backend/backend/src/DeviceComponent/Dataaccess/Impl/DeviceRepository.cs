@@ -62,7 +62,7 @@ public class DeviceRepository : IDeviceRepository
         return devices;
     }
 
-    public async Task<int> DeleteAsync(Guid uuid)
+    public async Task<int> DeleteAsync(string uuid)
     {
         await using var cmd = _dataSource.CreateCommand(
             "DELETE FROM devices WHERE uuid = @uuid"

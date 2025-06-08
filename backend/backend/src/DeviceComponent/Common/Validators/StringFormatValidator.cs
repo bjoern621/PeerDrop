@@ -5,11 +5,11 @@ namespace backend.DeviceComponent.Common.Validators;
 public class StringFormatValidator
 {
 
-    public static void ValidateStringFormat(string displayName)
+    public static void ValidateDisplayNameFormat(string displayName)
     {
         if (string.IsNullOrWhiteSpace(displayName) || displayName.Length < 3)
         {
-            throw new InvalidStringFormatException("Display Name must be at least 3 characters long.");
+            throw new InvalidDisplayNameException("Display Name must be at least 3 characters long.");
         }
     }
 }
