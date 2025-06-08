@@ -163,13 +163,23 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
             List<DeviceLoginDto>? devices;
             if (!string.IsNullOrEmpty(deviceUuid))
             {
-                devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceUuid);
+                Guid deviceGuid;
+                try
+                {
+                    deviceGuid = Guid.Parse(deviceUuid);
+                }
+                catch (FormatException)
+                {
+                    return Results.BadRequest("Invalid device UUID format.");
+                }
+
+                devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceGuid);
             }
             // Proceed with fetching the devices for the user
 
             else
             {
-                devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId);
+                devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, null);
             }
             var deviceResponse = new DeviceResponseDTO
             {
