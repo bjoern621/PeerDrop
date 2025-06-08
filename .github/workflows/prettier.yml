@@ -15,6 +15,9 @@ jobs:
         if: github.event_name != 'push' || github.event.pull_request == null
 
         steps:
+            - name: Dump GitHub context
+              run: echo "${{ toJson(github) }}"
+
             - name: Checkout code
               uses: actions/checkout@v4
 
