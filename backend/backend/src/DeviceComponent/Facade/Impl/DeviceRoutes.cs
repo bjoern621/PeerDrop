@@ -1,7 +1,7 @@
-using backend.DeviceComponent.Facade.Api;
-using backend.DeviceComponent.Logic.Api;
+using backend.src.DeviceComponent.Facade.Api;
+using backend.src.DeviceComponent.Logic.Api;
 
-namespace backend.DeviceComponent.Facade.Impl;
+namespace backend.src.DeviceComponent.Facade.Impl;
 
 public class DeviceRoutes : IDeviceRoutes
 {
@@ -10,7 +10,7 @@ public class DeviceRoutes : IDeviceRoutes
         app.MapPost("/device/register", (IDeviceHandler handler, HttpContext context) =>
             handler.RegisterDeviceAsync(context));
 
-        app.MapGet("/device/login", (IDeviceHandler handler, HttpContext context) =>
+        app.MapGet("/device/fetchAll", (IDeviceHandler handler, HttpContext context) =>
             handler.GetDevicesByUserAsync(context)); 
 
         return Task.CompletedTask;

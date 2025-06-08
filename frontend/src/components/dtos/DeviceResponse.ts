@@ -9,6 +9,5 @@ interface DeviceLoginDto {
 }
 
 export interface DeviceResponse {
-    message: string;
     devices: DeviceLoginDto[];
 }

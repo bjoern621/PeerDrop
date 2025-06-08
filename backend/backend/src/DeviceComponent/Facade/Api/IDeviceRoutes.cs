@@ -1,4 +1,4 @@
-namespace backend.DeviceComponent.Facade.Api;
+namespace backend.src.DeviceComponent.Facade.Api;
 
 public interface IDeviceRoutes
 {

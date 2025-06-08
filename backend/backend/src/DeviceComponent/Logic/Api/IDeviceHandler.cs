@@ -1,6 +1,6 @@
-using backend.DeviceComponent.Dataaccess.Api.Entity;
+using backend.src.DeviceComponent.Dataaccess.Api.Entity;
 
-namespace backend.DeviceComponent.Logic.Api;
+namespace backend.src.DeviceComponent.Logic.Api;
 
 public interface IDeviceHandler
 {

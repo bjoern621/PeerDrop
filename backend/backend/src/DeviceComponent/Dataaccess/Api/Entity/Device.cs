@@ -1,7 +1,6 @@
-using backend.DeviceComponent.Common.DTOs;
-using backend.DeviceComponent.Common.Exception;
+using backend.src.DeviceComponent.Common.Validators;
 
-namespace backend.DeviceComponent.Dataaccess.Api.Entity;
+namespace backend.src.DeviceComponent.Dataaccess.Api.Entity;
 
 public class Device
 {
@@ -34,22 +33,15 @@ public class Device
         return _accountId;
     }
 
-    public static Device Of(DeviceRegisterDto dto, string displayName)
+    public static Device Of(string displayName, Guid uuid, int accountId)
     {
-        ValidateDisplayNameFormat(displayName);
+        StringFormatValidator.ValidateStringFormat(displayName);
 
         return new Device(
             displayName,
-            Guid.NewGuid(),
-            dto.AccountId
+            uuid,
+            accountId
         );
     }
 
-    public static void ValidateDisplayNameFormat(string displayName)
-    {
-        if (string.IsNullOrWhiteSpace(displayName) || displayName.Length < 3)
-        {
-            throw new InvalidDisplayNameFormatException("Display Name must be at least 3 characters long.");
-        }
-    }
 }

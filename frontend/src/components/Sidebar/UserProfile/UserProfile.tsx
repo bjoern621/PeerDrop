@@ -36,7 +36,7 @@ export const UserProfile = () => {
     }, []);
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/login`, {
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/fetchAll`, {
                 method: "GET",
                 credentials: "include",
             })
