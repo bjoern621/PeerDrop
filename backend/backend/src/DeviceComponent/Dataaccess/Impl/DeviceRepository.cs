@@ -49,14 +49,9 @@ public class DeviceRepository : IDeviceRepository
 
         await using var reader = await cmd.ExecuteReaderAsync();
         var devices = new List<DeviceLoginDto>();
-        var deviceUuid = "";
-        if (uuid != Guid.Empty)
-        {
-            deviceUuid = uuid.ToString()!;
-        }
         if (uuid == Guid.Empty)
         {
-            deviceUuid  = "00000000-0000-0000-0001-294128421414"; // Never fails
+            uuid  = Guid.Parse("00000000-0000-0000-0001-294128421414"); // Never fails
         }
 
         while (await reader.ReadAsync())
@@ -65,7 +60,7 @@ public class DeviceRepository : IDeviceRepository
             var deviceDto = new DeviceLoginDto
             {
                 DisplayName = reader.GetString(1),  // Get the display_name (second column)
-                IsCurrentDevice = reader.GetString(0) == deviceUuid 
+                IsCurrentDevice = reader.GetGuid(0) == uuid
             };
             devices.Add(deviceDto);
         }
@@ -77,7 +72,7 @@ public class DeviceRepository : IDeviceRepository
         await using var cmd = _dataSource.CreateCommand(
             "DELETE FROM devices WHERE uuid = @uuid"
         );
-        cmd.Parameters.AddWithValue("uuid", uuid.ToString());
+        cmd.Parameters.AddWithValue("@uuid", uuid);
 
         return await cmd.ExecuteNonQueryAsync(); // returns number of affected rows
     }
