@@ -3,11 +3,9 @@
  * devices: List of devices that belong to the user.
  */
 
-interface DeviceLoginDto {
-    displayName: string;
-    isCurrentDevice: boolean;
-}
-
 export interface DeviceResponse {
-    devices: DeviceLoginDto[];
+    devices: {
+        displayName: string;
+        isCurrentDevice: boolean;
+    }[];
 }

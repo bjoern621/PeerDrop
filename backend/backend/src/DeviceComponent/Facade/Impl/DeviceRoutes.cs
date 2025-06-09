@@ -10,7 +10,7 @@ public class DeviceRoutes : IDeviceRoutes
         app.MapPost("/device/register", (IDeviceHandler handler, HttpContext context) =>
             handler.RegisterDeviceAsync(context));
 
-        app.MapGet("/device/fetchAll", (IDeviceHandler handler, HttpContext context) =>
+        app.MapGet("/devices", (IDeviceHandler handler, HttpContext context) =>
             handler.GetDevicesByUserAsync(context)); 
 
         return Task.CompletedTask;
