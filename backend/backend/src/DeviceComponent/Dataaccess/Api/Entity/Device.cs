@@ -1,3 +1,4 @@
+
 using backend.DeviceComponent.Common.Validators;
 
 namespace backend.DeviceComponent.Dataaccess.Api.Entity;
@@ -10,7 +11,7 @@ public class Device
 
     public Device(string displayName, Guid uuid, int accountId)
     {
-        StringFormatValidator.ValidateDisplayNameFormat(displayName);
+        DisplayNameValidator.ValidateDisplayNameFormat(displayName);
 
         _displayName = displayName;
         _uuid = uuid;
@@ -34,7 +35,7 @@ public class Device
 
     public static Device Of(string displayName, Guid uuid, int accountId)
     {
-        StringFormatValidator.ValidateDisplayNameFormat(displayName);
+        DisplayNameValidator.ValidateDisplayNameFormat(displayName);
 
         return new Device(
             displayName,

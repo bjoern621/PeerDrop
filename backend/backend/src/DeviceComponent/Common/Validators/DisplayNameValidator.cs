@@ -2,7 +2,7 @@ using backend.DeviceComponent.Common.Exception;
 
 namespace backend.DeviceComponent.Common.Validators;
 
-public class StringFormatValidator
+public class DisplayNameValidator
 {
 
     public static void ValidateDisplayNameFormat(string displayName)
