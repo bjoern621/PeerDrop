@@ -99,7 +99,7 @@ public class DeviceRepositoryTest
         var uuid2 = await _deviceRepository.SaveDeviceAsync(device2);
         Assert.That(uuid, Is.EqualTo(guid));
         Assert.That(uuid2, Is.EqualTo(guid2));
-        var deviceLoginDtos = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId);
+        var deviceLoginDtos = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, null);
         Assert.That(deviceLoginDtos, Is.Not.Null);
         Assert.Multiple(() =>
         {
@@ -116,7 +116,7 @@ public class DeviceRepositoryTest
         var account = new Account("testuser", "testpassword");
         var id = await _accountRepository.SaveAsync(account);
         Assert.That(id, Is.EqualTo(1));
-        var nonExistentDevices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2);
+        var nonExistentDevices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, null);
         Assert.That(nonExistentDevices, Is.Empty);
         
         // add some device
@@ -126,7 +126,7 @@ public class DeviceRepositoryTest
         await _deviceRepository.SaveDeviceAsync(device);
         
         // get nonexistent account again
-        var nonExistentDevices2 = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2);
+        var nonExistentDevices2 = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, null);
         Assert.That(nonExistentDevices, Is.Empty);
     }
     
@@ -142,7 +142,7 @@ public class DeviceRepositoryTest
         Guid guid = Guid.NewGuid();
         var device = new Device(displayName, guid, accountId);
         await _deviceRepository.SaveDeviceAsync(device);
-        List<DeviceLoginDto> devices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, guid.ToString());
+        List<DeviceLoginDto> devices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, guid);
         Assert.That(devices.First().IsCurrentDevice, Is.EqualTo(true));
     }
 
@@ -158,7 +158,7 @@ public class DeviceRepositoryTest
         Guid guid = Guid.NewGuid();
         var device = new Device(displayName, guid, accountId);
         await _deviceRepository.SaveDeviceAsync(device);
-        List<DeviceLoginDto> uuid = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, Guid.NewGuid().ToString());
+        List<DeviceLoginDto> uuid = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, Guid.NewGuid());
         Assert.That(uuid.ElementAt(0).IsCurrentDevice, Is.EqualTo(false));
     }
 
@@ -174,7 +174,7 @@ public class DeviceRepositoryTest
         Guid guid = Guid.NewGuid();
         var device = new Device(displayName, guid, accountId);
         var uuid = await _deviceRepository.SaveDeviceAsync(device);
-        var result = await _deviceRepository.DeleteAsync(uuid.ToString());
+        var result = await _deviceRepository.DeleteAsync(uuid);
         Assert.That(result, Is.EqualTo(1));
     }
 }

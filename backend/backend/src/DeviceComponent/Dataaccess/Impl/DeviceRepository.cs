@@ -2,6 +2,7 @@ using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 using Npgsql;
 using backend.DeviceComponent.Common.DTOs;
+using Microsoft.AspNetCore.Identity;
 
 namespace backend.DeviceComponent.Dataaccess.Impl;
 
@@ -48,10 +49,14 @@ public class DeviceRepository : IDeviceRepository
 
         await using var reader = await cmd.ExecuteReaderAsync();
         var devices = new List<DeviceLoginDto>();
-
-        if (uuid == null)
+        var deviceUuid = "";
+        if (uuid != Guid.Empty)
         {
-            uuid = Guid.Parse("00000000-0000-0000-0001-294128421414"); // Never fails
+            deviceUuid = uuid.ToString()!;
+        }
+        if (uuid == Guid.Empty)
+        {
+            deviceUuid  = "00000000-0000-0000-0001-294128421414"; // Never fails
         }
 
         while (await reader.ReadAsync())
@@ -60,19 +65,19 @@ public class DeviceRepository : IDeviceRepository
             var deviceDto = new DeviceLoginDto
             {
                 DisplayName = reader.GetString(1),  // Get the display_name (second column)
-                IsCurrentDevice = reader.GetGuid(0) == uuid
+                IsCurrentDevice = reader.GetString(0) == deviceUuid 
             };
             devices.Add(deviceDto);
         }
         return devices;
     }
 
-    public async Task<int> DeleteAsync(string uuid)
+    public async Task<int> DeleteAsync(Guid uuid)
     {
         await using var cmd = _dataSource.CreateCommand(
             "DELETE FROM devices WHERE uuid = @uuid"
         );
-        cmd.Parameters.AddWithValue("uuid", uuid);
+        cmd.Parameters.AddWithValue("uuid", uuid.ToString());
 
         return await cmd.ExecuteNonQueryAsync(); // returns number of affected rows
     }

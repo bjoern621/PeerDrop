@@ -179,7 +179,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
 
             else
             {
-                devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, null);
+                devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, Guid.Empty);
             }
             var deviceResponse = new DeviceResponseDTO
             {

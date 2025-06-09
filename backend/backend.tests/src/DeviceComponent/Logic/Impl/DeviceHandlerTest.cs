@@ -26,7 +26,7 @@ public class DeviceHandlerTests
         _deviceHandler = new DeviceHandler(_repoMock.Object, _loginHandlerMock.Object);
     }
 
-    private HttpContext CreateValidContext(string userId, Boolean inSession, string? deviceUuid = null, string userAgent = "Mozilla-Firefox")
+    private HttpContext CreateValidContext(string userId, Boolean inSession, Guid deviceUuid = default, string userAgent = "Mozilla-Firefox")
     {
         var context = HttpUtil.CreateMockHttpContext(new { });
         context.Session.SetString("UserId", userId);
@@ -35,7 +35,7 @@ public class DeviceHandlerTests
         {
             context.Request.Headers.Cookie = $".AspNetCore.Session=session123;";
         }
-        if (deviceUuid != null)
+        if (deviceUuid != Guid.Empty)
         {
             context.Request.Headers.Cookie = $".AspNetCore.Session=session123; deviceUuid={deviceUuid}";
         }
@@ -69,8 +69,9 @@ public class DeviceHandlerTests
     [Test]
     public async Task RegisterDeviceAsync_WhenDeviceAlreadyRegistered_ReturnsBadRequest()
     {
+        Guid guid = Guid.NewGuid();
         // Arrange
-        var context = CreateValidContext("6", true, deviceUuid: "already-registered");
+        var context = CreateValidContext("6", true, deviceUuid: guid);
 
         // Act
         var result = await _deviceHandler.RegisterDeviceAsync(context);
@@ -100,10 +101,11 @@ public class DeviceHandlerTests
     [Test]
     public async Task GetDevicesByUserAsync_WhenDeviceUuidProvided_ReturnsFilteredDeviceList()
     {
+        Guid guid = Guid.NewGuid();
         // Arrange
-        var context = CreateValidContext("1", true, deviceUuid: "testUuid", userAgent: "Windows Mozilla");
+        var context = CreateValidContext("1", true, deviceUuid: guid, userAgent: "Windows Mozilla");
 
-        _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, "testUuid"))
+        _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, guid))
                  .ReturnsAsync(new List<DeviceLoginDto>
                  {
                      new DeviceLoginDto { DisplayName = "Windows Mozilla", IsCurrentDevice = true }
@@ -128,7 +130,7 @@ public class DeviceHandlerTests
         // Arrange
         var context = CreateValidContext("1", true, userAgent: "Windows Mozilla");
 
-        _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, It.IsAny<string>()))
+        _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, It.IsAny<Guid>()))
             .ReturnsAsync(new List<DeviceLoginDto>
             {
                 new() { DisplayName = "Windows Mozilla", IsCurrentDevice = false },
