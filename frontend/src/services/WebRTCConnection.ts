@@ -36,7 +36,9 @@ export class WebRTCConnection {
     private ignoreOffer: boolean = false;
     private isSettingRemoteAnswerPending: boolean = false;
     private readonly polite: boolean;
-
+    // TODO:
+    // allocatet RAM from receiver freigeben bei Beendigung der Übertragung
+    // Progressbar beim Sender hängt der vom Empfänger hinterher, und die vom Empfänger geht smoother als Sender Bar
     public constructor(
         signalingChannel: WebSocketService,
         remoteToken: ClientToken
@@ -128,10 +130,14 @@ export class WebRTCConnection {
                         if (dataChannel.bufferedAmount > 0) {
                             setTimeout(waitForBuffer, 10);
                         } else {
+                            // 100% Progress-Event senden
+                            this.emitEvent("fileProgress", {
+                                uuid: uuid,
+                                progress: 1.0, // 100% progress
+                            });
                             dataChannel.send("EOF");
                             log("File sent, EOF reached, closing data channel");
                             dataChannel.close();
-                            // evtl. 100% Progress-Event senden
                         }
                     };
                     waitForBuffer();
@@ -157,11 +163,9 @@ export class WebRTCConnection {
 
             // Progress-Interval starten
             progressInterval = setInterval(() => {
-                const progress = Math.min(offset / file.size, 1).toFixed(2);
-
                 this.emitEvent("fileProgress", {
                     uuid: uuid,
-                    progress: parseFloat(progress),
+                    progress: Math.min(offset / file.size, 1).toFixed(2),
                 });
             }, 100);
 

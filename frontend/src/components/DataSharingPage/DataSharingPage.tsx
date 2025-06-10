@@ -74,7 +74,23 @@ export function DataSharingPage() {
         const filesList = event.target.files;
         if (!filesList) return;
 
-        const newFiles = new Map<string, FileDisplay>();
+        for (const file of filesList) {
+            const uuid = crypto.randomUUID();
+            const fileDisplay: FileDisplay = {
+                name: file.name,
+                direction: FileDirection.UP,
+                progress: 0,
+                size: file.size,
+                time: new Date(),
+            };
+
+            setFiles(prevFiles => new Map(prevFiles.set(uuid, fileDisplay)));
+
+            peerConnectionManager.sendFile(file, uuid);
+            console.log("DATASHARINGPAGE: sendFile triggered with uuid:", uuid);
+        }
+
+        /*        const newFiles = new Map<string, FileDisplay>();
         const fileUuidPairs: Array<[File, string]> = [];
 
         for (const file of filesList) {
@@ -100,7 +116,7 @@ export function DataSharingPage() {
 
         for (const [file, uuid] of fileUuidPairs) {
             peerConnectionManager.sendFile(file, uuid);
-        }
+        }*/
 
         // Reset input to allow re-adding the same file
         if (event.target) {
@@ -109,18 +125,18 @@ export function DataSharingPage() {
     };
 
     const onReceivedFile = (name: string, size: number, uuid: string) => {
-        setFiles(prevFiles => {
-            const newFiles = new Map(prevFiles);
-
-            newFiles.set(uuid, {
-                name: name,
-                direction: FileDirection.DOWN,
-                progress: 0,
-                size: size,
-                time: new Date(),
-            });
-            return newFiles;
-        });
+        setFiles(
+            prevFiles =>
+                new Map(
+                    prevFiles.set(uuid, {
+                        name: name,
+                        direction: FileDirection.DOWN,
+                        progress: 0,
+                        size: size,
+                        time: new Date(),
+                    })
+                )
+        );
     };
 
     const onDisconnect = () => {
@@ -149,7 +165,7 @@ export function DataSharingPage() {
             </td>
             <td className={`${css.fileTableCell} ${css.smallColumn}`}>
                 {file.direction === FileDirection.DOWN ? "↓" : "↑"}
-                {file.progress === 1 ? (
+                {file.progress >= 1 ? (
                     <span className={css.progressStatusText}>Fertig!</span>
                 ) : (
                     <progress
