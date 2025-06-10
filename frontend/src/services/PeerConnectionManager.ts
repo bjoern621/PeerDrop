@@ -8,7 +8,7 @@ import {
 } from "./WebSocketService";
 import { MessageType } from "./MessageType";
 import { IObservable, Observable } from "../util/observer/Observable";
-import { log, setLogEnabled } from "../util/Logger";
+import { Logger } from "../util/Logger";
 
 export type RemoteTokenMessage = {
     requestID?: string;
@@ -42,6 +42,8 @@ type EstablishConnectionMessage = {
 };
 
 export class PeerConnectionManager {
+    private readonly logger = new Logger("PeerConnectionManager");
+    private readonly log = (...args: unknown[]) => this.logger.log(...args);
     private expectedRemoteToken: ClientToken | undefined; // The token of the remote peer we accept connections from.
     private webrtcConnection: WebRTCConnection | undefined;
 
@@ -81,7 +83,7 @@ export class PeerConnectionManager {
     private onFileProgressCallback?: (uuid: string, progress: number) => void;
 
     public constructor(private readonly signaling: WebSocketService) {
-        setLogEnabled(false);
+        this.logger.setEnabled(false);
 
         this.handleConnectionEstablishmentMessage();
 
@@ -97,7 +99,7 @@ export class PeerConnectionManager {
             message: TypedMessage<ConnectionRequestCancelledMessage>
         ) => {
             const requestingPeerToken = message.msg.remoteToken;
-            log("Received remote token:", message.msg.remoteToken);
+            this.log("Received remote token:", message.msg.remoteToken);
 
             if (!requestingPeerToken) {
                 console.error(
@@ -276,7 +278,7 @@ export class PeerConnectionManager {
             return;
         }
 
-        log("Closing peer connection");
+        this.log("Closing peer connection");
 
         this.webrtcConnection.closePeerConnection();
 
@@ -288,7 +290,7 @@ export class PeerConnectionManager {
         };
 
         this.signaling.sendMessage(closeConnectionMessage);
-        log("Sent close connection message to signaling server");
+        this.log("Sent close connection message to signaling server");
 
         this.expectedRemoteToken = undefined;
         this.webrtcConnection = undefined;
@@ -306,11 +308,14 @@ export class PeerConnectionManager {
         const handleCloseConnectionRequest = (
             message: TypedMessage<CloseConnectionMessage>
         ) => {
-            log("Received close connection request:", message.msg.remoteToken);
+            this.log(
+                "Received close connection request:",
+                message.msg.remoteToken
+            );
 
             assert(this.webrtcConnection, "No active connection to close.");
 
-            log("Closing peer connection");
+            this.log("Closing peer connection");
 
             this.webrtcConnection.closePeerConnection();
 
@@ -329,7 +334,7 @@ export class PeerConnectionManager {
         assert(this.webrtcConnection, "PeerConnection is not initialized.");
         this.webrtcConnection.subscribeTo("connectionstatechange", state => {
             if (state === "connected") {
-                log(
+                this.log(
                     "PEERCONNECTIONMANAGER ::: state",
                     state,
                     "and onConnectedCallback is:",
@@ -341,7 +346,7 @@ export class PeerConnectionManager {
                 );
                 this.onConnectedCallback();
             } else if (state === "closed" || state === "disconnected") {
-                log(
+                this.log(
                     "PEERCONNECTIONMANAGER ::: state:",
                     state,
                     " and onDisconnectedCallback is:",
@@ -363,7 +368,7 @@ export class PeerConnectionManager {
                     size: number;
                     uuid: string;
                 };
-                log(
+                this.log(
                     "PEERCONNECTIONMANAGER ::: Received file:",
                     name,
                     "of size:",
@@ -382,7 +387,7 @@ export class PeerConnectionManager {
                 uuid: string;
                 progress: number;
             };
-            log(
+            this.log(
                 "PEERCONNECTIONMANAGER ::: File progress:",
                 uuid,
                 "with new progress:",
@@ -406,7 +411,7 @@ export class PeerConnectionManager {
      */
     public setOnConnectedCallback(cb: () => void) {
         this.onConnectedCallback = cb;
-        log(
+        this.log(
             "PEERCONNECTIONMANAGER ::: Set OnConnectedCallback to:",
             this.onConnectedCallback
         );
@@ -414,7 +419,7 @@ export class PeerConnectionManager {
 
     public setOnDisconnectedCallback(cb: () => void) {
         this.onDisconnectedCallback = cb;
-        log(
+        this.log(
             "PEERCONNECTIONMANAGER ::: Set OnDisconnectedCallback to:",
             this.onDisconnectedCallback
         );
@@ -424,7 +429,7 @@ export class PeerConnectionManager {
         cb: (name: string, size: number, uuid: string) => void
     ) {
         this.onReceivedFileCallback = cb;
-        log(
+        this.log(
             "PEERCONNECTIONMANAGER ::: Set OnReceivedFileCallback to:",
             this.onReceivedFileCallback
         );
@@ -434,7 +439,7 @@ export class PeerConnectionManager {
         cb: (uuid: string, progress: number) => void
     ) {
         this.onFileProgressCallback = cb;
-        log(
+        this.log(
             "PEERCONNECTIONMANAGER ::: Set OnFileProgressCallback to:",
             this.onFileProgressCallback
         );

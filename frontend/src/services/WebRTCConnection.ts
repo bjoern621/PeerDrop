@@ -6,7 +6,7 @@ import {
     WebSocketService,
 } from "./WebSocketService";
 import { MessageType } from "./MessageType";
-import { log, setLogEnabled } from "../util/Logger";
+import { Logger } from "../util/Logger";
 import { Observable } from "../util/observer/Observable";
 
 const iceServers: RTCConfiguration = {
@@ -24,6 +24,8 @@ export type SDPMessage = {
 };
 
 export class WebRTCConnection {
+    private readonly logger = new Logger("WebRTCConnection");
+    private readonly log = (...args: unknown[]) => this.logger.log(...args);
     private readonly remoteToken: ClientToken;
     private readonly signalingChannel: WebSocketService;
     private readonly peerConnection: RTCPeerConnection;
@@ -43,7 +45,7 @@ export class WebRTCConnection {
         signalingChannel: WebSocketService,
         remoteToken: ClientToken
     ) {
-        setLogEnabled(false); // Disable logging by default, can be enabled later if needed
+        this.logger.setEnabled(true); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
         this.polite =
@@ -72,7 +74,7 @@ export class WebRTCConnection {
      * @param file The file to be sent to the remote peer.
      */
     public sendFileOverDataChannel(file: File, uuid: string) {
-        log(
+        this.log(
             `File is ${[
                 file.name,
                 file.type,
@@ -116,7 +118,7 @@ export class WebRTCConnection {
                     // Check if buffer is getting full before sending more data
                     if (dataChannel.bufferedAmount > bufferThreshold) {
                         waitingForBuffer = true;
-                        log(
+                        this.log(
                             `Buffer full (${dataChannel.bufferedAmount} bytes), waiting...`
                         );
                         return; // Exit and wait for the bufferedamountlow event
@@ -136,7 +138,9 @@ export class WebRTCConnection {
                                 progress: 1.0, // 100% progress
                             });
                             dataChannel.send("EOF");
-                            log("File sent, EOF reached, closing data channel");
+                            this.log(
+                                "File sent, EOF reached, closing data channel"
+                            );
                             dataChannel.close();
                         }
                     };
@@ -150,7 +154,7 @@ export class WebRTCConnection {
             dataChannel.onbufferedamountlow = () => {
                 if (waitingForBuffer) {
                     waitingForBuffer = false;
-                    log(
+                    this.log(
                         `Content in buffer decreased to ${dataChannel.bufferedAmount} bytes, continuing...`
                     );
                     sendNextChunk();
@@ -175,13 +179,14 @@ export class WebRTCConnection {
 
     private setupReceivingDataChannel() {
         this.peerConnection.ondatachannel = event => {
-            log("Received data channel");
+            this.log("Received data channel");
 
             const dataChannel = event.channel;
             const receivedChunks: (ArrayBuffer | Blob)[] = [];
             let fileMeta: { name: string; size: number; uuid: string } | null =
                 null;
             let firstMessage = true;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             let receivedBytes = 0;
             let progressInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -193,26 +198,25 @@ export class WebRTCConnection {
                         uuid: string;
                     };
                     firstMessage = false;
-                    log("Received file metadata:", fileMeta);
+                    this.log("Received file metadata:", fileMeta);
                     this.emitEvent("fileMetaReceived", {
                         name: fileMeta.name,
                         size: fileMeta.size,
                         uuid: fileMeta.uuid,
                     });
+
+                    // Progress-Interval starten
+                    progressInterval = setInterval(() => {
+                        /*    this.emitEvent("fileProgress", {
+                            uuid: fileMeta!.uuid,
+                            progress: Math.min(
+                                receivedBytes / fileMeta!.size,
+                                1
+                            ),
+                        });*/
+                    }, 100);
                     return;
                 }
-
-                // Progress-Interval starten
-                progressInterval = setInterval(() => {
-                    assert(
-                        fileMeta,
-                        "fileMeta should be defined when progress is emitted"
-                    );
-                    this.emitEvent("fileProgress", {
-                        uuid: fileMeta.uuid,
-                        progress: Math.min(receivedBytes / fileMeta.size, 1),
-                    });
-                }, 100);
 
                 if (typeof event.data === "string" && event.data === "EOF") {
                     const blob = new Blob(receivedChunks);
@@ -224,11 +228,18 @@ export class WebRTCConnection {
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                    log("File downloaded");
+                    this.log("File downloaded");
+                    this.log("clearing now interval");
+                    if (progressInterval) clearInterval(progressInterval);
+                    // 100% Progress-Event senden
+                    this.emitEvent("fileProgress", {
+                        uuid: fileMeta!.uuid,
+                        progress: 1.0, // 100% progress
+                    });
                 } else if (event.data instanceof ArrayBuffer) {
                     receivedChunks.push(event.data);
                     receivedBytes += event.data.byteLength;
-                    log(
+                    this.log(
                         "Chunk empfangen, Größe:",
                         event.data.byteLength,
                         "Bytes (ArrayBuffer)"
@@ -236,26 +247,26 @@ export class WebRTCConnection {
                 } else if (event.data instanceof Blob) {
                     receivedChunks.push(event.data);
                     receivedBytes += event.data.size;
-                    log(
+                    this.log(
                         "Chunk empfangen, Größe:",
                         event.data.size,
                         "Bytes (Blob)"
                     );
                 } else {
-                    log("Unbekannter Nachrichtentyp:", event.data);
+                    this.log("Unbekannter Nachrichtentyp:", event.data);
                 }
             };
 
             dataChannel.onopen = () => {
-                log("Data channel is open");
+                this.log("Data channel is open");
             };
             dataChannel.onclose = () => {
                 if (progressInterval) clearInterval(progressInterval);
-                log("Data channel is closed");
+                this.log("Data channel is closed");
             };
             dataChannel.onerror = error => {
                 if (progressInterval) clearInterval(progressInterval);
-                log("Data channel error: ", error);
+                this.log("Data channel error: ", error);
             };
         };
     }
@@ -274,12 +285,12 @@ export class WebRTCConnection {
         this.signalingChannel.subscribeMessage(
             MessageType.ICE_CANDIDATE,
             async message => {
-                log("Received REMOTE ICE candidate message");
+                this.log("Received REMOTE ICE candidate message");
 
                 const iceCandidateMessage = message.msg as IceCandidateMessage;
                 const candidate = iceCandidateMessage.iceCandidate;
 
-                log("Adding ICE candidate");
+                this.log("Adding ICE candidate");
 
                 const [, err] = await errorAsValue(
                     this.peerConnection.addIceCandidate(candidate)
@@ -292,9 +303,9 @@ export class WebRTCConnection {
                                 this.ignoreOffer +
                                 ")"
                         );
-                        log("Error: ", err);
+                        this.log("Error: ", err);
                     } else {
-                        log(
+                        this.log(
                             "Ignoring remote ICE candidate because ignoreOffer = " +
                                 this.ignoreOffer +
                                 " and the related SDP offer was rejected"
@@ -312,7 +323,7 @@ export class WebRTCConnection {
                 const sdpMessage = message.msg as SDPMessage;
                 const description = sdpMessage.description;
 
-                log("Received SDP ", description.type, " message");
+                this.log("Received SDP ", description.type, " message");
 
                 const readyForOffer =
                     !this.makingOffer &&
@@ -325,7 +336,7 @@ export class WebRTCConnection {
                 // ignoreOffer is true, if offerCollision occurs and if this peer is impolite (ignoring SDP and all incoming ICE candidates)
                 this.ignoreOffer = !this.polite && offerCollision;
                 if (this.ignoreOffer) {
-                    log(
+                    this.log(
                         "IGNORING offer, because this peer is impolite and offerCollision occurred"
                     );
 
@@ -335,7 +346,7 @@ export class WebRTCConnection {
                 this.isSettingRemoteAnswerPending =
                     description.type === "answer";
 
-                log("Setting REMOTE DESCRIPTION");
+                this.log("Setting REMOTE DESCRIPTION");
 
                 const [,] = await errorAsValue(
                     this.peerConnection.setRemoteDescription(description)
@@ -343,8 +354,8 @@ export class WebRTCConnection {
                 this.isSettingRemoteAnswerPending = false;
 
                 if (description.type === "offer") {
-                    log("Creating ANSWER...");
-                    log("Setting LOCAL DESCRIPTION");
+                    this.log("Creating ANSWER...");
+                    this.log("Setting LOCAL DESCRIPTION");
 
                     await this.peerConnection.setLocalDescription();
                     const descriptionMessage: TypedMessage<SDPMessage> = {
@@ -355,7 +366,7 @@ export class WebRTCConnection {
                         },
                     };
 
-                    log("Sending SDP answer...");
+                    this.log("Sending SDP answer...");
 
                     this.signalingChannel.sendMessage(descriptionMessage);
                 }
@@ -365,11 +376,11 @@ export class WebRTCConnection {
 
     private handleNegotiationNeeded() {
         this.peerConnection.onnegotiationneeded = async () => {
-            log("Making SDP offer...");
+            this.log("Making SDP offer...");
 
             this.makingOffer = true;
 
-            log("Setting local description");
+            this.log("Setting local description");
 
             const [, err] = await errorAsValue(
                 this.peerConnection.setLocalDescription()
@@ -384,11 +395,11 @@ export class WebRTCConnection {
                     },
                 };
 
-                log("Sending SDP offer...");
+                this.log("Sending SDP offer...");
 
                 this.signalingChannel.sendMessage(descriptionMessage);
             } else {
-                log("Error during setting local description: ", err);
+                this.log("Error during setting local description: ", err);
             }
 
             this.makingOffer = false;
@@ -397,7 +408,7 @@ export class WebRTCConnection {
 
     private handleIncomingICECandidates() {
         this.peerConnection.onicecandidate = event => {
-            log("STUN Server ICE Candidate received, forwarding");
+            this.log("STUN Server ICE Candidate received, forwarding");
 
             if (event.candidate) {
                 const iceCandidateMessage: TypedMessage<IceCandidateMessage> = {
@@ -450,7 +461,7 @@ export class WebRTCConnection {
      */
     private setupEmittedWebRTCEvents() {
         this.peerConnection.onconnectionstatechange = ev => {
-            log("Event triggered", ev);
+            this.log("Event triggered", ev);
             this.emitEvent(
                 "connectionstatechange",
                 this.peerConnection.connectionState

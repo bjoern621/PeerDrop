@@ -1,6 +1,6 @@
 import { assert, never } from "../util/Assert";
 import { MessageType } from "./MessageType";
-import { log, setLogEnabled } from "../util/Logger";
+import { Logger } from "../util/Logger";
 
 export type MessageHandler = (typedMessage: TypedMessage<unknown>) => unknown;
 
@@ -21,6 +21,8 @@ export type ClientToken = string;
  * message types for event handling.
  */
 export class WebSocketService {
+    private readonly logger = new Logger("WebSocketService");
+    private readonly log = (...args: unknown[]) => this.logger.log(...args);
     // Represents the currently active WebSocket connection to the server.
     // The WebSocket connection state may be anything.
     private socket: WebSocket | undefined;
@@ -35,7 +37,7 @@ export class WebSocketService {
      * It connects to the server.
      */
     public constructor() {
-        setLogEnabled(false); // Disable logging by default, can be enabled later if needed
+        this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
         this.connectToServer();
 
         this.waitForLocalClientToken();
@@ -53,7 +55,7 @@ export class WebSocketService {
         assert(this.socket);
 
         this.socket.onmessage = async event => {
-            log("response from server: " + event.data);
+            this.log("response from server: " + event.data);
 
             if (typeof event.data !== "string") {
                 console.error("Invalid message data type:", typeof event.data);
@@ -85,7 +87,7 @@ export class WebSocketService {
         const handleClientTokenMessage = (
             message: TypedMessage<ClientTokenMessage>
         ) => {
-            log("Received client token:", message.msg.token);
+            this.log("Received client token:", message.msg.token);
 
             this.localToken = message.msg.token;
 
@@ -168,7 +170,7 @@ export class WebSocketService {
         assert(index != -1);
 
         handlers.splice(index, 1);
-        log("Unsubscribed a handler from message type:", messageType);
+        this.log("Unsubscribed a handler from message type:", messageType);
     }
 
     public getLocalClientToken(): ClientToken | undefined {
