@@ -186,7 +186,6 @@ export class WebRTCConnection {
             let fileMeta: { name: string; size: number; uuid: string } | null =
                 null;
             let firstMessage = true;
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             let receivedBytes = 0;
             let progressInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -207,13 +206,13 @@ export class WebRTCConnection {
 
                     // Progress-Interval starten
                     progressInterval = setInterval(() => {
-                        /*    this.emitEvent("fileProgress", {
+                        this.emitEvent("fileProgress", {
                             uuid: fileMeta!.uuid,
                             progress: Math.min(
                                 receivedBytes / fileMeta!.size,
                                 1
                             ),
-                        });*/
+                        });
                     }, 100);
                     return;
                 }
