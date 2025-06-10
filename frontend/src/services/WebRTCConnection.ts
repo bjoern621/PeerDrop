@@ -38,9 +38,7 @@ export class WebRTCConnection {
     private ignoreOffer: boolean = false;
     private isSettingRemoteAnswerPending: boolean = false;
     private readonly polite: boolean;
-    // TODO:
-    // allocatet RAM from receiver freigeben bei Beendigung der Übertragung
-    // Progressbar beim Sender hängt der vom Empfänger hinterher, und die vom Empfänger geht smoother als Sender Bar
+
     public constructor(
         signalingChannel: WebSocketService,
         remoteToken: ClientToken
@@ -167,9 +165,15 @@ export class WebRTCConnection {
 
             // Progress-Interval starten
             progressInterval = setInterval(() => {
+                // Tatsächlich gesendete Bytes = offset - bufferedAmount
+                const sentBytes = Math.max(
+                    offset - dataChannel.bufferedAmount,
+                    0
+                );
+                const progress = Math.min(sentBytes / file.size, 1);
                 this.emitEvent("fileProgress", {
                     uuid: uuid,
-                    progress: Math.min(offset / file.size, 1).toFixed(2),
+                    progress: progress,
                 });
             }, 100);
 
@@ -186,7 +190,6 @@ export class WebRTCConnection {
             let fileMeta: { name: string; size: number; uuid: string } | null =
                 null;
             let firstMessage = true;
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             let receivedBytes = 0;
             let progressInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -207,13 +210,13 @@ export class WebRTCConnection {
 
                     // Progress-Interval starten
                     progressInterval = setInterval(() => {
-                        /*    this.emitEvent("fileProgress", {
+                        this.emitEvent("fileProgress", {
                             uuid: fileMeta!.uuid,
                             progress: Math.min(
                                 receivedBytes / fileMeta!.size,
                                 1
                             ),
-                        });*/
+                        });
                     }, 100);
                     return;
                 }
