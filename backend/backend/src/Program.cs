@@ -15,7 +15,12 @@ using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Impl;
-using Microsoft.AspNetCore.Identity;
+using backend.DeviceComponent.Facade.Api;
+using backend.DeviceComponent.Facade.Impl;
+using backend.DeviceComponent.Logic.Api;
+using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Dataaccess.Impl;
+using backend.DeviceComponent.Logic.Impl;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
@@ -32,7 +37,7 @@ builder.Services.AddCors(options => options.AddPolicy(
     corsAllowFrontendOrigin,
     policyBuilder =>
         policyBuilder.WithOrigins(frontendOrigin)
-                     .WithHeaders("Content-Type")
+                     .WithHeaders("Content-Type", "User-Agent")
                      .WithExposedHeaders("Location")
                      .AllowCredentials() // Required to allow session cookies
         ));
@@ -43,10 +48,13 @@ builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
 builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
+builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IDeviceHandler, DeviceHandler>();
+builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 
 builder.Services.AddDistributedMemoryCache(); // For in-memory session storage (session gets deleted upon backend restart!!)
 builder.Services.AddSession(options =>
@@ -75,6 +83,8 @@ var signalingFacade = app.Services.GetRequiredService<ISignalingFacade>();
 signalingFacade.SubscribeToMessageHandlers();
 var accountRoutes = app.Services.GetRequiredService<IAccountRoutes>();
 accountRoutes.RegisterRoutes(app);
+var deviceRoutes = app.Services.GetRequiredService<IDeviceRoutes>();
+await deviceRoutes.RegisterRoutes(app);
 var webSocketHandler = app.Services.GetRequiredService<IWebSocketHandler>();
 webSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
 {
