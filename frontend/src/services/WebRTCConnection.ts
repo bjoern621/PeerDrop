@@ -130,6 +130,8 @@ export class WebRTCConnection {
                         if (dataChannel.bufferedAmount > 0) {
                             setTimeout(waitForBuffer, 10);
                         } else {
+                            if (progressInterval)
+                                clearInterval(progressInterval);
                             // 100% Progress-Event senden
                             this.emitEvent("fileProgress", {
                                 uuid: uuid,
@@ -137,7 +139,9 @@ export class WebRTCConnection {
                             });
                             dataChannel.send("EOF");
                             this.log(
-                                "File sent, EOF reached, closing data channel"
+                                "File sent for Transfer:",
+                                uuid,
+                                " EOF reached, closing data channel"
                             );
                             dataChannel.close();
                         }
@@ -228,11 +232,24 @@ export class WebRTCConnection {
                     a.href = url;
                     a.download = fileMeta?.name ?? "received-file";
                     document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    this.log("File downloaded");
-                    this.log("clearing now interval");
+
+                    // Download in die Queue legen:
+                    downloadQueue.push(() => {
+                        a.click();
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            downloadActive = false;
+                            processDownloadQueue(); // Nächsten Download starten
+                        }, 200); // 200ms warten, damit der Download sicher startet
+                    });
+                    processDownloadQueue();
+
+                    this.log(
+                        "File downloaded with TransferID:",
+                        fileMeta?.uuid
+                    );
+                    //this.log("clearing now interval");
                     if (progressInterval) clearInterval(progressInterval);
                     // 100% Progress-Event senden
                     this.emitEvent("fileProgress", {
@@ -242,30 +259,30 @@ export class WebRTCConnection {
                 } else if (event.data instanceof ArrayBuffer) {
                     receivedChunks.push(event.data);
                     receivedBytes += event.data.byteLength;
-                    this.log(
+                    /*this.log(
                         "Chunk empfangen, Größe:",
                         event.data.byteLength,
                         "Bytes (ArrayBuffer)"
-                    );
+                    );*/
                 } else if (event.data instanceof Blob) {
                     receivedChunks.push(event.data);
                     receivedBytes += event.data.size;
-                    this.log(
+                    /*this.log(
                         "Chunk empfangen, Größe:",
                         event.data.size,
                         "Bytes (Blob)"
-                    );
+                    );*/
                 } else {
                     this.log("Unbekannter Nachrichtentyp:", event.data);
                 }
             };
 
             dataChannel.onopen = () => {
-                this.log("Data channel is open");
+                //this.log("Data channel is open");
             };
             dataChannel.onclose = () => {
                 if (progressInterval) clearInterval(progressInterval);
-                this.log("Data channel is closed");
+                //this.log("Data channel is closed");
             };
             dataChannel.onerror = error => {
                 if (progressInterval) clearInterval(progressInterval);
@@ -504,4 +521,14 @@ export class WebRTCConnection {
             observable.unsubscribeAll();
         });
     }
+}
+
+const downloadQueue: (() => void)[] = [];
+let downloadActive = false;
+
+function processDownloadQueue() {
+    if (downloadActive || downloadQueue.length === 0) return;
+    downloadActive = true;
+    const nextDownload = downloadQueue.shift();
+    if (nextDownload) nextDownload();
 }
