@@ -83,7 +83,7 @@ export class PeerConnectionManager {
     private onFileProgressCallback?: (uuid: string, progress: number) => void;
 
     public constructor(private readonly signaling: WebSocketService) {
-        this.logger.setEnabled(true);
+        this.logger.setEnabled(false);
 
         this.handleConnectionEstablishmentMessage();
 

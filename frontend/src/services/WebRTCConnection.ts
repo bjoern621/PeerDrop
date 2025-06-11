@@ -43,7 +43,7 @@ export class WebRTCConnection {
         signalingChannel: WebSocketService,
         remoteToken: ClientToken
     ) {
-        this.logger.setEnabled(true); // Disable logging by default, can be enabled later if needed
+        this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
         this.polite =
@@ -259,19 +259,19 @@ export class WebRTCConnection {
                 } else if (event.data instanceof ArrayBuffer) {
                     receivedChunks.push(event.data);
                     receivedBytes += event.data.byteLength;
-                    /*this.log(
+                    this.log(
                         "Chunk empfangen, Größe:",
                         event.data.byteLength,
                         "Bytes (ArrayBuffer)"
-                    );*/
+                    );
                 } else if (event.data instanceof Blob) {
                     receivedChunks.push(event.data);
                     receivedBytes += event.data.size;
-                    /*this.log(
+                    this.log(
                         "Chunk empfangen, Größe:",
                         event.data.size,
                         "Bytes (Blob)"
-                    );*/
+                    );
                 } else {
                     this.log("Unbekannter Nachrichtentyp:", event.data);
                 }
