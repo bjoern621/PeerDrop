@@ -24,7 +24,7 @@ export function DataSharingPage() {
     const peerConnectionManager = usePeerConnectionManager();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [files, setFiles] = useState<FileDisplay[]>([]);
+    const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
     const [partnerName, setPartnerName] = useState<string | null>(null);
 
     useEffect(() => {
@@ -42,7 +42,10 @@ export function DataSharingPage() {
         } else {
             setPartnerName(peerConnectionManager.getRemoteToken());
         }
+
+        // set up callback functions
         peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
+        peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
     }, [peerConnectionManager, navigate]);
 
     function getSizeInHumanReadableFormat(size: number): string {
@@ -68,26 +71,52 @@ export function DataSharingPage() {
     }
 
     const onAddFile = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
+        const filesList = event.target.files;
+        if (!filesList) return;
 
-        if (!files) {
-            return;
+        for (const file of filesList) {
+            const uuid = crypto.randomUUID();
+            const fileDisplay: FileDisplay = {
+                name: file.name,
+                direction: FileDirection.UP,
+                progress: 0,
+                size: file.size,
+                time: new Date(),
+            };
+
+            setFiles(prevFiles => new Map(prevFiles.set(uuid, fileDisplay)));
+
+            peerConnectionManager.sendFile(file, uuid);
+            console.log("DATASHARINGPAGE: sendFile triggered with uuid:", uuid);
         }
 
-        const newFiles: FileDisplay[] = [];
-        for (const file of event.target.files!) {
-            newFiles.push({
+        /*        const newFiles = new Map<string, FileDisplay>();
+        const fileUuidPairs: Array<[File, string]> = [];
+
+        for (const file of filesList) {
+            const uuid = crypto.randomUUID();
+            newFiles.set(uuid, {
                 name: file.name,
                 direction: FileDirection.UP,
                 progress: 0,
                 size: file.size,
                 time: new Date(),
             });
-
-            peerConnectionManager.sendFile(file);
+            fileUuidPairs.push([file, uuid]);
+            console.log("DATASHARINGPAGE: sendFile triggered with uuid:", uuid);
         }
 
-        setFiles(prevFiles => [...prevFiles, ...newFiles]);
+        setFiles(prevFiles => {
+            const merged = new Map(prevFiles);
+            for (const [uuid, fileDisplay] of newFiles.entries()) {
+                merged.set(uuid, fileDisplay);
+            }
+            return merged;
+        });
+
+        for (const [file, uuid] of fileUuidPairs) {
+            peerConnectionManager.sendFile(file, uuid);
+        }*/
 
         // Reset input to allow re-adding the same file
         if (event.target) {
@@ -95,21 +124,65 @@ export function DataSharingPage() {
         }
     };
 
-    const onReceivedFile = (name: string, size: number) => {
-        const newFile: FileDisplay = {
-            name: name,
-            direction: FileDirection.DOWN,
-            progress: 0,
-            size: size,
-            time: new Date(),
-        };
-
-        setFiles(prevFiles => [...prevFiles, newFile]);
+    const onReceivedFile = (name: string, size: number, uuid: string) => {
+        setFiles(
+            prevFiles =>
+                new Map(
+                    prevFiles.set(uuid, {
+                        name: name,
+                        direction: FileDirection.DOWN,
+                        progress: 0,
+                        size: size,
+                        time: new Date(),
+                    })
+                )
+        );
     };
 
     const onDisconnect = () => {
         peerConnectionManager.closePeerConnection();
     };
+
+    const onFileProgressUpdate = (uuid: string, progress: number) => {
+        setFiles(prevFiles => {
+            const newFiles = new Map(prevFiles);
+            const file = newFiles.get(uuid);
+
+            if (file) {
+                file.progress = progress;
+                newFiles.set(uuid, file);
+            }
+
+            return newFiles;
+        });
+    };
+
+    // need to convert Map to an array for rendering
+    const fileRows = Array.from(files.entries()).map(([uuid, file]) => (
+        <tr key={uuid}>
+            <td className={`${css.fileTableCell} ${css.longColumn}`}>
+                {file.name}
+            </td>
+            <td className={`${css.fileTableCell} ${css.smallColumn}`}>
+                {file.direction === FileDirection.DOWN ? "↓" : "↑"}
+                {file.progress >= 1 ? (
+                    <span className={css.progressStatusText}>Fertig!</span>
+                ) : (
+                    <progress
+                        className={css.fileProgress}
+                        value={file.progress}
+                        max={1}
+                    />
+                )}
+            </td>
+            <td className={`${css.fileTableCell} ${css.smallColumn}`}>
+                {getSizeInHumanReadableFormat(file.size)}
+            </td>
+            <td className={`${css.fileTableCell} ${css.smallColumn}`}>
+                {getTimeInHumanReadableFormat(file.time)}
+            </td>
+        </tr>
+    ));
 
     return (
         <div className={css.container}>
@@ -170,47 +243,7 @@ export function DataSharingPage() {
                             </th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {files.map((file, index) => (
-                            <tr key={index}>
-                                <td
-                                    className={`${css.fileTableCell} ${css.longColumn}`}
-                                >
-                                    {file.name}
-                                </td>
-                                <td
-                                    className={`${css.fileTableCell} ${css.smallColumn}`}
-                                >
-                                    {file.direction === FileDirection.DOWN
-                                        ? "↓"
-                                        : "↑"}
-                                    {file.progress === 1 ? (
-                                        <span
-                                            className={css.progressStatusText}
-                                        >
-                                            Fertig!
-                                        </span>
-                                    ) : (
-                                        <progress
-                                            className={css.fileProgress}
-                                            value={file.progress}
-                                            max={1}
-                                        />
-                                    )}
-                                </td>
-                                <td
-                                    className={`${css.fileTableCell} ${css.smallColumn}`}
-                                >
-                                    {getSizeInHumanReadableFormat(file.size)}
-                                </td>
-                                <td
-                                    className={`${css.fileTableCell} ${css.smallColumn}`}
-                                >
-                                    {getTimeInHumanReadableFormat(file.time)}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
+                    <tbody>{fileRows}</tbody>
                 </table>
                 <div className={css.dropAreaTextContainer}>
                     <img

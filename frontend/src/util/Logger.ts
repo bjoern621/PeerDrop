@@ -1,11 +1,19 @@
-export let LOG_ENABLED = true;
+export class Logger {
+    private enabled = false;
+    private readonly prefix: string;
 
-export function setLogEnabled(enabled: boolean) {
-    LOG_ENABLED = enabled;
-}
+    public constructor(prefix: string, enabled = true) {
+        this.prefix = prefix;
+        this.enabled = enabled;
+    }
 
-export function log(...args: unknown[]) {
-    if (LOG_ENABLED) {
-        console.log(...args);
+    public setEnabled(enabled: boolean) {
+        this.enabled = enabled;
+    }
+
+    public log(...args: unknown[]) {
+        if (this.enabled) {
+            console.log(`[${this.prefix}]`, ...args);
+        }
     }
 }
