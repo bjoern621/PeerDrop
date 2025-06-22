@@ -120,20 +120,24 @@ export default function LandingPage() {
             waitingDialog.current!.showModal();
         }
     };
-    
+
     const copyTokenToClipboard = () => {
-    if (clientToken) {
-        navigator.clipboard.writeText(clientToken).then(() => {
-            setShowSnackbar(true);
-            if (snackbarTimeout.current) clearTimeout(snackbarTimeout.current);
-            snackbarTimeout.current = window.setTimeout(() => {
-                setShowSnackbar(false);
-            }, 3000); // hide after 3 seconds
-        }).catch(err => {
-            console.error("Failed to copy token:", err);
-        });
-    }
-};
+        if (clientToken) {
+            navigator.clipboard
+                .writeText(clientToken)
+                .then(() => {
+                    setShowSnackbar(true);
+                    if (snackbarTimeout.current)
+                        clearTimeout(snackbarTimeout.current);
+                    snackbarTimeout.current = window.setTimeout(() => {
+                        setShowSnackbar(false);
+                    }, 3000); // hide after 3 seconds
+                })
+                .catch(err => {
+                    console.error("Failed to copy token:", err);
+                });
+        }
+    };
 
     // Shows a loading dialog while the connection is being established
     // Will be automatically closed by navigation to DataSharingPage
@@ -182,13 +186,16 @@ export default function LandingPage() {
                 <div className={css.tokenHeader}>
                     <span className={css.tooltip}>Dein Token</span>
                     {clientToken && (
-                        <button onClick={copyTokenToClipboard} className={css.copyButton}>
-                        Kopieren
+                        <button
+                            onClick={copyTokenToClipboard}
+                            className={css.copyButton}
+                        >
+                            Kopieren
                         </button>
                     )}
                 </div>
                 <span className={css.token}>
-                {clientToken ? clientToken : "_____"}
+                    {clientToken ? clientToken : "_____"}
                 </span>
             </div>
             <div className={css.peerTokenContainer}>
