@@ -33,6 +33,8 @@ export default function LandingPage() {
     const waitingDialog = useRef<HTMLDialogElement | null>(null);
     const confirmDialog = useRef<HTMLDialogElement | null>(null);
     const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
+    const [showSnackbar, setShowSnackbar] = useState(false);
+    const snackbarTimeout = useRef<number | null>(null);
 
     const [remoteTokenOfRequestingPeer, setRemoteTokenOfRequestingPeer] =
         useState<string | undefined>(undefined);
@@ -118,6 +120,20 @@ export default function LandingPage() {
             waitingDialog.current!.showModal();
         }
     };
+    
+    const copyTokenToClipboard = () => {
+    if (clientToken) {
+        navigator.clipboard.writeText(clientToken).then(() => {
+            setShowSnackbar(true);
+            if (snackbarTimeout.current) clearTimeout(snackbarTimeout.current);
+            snackbarTimeout.current = window.setTimeout(() => {
+                setShowSnackbar(false);
+            }, 3000); // hide after 3 seconds
+        }).catch(err => {
+            console.error("Failed to copy token:", err);
+        });
+    }
+};
 
     // Shows a loading dialog while the connection is being established
     // Will be automatically closed by navigation to DataSharingPage
@@ -163,9 +179,16 @@ export default function LandingPage() {
                 alt="Banner Logo von PeerDrop"
             />
             <div className={css.ownTokenContainer}>
-                <span className={css.tooltip}>Dein Token</span>
+                <div className={css.tokenHeader}>
+                    <span className={css.tooltip}>Dein Token</span>
+                    {clientToken && (
+                        <button onClick={copyTokenToClipboard} className={css.copyButton}>
+                        Kopieren
+                        </button>
+                    )}
+                </div>
                 <span className={css.token}>
-                    {clientToken ? clientToken : "_____"}
+                {clientToken ? clientToken : "_____"}
                 </span>
             </div>
             <div className={css.peerTokenContainer}>
@@ -208,6 +231,11 @@ export default function LandingPage() {
                 token={remoteTokenOfRequestingPeer}
             />
             <AwaitConnectionDialog ref={awaitConnectionDialog} />
+            {showSnackbar && (
+                <div className={css.snackbar}>
+                    Token in die Zwischenablage kopiert!
+                </div>
+            )}
         </div>
     );
 }
