@@ -48,14 +48,14 @@ export const Sidebar = () => {
         );
 
         return statusData.status;
-
-        setLoggedIn(statusData.status);
     };
 
     useEffect(() => {
         void getLoggedInStatus().then(loggedIn => {
             setLoggedIn(loggedIn);
             if (loggedIn) {
+                // Has to be done like this, otherwise the sidebar
+                // automatically re-collapses if the user is not logged in
                 setIsCollapsed(false);
             }
         });
