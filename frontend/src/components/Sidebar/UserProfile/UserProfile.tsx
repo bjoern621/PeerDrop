@@ -170,14 +170,36 @@ export const UserProfile = () => {
         setDevices(devices.filter(d => d.name !== device.name));
     };
 
-    const logout = async () => {};
+    const logout = async () => {
+        console.log("Logging out...");
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/logout`, {
+                method: "POST",
+                credentials: "include",
+            })
+        );
+
+        if (err) {
+            console.error("Error logging out:", err);
+            return;
+        } else if (!response.ok) {
+            console.error("Error logging out:", response.statusText);
+            return;
+        }
+
+        // Optionally, redirect to login page or update UI
+        window.location.reload();
+    };
 
     return (
         <div className={css.container}>
             <img className={css.profilePicture} src={userIcon}></img>
             <div className={css.profileNameContainer}>
                 <h3 className={css.greeting}>Hi {userName}!</h3>
-                <button className={css.logoutButton} onClick={void logout}>
+                <button
+                    className={css.logoutButton}
+                    onClick={() => void logout()}
+                >
                     <img src={logoutIcon} alt="Logout" />
                 </button>
             </div>

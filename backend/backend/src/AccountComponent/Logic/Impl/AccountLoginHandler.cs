@@ -45,6 +45,13 @@ public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher
         return Results.Ok(new LoginResponse("Logged in successfully"));
     }
 
+    public async Task<IResult> HandleLogout(HttpContext context)
+    {
+        // Clear the session
+        context.Session.Clear();
+        return Results.Ok(new LogoutResponse("Logged out successfully"));
+    }
+
     // retrieves the current user from the session if exists, otherwise returns 401
     public async Task<IResult> HandleGetCurrentUser(HttpContext context)
     {
@@ -61,7 +68,7 @@ public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher
 
         return Results.Ok(new LoginResponse(user.DisplayName));
     }
-    
+
     public async Task<IResult> HandleGetLoggedInStatus(HttpContext context)
     {
         var userIdStr = context.Session.GetString("UserId");
