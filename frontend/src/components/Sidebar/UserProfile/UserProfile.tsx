@@ -4,6 +4,7 @@ import userIconLight from "../../../assets/account_circle_icon_light.svg";
 import deleteIcon from "../../../assets/delete_icon.svg";
 import deleteIconLight from "../../../assets/delete_icon_light.svg";
 import addIcon from "../../../assets/add_icon.svg";
+import logoutIcon from "../../../assets/logout_icon.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
 import { useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
@@ -169,10 +170,17 @@ export const UserProfile = () => {
         setDevices(devices.filter(d => d.name !== device.name));
     };
 
+    const logout = async () => {};
+
     return (
         <div className={css.container}>
             <img className={css.profilePicture} src={userIcon}></img>
-            <h3 className={css.greeting}>Hi {userName}!</h3>
+            <div className={css.profileNameContainer}>
+                <h3 className={css.greeting}>Hi {userName}!</h3>
+                <button className={css.logoutButton} onClick={void logout}>
+                    <img src={logoutIcon} alt="Logout" />
+                </button>
+            </div>
             <div className={css.registeredDevices}>
                 <h4>Registrierte Geräte</h4>
                 <ul className={css.deviceList}>
