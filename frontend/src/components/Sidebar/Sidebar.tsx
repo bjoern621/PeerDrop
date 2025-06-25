@@ -23,7 +23,7 @@ export const Sidebar = () => {
 
         if (err) {
             console.error("Fehler beim Abrufen des Login-Status:", err);
-            return;
+            return false;
         }
 
         if (!response.ok) {
@@ -31,14 +31,14 @@ export const Sidebar = () => {
                 "Fehler beim Abrufen des Login-Status:",
                 response.statusText
             );
-            return;
+            return false;
         }
 
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
             console.error("Fehler beim Parsen der Antwort:", parseError);
-            return;
+            return false;
         }
 
         const statusData = responseBody as StatusResponse;
@@ -47,11 +47,18 @@ export const Sidebar = () => {
             "Invalid user status response"
         );
 
+        return statusData.status;
+
         setLoggedIn(statusData.status);
     };
 
     useEffect(() => {
-        void getLoggedInStatus();
+        void getLoggedInStatus().then(loggedIn => {
+            setLoggedIn(loggedIn);
+            if (loggedIn) {
+                setIsCollapsed(false);
+            }
+        });
     }, []);
 
     function onCollapseSidebar() {
