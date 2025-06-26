@@ -202,6 +202,30 @@ export class PeerConnectionManager {
         const onConnectionRequestReceived = (
             message: TypedMessage<EstablishConnectionMessage>
         ) => {
+
+            //Before Processing the connection request, check if we are already in a WebRTC connection.
+            if (this.webrtcConnection && this.expectedRemoteToken) {
+                this.log(
+                    "Received connection request while already in a WebRTC connection. Sending cancel message."
+                );
+
+                const cancelMessage: TypedMessage<ConnectionResponseMessage> =
+                    {
+                        type: MessageType.CONNECTION_RESPONSE,
+                        msg: {
+                            accepted: false,
+                            remoteToken: message.msg.remoteToken,
+                        },
+                    };
+
+                this.log(
+                "Token in ConnectionRequestCancelledMessage:",
+                message.msg.remoteToken
+                );
+                this.signaling.sendMessage(cancelMessage);
+                return;
+            }
+
             this.expectedRemoteToken = message.msg.remoteToken;
 
             this.onConnectionRequestReceivedObservable.notify(
