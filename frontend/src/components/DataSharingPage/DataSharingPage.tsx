@@ -43,9 +43,18 @@ export function DataSharingPage() {
             setPartnerName(peerConnectionManager.getRemoteToken());
         }
 
+        const handleTabClose = () => {
+            // Close the peer connection when the tab is closed
+            peerConnectionManager.closePeerConnection();
+            window.removeEventListener('beforeunload', handleTabClose);
+        };
+
+        window.addEventListener("beforeunload", handleTabClose);
+
         // set up callback functions
         peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
         peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
+
     }, [peerConnectionManager, navigate]);
 
     function getSizeInHumanReadableFormat(size: number): string {
@@ -89,34 +98,6 @@ export function DataSharingPage() {
             peerConnectionManager.sendFile(file, uuid);
             console.log("DATASHARINGPAGE: sendFile triggered with uuid:", uuid);
         }
-
-        /*        const newFiles = new Map<string, FileDisplay>();
-        const fileUuidPairs: Array<[File, string]> = [];
-
-        for (const file of filesList) {
-            const uuid = crypto.randomUUID();
-            newFiles.set(uuid, {
-                name: file.name,
-                direction: FileDirection.UP,
-                progress: 0,
-                size: file.size,
-                time: new Date(),
-            });
-            fileUuidPairs.push([file, uuid]);
-            console.log("DATASHARINGPAGE: sendFile triggered with uuid:", uuid);
-        }
-
-        setFiles(prevFiles => {
-            const merged = new Map(prevFiles);
-            for (const [uuid, fileDisplay] of newFiles.entries()) {
-                merged.set(uuid, fileDisplay);
-            }
-            return merged;
-        });
-
-        for (const [file, uuid] of fileUuidPairs) {
-            peerConnectionManager.sendFile(file, uuid);
-        }*/
 
         // Reset input to allow re-adding the same file
         if (event.target) {
