@@ -134,6 +134,15 @@ export class WebSocketService {
     public sendMessage<T>(message: TypedMessage<T>) {
         assert(this.socket);
 
+        if (this.socket.readyState !== WebSocket.OPEN) {
+            this.log("WebSocket is not yet open. Delaying message send.");
+            this.socket.addEventListener("open", () => {
+                this.sendMessage(message);
+            });
+
+            return;
+        }
+
         this.socket.send(JSON.stringify(message));
     }
 
