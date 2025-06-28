@@ -34,16 +34,6 @@ export function DataSharingPage() {
     });
 
     useEffect(() => {
-        const x = new Map<string, FileDisplay>(); // Initialize files state
-        x.set("test", {
-            name: "Testfile.txt",
-            direction: FileDirection.DOWN,
-            progress: 0.42,
-            size: 123456,
-            time: new Date(),
-        });
-        setFiles(x);
-
         assert(
             peerConnectionManager,
             "PeerConnectionManager is not initialized."
