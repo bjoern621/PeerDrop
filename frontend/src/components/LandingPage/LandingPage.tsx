@@ -10,6 +10,8 @@ import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 import { MessageType } from "../../services/MessageType";
 import { useWebSocketService } from "../../context/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
+import { DeviceStatus } from "../../types/device/DeviceStatus";
+import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -101,6 +103,27 @@ export default function LandingPage() {
                 waitingDialog.current!.close();
             }
         );
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                status: DeviceStatus.ONLINE,
+            },
+        };
+        websocket.sendMessage(heartbeat);
+
+        const handleTabClose = () => {
+            const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+                type: MessageType.DEVICE_HEARTBEAT,
+                msg: {
+                    status: DeviceStatus.OFFLINE,
+                },
+            };
+            websocket.sendMessage(heartbeat);
+
+            window.removeEventListener("beforeunload", handleTabClose);
+        };
+        window.addEventListener("beforeunload", handleTabClose);
 
         console.log("LandingPage component mounted");
 
