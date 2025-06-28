@@ -12,4 +12,7 @@ public class DeviceHeartbeatMessage : ITypedMessage
 
     [JsonPropertyName("uuid")]
     public required Guid Uuid { get; set; }
+
+    [JsonPropertyName("deviceStatus")]
+    public required string DeviceStatus { get; set; } // "online", "offline", "tmp-offline"
 }

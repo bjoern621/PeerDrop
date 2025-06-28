@@ -6,21 +6,11 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using System.Text.RegularExpressions;
 using backend.AccountComponent.Logic.Api;
 using backend.AccountComponent.Common.Api.DTOs;
-using System.Collections.Concurrent;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
-public class RuntimeDeviceInformation
-{
-    public required Device Device { get; set; }
-    public DateTime LastHeartbeat { get; set; }
-}
-
 public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) : IDeviceHandler
 {
-    // Maps client tokens to device information
-    private readonly ConcurrentDictionary<string, RuntimeDeviceInformation> _activeDevices = new();
-
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
 

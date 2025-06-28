@@ -13,7 +13,7 @@ using MessageType = string;
 public class RuntimeClientInformation
 {
     public required WebSocket WebSocket { get; set; }
-    public string? UserId { get; set; }
+    public int? UserId { get; set; }
 }
 
 public class WebSocketHandler : IWebSocketHandler
@@ -37,10 +37,16 @@ public class WebSocketHandler : IWebSocketHandler
     /// </summary>
     private string AddConnection(WebSocket webSocket, HttpContext context)
     {
+        int? userId = null;
+        if (context.Session.GetString("UserId") != null && int.TryParse(context.Session.GetString("UserId"), out int parsedUserId))
+        {
+            userId = parsedUserId;
+        }
+
         var runtimeInformation = new RuntimeClientInformation
         {
             WebSocket = webSocket,
-            UserId = context.Session.GetString("UserId") // Retrieve user ID from session, may be null if not logged in
+            UserId = userId // User ID from session, may be null if not logged in
         };
 
         string clientToken;
@@ -270,7 +276,7 @@ public class WebSocketHandler : IWebSocketHandler
         }
     }
 
-    public List<string> GetClientTokensForUserId(string userId)
+    public List<string> GetClientTokensForUserId(int userId)
     {
         var clientTokens = new List<string>();
 

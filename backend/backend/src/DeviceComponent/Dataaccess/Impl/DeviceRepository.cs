@@ -59,4 +59,26 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
 
         return await cmd.ExecuteNonQueryAsync(); // returns number of affected rows
     }
+
+    public Task<Device?> GetDeviceByUuidAsync(Guid uuid)
+    {
+        return Task.Run(async () =>
+        {
+            await using var cmd = _dataSource.CreateCommand(
+                "SELECT uuid, display_name, account_id FROM devices WHERE uuid = @uuid"
+            );
+            cmd.Parameters.AddWithValue("uuid", uuid);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new Device(
+                    reader.GetString(1), // display_name
+                    reader.GetGuid(0), // uuid
+                    reader.GetInt32(2) // account_id
+                );
+            }
+            return null; // No device found with the given UUID
+        });
+    }
 }

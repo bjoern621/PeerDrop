@@ -13,5 +13,5 @@ public interface IWebSocketHandler
     public Task<bool> SendMessage(string clientToken, ITypedMessage message);
     public Task HandleConnect(HttpContext context);
     public void SubscribeToMessageType<T>(MessageType messageType, TypedMessageHandlerDelegate<T> handler);
-    public List<string> GetClientTokensForUserId(string userId);
+    public List<string> GetClientTokensForUserId(int userId);
 }
