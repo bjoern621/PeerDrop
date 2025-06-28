@@ -13,7 +13,7 @@ using MessageType = string;
 public class RuntimeClientInformation
 {
     public required WebSocket WebSocket { get; set; }
-    public int? UserId { get; set; }
+    public int? UserId { get; set; } // This is technically a violation of the single responsibility principle, but there is no other (secure) way to get the user ID from the client token.
 }
 
 public class WebSocketHandler : IWebSocketHandler
@@ -289,5 +289,15 @@ public class WebSocketHandler : IWebSocketHandler
         }
 
         return clientTokens;
+    }
+
+    public int? GetUserIdForClientToken(string clientToken)
+    {
+        if (ActiveConnections.TryGetValue(clientToken, out var runtimeInfo))
+        {
+            return runtimeInfo.UserId;
+        }
+
+        return null;
     }
 }
