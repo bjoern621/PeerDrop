@@ -57,12 +57,68 @@ export const UserProfile = () => {
         );
     }, [websocketService]);
 
+    /**
+     * Sends a heartbeat message if the user has registered the device.
+     */
+    const sendHeartbeatIfPossible = useCallback(() => {
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: deviceUuid,
+                status: DeviceStatus.ONLINE,
+            },
+        };
+
+        websocketService.sendMessage(heartbeat);
+    }, [websocketService]);
+
+    /**
+     * Sets up an event listener to send an offline heartbeat when the tab is closed.
+     */
+    const sendOfflineHeartbeat = useCallback(() => {
+        const handleTabClose = () => {
+            const deviceUuid: string | undefined = document.cookie
+                .split("; ")
+                .find(row => row.startsWith("deviceUuid="))
+                ?.split("=")[1];
+
+            if (!deviceUuid) {
+                return; // The user might not have registered the device
+            }
+
+            const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+                type: MessageType.DEVICE_HEARTBEAT,
+                msg: {
+                    uuid: deviceUuid,
+                    status: DeviceStatus.OFFLINE,
+                },
+            };
+            websocketService.sendMessage(heartbeat);
+
+            window.removeEventListener("beforeunload", handleTabClose);
+        };
+        window.addEventListener("beforeunload", handleTabClose);
+    }, [websocketService]);
+
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
 
         handleHeartbeatMessage();
-    }, [handleHeartbeatMessage]);
+
+        sendHeartbeatIfPossible();
+
+        sendOfflineHeartbeat();
+    }, [handleHeartbeatMessage, sendHeartbeatIfPossible, sendOfflineHeartbeat]);
 
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
@@ -160,37 +216,7 @@ export const UserProfile = () => {
 
         setCurrentDeviceRegistered(true);
 
-        const deviceUuid: string | undefined = document.cookie
-            .split("; ")
-            .find(row => row.startsWith("deviceUuid="))
-            ?.split("=")[1];
-
-        if (!deviceUuid) {
-            return; // Should not happen if the server sets the cookie correctly
-        }
-
-        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-            type: MessageType.DEVICE_HEARTBEAT,
-            msg: {
-                uuid: deviceUuid,
-                status: DeviceStatus.ONLINE,
-            },
-        };
-        websocketService.sendMessage(heartbeat);
-
-        const handleTabClose = () => {
-            const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-                type: MessageType.DEVICE_HEARTBEAT,
-                msg: {
-                    uuid: deviceUuid,
-                    status: DeviceStatus.OFFLINE,
-                },
-            };
-            websocketService.sendMessage(heartbeat);
-
-            window.removeEventListener("beforeunload", handleTabClose);
-        };
-        window.addEventListener("beforeunload", handleTabClose);
+        sendHeartbeatIfPossible();
     };
 
     const connectDevice = (device: DeviceDisplay) => {

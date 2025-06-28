@@ -38,6 +38,7 @@ public class DeviceService(IWebSocketHandler _webSocketHandler) : IDeviceService
         if (userId == null)
         {
             // No userId found for the clientToken
+            Console.WriteLine($"No userId found for client token {clientToken}. Cannot forward heartbeat.");
             return Task.CompletedTask;
         }
         var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId.Value);
