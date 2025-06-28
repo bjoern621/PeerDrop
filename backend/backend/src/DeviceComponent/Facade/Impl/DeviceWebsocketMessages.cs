@@ -9,7 +9,6 @@ public class DeviceWebsocketMessages(IWebSocketHandler _webSocketHandler, IDevic
 {
     public void SubscribeToMessageHandlers()
     {
-        Console.WriteLine("Subscribing to Device WebSocket messages...");
         _webSocketHandler.SubscribeToMessageType<DeviceHeartbeatMessage>(DeviceHeartbeatMessage.TypeString, _deviceService.HandleDeviceHeartbeat);
     }
 }
