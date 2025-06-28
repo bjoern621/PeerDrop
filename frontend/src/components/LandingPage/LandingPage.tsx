@@ -3,6 +3,8 @@ import { TypedMessage } from "../../services/WebSocketService";
 import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
+import checkmark from "../../assets/checkmark.svg";
+import copyContent from "../../assets/copy_content.svg";
 import { OTPInput, SlotProps } from "input-otp";
 import { WaitingDialog } from "../Popups/WaitingDialog";
 import { ConfirmDialog } from "../Popups/ConfirmDialog";
@@ -24,6 +26,12 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     );
 };
 
+enum TokenCopyStatus {
+    IDLE,
+    HOVER,
+    COPIED,
+}
+
 export default function LandingPage() {
     const websocket = useWebSocketService();
     const peerConnectionManager = usePeerConnectionManager();
@@ -35,6 +43,9 @@ export default function LandingPage() {
     const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
     const [showSnackbar, setShowSnackbar] = useState(false);
     const snackbarTimeout = useRef<number | null>(null);
+    const [tokenCopyStatus, setTokenCopyStatus] = useState(
+        TokenCopyStatus.IDLE
+    );
 
     const [remoteTokenOfRequestingPeer, setRemoteTokenOfRequestingPeer] =
         useState<string | undefined>(undefined);
@@ -175,6 +186,19 @@ export default function LandingPage() {
         showLoadingDialog();
     };
 
+    const onTokenHover = () => {
+        setTokenCopyStatus(TokenCopyStatus.HOVER);
+    };
+
+    const onTokenHoverLeave = () => {
+        setTokenCopyStatus(TokenCopyStatus.IDLE);
+    };
+
+    const onTokenCopy = () => {
+        setTokenCopyStatus(TokenCopyStatus.COPIED);
+        copyTokenToClipboard();
+    };
+
     return (
         <div className={css.container}>
             <img
@@ -183,22 +207,35 @@ export default function LandingPage() {
                 alt="Banner Logo von PeerDrop"
                 loading="eager"
             />
-            <div className={css.ownTokenContainer}>
-                <div className={css.tokenHeader}>
-                    <span className={css.tooltip}>Dein Token</span>
-                    {clientToken && (
-                        <button
-                            onClick={copyTokenToClipboard}
-                            className={css.copyButton}
-                        >
-                            Kopieren
-                        </button>
+            <button
+                className={css.ownTokenContainer}
+                onMouseEnter={onTokenHover}
+                onMouseLeave={onTokenHoverLeave}
+                onClick={onTokenCopy}
+            >
+                <span className={css.tooltip}>Dein Token</span>
+                <div className={css.tokenOverlay}>
+                    {!clientToken ||
+                    tokenCopyStatus === TokenCopyStatus.IDLE ? (
+                        <></>
+                    ) : tokenCopyStatus === TokenCopyStatus.HOVER ? (
+                        <img
+                            src={copyContent}
+                            alt="Token kopieren"
+                            className={css.tokenOverlayIcon}
+                        />
+                    ) : (
+                        <img
+                            src={checkmark}
+                            alt="Token kopiert"
+                            className={css.tokenOverlayIcon}
+                        />
                     )}
                 </div>
                 <span className={css.token}>
                     {clientToken ? clientToken : "_____"}
                 </span>
-            </div>
+            </button>
             <div className={css.peerTokenContainer}>
                 <div className={css.inputContainer}>
                     <OTPInput
