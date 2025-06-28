@@ -45,6 +45,7 @@ public class DeviceService(IWebSocketHandler _webSocketHandler) : IDeviceService
 
         foreach (var token in activeClientTokensForUserId)
         {
+            Console.WriteLine($"Forwarding heartbeat for device {message.Uuid} to client {token}");
             // TODO maybe exlude sender token from the forwarded list
             var forwardedHeartbeatMessage = new DeviceHeartbeatMessage
             {
