@@ -46,7 +46,7 @@ export function DataSharingPage() {
         const handleTabClose = () => {
             // Close the peer connection when the tab is closed
             peerConnectionManager.closePeerConnection();
-            window.removeEventListener('beforeunload', handleTabClose);
+            window.removeEventListener("beforeunload", handleTabClose);
         };
 
         window.addEventListener("beforeunload", handleTabClose);
@@ -54,7 +54,6 @@ export function DataSharingPage() {
         // set up callback functions
         peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
         peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
-
     }, [peerConnectionManager, navigate]);
 
     function getSizeInHumanReadableFormat(size: number): string {
