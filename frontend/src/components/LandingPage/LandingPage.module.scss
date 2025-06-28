@@ -40,6 +40,8 @@
     font-size: 1.8rem;
     line-height: var(--line_height);
     font-weight: bold;
+
+    user-select: none;
 }
 
 .snackbar {

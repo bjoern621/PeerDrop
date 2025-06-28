@@ -9,7 +9,7 @@ import { StatusResponse } from "../dtos/StatusResponse";
 import { assert } from "../../util/Assert";
 
 export const Sidebar = () => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(true);
     const [showLogin, setShowLogin] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
 
@@ -23,7 +23,7 @@ export const Sidebar = () => {
 
         if (err) {
             console.error("Fehler beim Abrufen des Login-Status:", err);
-            return;
+            return false;
         }
 
         if (!response.ok) {
@@ -31,14 +31,14 @@ export const Sidebar = () => {
                 "Fehler beim Abrufen des Login-Status:",
                 response.statusText
             );
-            return;
+            return false;
         }
 
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
             console.error("Fehler beim Parsen der Antwort:", parseError);
-            return;
+            return false;
         }
 
         const statusData = responseBody as StatusResponse;
@@ -47,11 +47,18 @@ export const Sidebar = () => {
             "Invalid user status response"
         );
 
-        setLoggedIn(statusData.status);
+        return statusData.status;
     };
 
     useEffect(() => {
-        void getLoggedInStatus();
+        void getLoggedInStatus().then(loggedIn => {
+            setLoggedIn(loggedIn);
+            if (loggedIn) {
+                // Has to be done like this, otherwise the sidebar
+                // automatically re-collapses if the user is not logged in
+                setIsCollapsed(false);
+            }
+        });
     }, []);
 
     function onCollapseSidebar() {
@@ -93,7 +100,12 @@ export const Sidebar = () => {
                             onLogin={onLogin}
                         />
                     )}
-                    <img src={smallLogo} alt="Logo" className={css.logo} />
+                    <img
+                        src={smallLogo}
+                        alt="Logo"
+                        className={css.logo}
+                        loading="eager"
+                    />
                 </>
             )}
         </div>

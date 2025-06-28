@@ -181,6 +181,7 @@ export default function LandingPage() {
                 src={bannerLogo}
                 className={css.logo}
                 alt="Banner Logo von PeerDrop"
+                loading="eager"
             />
             <div className={css.ownTokenContainer}>
                 <div className={css.tokenHeader}>
