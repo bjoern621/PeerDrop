@@ -1,6 +1,6 @@
 import errorAsValue from "../../../util/ErrorAsValue";
 import { useState } from "react";
-import { UserLoginDto } from "../../dtos/UserLoginDto";
+import { UserLoginDto } from "../../../util/dtos/UserLoginDto";
 import css from "./Login.module.scss";
 
 interface LoginProps {

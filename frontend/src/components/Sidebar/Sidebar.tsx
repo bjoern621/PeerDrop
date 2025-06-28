@@ -5,7 +5,7 @@ import smallLogo from "../../assets/logo_small.png";
 import css from "./Sidebar.module.scss";
 import { UserProfile } from "./UserProfile/UserProfile";
 import errorAsValue from "../../util/ErrorAsValue";
-import { StatusResponse } from "../dtos/StatusResponse";
+import { StatusResponse } from "../../util/dtos/StatusResponse";
 import { assert } from "../../util/Assert";
 
 export const Sidebar = () => {

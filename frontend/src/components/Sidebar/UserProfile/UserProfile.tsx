@@ -7,8 +7,8 @@ import addIcon from "../../../assets/add_icon.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
 import { useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
-import { LoginResponse } from "../../dtos/LoginResponse";
-import { DeviceResponse } from "../../dtos/DeviceResponse";
+import { LoginResponse } from "../../../util/dtos/LoginResponse";
+import { DeviceResponse } from "../../../util/dtos/DeviceResponse";
 
 enum DeviceStatus {
     ONLINE = "online",
