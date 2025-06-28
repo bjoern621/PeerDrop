@@ -269,4 +269,19 @@ public class WebSocketHandler : IWebSocketHandler
             });
         }
     }
+
+    public List<string> GetClientTokensForUserId(string userId)
+    {
+        var clientTokens = new List<string>();
+
+        foreach (var kvp in ActiveConnections)
+        {
+            if (kvp.Value.UserId == userId)
+            {
+                clientTokens.Add(kvp.Key);
+            }
+        }
+
+        return clientTokens;
+    }
 }
