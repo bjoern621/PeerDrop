@@ -6,25 +6,8 @@ using Microsoft.AspNetCore.Identity;
 
 namespace backend.DeviceComponent.Dataaccess.Impl;
 
-public class DeviceRepository : IDeviceRepository
+public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
 {
-    private readonly NpgsqlDataSource _dataSource;
-
-    public DeviceRepository()
-    {
-        var host = Environment.GetEnvironmentVariable("DB_HOST")
-                       ?? throw new ApplicationException("DB_HOST not set");
-        var user = Environment.GetEnvironmentVariable("DB_USERNAME")
-                       ?? throw new ApplicationException("DB_USERNAME not set");
-        var pass = Environment.GetEnvironmentVariable("DB_PASSWORD")
-                       ?? throw new ApplicationException("DB_PASSWORD not set");
-        var database = Environment.GetEnvironmentVariable("DB_DATABASE_NAME")
-                       ?? throw new ApplicationException("DB_DATABASE_NAME not set");
-
-        var connString = $"Host={host};Username={user};Password={pass};Database={database}";
-        _dataSource = NpgsqlDataSource.Create(connString);
-    }
-
     public async Task<Guid> SaveDeviceAsync(Device device)
     {
         await using var cmd = _dataSource.CreateCommand(
@@ -51,7 +34,7 @@ public class DeviceRepository : IDeviceRepository
         var devices = new List<DeviceLoginDto>();
         if (uuid == Guid.Empty)
         {
-            uuid  = Guid.Parse("00000000-0000-0000-0001-294128421414"); // Never fails
+            uuid = Guid.Parse("00000000-0000-0000-0001-294128421414"); // Never fails
         }
 
         while (await reader.ReadAsync())
