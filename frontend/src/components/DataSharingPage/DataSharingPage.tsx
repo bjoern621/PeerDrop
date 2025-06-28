@@ -28,7 +28,10 @@ export function DataSharingPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
     const [partnerName, setPartnerName] = useState<string | null>(null);
-    const [detailedProgress, setDetailedProgress] = useState(false);
+    const [detailedProgress, setDetailedProgress] = useState(() => {
+        const saved = localStorage.getItem("detailedProgress");
+        return saved ? (JSON.parse(saved) as boolean) : false;
+    });
 
     useEffect(() => {
         const x = new Map<string, FileDisplay>(); // Initialize files state
@@ -171,7 +174,11 @@ export function DataSharingPage() {
     };
 
     const onToggleDetailedProgress = () => {
-        setDetailedProgress(prev => !prev);
+        setDetailedProgress(prev => {
+            const newValue = !prev;
+            localStorage.setItem("detailedProgress", JSON.stringify(newValue));
+            return newValue;
+        });
     };
 
     // need to convert Map to an array for rendering
