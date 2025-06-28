@@ -53,8 +53,6 @@ export class PeerConnectionManager {
         new Observable<string>(); // String is the remote token of the requesting peer.
     private readonly onConnectionRequestCancelledReceivedObservable: IObservable<string> =
         new Observable<string>(); // String is the remote token of the requesting peer.
-    private readonly onConnectionEstablishedObservable: IObservable<void> =
-        new Observable<void>();
 
     public setOnConnectionResponseReceivedCallback(
         callback: (accepted: boolean) => void
@@ -73,10 +71,6 @@ export class PeerConnectionManager {
     ) {
         this.onConnectionRequestCancelledReceivedObservable.unsubscribeAll();
         this.onConnectionRequestCancelledReceivedObservable.subscribe(callback);
-    }
-    public setOnConnectionEstablishedCallback(callback: () => void) {
-        this.onConnectionEstablishedObservable.unsubscribeAll();
-        this.onConnectionEstablishedObservable.subscribe(callback);
     }
 
     private onConnectedCallback?: () => void;
@@ -228,7 +222,6 @@ export class PeerConnectionManager {
         const onEstablishConnectionReceived = (
             message: TypedMessage<EstablishConnectionMessage>
         ) => {
-            console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             this.closePeerConnection();
 
             this.webrtcConnection = new WebRTCConnection(
@@ -237,10 +230,6 @@ export class PeerConnectionManager {
             );
 
             this.setupListeners();
-
-            console.log("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
-
-            this.onConnectionEstablishedObservable.notify();
         };
 
         this.signaling.subscribeMessage(
