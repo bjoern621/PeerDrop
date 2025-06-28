@@ -1,6 +1,8 @@
 import css from "./DataSharingPage.module.scss";
 import { useEffect, useRef, useState } from "react";
-import dragdropicon from "../../assets/dragdropicon.svg";
+import dragdropIcon from "../../assets/dragdropicon.svg";
+import percentIcon from "../../assets/percent_icon.svg";
+import barchartIcon from "../../assets/barchart_icon.svg";
 import { useNavigate } from "react-router";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { assert } from "../../util/Assert";
@@ -26,8 +28,19 @@ export function DataSharingPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
     const [partnerName, setPartnerName] = useState<string | null>(null);
+    const [detailedProgress, setDetailedProgress] = useState(false);
 
     useEffect(() => {
+        const x = new Map<string, FileDisplay>(); // Initialize files state
+        x.set("test", {
+            name: "Testfile.txt",
+            direction: FileDirection.DOWN,
+            progress: 0.42,
+            size: 123456,
+            time: new Date(),
+        });
+        setFiles(x);
+
         assert(
             peerConnectionManager,
             "PeerConnectionManager is not initialized."
@@ -157,6 +170,10 @@ export function DataSharingPage() {
         });
     };
 
+    const onToggleDetailedProgress = () => {
+        setDetailedProgress(prev => !prev);
+    };
+
     // need to convert Map to an array for rendering
     const fileRows = Array.from(files.entries()).map(([uuid, file]) => (
         <tr key={uuid}>
@@ -164,16 +181,25 @@ export function DataSharingPage() {
                 {file.name}
             </td>
             <td className={`${css.fileTableCell} ${css.smallColumn}`}>
-                {file.direction === FileDirection.DOWN ? "↓" : "↑"}
-                {file.progress >= 1 ? (
-                    <span className={css.progressStatusText}>Fertig!</span>
-                ) : (
-                    <progress
-                        className={css.fileProgress}
-                        value={file.progress}
-                        max={1}
-                    />
-                )}
+                <div className={css.fileProgress}>
+                    {file.direction === FileDirection.DOWN ? "↓" : "↑"}
+                    {file.progress >= 1 ? (
+                        <span className={css.progressStatusText}>Fertig!</span>
+                    ) : detailedProgress ? (
+                        <span className={css.progressStatusText}>
+                            {getSizeInHumanReadableFormat(
+                                file.progress * file.size
+                            )}{" "}
+                            {"(" + Math.round(file.progress * 100) + "%)"}
+                        </span>
+                    ) : (
+                        <progress
+                            className={css.progressBar}
+                            value={file.progress}
+                            max={1}
+                        />
+                    )}
+                </div>
             </td>
             <td className={`${css.fileTableCell} ${css.smallColumn}`}>
                 {getSizeInHumanReadableFormat(file.size)}
@@ -235,7 +261,31 @@ export function DataSharingPage() {
                         <tr>
                             <th className={css.fileTableHeaderCell}>Name</th>
                             <th className={css.fileTableHeaderCell}>
-                                Fortschritt
+                                <div className={css.fileProgressHeaderCell}>
+                                    Fortschritt
+                                    <button
+                                        onClick={onToggleDetailedProgress}
+                                        className={css.detailProgressButton}
+                                    >
+                                        {detailedProgress ? (
+                                            <img
+                                                src={barchartIcon}
+                                                alt="Simple view icon"
+                                                className={
+                                                    css.detailProgressIcon
+                                                }
+                                            />
+                                        ) : (
+                                            <img
+                                                src={percentIcon}
+                                                alt="Detailed view icon"
+                                                className={
+                                                    css.detailProgressIcon
+                                                }
+                                            />
+                                        )}
+                                    </button>
+                                </div>
                             </th>
                             <th className={css.fileTableHeaderCell}>Größe</th>
                             <th className={css.fileTableHeaderCell}>
@@ -247,7 +297,7 @@ export function DataSharingPage() {
                 </table>
                 <div className={css.dropAreaTextContainer}>
                     <img
-                        src={dragdropicon}
+                        src={dragdropIcon}
                         alt="Drag and drop icon"
                         className={css.dropAreaIcon}
                     />
