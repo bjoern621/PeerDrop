@@ -1,9 +1,10 @@
-import { useRef } from "react";
 import { WebSocketService } from "../services/WebSocketService";
 import { PeerConnectionManager } from "../services/PeerConnectionManager";
 import { PeerConnectionContext } from "./PeerConnectionContext";
 import { WebSocketContext } from "./WebSocketContext";
 import { useNavigate } from "react-router";
+import { useState } from "react";
+import { ResetContext } from "./ResetContext";
 
 export function ConnectionProvider({
     children,
@@ -11,27 +12,43 @@ export function ConnectionProvider({
     children: React.ReactNode;
 }) {
     const navigate = useNavigate();
-    const wsRef = useRef<WebSocketService | undefined>(undefined);
-    if (!wsRef.current) {
-        wsRef.current = new WebSocketService();
-    }
-
-    const pcmRef = useRef<PeerConnectionManager | undefined>(undefined);
-    if (!pcmRef.current) {
-        pcmRef.current = new PeerConnectionManager(wsRef.current);
-
-        pcmRef.current.setOnConnectedCallback(() => {
+    const [wsService, setWsService] = useState(() => new WebSocketService());
+    const [pcm, setPcm] = useState(() => {
+        const manager = new PeerConnectionManager(wsService);
+        manager.setOnConnectedCallback(() => {
             void navigate("/share");
         });
-        pcmRef.current.setOnDisconnectedCallback(() => {
+        manager.setOnDisconnectedCallback(() => {
             void navigate("/");
         });
-    }
+        return manager;
+    });
+
+    /**
+     * Resets the WebSocket and PeerConnectionManager instances.
+     * A new client token is requested from the server.
+     */
+    const resetConnections = () => {
+        wsService.closeActiveConnection();
+        const newWs = new WebSocketService();
+        setWsService(newWs);
+
+        const newPcm = new PeerConnectionManager(newWs);
+        newPcm.setOnConnectedCallback(() => {
+            void navigate("/share");
+        });
+        newPcm.setOnDisconnectedCallback(() => {
+            void navigate("/");
+        });
+        setPcm(newPcm);
+    };
 
     return (
-        <WebSocketContext.Provider value={wsRef.current}>
-            <PeerConnectionContext.Provider value={pcmRef.current}>
-                {children}
+        <WebSocketContext.Provider value={wsService}>
+            <PeerConnectionContext.Provider value={pcm}>
+                <ResetContext.Provider value={{ resetConnections }}>
+                    {children}
+                </ResetContext.Provider>
             </PeerConnectionContext.Provider>
         </WebSocketContext.Provider>
     );
