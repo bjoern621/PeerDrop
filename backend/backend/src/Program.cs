@@ -62,6 +62,8 @@ builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
 builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
+builder.Services.AddSingleton<IDeviceWebsocketMessages, DeviceWebsocketMessages>();
+builder.Services.AddSingleton<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -98,6 +100,8 @@ var accountRoutes = app.Services.GetRequiredService<IAccountRoutes>();
 accountRoutes.RegisterRoutes(app);
 var deviceRoutes = app.Services.GetRequiredService<IDeviceRoutes>();
 await deviceRoutes.RegisterRoutes(app);
+var deviceWebsocketMessages = app.Services.GetRequiredService<IDeviceWebsocketMessages>();
+deviceWebsocketMessages.SubscribeToMessageHandlers();
 var webSocketHandler = app.Services.GetRequiredService<IWebSocketHandler>();
 webSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
 {

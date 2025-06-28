@@ -5,14 +5,19 @@ import deleteIcon from "../../../assets/delete_icon.svg";
 import deleteIconLight from "../../../assets/delete_icon_light.svg";
 import addIcon from "../../../assets/add_icon.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { assert } from "../../../util/Assert";
 import { LoginResponse } from "../../dtos/LoginResponse";
 import { DeviceResponse } from "../../dtos/DeviceResponse";
+import { usePeerConnectionManager } from "../../../context/PeerConnectionContext";
+import { useWebSocketService } from "../../../context/WebSocketContext";
+import { TypedMessage } from "../../../services/WebSocketService";
+import { MessageType } from "../../../services/MessageType";
 
 enum DeviceStatus {
     ONLINE = "online",
     OFFLINE = "offline",
+    TEMPORARILY_OFFLINE = "tmp_offline", // Device is on the Data Sharing Page
 }
 
 interface DeviceDisplay {
@@ -20,6 +25,11 @@ interface DeviceDisplay {
     current: boolean;
     name: string;
 }
+
+type DeviceHeartbeatMessage = {
+    uuid: string; // The device UUID
+    status: DeviceStatus;
+};
 
 export const UserProfile = () => {
     const [userName, setUserName] = useState<string | null>(null);
@@ -30,10 +40,33 @@ export const UserProfile = () => {
         useState(false);
     const [registerButtonDisabled, setRegisterButtonDisabled] = useState(false);
 
+    const peerConnectionManager = usePeerConnectionManager();
+    const websocketService = useWebSocketService();
+
+    const sendDeviceHeartbeat = useCallback(() => {
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: "awadwawd",
+                status: DeviceStatus.TEMPORARILY_OFFLINE,
+            },
+        };
+
+        console.log("Sending device heartbeat:", heartbeat);
+        websocketService.sendMessage(heartbeat);
+    }, [websocketService]);
+
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
-    }, []);
+
+        peerConnectionManager.setOnConnectionEstablishedCallback(() => {
+            console.log("AAAAAAAAAAAAAAAAAAAAAAAA");
+
+            sendDeviceHeartbeat();
+        });
+    }, [peerConnectionManager, sendDeviceHeartbeat]);
+
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
