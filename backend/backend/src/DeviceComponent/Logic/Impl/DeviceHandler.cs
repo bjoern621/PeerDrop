@@ -72,7 +72,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
 
         context.Response.Cookies.Append("deviceUuid", deviceUuid.ToString(), new CookieOptions
         {
-            HttpOnly = true,
+            HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (you may validate the cookie on the server side by using the auth session token)
             IsEssential = true,
             SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddYears(5)

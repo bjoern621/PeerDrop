@@ -104,28 +104,36 @@ export default function LandingPage() {
             }
         );
 
-        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-            type: MessageType.DEVICE_HEARTBEAT,
-            msg: {
-                status: DeviceStatus.ONLINE,
-            },
-        };
-        websocket.sendMessage(heartbeat);
+        // Send device heartbeat if deviceUuid is available in cookies
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
 
-        const handleTabClose = () => {
+        if (deviceUuid) {
             const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
                 type: MessageType.DEVICE_HEARTBEAT,
                 msg: {
-                    status: DeviceStatus.OFFLINE,
+                    uuid: deviceUuid,
+                    status: DeviceStatus.ONLINE,
                 },
             };
             websocket.sendMessage(heartbeat);
 
-            window.removeEventListener("beforeunload", handleTabClose);
-        };
-        window.addEventListener("beforeunload", handleTabClose);
+            const handleTabClose = () => {
+                const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+                    type: MessageType.DEVICE_HEARTBEAT,
+                    msg: {
+                        uuid: deviceUuid,
+                        status: DeviceStatus.OFFLINE,
+                    },
+                };
+                websocket.sendMessage(heartbeat);
 
-        console.log("LandingPage component mounted");
+                window.removeEventListener("beforeunload", handleTabClose);
+            };
+            window.addEventListener("beforeunload", handleTabClose);
+        }
 
         return () => {
             clearInterval(checkToken);

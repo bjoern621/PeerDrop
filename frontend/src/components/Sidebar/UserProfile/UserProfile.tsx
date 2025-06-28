@@ -10,6 +10,10 @@ import { assert } from "../../../util/Assert";
 import { LoginResponse } from "../../dtos/LoginResponse";
 import { DeviceResponse } from "../../dtos/DeviceResponse";
 import { DeviceStatus } from "../../../types/device/DeviceStatus";
+import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMessage";
+import { TypedMessage } from "../../../services/WebSocketService";
+import { MessageType } from "../../../services/MessageType";
+import { useWebSocketService } from "../../../context/WebSocketContext";
 
 interface DeviceDisplay {
     status: DeviceStatus;
@@ -25,6 +29,8 @@ export const UserProfile = () => {
     const [currentDeviceRegistered, setCurrentDeviceRegistered] =
         useState(false);
     const [registerButtonDisabled, setRegisterButtonDisabled] = useState(false);
+
+    const websocketService = useWebSocketService();
 
     useEffect(() => {
         void fetchUserName();
@@ -125,6 +131,38 @@ export const UserProfile = () => {
         }
 
         setCurrentDeviceRegistered(true);
+
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // Should not happen if the server sets the cookie correctly
+        }
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: deviceUuid,
+                status: DeviceStatus.ONLINE,
+            },
+        };
+        websocketService.sendMessage(heartbeat);
+
+        const handleTabClose = () => {
+            const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+                type: MessageType.DEVICE_HEARTBEAT,
+                msg: {
+                    uuid: deviceUuid,
+                    status: DeviceStatus.OFFLINE,
+                },
+            };
+            websocketService.sendMessage(heartbeat);
+
+            window.removeEventListener("beforeunload", handleTabClose);
+        };
+        window.addEventListener("beforeunload", handleTabClose);
     };
 
     const connectDevice = (device: DeviceDisplay) => {

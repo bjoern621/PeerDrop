@@ -54,26 +54,36 @@ export function DataSharingPage() {
         peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
         peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
 
-        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-            type: MessageType.DEVICE_HEARTBEAT,
-            msg: {
-                status: DeviceStatus.TEMPORARILY_OFFLINE,
-            },
-        };
-        websocketService.sendMessage(heartbeat);
+        // Send device heartbeat if deviceUuid is available in cookies
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
 
-        const handleTabClose = () => {
+        if (deviceUuid) {
             const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
                 type: MessageType.DEVICE_HEARTBEAT,
                 msg: {
-                    status: DeviceStatus.OFFLINE,
+                    uuid: deviceUuid,
+                    status: DeviceStatus.TEMPORARILY_OFFLINE,
                 },
             };
             websocketService.sendMessage(heartbeat);
 
-            window.removeEventListener("beforeunload", handleTabClose);
-        };
-        window.addEventListener("beforeunload", handleTabClose);
+            const handleTabClose = () => {
+                const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+                    type: MessageType.DEVICE_HEARTBEAT,
+                    msg: {
+                        uuid: deviceUuid,
+                        status: DeviceStatus.OFFLINE,
+                    },
+                };
+                websocketService.sendMessage(heartbeat);
+
+                window.removeEventListener("beforeunload", handleTabClose);
+            };
+            window.addEventListener("beforeunload", handleTabClose);
+        }
     }, [peerConnectionManager, navigate, websocketService]);
 
     function getSizeInHumanReadableFormat(size: number): string {
