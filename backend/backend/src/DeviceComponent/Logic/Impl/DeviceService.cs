@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using backend.DeviceComponent.Common.DTOs;
-using backend.DeviceComponent.Dataaccess.Api.Entity;
 using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.DeviceComponent.Logic.Api;
