@@ -7,5 +7,6 @@ export interface DeviceResponse {
     devices: {
         displayName: string;
         isCurrentDevice: boolean;
+        uuid: string;
     }[];
 }

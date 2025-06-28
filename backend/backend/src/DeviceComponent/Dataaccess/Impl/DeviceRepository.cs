@@ -43,7 +43,8 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
             var deviceDto = new DeviceLoginDto
             {
                 DisplayName = reader.GetString(1),  // Get the display_name (second column)
-                IsCurrentDevice = reader.GetGuid(0) == uuid
+                IsCurrentDevice = reader.GetGuid(0) == uuid,
+                Uuid = reader.GetGuid(0)
             };
             devices.Add(deviceDto);
         }

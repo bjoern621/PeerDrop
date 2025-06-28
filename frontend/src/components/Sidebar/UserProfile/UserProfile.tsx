@@ -5,13 +5,16 @@ import deleteIcon from "../../../assets/delete_icon.svg";
 import deleteIconLight from "../../../assets/delete_icon_light.svg";
 import addIcon from "../../../assets/add_icon.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
 import { LoginResponse } from "../../dtos/LoginResponse";
 import { DeviceResponse } from "../../dtos/DeviceResponse";
 import { DeviceStatus } from "../../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMessage";
-import { TypedMessage } from "../../../services/WebSocketService";
+import {
+    MessageHandler,
+    TypedMessage,
+} from "../../../services/WebSocketService";
 import { MessageType } from "../../../services/MessageType";
 import { useWebSocketService } from "../../../context/WebSocketContext";
 
@@ -19,6 +22,7 @@ interface DeviceDisplay {
     status: DeviceStatus;
     current: boolean;
     name: string;
+    uuid: string;
 }
 
 export const UserProfile = () => {
@@ -32,10 +36,33 @@ export const UserProfile = () => {
 
     const websocketService = useWebSocketService();
 
+    const handleHeartbeatMessage = useCallback(() => {
+        const onHeartbeatReceived = (
+            message: TypedMessage<DeviceHeartbeatMessage>
+        ) => {
+            console.log("Received heartbeat message:", message);
+
+            setDevices(prevDevices =>
+                prevDevices.map(device =>
+                    device.uuid === message.msg.uuid
+                        ? { ...device, status: message.msg.status }
+                        : device
+                )
+            );
+        };
+
+        websocketService.subscribeMessage(
+            MessageType.DEVICE_HEARTBEAT,
+            onHeartbeatReceived as MessageHandler
+        );
+    }, [websocketService]);
+
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
-    }, []);
+
+        handleHeartbeatMessage();
+    }, [handleHeartbeatMessage]);
 
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
@@ -66,7 +93,8 @@ export const UserProfile = () => {
             .map(deviceName => ({
                 name: deviceName.displayName,
                 current: deviceName.isCurrentDevice,
-                status: DeviceStatus.ONLINE, // Hier Status Logik einführen
+                status: DeviceStatus.OFFLINE,
+                uuid: deviceName.uuid,
             }))
             .filter(device => !device.current);
         const isCurrentDevice = devicesData.devices.some(
@@ -261,6 +289,9 @@ export const UserProfile = () => {
                                             device.status ===
                                             DeviceStatus.ONLINE
                                                 ? css.deviceOnline
+                                                : device.status ===
+                                                  DeviceStatus.TEMPORARILY_OFFLINE
+                                                ? css.deviceTmpOffline
                                                 : css.deviceOffline
                                         }
                                     ></span>

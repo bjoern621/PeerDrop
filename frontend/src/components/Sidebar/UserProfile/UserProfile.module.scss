@@ -130,20 +130,25 @@
     }
 }
 
-.deviceOnline {
+.deviceStatusBase {
     height: 20px;
     width: 20px;
     border-radius: 50%;
     display: inline-block;
-    background-color: green;
     margin-right: 15px;
 }
 
+.deviceOnline {
+    @extend .deviceStatusBase;
+    background-color: green;
+}
+
 .deviceOffline {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    display: inline-block;
+    @extend .deviceStatusBase;
     background-color: red;
-    margin-right: 15px;
+}
+
+.deviceTmpOffline {
+    @extend .deviceStatusBase;
+    background-color: orange;
 }

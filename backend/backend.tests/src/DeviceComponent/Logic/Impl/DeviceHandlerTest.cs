@@ -108,7 +108,7 @@ public class DeviceHandlerTests
         _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, guid))
                  .ReturnsAsync(new List<DeviceLoginDto>
                  {
-                     new DeviceLoginDto { DisplayName = "Windows Mozilla", IsCurrentDevice = true }
+                     new DeviceLoginDto { DisplayName = "Windows Mozilla", IsCurrentDevice = true, Uuid = guid },
                  });
 
         // Act
@@ -133,8 +133,8 @@ public class DeviceHandlerTests
         _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, It.IsAny<Guid>()))
             .ReturnsAsync(new List<DeviceLoginDto>
             {
-                new() { DisplayName = "Windows Mozilla", IsCurrentDevice = false },
-                new() { DisplayName = "Windows Mozilla", IsCurrentDevice = false }
+                new() { DisplayName = "Windows Mozilla", IsCurrentDevice = false, Uuid = Guid.Empty },
+                new() { DisplayName = "Windows Mozilla", IsCurrentDevice = false, Uuid = Guid.Empty }
             });
 
         // Act
