@@ -10,17 +10,23 @@ namespace backend.WebSocketComponent.Logic.Impl;
 
 using MessageType = string;
 
+public class RuntimeClientInformation
+{
+    public required WebSocket WebSocket { get; set; }
+    public string? UserId { get; set; }
+}
+
 public class WebSocketHandler : IWebSocketHandler
 {
-    private static readonly ConcurrentDictionary<string, WebSocket> ActiveConnections = new();
-    private static readonly Random Random = new();
-    private static readonly ConcurrentDictionary<MessageType, List<MessageHandlerDelegate>> MessageHandlers = new();
+    private readonly ConcurrentDictionary<string, RuntimeClientInformation> ActiveConnections = new(); // String is the client token
+    private readonly Random Random = new();
+    private readonly ConcurrentDictionary<MessageType, List<MessageHandlerDelegate>> MessageHandlers = new();
 
     public bool RemoteTokenExists(string remoteToken)
     {
         return ActiveConnections.ContainsKey(remoteToken);
     }
-    private static string GenerateClientToken()
+    private string GenerateClientToken()
     {
         const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
         return new string([.. Enumerable.Repeat(chars, 5).Select(s => s[Random.Next(s.Length)])]);
@@ -29,13 +35,19 @@ public class WebSocketHandler : IWebSocketHandler
     /// <summary>
     /// Generates a unique client ID and adds the WebSocket connection to the active connections list. Returns the client ID.
     /// </summary>
-    private static string AddConnection(WebSocket webSocket)
+    private string AddConnection(WebSocket webSocket, HttpContext context)
     {
+        var runtimeInformation = new RuntimeClientInformation
+        {
+            WebSocket = webSocket,
+            UserId = context.Session.GetString("UserId") // Retrieve user ID from session, may be null if not logged in
+        };
+
         string clientToken;
         do
         {
             clientToken = GenerateClientToken();
-        } while (!ActiveConnections.TryAdd(clientToken, webSocket));
+        } while (!ActiveConnections.TryAdd(clientToken, runtimeInformation));
 
         return clientToken;
     }
@@ -55,15 +67,16 @@ public class WebSocketHandler : IWebSocketHandler
     /// </summary>
     public async Task<bool> SendMessage(string clientToken, ITypedMessage message)
     {
-        var result = ActiveConnections.TryGetValue(clientToken, out var webSocket);
+        var result = ActiveConnections.TryGetValue(clientToken, out var runtimeInfo);
 
-        Debug.Assert(result, $"Failed to find client with ID: {clientToken}");
-        Debug.Assert(webSocket != null);
+        Debug.Assert(result, $"Failed to find client with token: {clientToken}");
+        Debug.Assert(runtimeInfo != null);
+        Debug.Assert(runtimeInfo.WebSocket != null);
 
         try
         {
             var messageBytes = Encoding.UTF8.GetBytes(message.ToJson());
-            await webSocket.SendAsync(
+            await runtimeInfo.WebSocket.SendAsync(
                 new ArraySegment<byte>(messageBytes),
                 WebSocketMessageType.Text,
                 true,
@@ -85,7 +98,7 @@ public class WebSocketHandler : IWebSocketHandler
         }
 
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-        var clientToken = AddConnection(webSocket);
+        var clientToken = AddConnection(webSocket, context);
 
         await SendClientTokenAsync(clientToken);
 
