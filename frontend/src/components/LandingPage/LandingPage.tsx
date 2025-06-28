@@ -208,7 +208,9 @@ export default function LandingPage() {
                 loading="eager"
             />
             <button
-                className={css.ownTokenContainer}
+                className={`${css.ownTokenContainer} ${
+                    clientToken ? css.tokenLoaded : ""
+                }`}
                 onMouseEnter={onTokenHover}
                 onMouseLeave={onTokenHoverLeave}
                 onClick={onTokenCopy}
