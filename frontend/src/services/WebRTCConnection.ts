@@ -9,8 +9,15 @@ import { MessageType } from "./MessageType";
 import { Logger } from "../util/Logger";
 import { Observable } from "../util/observer/Observable";
 
-const iceServers: RTCConfiguration = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+const serversConfig: RTCConfiguration = {
+    iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        {
+            urls: "turn:turn.bjoernblessin.de:20070",
+            username: "peerdrop",
+            credential: "PZaXwoM3XElxo8",
+        },
+    ],
 };
 
 export type IceCandidateMessage = {
@@ -48,7 +55,7 @@ export class WebRTCConnection {
         this.signalingChannel = signalingChannel;
         this.polite =
             signalingChannel.getLocalClientToken()! < this.remoteToken;
-        this.peerConnection = new RTCPeerConnection(iceServers);
+        this.peerConnection = new RTCPeerConnection(serversConfig);
 
         this.setupEmittedWebRTCEvents();
 
