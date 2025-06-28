@@ -25,6 +25,12 @@
 
     padding: 20px 30px;
 
+    cursor: not-allowed;
+
+    &.token-loaded {
+        cursor: pointer;
+    }
+
     &.token-loaded:hover .token {
         filter: blur(5px);
         opacity: 0.3;
