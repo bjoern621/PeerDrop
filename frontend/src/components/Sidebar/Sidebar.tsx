@@ -100,12 +100,7 @@ export const Sidebar = () => {
                             onLogin={onLogin}
                         />
                     )}
-                    <img
-                        src={smallLogo}
-                        alt="Logo"
-                        className={css.logo}
-                        loading="eager"
-                    />
+                    <img src={smallLogo} alt="Logo" className={css.logo} />
                 </>
             )}
         </div>
