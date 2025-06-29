@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using backend.DeviceComponent.Common.DTOs;
+using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.DeviceComponent.Logic.Api;
@@ -23,10 +23,12 @@ public class DeviceService() : IDeviceService
     private const int INACTIVE_HEARTBEAT_THRESHOLD_MS = 1000 * 30; // Amount of time additional to INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS in milliseconds after which a device is considered inactive if it has not sent a heartbeat, e.g. 1 minute (INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS) + 30 seconds (INACTIVE_HEARTBEAT_THRESHOLD_MS) = 1 minute 30 seconds
 
     private readonly IWebSocketHandler _webSocketHandler = null!;
+    private readonly IServiceScopeFactory _scopeFactory = null!; // Used to get a scoped IDeviceRepository
 
-    public DeviceService(IWebSocketHandler webSocketHandler) : this()
+    public DeviceService(IWebSocketHandler webSocketHandler, IServiceScopeFactory scopeFactory) : this()
     {
         _webSocketHandler = webSocketHandler;
+        _scopeFactory = scopeFactory;
         Task.Run(CleanupInactiveDevicesLoop);
     }
 
@@ -42,18 +44,28 @@ public class DeviceService() : IDeviceService
 
             foreach (var kvp in _activeDevices.ToArray())
             {
-                if (kvp.Value.LastHeartbeat < inactiveThreshold)
+                if (!(kvp.Value.LastHeartbeat < inactiveThreshold))
                 {
-                    // Remove device because it has not sent a heartbeat in the last INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS + INACTIVE_HEARTBEAT_THRESHOLD_MS milliseconds
-
-                    int? userId = _webSocketHandler.GetUserIdForClientToken(kvp.Key);
-                    Debug.Assert(userId != null, "UserId should not be null for active devices");
-
-                    _activeDevices.TryRemove(kvp.Key, out _);
-                    Console.WriteLine($"Removed inactive device {kvp.Value.DeviceGuid} for client {kvp.Key}");
-
-                    SendHeartbeatToAllActiveClientTokens(userId.Value, kvp.Value.DeviceGuid, "offline");
+                    // Device is still active, skip it
+                    continue;
                 }
+
+                // Remove device because it has not sent a heartbeat in the last INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS + INACTIVE_HEARTBEAT_THRESHOLD_MS milliseconds
+
+                _activeDevices.TryRemove(kvp.Key, out _);
+                Console.WriteLine($"Removed inactive device {kvp.Value.DeviceGuid} for client {kvp.Key}");
+
+                using var scope = _scopeFactory.CreateScope();
+                var repo = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
+                var device = await repo.GetDeviceByUuidAsync(kvp.Value.DeviceGuid);
+
+                if (device == null)
+                {
+                    // Something went wrong, the device should be in the database if it is in the _activeDevices list
+                    return;
+                }
+
+                SendHeartbeatToAllActiveClientTokens(device.GetAccountId(), kvp.Value.DeviceGuid, "offline");
             }
         }
     }
@@ -79,16 +91,34 @@ public class DeviceService() : IDeviceService
         }
     }
 
-    public Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message)
+    public async Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message)
     {
         Console.WriteLine($"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}");
 
-        int? userId = _webSocketHandler.GetUserIdForClientToken(clientToken);
-        if (userId == null)
+        int? realUserId = _webSocketHandler.GetUserIdForClientToken(clientToken);
+        if (realUserId == null)
         {
-            // No userId found for the clientToken (user not logged in)
+            // No userId found for the clientToken (user has websocket connection but is not logged in)
             Console.WriteLine($"No userId found for client token {clientToken}. Heartbeat is not valid.");
-            return Task.CompletedTask;
+            return;
+        }
+
+        using var scope = _scopeFactory.CreateScope();
+        var repo = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
+        var device = await repo.GetDeviceByUuidAsync(message.Uuid);
+
+        if (device == null)
+        {
+            // Device not found in the database
+            Console.WriteLine($"Device with UUID {message.Uuid} not found in the database. Heartbeat is not valid.");
+            return;
+        }
+
+        if (device.GetAccountId() != realUserId)
+        {
+            // Device does not belong to the sending user
+            Console.WriteLine($"Device with UUID {message.Uuid} does not belong to user {realUserId}. Heartbeat is not valid.");
+            return;
         }
 
         lock (_activeDevices)
@@ -107,9 +137,7 @@ public class DeviceService() : IDeviceService
         }
 
         // TODO maybe exlude sender token from the forwarded list
-        SendHeartbeatToAllActiveClientTokens(userId.Value, message.Uuid, message.DeviceStatus);
-
-        return Task.CompletedTask;
+        SendHeartbeatToAllActiveClientTokens(realUserId.Value, message.Uuid, message.DeviceStatus);
     }
 
     public string GetDeviceStatus(Guid deviceUuid)
