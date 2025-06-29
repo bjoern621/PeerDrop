@@ -21,6 +21,14 @@ public class DeviceService(IWebSocketHandler _webSocketHandler) : IDeviceService
     {
         Console.WriteLine($"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}");
 
+        int? userId = _webSocketHandler.GetUserIdForClientToken(clientToken);
+        if (userId == null)
+        {
+            // No userId found for the clientToken (user not logged in)
+            Console.WriteLine($"No userId found for client token {clientToken}. Heartbeat is not valid.");
+            return Task.CompletedTask;
+        }
+
         lock (_activeDevices)
         {
             if (_activeDevices.TryGetValue(clientToken, out var deviceInfo))
@@ -37,13 +45,6 @@ public class DeviceService(IWebSocketHandler _webSocketHandler) : IDeviceService
         }
 
         // Send the device heartbeat to all active client tokens of the user
-        int? userId = _webSocketHandler.GetUserIdForClientToken(clientToken);
-        if (userId == null)
-        {
-            // No userId found for the clientToken
-            Console.WriteLine($"No userId found for client token {clientToken}. Cannot forward heartbeat.");
-            return Task.CompletedTask;
-        }
         var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId.Value);
 
         foreach (var token in activeClientTokensForUserId)
