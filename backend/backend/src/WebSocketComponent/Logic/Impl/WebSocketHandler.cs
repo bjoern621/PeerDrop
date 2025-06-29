@@ -131,7 +131,16 @@ public class WebSocketHandler : IWebSocketHandler
 
         while (webSocket.State == WebSocketState.Open)
         {
-            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            WebSocketReceiveResult result;
+            try
+            {
+                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            }
+            catch (OperationCanceledException)
+            {
+                // "The remote party closed the WebSocket connection without completing the close handshake."
+                return;
+            }
 
             if (!result.EndOfMessage)
             {
