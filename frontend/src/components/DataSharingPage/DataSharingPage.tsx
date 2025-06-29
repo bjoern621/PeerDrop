@@ -1,6 +1,8 @@
 import css from "./DataSharingPage.module.scss";
 import { useCallback, useEffect, useRef, useState } from "react";
-import dragdropicon from "../../assets/dragdropicon.svg";
+import dragdropIcon from "../../assets/dragdropicon.svg";
+import percentIcon from "../../assets/percent_icon.svg";
+import barchartIcon from "../../assets/barchart_icon.svg";
 import { useNavigate } from "react-router";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { assert } from "../../util/Assert";
@@ -15,6 +17,11 @@ enum FileDirection {
     DOWN = "down",
 }
 
+enum FileProgressDisplay {
+    SIMPLE,
+    DETAILED,
+}
+
 interface FileDisplay {
     name: string;
     direction: FileDirection;
@@ -24,6 +31,7 @@ interface FileDisplay {
 }
 
 export function DataSharingPage() {
+    const fileProgressDisplayLocalStorageKey = "detailedProgress";
     const navigate = useNavigate();
 
     const peerConnectionManager = usePeerConnectionManager();
@@ -31,6 +39,12 @@ export function DataSharingPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
     const [partnerName, setPartnerName] = useState<string | null>(null);
+    const [progressDisplay, setProgressDisplay] = useState(() => {
+        const saved = localStorage.getItem(fileProgressDisplayLocalStorageKey);
+        return saved
+            ? (JSON.parse(saved) as FileProgressDisplay)
+            : FileProgressDisplay.SIMPLE;
+    });
 
     const websocketService = useWebSocketService();
 
@@ -170,6 +184,20 @@ export function DataSharingPage() {
         });
     };
 
+    const onToggleDetailedProgress = () => {
+        setProgressDisplay(prev => {
+            const newValue =
+                prev === FileProgressDisplay.SIMPLE
+                    ? FileProgressDisplay.DETAILED
+                    : FileProgressDisplay.SIMPLE;
+            localStorage.setItem(
+                fileProgressDisplayLocalStorageKey,
+                JSON.stringify(newValue)
+            );
+            return newValue;
+        });
+    };
+
     // need to convert Map to an array for rendering
     const fileRows = Array.from(files.entries()).map(([uuid, file]) => (
         <tr key={uuid}>
@@ -177,16 +205,25 @@ export function DataSharingPage() {
                 {file.name}
             </td>
             <td className={`${css.fileTableCell} ${css.smallColumn}`}>
-                {file.direction === FileDirection.DOWN ? "↓" : "↑"}
-                {file.progress >= 1 ? (
-                    <span className={css.progressStatusText}>Fertig!</span>
-                ) : (
-                    <progress
-                        className={css.fileProgress}
-                        value={file.progress}
-                        max={1}
-                    />
-                )}
+                <div className={css.fileProgress}>
+                    {file.direction === FileDirection.DOWN ? "↓" : "↑"}
+                    {file.progress >= 1 ? (
+                        <span className={css.progressStatusText}>Fertig!</span>
+                    ) : progressDisplay ? (
+                        <span className={css.progressStatusText}>
+                            {getSizeInHumanReadableFormat(
+                                file.progress * file.size
+                            )}{" "}
+                            {"(" + Math.round(file.progress * 100) + "%)"}
+                        </span>
+                    ) : (
+                        <progress
+                            className={css.progressBar}
+                            value={file.progress}
+                            max={1}
+                        />
+                    )}
+                </div>
             </td>
             <td className={`${css.fileTableCell} ${css.smallColumn}`}>
                 {getSizeInHumanReadableFormat(file.size)}
@@ -248,7 +285,58 @@ export function DataSharingPage() {
                         <tr>
                             <th className={css.fileTableHeaderCell}>Name</th>
                             <th className={css.fileTableHeaderCell}>
-                                Fortschritt
+                                <div className={css.fileProgressHeaderCell}>
+                                    Fortschritt
+                                    <button
+                                        onClick={onToggleDetailedProgress}
+                                        className={css.detailProgressButton}
+                                    >
+                                        <div
+                                            className={
+                                                css.detailProgressIconContainer
+                                            }
+                                        >
+                                            {progressDisplay ===
+                                            FileProgressDisplay.DETAILED ? (
+                                                <>
+                                                    <img
+                                                        src={percentIcon}
+                                                        alt="Detailed view icon"
+                                                        className={
+                                                            css.detailProgressIcon
+                                                        }
+                                                    />
+                                                    <span
+                                                        className={
+                                                            css.detailProgressTooltip
+                                                        }
+                                                    >
+                                                        Zu einfacher Ansicht
+                                                        wechseln
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <img
+                                                        src={barchartIcon}
+                                                        alt="Simple view icon"
+                                                        className={
+                                                            css.detailProgressIcon
+                                                        }
+                                                    />
+                                                    <span
+                                                        className={
+                                                            css.detailProgressTooltip
+                                                        }
+                                                    >
+                                                        Zu detaillierter Ansicht
+                                                        wechseln
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </button>
+                                </div>
                             </th>
                             <th className={css.fileTableHeaderCell}>Größe</th>
                             <th className={css.fileTableHeaderCell}>
@@ -260,7 +348,7 @@ export function DataSharingPage() {
                 </table>
                 <div className={css.dropAreaTextContainer}>
                     <img
-                        src={dragdropicon}
+                        src={dragdropIcon}
                         alt="Drag and drop icon"
                         className={css.dropAreaIcon}
                     />
