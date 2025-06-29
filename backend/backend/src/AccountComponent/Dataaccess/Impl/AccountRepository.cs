@@ -5,49 +5,31 @@ using Npgsql;
 
 namespace backend.AccountComponent.Dataaccess.Impl;
 
-public class AccountRepository : IAccountRepository
+public class AccountRepository(NpgsqlDataSource _dataSource) : IAccountRepository
 {
-    private readonly NpgsqlDataSource _dataSource;
-
-    public AccountRepository()
-    {
-        // Read environment variables each time
-        var host     = Environment.GetEnvironmentVariable("DB_HOST")
-                       ?? throw new ApplicationException("DB_HOST not set");
-        var user     = Environment.GetEnvironmentVariable("DB_USERNAME")
-                       ?? throw new ApplicationException("DB_USERNAME not set");
-        var pass     = Environment.GetEnvironmentVariable("DB_PASSWORD")
-                       ?? throw new ApplicationException("DB_PASSWORD not set");
-        var database = Environment.GetEnvironmentVariable("DB_DATABASE_NAME")
-                       ?? throw new ApplicationException("DB_DATABASE_NAME not set");
-
-        var connString = $"Host={host};Username={user};Password={pass};Database={database}";
-        _dataSource = NpgsqlDataSource.Create(connString);
-    }
-    
     public Task<int> DeleteAsync(int id)
     {
         throw new NotImplementedException();
     }
-    
+
     public async Task<int> SaveAsync(Account account)
     {
         string displayName = account.GetName();
         string password = account.GetPassword();
-        
+
         await using var cmd = _dataSource.CreateCommand(
             "INSERT INTO users (display_name,passwort) VALUES (@name,@password) RETURNING id");
         // supply each parameter separately:
-        cmd.Parameters.AddWithValue("name",    displayName);
+        cmd.Parameters.AddWithValue("name", displayName);
         cmd.Parameters.AddWithValue("password", password);
-        
+
         var result = await cmd.ExecuteScalarAsync();
         if (result is int id)
             return id;
 
         throw new InvalidOperationException("Insert did not return an ID.");
     }
-    
+
     public async Task<AccountRetrieveDto?> GetByNameAsync(string name)
     {
         await using var cmd = _dataSource.CreateCommand(
@@ -56,7 +38,7 @@ public class AccountRepository : IAccountRepository
 
         await using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync()) return null;
-        
+
         // DTO since we dont want to encrypt the password 
         var account = new AccountRetrieveDto
         {
@@ -66,7 +48,7 @@ public class AccountRepository : IAccountRepository
         };
         return account;
     }
-    
+
     public async Task<AccountRetrieveDto?> GetByIdAsync(int id)
     {
         await using var cmd = _dataSource.CreateCommand(
