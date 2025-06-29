@@ -19,28 +19,26 @@ jobs:
             - name: Validate tag
               run: |
                   tag="${{ github.event.release.tag_name }}"
-                  if [[ ! $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                      echo "Invalid tag format. Expected format: vX.X.X"
+                  if [[ ! $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-b[0-9]+)?$ ]]; then
+                      echo "Invalid tag format. Expected: vX.X.X or vX.X.X-bN"
                       exit 1
                   fi
-
+            
             - name: Set tags for Docker images
               id: set_tag
               run: |
                   tag="${{ github.event.release.tag_name }}"
-
-                  # Remove the 'v' from the start of the tag
                   version_without_v=${tag#"v"}
-
-                  # Extract major, minor, and patch parts of the tag
-                  major_version=$(echo $version_without_v | cut -d. -f1) # e.g., 1
-                  minor_version=$(echo $version_without_v | cut -d. -f1,2) # e.g., 1.0
-                  full_version=$version_without_v # e.g., 1.0.0
-
-                  # Set the tags variable
-                  echo "TAGS=${major_version},${minor_version},${full_version}" >> "$GITHUB_OUTPUT"
-
-                  echo "The image will have the tags: ${major_version}, ${minor_version}, ${full_version}"
+            
+                  if [[ "$version_without_v" == *-b* ]]; then
+                      echo "TAGS=${version_without_v}" >> "$GITHUB_OUTPUT"
+                      echo "The image will have the tag: ${version_without_v}"
+                  else
+                      major_version=$(echo $version_without_v | cut -d. -f1)
+                      minor_version=$(echo $version_without_v | cut -d. -f1,2)
+                      echo "TAGS=${major_version},${minor_version},${version_without_v}" >> "$GITHUB_OUTPUT"
+                      echo "The image will have the tags: ${major_version}, ${minor_version}, ${version_without_v}"
+                  fi
 
     build-and-push-frontend:
         name: Build & Push Frontend

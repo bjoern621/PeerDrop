@@ -7,8 +7,8 @@ import addIcon from "../../../assets/add_icon.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
 import { useCallback, useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
-import { LoginResponse } from "../../dtos/LoginResponse";
-import { DeviceResponse } from "../../dtos/DeviceResponse";
+import { LoginResponse } from "../../../util/dtos/LoginResponse";
+import { DeviceResponse } from "../../../util/dtos/DeviceResponse";
 import { DeviceStatus } from "../../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMessage";
 import {
@@ -336,9 +336,9 @@ export const UserProfile = () => {
                                             DeviceStatus.ONLINE
                                                 ? css.deviceOnline
                                                 : device.status ===
-                                                    DeviceStatus.TEMPORARILY_OFFLINE
-                                                  ? css.deviceTmpOffline
-                                                  : css.deviceOffline
+                                                  DeviceStatus.TEMPORARILY_OFFLINE
+                                                ? css.deviceTmpOffline
+                                                : css.deviceOffline
                                         }
                                     ></span>
                                     {device.name}
