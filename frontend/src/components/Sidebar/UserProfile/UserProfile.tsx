@@ -278,6 +278,17 @@ export const UserProfile = () => {
         setDevices(devices.filter(d => d.name !== device.name));
     };
 
+    function getDeviceStatusClass(status: DeviceStatus) {
+        switch (status) {
+            case DeviceStatus.ONLINE:
+                return css.deviceOnline;
+            case DeviceStatus.TEMPORARILY_OFFLINE:
+                return css.deviceTmpOffline;
+            default:
+                return css.deviceOffline;
+        }
+    }
+
     return (
         <div className={css.container}>
             <img className={css.profilePicture} src={userIcon}></img>
@@ -331,15 +342,9 @@ export const UserProfile = () => {
                             >
                                 <span className={css.deviceInfo}>
                                     <span
-                                        className={
-                                            device.status ===
-                                            DeviceStatus.ONLINE
-                                                ? css.deviceOnline
-                                                : device.status ===
-                                                    DeviceStatus.TEMPORARILY_OFFLINE
-                                                  ? css.deviceTmpOffline
-                                                  : css.deviceOffline
-                                        }
+                                        className={getDeviceStatusClass(
+                                            device.status
+                                        )}
                                     ></span>
                                     {device.name}
                                 </span>
