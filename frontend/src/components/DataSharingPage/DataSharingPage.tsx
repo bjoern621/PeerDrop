@@ -12,6 +12,11 @@ enum FileDirection {
     DOWN = "down",
 }
 
+enum FileProgressDisplay {
+    SIMPLE,
+    DETAILED,
+}
+
 interface FileDisplay {
     name: string;
     direction: FileDirection;
@@ -21,6 +26,7 @@ interface FileDisplay {
 }
 
 export function DataSharingPage() {
+    const fileProgressDisplayLocalStorageKey = "detailedProgress";
     const navigate = useNavigate();
 
     const peerConnectionManager = usePeerConnectionManager();
@@ -29,8 +35,10 @@ export function DataSharingPage() {
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
     const [partnerName, setPartnerName] = useState<string | null>(null);
     const [detailedProgress, setDetailedProgress] = useState(() => {
-        const saved = localStorage.getItem("detailedProgress");
-        return saved ? (JSON.parse(saved) as boolean) : false;
+        const saved = localStorage.getItem(fileProgressDisplayLocalStorageKey);
+        return saved
+            ? (JSON.parse(saved) as FileProgressDisplay)
+            : FileProgressDisplay.SIMPLE;
     });
 
     useEffect(() => {
@@ -165,8 +173,14 @@ export function DataSharingPage() {
 
     const onToggleDetailedProgress = () => {
         setDetailedProgress(prev => {
-            const newValue = !prev;
-            localStorage.setItem("detailedProgress", JSON.stringify(newValue));
+            const newValue =
+                prev === FileProgressDisplay.SIMPLE
+                    ? FileProgressDisplay.DETAILED
+                    : FileProgressDisplay.SIMPLE;
+            localStorage.setItem(
+                fileProgressDisplayLocalStorageKey,
+                JSON.stringify(newValue)
+            );
             return newValue;
         });
     };
