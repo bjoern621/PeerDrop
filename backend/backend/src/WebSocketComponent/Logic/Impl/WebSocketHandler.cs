@@ -5,16 +5,11 @@ using System.Text;
 using System.Text.Json;
 using backend.WebSocketComponent.Common.Api.DTOs;
 using backend.WebSocketComponent.Logic.Api;
+using backend.WebSocketComponent.Logic.Types;
 
 namespace backend.WebSocketComponent.Logic.Impl;
 
 using MessageType = string;
-
-public class RuntimeClientInformation
-{
-    public required WebSocket WebSocket { get; set; }
-    public int? UserId { get; set; } // This is technically a violation of the single responsibility principle, but there is no other (secure) way to get the user ID from the client token.
-}
 
 public class WebSocketHandler : IWebSocketHandler
 {

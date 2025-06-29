@@ -5,13 +5,6 @@ using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.DeviceComponent.Logic.Api;
 
-public class RuntimeDeviceInformation
-{
-    public required Guid DeviceGuid { get; set; }
-    public required string LastDeviceStatus { get; set; } // "online", "offline", "tmp_offline"
-    public required DateTime LastHeartbeat { get; set; }
-}
-
 public class DeviceService() : IDeviceService
 {
     // Maps client tokens to device information
