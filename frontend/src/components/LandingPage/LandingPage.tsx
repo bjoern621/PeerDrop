@@ -137,12 +137,19 @@ export default function LandingPage() {
             navigator.clipboard
                 .writeText(clientToken)
                 .then(() => {
-                    setShowSnackbar(true);
-                    if (snackbarTimeout.current)
+                    if (snackbarTimeout.current) {
                         clearTimeout(snackbarTimeout.current);
-                    snackbarTimeout.current = window.setTimeout(() => {
-                        setShowSnackbar(false);
-                    }, 3000); // hide after 3 seconds
+                    }
+
+                    // Force hide first to reset animation
+                    setShowSnackbar(false);
+                    // Then re-show in next tick
+                    setTimeout(() => {
+                        setShowSnackbar(true);
+                        snackbarTimeout.current = window.setTimeout(() => {
+                            setShowSnackbar(false);
+                        }, 3000);
+                    }, 0);
                 })
                 .catch(err => {
                     console.error("Failed to copy token:", err);
