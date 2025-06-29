@@ -64,15 +64,18 @@ public class WebSocketHandler : IWebSocketHandler
     }
 
     /// <summary>
-    /// Sends a typed message to a specific client. The client ID must be valid and connected. Returns true if the message was sent successfully, false otherwise.
+    /// Sends a typed message to a specific client. Returns true if the message was sent successfully, false otherwise.
     /// </summary>
     public async Task<bool> SendMessage(string clientToken, ITypedMessage message)
     {
         var result = ActiveConnections.TryGetValue(clientToken, out var runtimeInfo);
 
-        Debug.Assert(result, $"Failed to find client with token: {clientToken}");
-        Debug.Assert(runtimeInfo != null);
-        Debug.Assert(runtimeInfo.WebSocket != null);
+        if (!result || runtimeInfo == null || runtimeInfo.WebSocket == null)
+        {
+            // The client is not connected
+            // May happen after e.g. SignalingService.HandleCloseConnection() is called
+            return false;
+        }
 
         try
         {
