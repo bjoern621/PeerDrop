@@ -5,13 +5,16 @@ import smallLogo from "../../assets/logo_small.png";
 import css from "./Sidebar.module.scss";
 import { UserProfile } from "./UserProfile/UserProfile";
 import errorAsValue from "../../util/ErrorAsValue";
-import { StatusResponse } from "../dtos/StatusResponse";
+import { StatusResponse } from "../../util/dtos/StatusResponse";
 import { assert } from "../../util/Assert";
+import { useResetWebsocket } from "../../context/ResetContext";
 
 export const Sidebar = () => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(true);
     const [showLogin, setShowLogin] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
+
+    const resetWebsocketConnection = useResetWebsocket();
 
     const getLoggedInStatus = async () => {
         const [response, err] = await errorAsValue(
@@ -23,7 +26,7 @@ export const Sidebar = () => {
 
         if (err) {
             console.error("Fehler beim Abrufen des Login-Status:", err);
-            return;
+            return false;
         }
 
         if (!response.ok) {
@@ -31,14 +34,14 @@ export const Sidebar = () => {
                 "Fehler beim Abrufen des Login-Status:",
                 response.statusText
             );
-            return;
+            return false;
         }
 
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
             console.error("Fehler beim Parsen der Antwort:", parseError);
-            return;
+            return false;
         }
 
         const statusData = responseBody as StatusResponse;
@@ -47,11 +50,18 @@ export const Sidebar = () => {
             "Invalid user status response"
         );
 
-        setLoggedIn(statusData.status);
+        return statusData.status;
     };
 
     useEffect(() => {
-        void getLoggedInStatus();
+        void getLoggedInStatus().then(loggedIn => {
+            setLoggedIn(loggedIn);
+            if (loggedIn) {
+                // Has to be done like this, otherwise the sidebar
+                // automatically re-collapses if the user is not logged in
+                setIsCollapsed(false);
+            }
+        });
     }, []);
 
     function onCollapseSidebar() {
@@ -63,6 +73,7 @@ export const Sidebar = () => {
     }
 
     function onLogin() {
+        resetWebsocketConnection();
         setLoggedIn(true);
     }
 

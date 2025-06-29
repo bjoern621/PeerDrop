@@ -9,7 +9,7 @@ using backend.AccountComponent.Common.Api.DTOs;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
-public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) : IDeviceHandler
+public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService) : IDeviceHandler
 {
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
@@ -62,14 +62,14 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
 
         context.Response.Cookies.Append("deviceUuid", deviceUuid.ToString(), new CookieOptions
         {
-            HttpOnly = true,
+            HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (you may validate the cookie on the server side by using the auth session token)
             IsEssential = true,
             SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddYears(5)
         });
 
         // Return the UUID in the response so that it can be stored in the frontend cookie
-        return Results.Ok(new DeviceRegisterDto{ uuid = deviceUuid });
+        return Results.Ok(new DeviceRegisterDto { uuid = deviceUuid });
     }
 
     private string GetBrowserAndOs(string userAgent)
@@ -181,9 +181,16 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
             {
                 devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, Guid.Empty);
             }
+
             var deviceResponse = new DeviceResponseDTO
             {
-                Devices = devices
+                Devices = [.. devices.Select(device => new DeviceLoginDto
+                {
+                    Uuid = device.Uuid,
+                    DisplayName = device.DisplayName,
+                    IsCurrentDevice = device.IsCurrentDevice,
+                    Status = _deviceService.GetDeviceStatus(device.Uuid)
+                })]
             };
             return Results.Ok(deviceResponse);  // Return the devices or relevant data
         }

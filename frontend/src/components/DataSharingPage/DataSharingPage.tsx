@@ -1,13 +1,25 @@
 import css from "./DataSharingPage.module.scss";
-import { useEffect, useRef, useState } from "react";
-import dragdropicon from "../../assets/dragdropicon.svg";
+import { useCallback, useEffect, useRef, useState } from "react";
+import dragdropIcon from "../../assets/dragdropicon.svg";
+import percentIcon from "../../assets/percent_icon.svg";
+import barchartIcon from "../../assets/barchart_icon.svg";
 import { useNavigate } from "react-router";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { assert } from "../../util/Assert";
+import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
+import { DeviceStatus } from "../../types/device/DeviceStatus";
+import { MessageType } from "../../services/MessageType";
+import { TypedMessage } from "../../services/WebSocketService";
+import { useWebSocketService } from "../../context/WebSocketContext";
 
 enum FileDirection {
     UP = "up",
     DOWN = "down",
+}
+
+enum FileProgressDisplay {
+    SIMPLE,
+    DETAILED,
 }
 
 interface FileDisplay {
@@ -19,6 +31,7 @@ interface FileDisplay {
 }
 
 export function DataSharingPage() {
+    const fileProgressDisplayLocalStorageKey = "detailedProgress";
     const navigate = useNavigate();
 
     const peerConnectionManager = usePeerConnectionManager();
@@ -26,6 +39,38 @@ export function DataSharingPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
     const [partnerName, setPartnerName] = useState<string | null>(null);
+    const [progressDisplay, setProgressDisplay] = useState(() => {
+        const saved = localStorage.getItem(fileProgressDisplayLocalStorageKey);
+        return saved
+            ? (JSON.parse(saved) as FileProgressDisplay)
+            : FileProgressDisplay.SIMPLE;
+    });
+
+    const websocketService = useWebSocketService();
+
+    /**
+     * Sends a heartbeat message if the user has registered the device.
+     */
+    const sendHeartbeatIfPossible = useCallback(() => {
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: deviceUuid,
+                status: DeviceStatus.BUSY,
+            },
+        };
+
+        websocketService.sendMessage(heartbeat);
+    }, [websocketService]);
 
     useEffect(() => {
         assert(
@@ -43,10 +88,20 @@ export function DataSharingPage() {
             setPartnerName(peerConnectionManager.getRemoteToken());
         }
 
+        const handleTabClose = () => {
+            // Close the peer connection when the tab is closed
+            peerConnectionManager.closePeerConnection();
+            window.removeEventListener("beforeunload", handleTabClose);
+        };
+
+        window.addEventListener("beforeunload", handleTabClose);
+
         // set up callback functions
         peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
         peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
-    }, [peerConnectionManager, navigate]);
+
+        sendHeartbeatIfPossible();
+    }, [peerConnectionManager, navigate, sendHeartbeatIfPossible]);
 
     function getSizeInHumanReadableFormat(size: number): string {
         const units = ["B", "KB", "MB", "GB", "TB"];
@@ -90,34 +145,6 @@ export function DataSharingPage() {
             console.log("DATASHARINGPAGE: sendFile triggered with uuid:", uuid);
         }
 
-        /*        const newFiles = new Map<string, FileDisplay>();
-        const fileUuidPairs: Array<[File, string]> = [];
-
-        for (const file of filesList) {
-            const uuid = crypto.randomUUID();
-            newFiles.set(uuid, {
-                name: file.name,
-                direction: FileDirection.UP,
-                progress: 0,
-                size: file.size,
-                time: new Date(),
-            });
-            fileUuidPairs.push([file, uuid]);
-            console.log("DATASHARINGPAGE: sendFile triggered with uuid:", uuid);
-        }
-
-        setFiles(prevFiles => {
-            const merged = new Map(prevFiles);
-            for (const [uuid, fileDisplay] of newFiles.entries()) {
-                merged.set(uuid, fileDisplay);
-            }
-            return merged;
-        });
-
-        for (const [file, uuid] of fileUuidPairs) {
-            peerConnectionManager.sendFile(file, uuid);
-        }*/
-
         // Reset input to allow re-adding the same file
         if (event.target) {
             event.target.value = "";
@@ -157,6 +184,20 @@ export function DataSharingPage() {
         });
     };
 
+    const onToggleDetailedProgress = () => {
+        setProgressDisplay(prev => {
+            const newValue =
+                prev === FileProgressDisplay.SIMPLE
+                    ? FileProgressDisplay.DETAILED
+                    : FileProgressDisplay.SIMPLE;
+            localStorage.setItem(
+                fileProgressDisplayLocalStorageKey,
+                JSON.stringify(newValue)
+            );
+            return newValue;
+        });
+    };
+
     // need to convert Map to an array for rendering
     const fileRows = Array.from(files.entries()).map(([uuid, file]) => (
         <tr key={uuid}>
@@ -164,16 +205,25 @@ export function DataSharingPage() {
                 {file.name}
             </td>
             <td className={`${css.fileTableCell} ${css.smallColumn}`}>
-                {file.direction === FileDirection.DOWN ? "↓" : "↑"}
-                {file.progress >= 1 ? (
-                    <span className={css.progressStatusText}>Fertig!</span>
-                ) : (
-                    <progress
-                        className={css.fileProgress}
-                        value={file.progress}
-                        max={1}
-                    />
-                )}
+                <div className={css.fileProgress}>
+                    {file.direction === FileDirection.DOWN ? "↓" : "↑"}
+                    {file.progress >= 1 ? (
+                        <span className={css.progressStatusText}>Fertig!</span>
+                    ) : progressDisplay ? (
+                        <span className={css.progressStatusText}>
+                            {getSizeInHumanReadableFormat(
+                                file.progress * file.size
+                            )}{" "}
+                            {"(" + Math.round(file.progress * 100) + "%)"}
+                        </span>
+                    ) : (
+                        <progress
+                            className={css.progressBar}
+                            value={file.progress}
+                            max={1}
+                        />
+                    )}
+                </div>
             </td>
             <td className={`${css.fileTableCell} ${css.smallColumn}`}>
                 {getSizeInHumanReadableFormat(file.size)}
@@ -235,7 +285,58 @@ export function DataSharingPage() {
                         <tr>
                             <th className={css.fileTableHeaderCell}>Name</th>
                             <th className={css.fileTableHeaderCell}>
-                                Fortschritt
+                                <div className={css.fileProgressHeaderCell}>
+                                    Fortschritt
+                                    <button
+                                        onClick={onToggleDetailedProgress}
+                                        className={css.detailProgressButton}
+                                    >
+                                        <div
+                                            className={
+                                                css.detailProgressIconContainer
+                                            }
+                                        >
+                                            {progressDisplay ===
+                                            FileProgressDisplay.DETAILED ? (
+                                                <>
+                                                    <img
+                                                        src={percentIcon}
+                                                        alt="Detailed view icon"
+                                                        className={
+                                                            css.detailProgressIcon
+                                                        }
+                                                    />
+                                                    <span
+                                                        className={
+                                                            css.detailProgressTooltip
+                                                        }
+                                                    >
+                                                        Zu einfacher Ansicht
+                                                        wechseln
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <img
+                                                        src={barchartIcon}
+                                                        alt="Simple view icon"
+                                                        className={
+                                                            css.detailProgressIcon
+                                                        }
+                                                    />
+                                                    <span
+                                                        className={
+                                                            css.detailProgressTooltip
+                                                        }
+                                                    >
+                                                        Zu detaillierter Ansicht
+                                                        wechseln
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </button>
+                                </div>
                             </th>
                             <th className={css.fileTableHeaderCell}>Größe</th>
                             <th className={css.fileTableHeaderCell}>
@@ -247,7 +348,7 @@ export function DataSharingPage() {
                 </table>
                 <div className={css.dropAreaTextContainer}>
                     <img
-                        src={dragdropicon}
+                        src={dragdropIcon}
                         alt="Drag and drop icon"
                         className={css.dropAreaIcon}
                     />

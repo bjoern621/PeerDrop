@@ -6,20 +6,24 @@ import deleteIconLight from "../../../assets/delete_icon_light.svg";
 import addIcon from "../../../assets/add_icon.svg";
 import logoutIcon from "../../../assets/logout_icon.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
-import { LoginResponse } from "../../dtos/LoginResponse";
-import { DeviceResponse } from "../../dtos/DeviceResponse";
-
-enum DeviceStatus {
-    ONLINE = "online",
-    OFFLINE = "offline",
-}
+import { LoginResponse } from "../../../util/dtos/LoginResponse";
+import { DeviceResponse } from "../../../util/dtos/DeviceResponse";
+import { DeviceStatus } from "../../../types/device/DeviceStatus";
+import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMessage";
+import {
+    MessageHandler,
+    TypedMessage,
+} from "../../../services/WebSocketService";
+import { MessageType } from "../../../services/MessageType";
+import { useWebSocketService } from "../../../context/WebSocketContext";
 
 interface DeviceDisplay {
     status: DeviceStatus;
     current: boolean;
     name: string;
+    uuid: string;
 }
 
 export const UserProfile = () => {
@@ -31,10 +35,112 @@ export const UserProfile = () => {
         useState(false);
     const [registerButtonDisabled, setRegisterButtonDisabled] = useState(false);
 
+    const websocketService = useWebSocketService();
+
+    const HEARTBEAT_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO THE BACKEND VARIABLE: INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS
+
+    const handleHeartbeatMessage = useCallback(() => {
+        const onHeartbeatReceived = (
+            message: TypedMessage<DeviceHeartbeatMessage>
+        ) => {
+            setDevices(prevDevices =>
+                prevDevices.map(device =>
+                    device.uuid === message.msg.uuid
+                        ? { ...device, status: message.msg.status }
+                        : device
+                )
+            );
+        };
+
+        websocketService.subscribeMessage(
+            MessageType.DEVICE_HEARTBEAT,
+            onHeartbeatReceived as MessageHandler
+        );
+    }, [websocketService]);
+
+    /**
+     * Sends a heartbeat message if the user has registered the device.
+     */
+    const sendHeartbeatIfPossible = useCallback(() => {
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: deviceUuid,
+                status: DeviceStatus.ONLINE,
+            },
+        };
+
+        websocketService.sendMessage(heartbeat);
+    }, [websocketService]);
+
+    /**
+     * Sets up an event listener to send an offline heartbeat when the tab is closed.
+     */
+    const sendOfflineHeartbeat = useCallback(() => {
+        const handleTabClose = () => {
+            const deviceUuid: string | undefined = document.cookie
+                .split("; ")
+                .find(row => row.startsWith("deviceUuid="))
+                ?.split("=")[1];
+
+            if (!deviceUuid) {
+                return; // The user might not have registered the device
+            }
+
+            const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+                type: MessageType.DEVICE_HEARTBEAT,
+                msg: {
+                    uuid: deviceUuid,
+                    status: DeviceStatus.OFFLINE,
+                },
+            };
+            websocketService.sendMessage(heartbeat);
+
+            window.removeEventListener("beforeunload", handleTabClose);
+        };
+        window.addEventListener("beforeunload", handleTabClose);
+    }, [websocketService]);
+
+    /**
+     * Sends a heartbeat message every HEARTBEAT_INTERVAL_MS.
+     */
+    const sendContinuousHeartbeat = useCallback(() => {
+        const timer = setInterval(() => {
+            sendHeartbeatIfPossible();
+        }, HEARTBEAT_INTERVAL_MS);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [sendHeartbeatIfPossible, HEARTBEAT_INTERVAL_MS]);
+
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
-    }, []);
+
+        handleHeartbeatMessage();
+
+        sendHeartbeatIfPossible();
+
+        sendOfflineHeartbeat();
+
+        sendContinuousHeartbeat();
+    }, [
+        handleHeartbeatMessage,
+        sendHeartbeatIfPossible,
+        sendOfflineHeartbeat,
+        sendContinuousHeartbeat,
+    ]);
+
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
@@ -64,7 +170,8 @@ export const UserProfile = () => {
             .map(deviceName => ({
                 name: deviceName.displayName,
                 current: deviceName.isCurrentDevice,
-                status: DeviceStatus.ONLINE, // Hier Status Logik einführen
+                status: deviceName.status,
+                uuid: deviceName.uuid,
             }))
             .filter(device => !device.current);
         const isCurrentDevice = devicesData.devices.some(
@@ -129,6 +236,8 @@ export const UserProfile = () => {
         }
 
         setCurrentDeviceRegistered(true);
+
+        sendHeartbeatIfPossible();
     };
 
     const connectDevice = (device: DeviceDisplay) => {
@@ -169,6 +278,17 @@ export const UserProfile = () => {
 
         setDevices(devices.filter(d => d.name !== device.name));
     };
+
+    function getDeviceStatusClass(status: DeviceStatus) {
+        switch (status) {
+            case DeviceStatus.ONLINE:
+                return css.deviceOnline;
+            case DeviceStatus.BUSY:
+                return css.deviceBusy;
+            default:
+                return css.deviceOffline;
+        }
+    }
 
     const logout = async () => {
         console.log("Logging out...");
@@ -252,12 +372,9 @@ export const UserProfile = () => {
                             >
                                 <span className={css.deviceInfo}>
                                     <span
-                                        className={
-                                            device.status ===
-                                            DeviceStatus.ONLINE
-                                                ? css.deviceOnline
-                                                : css.deviceOffline
-                                        }
+                                        className={getDeviceStatusClass(
+                                            device.status
+                                        )}
                                     ></span>
                                     {device.name}
                                 </span>

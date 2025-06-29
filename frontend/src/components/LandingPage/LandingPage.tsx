@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TypedMessage } from "../../services/WebSocketService";
 import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
+import checkmark from "../../assets/checkmark.svg";
+import copyContent from "../../assets/copy_content.svg";
 import { OTPInput, SlotProps } from "input-otp";
 import { WaitingDialog } from "../Popups/WaitingDialog";
 import { ConfirmDialog } from "../Popups/ConfirmDialog";
@@ -10,6 +12,8 @@ import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 import { MessageType } from "../../services/MessageType";
 import { useWebSocketService } from "../../context/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
+import { DeviceStatus } from "../../types/device/DeviceStatus";
+import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -24,6 +28,12 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     );
 };
 
+enum TokenCopyStatus {
+    IDLE,
+    HOVER,
+    COPIED,
+}
+
 export default function LandingPage() {
     const websocket = useWebSocketService();
     const peerConnectionManager = usePeerConnectionManager();
@@ -33,9 +43,38 @@ export default function LandingPage() {
     const waitingDialog = useRef<HTMLDialogElement | null>(null);
     const confirmDialog = useRef<HTMLDialogElement | null>(null);
     const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
+    const [showSnackbar, setShowSnackbar] = useState(false);
+    const snackbarTimeout = useRef<number | null>(null);
+    const [tokenCopyStatus, setTokenCopyStatus] = useState(
+        TokenCopyStatus.IDLE
+    );
 
     const [remoteTokenOfRequestingPeer, setRemoteTokenOfRequestingPeer] =
         useState<string | undefined>(undefined);
+
+    /**
+     * Sends a heartbeat message if the user has registered the device.
+     */
+    const sendHeartbeatIfPossible = useCallback(() => {
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: deviceUuid,
+                status: DeviceStatus.ONLINE,
+            },
+        };
+
+        websocket.sendMessage(heartbeat);
+    }, [websocket]);
 
     useEffect(() => {
         console.log("useEffect triggered");
@@ -102,13 +141,13 @@ export default function LandingPage() {
             }
         );
 
-        console.log("LandingPage component mounted");
+        sendHeartbeatIfPossible();
 
         return () => {
             clearInterval(checkToken);
             websocket.unsubscribeMessage(MessageType.TEST, handler);
         };
-    }, [websocket, peerConnectionManager]);
+    }, [websocket, peerConnectionManager, sendHeartbeatIfPossible]);
 
     const connectToPeer = () => {
         const successfullySent =
@@ -116,6 +155,31 @@ export default function LandingPage() {
 
         if (successfullySent) {
             waitingDialog.current!.showModal();
+        }
+    };
+
+    const copyTokenToClipboard = () => {
+        // Force hide first to reset animation
+        setShowSnackbar(false);
+        if (clientToken) {
+            navigator.clipboard
+                .writeText(clientToken)
+                .then(() => {
+                    setTokenCopyStatus(TokenCopyStatus.COPIED);
+
+                    if (snackbarTimeout.current) {
+                        clearTimeout(snackbarTimeout.current);
+                    }
+                    // Then re-show in next tick
+                    setShowSnackbar(true);
+                    snackbarTimeout.current = window.setTimeout(() => {
+                        setShowSnackbar(false);
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.error("Failed to copy token:", err);
+                    setTokenCopyStatus(TokenCopyStatus.HOVER);
+                });
         }
     };
 
@@ -155,19 +219,53 @@ export default function LandingPage() {
         showLoadingDialog();
     };
 
+    const onTokenHover = () => {
+        setTokenCopyStatus(TokenCopyStatus.HOVER);
+    };
+
+    const onTokenHoverLeave = () => {
+        setTokenCopyStatus(TokenCopyStatus.IDLE);
+    };
+
     return (
         <div className={css.container}>
             <img
                 src={bannerLogo}
                 className={css.logo}
                 alt="Banner Logo von PeerDrop"
+                loading="eager"
             />
-            <div className={css.ownTokenContainer}>
+            <button
+                className={`${css.ownTokenContainer} ${
+                    clientToken ? css.tokenLoaded : ""
+                }`}
+                onMouseEnter={onTokenHover}
+                onMouseLeave={onTokenHoverLeave}
+                onClick={copyTokenToClipboard}
+            >
                 <span className={css.tooltip}>Dein Token</span>
+                <div className={css.tokenOverlay}>
+                    {!clientToken ||
+                    tokenCopyStatus === TokenCopyStatus.IDLE ? (
+                        <></>
+                    ) : tokenCopyStatus === TokenCopyStatus.HOVER ? (
+                        <img
+                            src={copyContent}
+                            alt="Token kopieren"
+                            className={css.tokenOverlayIcon}
+                        />
+                    ) : (
+                        <img
+                            src={checkmark}
+                            alt="Token kopiert"
+                            className={css.tokenOverlayIcon}
+                        />
+                    )}
+                </div>
                 <span className={css.token}>
                     {clientToken ? clientToken : "_____"}
                 </span>
-            </div>
+            </button>
             <div className={css.peerTokenContainer}>
                 <div className={css.inputContainer}>
                     <OTPInput
@@ -208,6 +306,11 @@ export default function LandingPage() {
                 token={remoteTokenOfRequestingPeer}
             />
             <AwaitConnectionDialog ref={awaitConnectionDialog} />
+            {showSnackbar && (
+                <div className={css.snackbar}>
+                    Token in die Zwischenablage kopiert!
+                </div>
+            )}
         </div>
     );
 }

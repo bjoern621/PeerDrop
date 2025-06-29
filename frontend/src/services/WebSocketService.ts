@@ -38,8 +38,13 @@ export class WebSocketService {
      */
     public constructor() {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
-        this.connectToServer();
 
+        this.openWebSocket();
+    }
+
+    public openWebSocket(): void {
+        assert(!this.socket, "WebSocket is already open.");
+        this.connectToServer();
         this.waitForLocalClientToken();
     }
 
@@ -115,7 +120,14 @@ export class WebSocketService {
 
         switch (this.socket.readyState) {
             case WebSocket.CONNECTING:
-                return false;
+                // this.log("WebSocket is not yet open. Delaying close.");
+                this.socket.addEventListener("open", () => {
+                    assert(this.socket);
+                    this.socket.close();
+                    this.socket = undefined;
+                });
+
+                return true;
             case WebSocket.OPEN:
                 this.socket.close();
                 this.socket = undefined;
@@ -133,6 +145,15 @@ export class WebSocketService {
 
     public sendMessage<T>(message: TypedMessage<T>) {
         assert(this.socket);
+
+        if (this.socket.readyState !== WebSocket.OPEN) {
+            // this.log("WebSocket is not yet open. Delaying message send.");
+            this.socket.addEventListener("open", () => {
+                this.sendMessage(message);
+            });
+
+            return;
+        }
 
         this.socket.send(JSON.stringify(message));
     }

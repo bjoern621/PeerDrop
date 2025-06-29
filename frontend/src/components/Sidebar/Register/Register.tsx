@@ -1,6 +1,6 @@
 import errorAsValue from "../../../util/ErrorAsValue";
 import { useState } from "react";
-import { UserLoginDto } from "../../dtos/UserLoginDto";
+import { UserLoginDto } from "../../../util/dtos/UserLoginDto";
 import { assert } from "../../../util/Assert";
 import css from "./Register.module.scss";
 
