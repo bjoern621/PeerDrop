@@ -2,13 +2,11 @@ using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 using Npgsql;
 using backend.DeviceComponent.Common.DTOs;
-using Microsoft.AspNetCore.Identity;
-using backend.DeviceComponent.Logic.Api;
 using System.Diagnostics;
 
 namespace backend.DeviceComponent.Dataaccess.Impl;
 
-public class DeviceRepository(NpgsqlDataSource _dataSource, IDeviceService _deviceService) : IDeviceRepository
+public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
 {
     public async Task<Guid> SaveDeviceAsync(Device device)
     {
@@ -25,6 +23,9 @@ public class DeviceRepository(NpgsqlDataSource _dataSource, IDeviceService _devi
         throw new InvalidOperationException("Insert failed.");
     }
 
+    /// <summary>
+    /// The returned DeviceLoginDtos don't have a status set.
+    /// </summary>
     public async Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, Guid? uuid)
     {
         await using var cmd = _dataSource.CreateCommand(
@@ -49,7 +50,7 @@ public class DeviceRepository(NpgsqlDataSource _dataSource, IDeviceService _devi
                 DisplayName = reader.GetString(1),  // Get the display_name (second column)
                 IsCurrentDevice = reader.GetGuid(0) == uuid,
                 Uuid = reader.GetGuid(0),
-                Status = _deviceService.GetDeviceStatus(reader.GetGuid(0))
+                Status = "invalid" // Should be updated later
             };
             devices.Add(deviceDto);
         }

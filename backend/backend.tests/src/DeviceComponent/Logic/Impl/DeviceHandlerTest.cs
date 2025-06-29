@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using backend.AccountComponent.Logic.Api;
 using backend.AccountComponent.Common.Api.DTOs;
 using Microsoft.AspNetCore.Http.HttpResults;
+using backend.DeviceComponent.Logic.Api;
 
 namespace backend.tests.DeviceComponent.Logic.Impl;
 
@@ -16,6 +17,7 @@ public class DeviceHandlerTests
 {
     private Mock<IDeviceRepository> _repoMock;
     private Mock<IAccountLoginHandler> _loginHandlerMock;
+    private Mock<IDeviceService> _deviceServiceMock;
     private DeviceHandler _deviceHandler;
 
     [SetUp]
@@ -23,7 +25,8 @@ public class DeviceHandlerTests
     {
         _repoMock = new Mock<IDeviceRepository>();
         _loginHandlerMock = new Mock<IAccountLoginHandler>();
-        _deviceHandler = new DeviceHandler(_repoMock.Object, _loginHandlerMock.Object);
+        _deviceServiceMock = new Mock<IDeviceService>();
+        _deviceHandler = new DeviceHandler(_repoMock.Object, _loginHandlerMock.Object, _deviceServiceMock.Object);
     }
 
     private HttpContext CreateValidContext(string userId, Boolean inSession, Guid deviceUuid = default, string userAgent = "Mozilla-Firefox")

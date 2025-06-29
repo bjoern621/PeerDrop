@@ -9,7 +9,7 @@ using backend.AccountComponent.Common.Api.DTOs;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
-public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) : IDeviceHandler
+public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService) : IDeviceHandler
 {
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
@@ -181,9 +181,16 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
             {
                 devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, Guid.Empty);
             }
+
             var deviceResponse = new DeviceResponseDTO
             {
-                Devices = devices
+                Devices = [.. devices.Select(device => new DeviceLoginDto
+                {
+                    Uuid = device.Uuid,
+                    DisplayName = device.DisplayName,
+                    IsCurrentDevice = device.IsCurrentDevice,
+                    Status = _deviceService.GetDeviceStatus(device.Uuid)
+                })]
             };
             return Results.Ok(deviceResponse);  // Return the devices or relevant data
         }
