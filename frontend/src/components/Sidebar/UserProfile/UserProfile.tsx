@@ -144,8 +144,6 @@ export const UserProfile = () => {
         }
 
         const devicesData = responseBody as DeviceResponse;
-        console.log(devicesData);
-
         assert(devicesData && devicesData.devices, "Invalid device response");
         const updatedDevices: DeviceDisplay[] = devicesData.devices
             .map(deviceName => ({
