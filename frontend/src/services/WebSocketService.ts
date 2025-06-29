@@ -120,7 +120,7 @@ export class WebSocketService {
 
         switch (this.socket.readyState) {
             case WebSocket.CONNECTING:
-                this.log("WebSocket is not yet open. Delaying close.");
+                // this.log("WebSocket is not yet open. Delaying close.");
                 this.socket.addEventListener("open", () => {
                     assert(this.socket);
                     this.socket.close();
@@ -147,7 +147,7 @@ export class WebSocketService {
         assert(this.socket);
 
         if (this.socket.readyState !== WebSocket.OPEN) {
-            this.log("WebSocket is not yet open. Delaying message send.");
+            // this.log("WebSocket is not yet open. Delaying message send.");
             this.socket.addEventListener("open", () => {
                 this.sendMessage(message);
             });
