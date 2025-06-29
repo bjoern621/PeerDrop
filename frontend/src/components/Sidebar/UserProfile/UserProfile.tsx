@@ -299,9 +299,7 @@ export const UserProfile = () => {
                     <li key={-1} className={css.deviceListItem}>
                         {!currentDeviceRegistered ? (
                             <button
-                                className={
-                                    css.currentDevice + " " + css.unregistered
-                                }
+                                className={css.unregisteredCurrentDevice}
                                 type="button"
                                 onClick={() => void registerCurrentDevice()}
                                 disabled={registerButtonDisabled}
@@ -315,7 +313,7 @@ export const UserProfile = () => {
                                 </span>
                             </button>
                         ) : (
-                            <div className={css.currentDevice}>
+                            <div className={css.registeredCurrentDevice}>
                                 <span className={css.deviceInfo}>
                                     <img
                                         src={userIconLight}
