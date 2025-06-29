@@ -16,4 +16,8 @@ public class DeviceLoginDto
     [Required]
     [JsonPropertyName("uuid")]
     public required Guid Uuid { get; set; }
+
+    [Required]
+    [JsonPropertyName("status")]
+    public required string Status { get; set; }
 }

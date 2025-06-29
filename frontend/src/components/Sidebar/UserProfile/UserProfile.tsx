@@ -144,12 +144,14 @@ export const UserProfile = () => {
         }
 
         const devicesData = responseBody as DeviceResponse;
+        console.log(devicesData);
+
         assert(devicesData && devicesData.devices, "Invalid device response");
         const updatedDevices: DeviceDisplay[] = devicesData.devices
             .map(deviceName => ({
                 name: deviceName.displayName,
                 current: deviceName.isCurrentDevice,
-                status: DeviceStatus.OFFLINE,
+                status: deviceName.status,
                 uuid: deviceName.uuid,
             }))
             .filter(device => !device.current);

@@ -3,10 +3,12 @@ using backend.DeviceComponent.Dataaccess.Api.Entity;
 using Npgsql;
 using backend.DeviceComponent.Common.DTOs;
 using Microsoft.AspNetCore.Identity;
+using backend.DeviceComponent.Logic.Api;
+using System.Diagnostics;
 
 namespace backend.DeviceComponent.Dataaccess.Impl;
 
-public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
+public class DeviceRepository(NpgsqlDataSource _dataSource, IDeviceService _deviceService) : IDeviceRepository
 {
     public async Task<Guid> SaveDeviceAsync(Device device)
     {
@@ -37,6 +39,8 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
             uuid = Guid.Parse("00000000-0000-0000-0001-294128421414"); // Never fails
         }
 
+        Debug.Assert(uuid != null, "UUID should not be null here");
+
         while (await reader.ReadAsync())
         {
 
@@ -44,7 +48,8 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
             {
                 DisplayName = reader.GetString(1),  // Get the display_name (second column)
                 IsCurrentDevice = reader.GetGuid(0) == uuid,
-                Uuid = reader.GetGuid(0)
+                Uuid = reader.GetGuid(0),
+                Status = _deviceService.GetDeviceStatus(reader.GetGuid(0))
             };
             devices.Add(deviceDto);
         }

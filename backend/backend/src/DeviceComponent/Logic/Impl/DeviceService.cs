@@ -7,28 +7,31 @@ namespace backend.DeviceComponent.Logic.Api;
 public class RuntimeDeviceInformation
 {
     public required Guid DeviceGuid { get; set; }
+    public required string LastDeviceStatus { get; set; } //  "online", "offline", "tmp_offline"
     public required DateTime LastHeartbeat { get; set; }
 }
 
 public class DeviceService(IWebSocketHandler _webSocketHandler) : IDeviceService
 {
     // Maps client tokens to device information
+    // Devices with DeviceStatus "offline" might or might not be in this list
     private readonly ConcurrentDictionary<string, RuntimeDeviceInformation> _activeDevices = new();
 
     public Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message)
     {
-        Console.WriteLine($"Received heartbeat from device {message.Uuid} for client {clientToken}");
+        Console.WriteLine($"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}");
 
         lock (_activeDevices)
         {
             if (_activeDevices.TryGetValue(clientToken, out var deviceInfo))
             {
                 deviceInfo.LastHeartbeat = DateTime.UtcNow;
+                deviceInfo.LastDeviceStatus = message.DeviceStatus;
                 Console.WriteLine($"Updated heartbeat for device {message.Uuid} for client {clientToken}");
             }
             else
             {
-                _activeDevices[clientToken] = new RuntimeDeviceInformation { DeviceGuid = message.Uuid, LastHeartbeat = DateTime.UtcNow };
+                _activeDevices[clientToken] = new RuntimeDeviceInformation { DeviceGuid = message.Uuid, LastHeartbeat = DateTime.UtcNow, LastDeviceStatus = message.DeviceStatus };
                 Console.WriteLine($"Registered new device {message.Uuid} for client {clientToken}");
             }
         }
@@ -57,5 +60,20 @@ public class DeviceService(IWebSocketHandler _webSocketHandler) : IDeviceService
         }
 
         return Task.CompletedTask;
+    }
+
+    public string GetDeviceStatus(Guid deviceUuid)
+    {
+        lock (_activeDevices)
+        {
+            var deviceInfo = _activeDevices.Values.FirstOrDefault(d => d.DeviceGuid == deviceUuid);
+            if (deviceInfo != null)
+            {
+                return deviceInfo.LastDeviceStatus;
+            }
+        }
+
+        // The device is not in the _activeDevices list meaning it's offline
+        return "offline";
     }
 }
