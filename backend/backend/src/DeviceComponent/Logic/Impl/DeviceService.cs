@@ -7,7 +7,7 @@ namespace backend.DeviceComponent.Logic.Api;
 public class RuntimeDeviceInformation
 {
     public required Guid DeviceGuid { get; set; }
-    public required string LastDeviceStatus { get; set; } //  "online", "offline", "tmp_offline"
+    public required string LastDeviceStatus { get; set; } // "online", "offline", "tmp_offline"
     public required DateTime LastHeartbeat { get; set; }
 }
 
@@ -66,10 +66,14 @@ public class DeviceService(IWebSocketHandler _webSocketHandler) : IDeviceService
     {
         lock (_activeDevices)
         {
-            var deviceInfo = _activeDevices.Values.FirstOrDefault(d => d.DeviceGuid == deviceUuid);
-            if (deviceInfo != null)
+            foreach (var kvp in _activeDevices)
             {
-                return deviceInfo.LastDeviceStatus;
+                var deviceInfo = kvp.Value;
+                if (deviceInfo.DeviceGuid == deviceUuid && _webSocketHandler.GetUserIdForClientToken(kvp.Key) != null)
+                {
+                    // LastDeviceStatus is valid if the device is in the _activeDevices list and has a valid userId (client is logged in)
+                    return deviceInfo.LastDeviceStatus;
+                }
             }
         }
 
