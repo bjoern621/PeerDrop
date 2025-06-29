@@ -1,5 +1,3 @@
-using backend.DeviceComponent.Dataaccess.Api.Entity;
-
 namespace backend.DeviceComponent.Logic.Api;
 
 public interface IDeviceHandler

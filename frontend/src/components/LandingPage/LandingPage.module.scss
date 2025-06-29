@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
     justify-content: space-between;
     height: 100%;
 
@@ -14,6 +15,7 @@
 }
 
 .own-token-container {
+    --token-height: 8rem;
     --border_width: 5px;
 
     border-radius: 50px;
@@ -22,6 +24,17 @@
     text-align: center;
 
     padding: 20px 30px;
+
+    cursor: not-allowed;
+
+    &.token-loaded {
+        cursor: pointer;
+    }
+
+    &.token-loaded:hover .token {
+        filter: blur(5px);
+        opacity: 0.3;
+    }
 }
 
 .tooltip {
@@ -41,9 +54,40 @@
     font-weight: bold;
 }
 
+.snackbar {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #323232;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    animation: fadeInOut 3s forwards;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+    10%,
+    90% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+}
+
 .token {
     color: black;
-    font-size: 8rem;
+    font-size: var(--token-height);
     font-weight: bold;
 
     --spacing: 1.5rem;
@@ -51,6 +95,26 @@
     margin-right: calc(var(--spacing) * -1);
 
     font-family: "Roboto Mono";
+}
+
+.tokenOverlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tokenOverlayIcon {
+    height: var(--token-height);
+}
+
+.token {
+    transition:
+        filter 0.2s ease,
+        opacity 0.2s ease;
 }
 
 .peer-token-container {

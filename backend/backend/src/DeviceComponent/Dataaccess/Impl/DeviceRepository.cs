@@ -2,29 +2,12 @@ using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 using Npgsql;
 using backend.DeviceComponent.Common.DTOs;
-using Microsoft.AspNetCore.Identity;
+using System.Diagnostics;
 
 namespace backend.DeviceComponent.Dataaccess.Impl;
 
-public class DeviceRepository : IDeviceRepository
+public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
 {
-    private readonly NpgsqlDataSource _dataSource;
-
-    public DeviceRepository()
-    {
-        var host = Environment.GetEnvironmentVariable("DB_HOST")
-                       ?? throw new ApplicationException("DB_HOST not set");
-        var user = Environment.GetEnvironmentVariable("DB_USERNAME")
-                       ?? throw new ApplicationException("DB_USERNAME not set");
-        var pass = Environment.GetEnvironmentVariable("DB_PASSWORD")
-                       ?? throw new ApplicationException("DB_PASSWORD not set");
-        var database = Environment.GetEnvironmentVariable("DB_DATABASE_NAME")
-                       ?? throw new ApplicationException("DB_DATABASE_NAME not set");
-
-        var connString = $"Host={host};Username={user};Password={pass};Database={database}";
-        _dataSource = NpgsqlDataSource.Create(connString);
-    }
-
     public async Task<Guid> SaveDeviceAsync(Device device)
     {
         await using var cmd = _dataSource.CreateCommand(
@@ -40,7 +23,10 @@ public class DeviceRepository : IDeviceRepository
         throw new InvalidOperationException("Insert failed.");
     }
 
-    public async Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, Guid? uuid)
+    /// <summary>
+    /// The returned DeviceLoginDtos don't have a status set.
+    /// </summary>
+    public async Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, Guid uuid)
     {
         await using var cmd = _dataSource.CreateCommand(
             "SELECT uuid, display_name FROM devices WHERE account_id = @accountId"
@@ -51,7 +37,7 @@ public class DeviceRepository : IDeviceRepository
         var devices = new List<DeviceLoginDto>();
         if (uuid == Guid.Empty)
         {
-            uuid  = Guid.Parse("00000000-0000-0000-0001-294128421414"); // Never fails
+            uuid = Guid.Parse("00000000-0000-0000-0001-294128421414"); // Never fails
         }
 
         while (await reader.ReadAsync())
@@ -60,7 +46,9 @@ public class DeviceRepository : IDeviceRepository
             var deviceDto = new DeviceLoginDto
             {
                 DisplayName = reader.GetString(1),  // Get the display_name (second column)
-                IsCurrentDevice = reader.GetGuid(0) == uuid
+                IsCurrentDevice = reader.GetGuid(0) == uuid,
+                Uuid = reader.GetGuid(0),
+                Status = "invalid" // Should be updated later
             };
             devices.Add(deviceDto);
         }
@@ -75,5 +63,27 @@ public class DeviceRepository : IDeviceRepository
         cmd.Parameters.AddWithValue("@uuid", uuid);
 
         return await cmd.ExecuteNonQueryAsync(); // returns number of affected rows
+    }
+
+    public Task<Device?> GetDeviceByUuidAsync(Guid uuid)
+    {
+        return Task.Run(async () =>
+        {
+            await using var cmd = _dataSource.CreateCommand(
+                "SELECT uuid, display_name, account_id FROM devices WHERE uuid = @uuid"
+            );
+            cmd.Parameters.AddWithValue("uuid", uuid);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new Device(
+                    reader.GetString(1), // display_name
+                    reader.GetGuid(0), // uuid
+                    reader.GetInt32(2) // account_id
+                );
+            }
+            return null; // No device found with the given UUID
+        });
     }
 }

@@ -42,6 +42,19 @@ builder.Services.AddCors(options => options.AddPolicy(
                      .AllowCredentials() // Required to allow session cookies
         ));
 
+var host = Environment.GetEnvironmentVariable("DB_HOST")
+               ?? throw new ApplicationException("DB_HOST not set");
+var user = Environment.GetEnvironmentVariable("DB_USERNAME")
+               ?? throw new ApplicationException("DB_USERNAME not set");
+var pass = Environment.GetEnvironmentVariable("DB_PASSWORD")
+               ?? throw new ApplicationException("DB_PASSWORD not set");
+var database = Environment.GetEnvironmentVariable("DB_DATABASE_NAME")
+               ?? throw new ApplicationException("DB_DATABASE_NAME not set");
+
+var connString = $"Host={host};Username={user};Password={pass};Database={database}";
+var dataSource = Npgsql.NpgsqlDataSource.Create(connString);
+builder.Services.AddSingleton(dataSource);
+
 builder.Services.AddWebSockets(options => { });
 builder.Services.AddSingleton<IWebSocketRoutes, WebSocketRoutes>();
 builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
@@ -49,6 +62,8 @@ builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
 builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
+builder.Services.AddSingleton<IDeviceWebsocketMessages, DeviceWebsocketMessages>();
+builder.Services.AddSingleton<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -85,6 +100,8 @@ var accountRoutes = app.Services.GetRequiredService<IAccountRoutes>();
 accountRoutes.RegisterRoutes(app);
 var deviceRoutes = app.Services.GetRequiredService<IDeviceRoutes>();
 await deviceRoutes.RegisterRoutes(app);
+var deviceWebsocketMessages = app.Services.GetRequiredService<IDeviceWebsocketMessages>();
+deviceWebsocketMessages.SubscribeToMessageHandlers();
 var webSocketHandler = app.Services.GetRequiredService<IWebSocketHandler>();
 webSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
 {
