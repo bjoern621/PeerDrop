@@ -33,20 +33,9 @@ export function ConnectionProvider({
 
     const resetConnections = () => {
         wsRef.current?.closeActiveConnection();
-        pcmRef.current?.closePeerConnection();
-
-        wsRef.current = new WebSocketService();
-        pcmRef.current = new PeerConnectionManager(wsRef.current);
-        pcmRef.current.setOnConnectedCallback(() => {
-            void navigate("/share");
-        });
-        pcmRef.current.setOnDisconnectedCallback(() => {
-            void navigate("/");
-        });
+        wsRef.current?.openWebSocket();
 
         forceUpdate(n => n + 1);
-
-        // TODO this curretnly breaks login on the data share page
     };
 
     return (

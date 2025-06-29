@@ -38,8 +38,13 @@ export class WebSocketService {
      */
     public constructor() {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
-        this.connectToServer();
 
+        this.openWebSocket();
+    }
+
+    public openWebSocket(): void {
+        assert(!this.socket, "WebSocket is already open.");
+        this.connectToServer();
         this.waitForLocalClientToken();
     }
 
