@@ -102,7 +102,7 @@ public class DeviceRepositoryTest
         var uuid2 = await _deviceRepository.SaveDeviceAsync(device2);
         Assert.That(uuid, Is.EqualTo(guid));
         Assert.That(uuid2, Is.EqualTo(guid2));
-        var deviceLoginDtos = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, null);
+        var deviceLoginDtos = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, Guid.Empty);
         Assert.That(deviceLoginDtos, Is.Not.Null);
         Assert.Multiple(() =>
         {
@@ -119,7 +119,7 @@ public class DeviceRepositoryTest
         var account = new Account("testuser", "testpassword");
         var id = await _accountRepository.SaveAsync(account);
         Assert.That(id, Is.EqualTo(1));
-        var nonExistentDevices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, null);
+        var nonExistentDevices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, Guid.Empty);
         Assert.That(nonExistentDevices, Is.Empty);
 
         // add some device
@@ -129,7 +129,7 @@ public class DeviceRepositoryTest
         await _deviceRepository.SaveDeviceAsync(device);
 
         // get nonexistent account again
-        var nonExistentDevices2 = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, null);
+        var nonExistentDevices2 = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, Guid.Empty);
         Assert.That(nonExistentDevices, Is.Empty);
     }
 

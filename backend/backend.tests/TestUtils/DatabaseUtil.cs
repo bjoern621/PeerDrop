@@ -4,7 +4,7 @@ namespace backend.tests.TestUtils;
 
 public static class DatabaseUtil
 {
-    public static async Task<NpgsqlDataSource> InitializeDatabaseAsync()
+    public static Task<NpgsqlDataSource> InitializeDatabaseAsync()
     {
         var host = Environment.GetEnvironmentVariable("DB_HOST")!;
         var user = Environment.GetEnvironmentVariable("DB_USERNAME")!;
@@ -13,9 +13,9 @@ public static class DatabaseUtil
 
         var connString = $"Host={host};Username={user};Password={pass};Database={database}";
 
-        await using var dataSource = NpgsqlDataSource.Create(connString);
+        var dataSource = NpgsqlDataSource.Create(connString);
 
-        return dataSource;
+        return Task.FromResult(dataSource);
     }
 
     public static async Task ResetDatabaseAsync()

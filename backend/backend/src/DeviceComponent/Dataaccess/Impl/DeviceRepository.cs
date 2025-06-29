@@ -26,7 +26,7 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
     /// <summary>
     /// The returned DeviceLoginDtos don't have a status set.
     /// </summary>
-    public async Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, Guid? uuid)
+    public async Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, Guid uuid)
     {
         await using var cmd = _dataSource.CreateCommand(
             "SELECT uuid, display_name FROM devices WHERE account_id = @accountId"
@@ -39,8 +39,6 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
         {
             uuid = Guid.Parse("00000000-0000-0000-0001-294128421414"); // Never fails
         }
-
-        Debug.Assert(uuid != null, "UUID should not be null here");
 
         while (await reader.ReadAsync())
         {
