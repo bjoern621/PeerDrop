@@ -34,7 +34,7 @@ export function DataSharingPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
     const [partnerName, setPartnerName] = useState<string | null>(null);
-    const [detailedProgress, setDetailedProgress] = useState(() => {
+    const [progressDisplay, setProgressDisplay] = useState(() => {
         const saved = localStorage.getItem(fileProgressDisplayLocalStorageKey);
         return saved
             ? (JSON.parse(saved) as FileProgressDisplay)
@@ -172,7 +172,7 @@ export function DataSharingPage() {
     };
 
     const onToggleDetailedProgress = () => {
-        setDetailedProgress(prev => {
+        setProgressDisplay(prev => {
             const newValue =
                 prev === FileProgressDisplay.SIMPLE
                     ? FileProgressDisplay.DETAILED
@@ -196,7 +196,7 @@ export function DataSharingPage() {
                     {file.direction === FileDirection.DOWN ? "↓" : "↑"}
                     {file.progress >= 1 ? (
                         <span className={css.progressStatusText}>Fertig!</span>
-                    ) : detailedProgress ? (
+                    ) : progressDisplay ? (
                         <span className={css.progressStatusText}>
                             {getSizeInHumanReadableFormat(
                                 file.progress * file.size
@@ -278,7 +278,7 @@ export function DataSharingPage() {
                                         onClick={onToggleDetailedProgress}
                                         className={css.detailProgressButton}
                                     >
-                                        {detailedProgress ? (
+                                        {progressDisplay ? (
                                             <img
                                                 src={barchartIcon}
                                                 alt="Simple view icon"
