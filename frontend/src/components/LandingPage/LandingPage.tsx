@@ -133,26 +133,26 @@ export default function LandingPage() {
     };
 
     const copyTokenToClipboard = () => {
+        // Force hide first to reset animation
+        setShowSnackbar(false);
         if (clientToken) {
             navigator.clipboard
                 .writeText(clientToken)
                 .then(() => {
+                    setTokenCopyStatus(TokenCopyStatus.COPIED);
+
                     if (snackbarTimeout.current) {
                         clearTimeout(snackbarTimeout.current);
                     }
-
-                    // Force hide first to reset animation
-                    setShowSnackbar(false);
                     // Then re-show in next tick
-                    setTimeout(() => {
-                        setShowSnackbar(true);
-                        snackbarTimeout.current = window.setTimeout(() => {
-                            setShowSnackbar(false);
-                        }, 3000);
-                    }, 0);
+                    setShowSnackbar(true);
+                    snackbarTimeout.current = window.setTimeout(() => {
+                        setShowSnackbar(false);
+                    }, 3000);
                 })
                 .catch(err => {
                     console.error("Failed to copy token:", err);
+                    setTokenCopyStatus(TokenCopyStatus.HOVER);
                 });
         }
     };
@@ -201,11 +201,6 @@ export default function LandingPage() {
         setTokenCopyStatus(TokenCopyStatus.IDLE);
     };
 
-    const onTokenCopy = () => {
-        setTokenCopyStatus(TokenCopyStatus.COPIED);
-        copyTokenToClipboard();
-    };
-
     return (
         <div className={css.container}>
             <img
@@ -220,7 +215,7 @@ export default function LandingPage() {
                 }`}
                 onMouseEnter={onTokenHover}
                 onMouseLeave={onTokenHoverLeave}
-                onClick={onTokenCopy}
+                onClick={copyTokenToClipboard}
             >
                 <span className={css.tooltip}>Dein Token</span>
                 <div className={css.tokenOverlay}>
