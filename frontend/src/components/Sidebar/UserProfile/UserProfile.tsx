@@ -346,7 +346,7 @@ export const UserProfile = () => {
                                             device.status
                                         )}
                                     ></span>
-                                    {device.name}
+                                    <p>{device.name}</p>
                                 </span>
                                 <span className={css.deleteButtonContainer}>
                                     <span
