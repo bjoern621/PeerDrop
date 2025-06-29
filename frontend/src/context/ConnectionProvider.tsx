@@ -45,6 +45,8 @@ export function ConnectionProvider({
         });
 
         forceUpdate(n => n + 1);
+
+        // TODO this curretnly breaks login on the data share page
     };
 
     return (
