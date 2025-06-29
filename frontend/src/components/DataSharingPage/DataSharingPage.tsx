@@ -1,9 +1,14 @@
 import css from "./DataSharingPage.module.scss";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dragdropicon from "../../assets/dragdropicon.svg";
 import { useNavigate } from "react-router";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { assert } from "../../util/Assert";
+import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
+import { DeviceStatus } from "../../types/device/DeviceStatus";
+import { MessageType } from "../../services/MessageType";
+import { TypedMessage } from "../../services/WebSocketService";
+import { useWebSocketService } from "../../context/WebSocketContext";
 
 enum FileDirection {
     UP = "up",
@@ -26,6 +31,32 @@ export function DataSharingPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
     const [partnerName, setPartnerName] = useState<string | null>(null);
+
+    const websocketService = useWebSocketService();
+
+    /**
+     * Sends a heartbeat message if the user has registered the device.
+     */
+    const sendHeartbeatIfPossible = useCallback(() => {
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: deviceUuid,
+                status: DeviceStatus.BUSY,
+            },
+        };
+
+        websocketService.sendMessage(heartbeat);
+    }, [websocketService]);
 
     useEffect(() => {
         assert(
@@ -54,7 +85,9 @@ export function DataSharingPage() {
         // set up callback functions
         peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
         peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
-    }, [peerConnectionManager, navigate]);
+
+        sendHeartbeatIfPossible();
+    }, [peerConnectionManager, navigate, sendHeartbeatIfPossible]);
 
     function getSizeInHumanReadableFormat(size: number): string {
         const units = ["B", "KB", "MB", "GB", "TB"];

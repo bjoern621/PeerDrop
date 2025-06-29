@@ -13,4 +13,10 @@ public interface IWebSocketHandler
     public Task<bool> SendMessage(string clientToken, ITypedMessage message);
     public Task HandleConnect(HttpContext context);
     public void SubscribeToMessageType<T>(MessageType messageType, TypedMessageHandlerDelegate<T> handler);
+    public List<string> GetClientTokensForUserId(int userId);
+    /// <summary>
+    /// Returns the user ID (account ID) for a given client token. If the client has no valid session / is not logged in, it returns null.
+    /// This is guaranteed to be the correct user ID and can't be influenced by the client.
+    /// </summary>
+    public int? GetUserIdForClientToken(string clientToken);
 }

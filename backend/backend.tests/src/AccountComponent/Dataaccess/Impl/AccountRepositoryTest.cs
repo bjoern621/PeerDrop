@@ -13,21 +13,22 @@ public class AccountRepositoryTest
     private ServiceProvider _serviceProvider;
     private IServiceScope _scope;
     private IAccountRepository _accountRepository;
-    
+
     [OneTimeSetUp]
-    public void OneTimeSetUp()
+    public async Task OneTimeSetUpAsync()
     {
         var services = new ServiceCollection();
+        services.AddSingleton(await DatabaseUtil.InitializeDatabaseAsync());
         services.AddScoped<IAccountRepository, AccountRepository>();
         _serviceProvider = services.BuildServiceProvider();
     }
-    
+
     [OneTimeTearDown]
     public void OneTimeTearDown()
     {
         _serviceProvider?.Dispose();
     }
-    
+
     [SetUp]
     public async Task SetUp()
     {
@@ -35,7 +36,7 @@ public class AccountRepositoryTest
         _accountRepository = _scope.ServiceProvider.GetRequiredService<IAccountRepository>();
         await DatabaseUtil.ResetDatabaseAsync();
     }
-    
+
     [TearDown]
     public void TearDown()
     {
@@ -52,7 +53,7 @@ public class AccountRepositoryTest
         var id2 = await _accountRepository.SaveAsync(account2);
         Assert.That(id2, Is.EqualTo(2));
     }
-    
+
     [Test]
     public async Task SaveAsync_With_Duplicate_Username_Throws_PostgresException()
     {
@@ -65,7 +66,7 @@ public class AccountRepositoryTest
             await _accountRepository.SaveAsync(account2);
         });
     }
-    
+
     [Test]
     public async Task GetByNameAsync_Returns_Existing_Account()
     {
@@ -83,24 +84,24 @@ public class AccountRepositoryTest
             Assert.That(accountRetrieveDto.Id, Is.EqualTo(1));
         });
     }
-    
+
     [Test]
     public async Task GetByNameAsync_Returns_Null_For_Nonexistent_Username()
     {
         var nonExistentAccount = await _accountRepository.GetByNameAsync("nonexistent");
         Assert.That(nonExistentAccount, Is.Null);
-        
+
         // add some account
         const string username = "testuser";
         const string password = "testpassword";
         var account = new Account(username, password);
         await _accountRepository.SaveAsync(account);
-        
+
         // get nonexistent account again
         var nonExistentAccount2 = await _accountRepository.GetByNameAsync("nonexistent");
         Assert.That(nonExistentAccount2, Is.Null);
     }
-    
+
     [Test]
     public async Task GetByIdAsync_Returns_Existing_Account()
     {
@@ -109,7 +110,7 @@ public class AccountRepositoryTest
         var account = new Account(username, password);
         var id = await _accountRepository.SaveAsync(account);
         Assert.That(id, Is.EqualTo(1));
-        
+
         var accountRetrieveDto = await _accountRepository.GetByIdAsync(id);
         Assert.That(accountRetrieveDto, Is.Not.Null);
         Assert.Multiple(() =>
@@ -119,20 +120,20 @@ public class AccountRepositoryTest
             Assert.That(accountRetrieveDto.Id, Is.EqualTo(id));
         });
     }
-    
+
     [Test]
     public async Task GetByIdAsync_Returns_Null_For_Nonexistent_Id()
     {
         var nonExistentAccount = await _accountRepository.GetByIdAsync(1);
         Assert.That(nonExistentAccount, Is.Null);
-        
+
         // add some account
         const string username = "testuser";
         const string password = "testpassword";
         var account = new Account(username, password);
         var id = await _accountRepository.SaveAsync(account);
         Assert.That(id, Is.EqualTo(1));
-        
+
         // get another nonexistent account
         var nonExistentAccount2 = await _accountRepository.GetByIdAsync(2);
         Assert.That(nonExistentAccount2, Is.Null);

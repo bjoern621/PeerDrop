@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TypedMessage } from "../../services/WebSocketService";
 import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
@@ -12,6 +12,8 @@ import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 import { MessageType } from "../../services/MessageType";
 import { useWebSocketService } from "../../context/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
+import { DeviceStatus } from "../../types/device/DeviceStatus";
+import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -49,6 +51,30 @@ export default function LandingPage() {
 
     const [remoteTokenOfRequestingPeer, setRemoteTokenOfRequestingPeer] =
         useState<string | undefined>(undefined);
+
+    /**
+     * Sends a heartbeat message if the user has registered the device.
+     */
+    const sendHeartbeatIfPossible = useCallback(() => {
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: deviceUuid,
+                status: DeviceStatus.ONLINE,
+            },
+        };
+
+        websocket.sendMessage(heartbeat);
+    }, [websocket]);
 
     useEffect(() => {
         console.log("useEffect triggered");
@@ -115,13 +141,13 @@ export default function LandingPage() {
             }
         );
 
-        console.log("LandingPage component mounted");
+        sendHeartbeatIfPossible();
 
         return () => {
             clearInterval(checkToken);
             websocket.unsubscribeMessage(MessageType.TEST, handler);
         };
-    }, [websocket, peerConnectionManager]);
+    }, [websocket, peerConnectionManager, sendHeartbeatIfPossible]);
 
     const connectToPeer = () => {
         const successfullySent =
