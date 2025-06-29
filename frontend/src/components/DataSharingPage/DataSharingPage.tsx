@@ -278,7 +278,7 @@ export function DataSharingPage() {
                                         onClick={onToggleDetailedProgress}
                                         className={css.detailProgressButton}
                                     >
-                                        {progressDisplay ? (
+                                        {progressDisplay === FileProgressDisplay.DETAILED ? (
                                             <img
                                                 src={percentIcon}
                                                 alt="Detailed view icon"
