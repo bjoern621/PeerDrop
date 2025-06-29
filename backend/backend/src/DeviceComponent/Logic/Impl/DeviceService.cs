@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using backend.DeviceComponent.Common.DTOs;
 using backend.WebSocketComponent.Logic.Api;
 
@@ -11,11 +12,72 @@ public class RuntimeDeviceInformation
     public required DateTime LastHeartbeat { get; set; }
 }
 
-public class DeviceService(IWebSocketHandler _webSocketHandler) : IDeviceService
+public class DeviceService() : IDeviceService
 {
     // Maps client tokens to device information
     // Devices with DeviceStatus "offline" might or might not be in this list
+    // The list might also contain the same device for multiple client tokens, e.g. the user logged out and back in quickly
     private readonly ConcurrentDictionary<string, RuntimeDeviceInformation> _activeDevices = new();
+
+    private const int INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO THE FRONTEND VARIABLE: HEARTBEAT_INTERVAL_MS
+    private const int INACTIVE_HEARTBEAT_THRESHOLD_MS = 1000 * 30; // Amount of time additional to INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS in milliseconds after which a device is considered inactive if it has not sent a heartbeat, e.g. 1 minute (INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS) + 30 seconds (INACTIVE_HEARTBEAT_THRESHOLD_MS) = 1 minute 30 seconds
+
+    private readonly IWebSocketHandler _webSocketHandler = null!;
+
+    public DeviceService(IWebSocketHandler webSocketHandler) : this()
+    {
+        _webSocketHandler = webSocketHandler;
+        Task.Run(CleanupInactiveDevicesLoop);
+    }
+
+    private async Task CleanupInactiveDevicesLoop()
+    {
+        while (true)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS));
+            Console.WriteLine("Checking for inactive devices...");
+
+            var now = DateTime.UtcNow;
+            var inactiveThreshold = now - TimeSpan.FromMilliseconds(INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS + INACTIVE_HEARTBEAT_THRESHOLD_MS);
+
+            foreach (var kvp in _activeDevices.ToArray())
+            {
+                if (kvp.Value.LastHeartbeat < inactiveThreshold)
+                {
+                    // Remove device because it has not sent a heartbeat in the last INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS + INACTIVE_HEARTBEAT_THRESHOLD_MS milliseconds
+
+                    int? userId = _webSocketHandler.GetUserIdForClientToken(kvp.Key);
+                    Debug.Assert(userId != null, "UserId should not be null for active devices");
+
+                    _activeDevices.TryRemove(kvp.Key, out _);
+                    Console.WriteLine($"Removed inactive device {kvp.Value.DeviceGuid} for client {kvp.Key}");
+
+                    SendHeartbeatToAllActiveClientTokens(userId.Value, kvp.Value.DeviceGuid, "offline");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sends a heartbeat message to all active client tokens of the user.
+    /// This is used to inform all clients of the user's devices about the current device status.
+    /// </summary>
+    private void SendHeartbeatToAllActiveClientTokens(int userId, Guid uuid, string deviceStatus)
+    {
+        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId);
+
+        foreach (var token in activeClientTokensForUserId)
+        {
+            Console.WriteLine($"Forwarding heartbeat for device {uuid} to client {token}");
+            var forwardedHeartbeatMessage = new DeviceHeartbeatMessage
+            {
+                Uuid = uuid,
+                DeviceStatus = deviceStatus
+            };
+
+            _webSocketHandler.SendMessage(token, forwardedHeartbeatMessage);
+        }
+    }
 
     public Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message)
     {
@@ -44,21 +106,8 @@ public class DeviceService(IWebSocketHandler _webSocketHandler) : IDeviceService
             }
         }
 
-        // Send the device heartbeat to all active client tokens of the user
-        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId.Value);
-
-        foreach (var token in activeClientTokensForUserId)
-        {
-            Console.WriteLine($"Forwarding heartbeat for device {message.Uuid} to client {token}");
-            // TODO maybe exlude sender token from the forwarded list
-            var forwardedHeartbeatMessage = new DeviceHeartbeatMessage
-            {
-                Uuid = message.Uuid,
-                DeviceStatus = message.DeviceStatus
-            };
-
-            _webSocketHandler.SendMessage(token, forwardedHeartbeatMessage);
-        }
+        // TODO maybe exlude sender token from the forwarded list
+        SendHeartbeatToAllActiveClientTokens(userId.Value, message.Uuid, message.DeviceStatus);
 
         return Task.CompletedTask;
     }

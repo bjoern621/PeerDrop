@@ -36,6 +36,8 @@ export const UserProfile = () => {
 
     const websocketService = useWebSocketService();
 
+    const HEARTBEAT_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO THE BACKEND VARIABLE: INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS
+
     const handleHeartbeatMessage = useCallback(() => {
         const onHeartbeatReceived = (
             message: TypedMessage<DeviceHeartbeatMessage>
@@ -109,6 +111,19 @@ export const UserProfile = () => {
         window.addEventListener("beforeunload", handleTabClose);
     }, [websocketService]);
 
+    /**
+     * Sends a heartbeat message every HEARTBEAT_INTERVAL_MS.
+     */
+    const sendContinuousHeartbeat = useCallback(() => {
+        const timer = setInterval(() => {
+            sendHeartbeatIfPossible();
+        }, HEARTBEAT_INTERVAL_MS);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [sendHeartbeatIfPossible, HEARTBEAT_INTERVAL_MS]);
+
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
@@ -118,7 +133,14 @@ export const UserProfile = () => {
         sendHeartbeatIfPossible();
 
         sendOfflineHeartbeat();
-    }, [handleHeartbeatMessage, sendHeartbeatIfPossible, sendOfflineHeartbeat]);
+
+        sendContinuousHeartbeat();
+    }, [
+        handleHeartbeatMessage,
+        sendHeartbeatIfPossible,
+        sendOfflineHeartbeat,
+        sendContinuousHeartbeat,
+    ]);
 
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
