@@ -278,23 +278,50 @@ export function DataSharingPage() {
                                         onClick={onToggleDetailedProgress}
                                         className={css.detailProgressButton}
                                     >
-                                        {progressDisplay === FileProgressDisplay.DETAILED ? (
-                                            <img
-                                                src={percentIcon}
-                                                alt="Detailed view icon"
-                                                className={
-                                                    css.detailProgressIcon
-                                                }
-                                            />
-                                        ) : (
-                                            <img
-                                                src={barchartIcon}
-                                                alt="Simple view icon"
-                                                className={
-                                                    css.detailProgressIcon
-                                                }
-                                            />
-                                        )}
+                                        <div
+                                            className={
+                                                css.detailProgressIconContainer
+                                            }
+                                        >
+                                            {progressDisplay ===
+                                            FileProgressDisplay.DETAILED ? (
+                                                <>
+                                                    <img
+                                                        src={percentIcon}
+                                                        alt="Detailed view icon"
+                                                        className={
+                                                            css.detailProgressIcon
+                                                        }
+                                                    />
+                                                    <span
+                                                        className={
+                                                            css.detailProgressTooltip
+                                                        }
+                                                    >
+                                                        Zu einfacher Ansicht
+                                                        wechseln
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <img
+                                                        src={barchartIcon}
+                                                        alt="Simple view icon"
+                                                        className={
+                                                            css.detailProgressIcon
+                                                        }
+                                                    />
+                                                    <span
+                                                        className={
+                                                            css.detailProgressTooltip
+                                                        }
+                                                    >
+                                                        Zu detaillierter Ansicht
+                                                        wechseln
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
                                     </button>
                                 </div>
                             </th>

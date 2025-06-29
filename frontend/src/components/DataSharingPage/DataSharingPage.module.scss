@@ -126,14 +126,52 @@
     display: flex;
     justify-content: center;
     padding: 10px;
+    position: relative;
 
     &:hover {
         background-color: #c9c9c9;
     }
+
+    &:hover .detailProgressTooltip {
+        visibility: visible;
+    }
+}
+
+.detailProgressIconContainer {
+    display: flex;
 }
 
 .detailProgressIcon {
     width: 100%;
+}
+
+.detailProgressTooltip {
+    visibility: hidden;
+    position: absolute;
+    background-color: var(--black);
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 10px;
+    width: max-content;
+    white-space: nowrap;
+
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 5px;
+
+    // Arrow pointing to button
+    &::after {
+        content: " ";
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent var(--black) transparent;
+    }
 }
 
 .noFilesText {
