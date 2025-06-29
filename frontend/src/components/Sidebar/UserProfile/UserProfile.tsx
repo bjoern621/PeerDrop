@@ -299,16 +299,20 @@ export const UserProfile = () => {
                     <li key={-1} className={css.deviceListItem}>
                         {!currentDeviceRegistered ? (
                             <button
-                                className={css.addCurrentDeviceButton}
+                                className={
+                                    css.currentDevice + " " + css.unregistered
+                                }
                                 type="button"
                                 onClick={() => void registerCurrentDevice()}
                                 disabled={registerButtonDisabled}
                             >
-                                <img
-                                    src={addIcon}
-                                    className={css.deviceStatusBase}
-                                ></img>
-                                <p>Gerät hinzufügen</p>
+                                <span className={css.deviceInfo}>
+                                    <img
+                                        src={addIcon}
+                                        className={css.deviceStatusBase}
+                                    ></img>
+                                    <p>Gerät hinzufügen</p>
+                                </span>
                             </button>
                         ) : (
                             <div className={css.currentDevice}>
