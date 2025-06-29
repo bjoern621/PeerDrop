@@ -49,6 +49,8 @@ public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher
     {
         // Clear the session
         context.Session.Clear();
+        // remove client-side cookie
+        context.Response.Cookies.Delete(".AspNetCore.Session");
         return Results.Ok(new LogoutResponse("Logged out successfully"));
     }
 
