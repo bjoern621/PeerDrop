@@ -299,22 +299,27 @@ export const UserProfile = () => {
                     <li key={-1} className={css.deviceListItem}>
                         {!currentDeviceRegistered ? (
                             <button
-                                className={css.addCurrentDeviceButton}
+                                className={css.unregisteredCurrentDevice}
                                 type="button"
                                 onClick={() => void registerCurrentDevice()}
                                 disabled={registerButtonDisabled}
                             >
-                                <img
-                                    src={addIcon}
-                                    className={css.addIcon}
-                                ></img>
-                                Gerät hinzufügen
+                                <span className={css.deviceInfo}>
+                                    <img
+                                        src={addIcon}
+                                        className={css.deviceStatusBase}
+                                    ></img>
+                                    <p>Gerät hinzufügen</p>
+                                </span>
                             </button>
                         ) : (
-                            <div className={css.currentDevice}>
+                            <div className={css.registeredCurrentDevice}>
                                 <span className={css.deviceInfo}>
-                                    <img src={userIconLight} />
-                                    Current Device
+                                    <img
+                                        src={userIconLight}
+                                        className={css.deviceStatusBase}
+                                    />
+                                    <p>Current Device</p>
                                 </span>
                                 <span className={css.deleteButtonContainer}>
                                     <span
@@ -346,7 +351,7 @@ export const UserProfile = () => {
                                             device.status
                                         )}
                                     ></span>
-                                    {device.name}
+                                    <p>{device.name}</p>
                                 </span>
                                 <span className={css.deleteButtonContainer}>
                                     <span
