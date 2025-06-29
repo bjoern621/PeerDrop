@@ -83,32 +83,39 @@ export const UserProfile = () => {
     }, [websocketService]);
 
     /**
-     * Sets up an event listener to send an offline heartbeat when the tab is closed.
+     * Sends an offline heartbeat message if the user has registered the device.
      */
     const sendOfflineHeartbeat = useCallback(() => {
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: deviceUuid,
+                status: DeviceStatus.OFFLINE,
+            },
+        };
+        websocketService.sendMessage(heartbeat);
+    }, [websocketService]);
+
+    /**
+     * Sets up an event listener to send an offline heartbeat when the tab is closed.
+     */
+    const registerOfflineHeartbeatOnClose = useCallback(() => {
         const handleTabClose = () => {
-            const deviceUuid: string | undefined = document.cookie
-                .split("; ")
-                .find(row => row.startsWith("deviceUuid="))
-                ?.split("=")[1];
-
-            if (!deviceUuid) {
-                return; // The user might not have registered the device
-            }
-
-            const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-                type: MessageType.DEVICE_HEARTBEAT,
-                msg: {
-                    uuid: deviceUuid,
-                    status: DeviceStatus.OFFLINE,
-                },
-            };
-            websocketService.sendMessage(heartbeat);
+            sendOfflineHeartbeat();
 
             window.removeEventListener("beforeunload", handleTabClose);
         };
         window.addEventListener("beforeunload", handleTabClose);
-    }, [websocketService]);
+    }, [sendOfflineHeartbeat]);
 
     /**
      * Sends a heartbeat message every HEARTBEAT_INTERVAL_MS.
@@ -131,13 +138,13 @@ export const UserProfile = () => {
 
         sendHeartbeatIfPossible();
 
-        sendOfflineHeartbeat();
+        registerOfflineHeartbeatOnClose();
 
         sendContinuousHeartbeat();
     }, [
         handleHeartbeatMessage,
         sendHeartbeatIfPossible,
-        sendOfflineHeartbeat,
+        registerOfflineHeartbeatOnClose,
         sendContinuousHeartbeat,
     ]);
 
@@ -291,7 +298,6 @@ export const UserProfile = () => {
     }
 
     const logout = async () => {
-        console.log("Logging out...");
         const [response, err] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/logout`, {
                 method: "POST",
@@ -307,7 +313,8 @@ export const UserProfile = () => {
             return;
         }
 
-        // Optionally, redirect to login page or update UI
+        sendOfflineHeartbeat();
+
         window.location.reload();
     };
 
