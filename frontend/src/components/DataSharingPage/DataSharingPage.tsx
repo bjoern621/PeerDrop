@@ -1,5 +1,5 @@
 import css from "./DataSharingPage.module.scss";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dragdropicon from "../../assets/dragdropicon.svg";
 import { useNavigate } from "react-router";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
@@ -34,6 +34,30 @@ export function DataSharingPage() {
 
     const websocketService = useWebSocketService();
 
+    /**
+     * Sends a heartbeat message if the user has registered the device.
+     */
+    const sendHeartbeatIfPossible = useCallback(() => {
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+            type: MessageType.DEVICE_HEARTBEAT,
+            msg: {
+                uuid: deviceUuid,
+                status: DeviceStatus.TEMPORARILY_OFFLINE,
+            },
+        };
+
+        websocketService.sendMessage(heartbeat);
+    }, [websocketService]);
+
     useEffect(() => {
         assert(
             peerConnectionManager,
@@ -54,37 +78,8 @@ export function DataSharingPage() {
         peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
         peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
 
-        // Send device heartbeat if deviceUuid is available in cookies
-        const deviceUuid: string | undefined = document.cookie
-            .split("; ")
-            .find(row => row.startsWith("deviceUuid="))
-            ?.split("=")[1];
-
-        if (deviceUuid) {
-            const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-                type: MessageType.DEVICE_HEARTBEAT,
-                msg: {
-                    uuid: deviceUuid,
-                    status: DeviceStatus.TEMPORARILY_OFFLINE,
-                },
-            };
-            websocketService.sendMessage(heartbeat);
-
-            const handleTabClose = () => {
-                const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-                    type: MessageType.DEVICE_HEARTBEAT,
-                    msg: {
-                        uuid: deviceUuid,
-                        status: DeviceStatus.OFFLINE,
-                    },
-                };
-                websocketService.sendMessage(heartbeat);
-
-                window.removeEventListener("beforeunload", handleTabClose);
-            };
-            window.addEventListener("beforeunload", handleTabClose);
-        }
-    }, [peerConnectionManager, navigate, websocketService]);
+        sendHeartbeatIfPossible();
+    }, [peerConnectionManager, navigate, sendHeartbeatIfPossible]);
 
     function getSizeInHumanReadableFormat(size: number): string {
         const units = ["B", "KB", "MB", "GB", "TB"];
