@@ -306,15 +306,18 @@ export const UserProfile = () => {
                             >
                                 <img
                                     src={addIcon}
-                                    className={css.addIcon}
+                                    className={css.deviceStatusBase}
                                 ></img>
-                                Gerät hinzufügen
+                                <p>Gerät hinzufügen</p>
                             </button>
                         ) : (
                             <div className={css.currentDevice}>
                                 <span className={css.deviceInfo}>
-                                    <img src={userIconLight} />
-                                    Current Device
+                                    <img
+                                        src={userIconLight}
+                                        className={css.deviceStatusBase}
+                                    />
+                                    <p>Current Device</p>
                                 </span>
                                 <span className={css.deleteButtonContainer}>
                                     <span
