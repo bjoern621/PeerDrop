@@ -282,8 +282,8 @@ export const UserProfile = () => {
         switch (status) {
             case DeviceStatus.ONLINE:
                 return css.deviceOnline;
-            case DeviceStatus.TEMPORARILY_OFFLINE:
-                return css.deviceTmpOffline;
+            case DeviceStatus.BUSY:
+                return css.deviceBusy;
             default:
                 return css.deviceOffline;
         }

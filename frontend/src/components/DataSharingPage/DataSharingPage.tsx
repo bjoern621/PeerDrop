@@ -51,7 +51,7 @@ export function DataSharingPage() {
             type: MessageType.DEVICE_HEARTBEAT,
             msg: {
                 uuid: deviceUuid,
-                status: DeviceStatus.TEMPORARILY_OFFLINE,
+                status: DeviceStatus.BUSY,
             },
         };
 
