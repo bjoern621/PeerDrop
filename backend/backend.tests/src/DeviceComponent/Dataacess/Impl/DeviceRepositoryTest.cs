@@ -20,20 +20,23 @@ public class DeviceRepositoryTest
     private IAccountRepository _accountRepository;
 
     [OneTimeSetUp]
-    public void OneTimeSetUp()
+    public async Task OneTimeSetUpAsync()
     {
         var services = new ServiceCollection();
+
+        services.AddSingleton(await DatabaseUtil.InitializeDatabaseAsync());
+
         services.AddScoped<IDeviceRepository, DeviceRepository>();
         services.AddScoped<IAccountRepository, AccountRepository>();
         _serviceProvider = services.BuildServiceProvider();
     }
-    
+
     [OneTimeTearDown]
     public void OneTimeTearDown()
     {
         _serviceProvider?.Dispose();
     }
-    
+
     [SetUp]
     public async Task SetUp()
     {
@@ -42,7 +45,7 @@ public class DeviceRepositoryTest
         _accountRepository = _scope.ServiceProvider.GetRequiredService<IAccountRepository>();
         await DatabaseUtil.ResetDatabaseAsync();
     }
-    
+
     [TearDown]
     public void TearDown()
     {
@@ -82,7 +85,7 @@ public class DeviceRepositoryTest
         });
         Assert.That(ex, Is.Not.Null);
     }
-    
+
     [Test]
     public async Task GetDisplayNamesForAccountAsync_Returns_AllDeviceDisplayNames()
     {
@@ -109,7 +112,7 @@ public class DeviceRepositoryTest
             }
         });
     }
-    
+
     [Test]
     public async Task GetAllDisplayNamesForAccountAsync_Returns_EmptyList_For_Nonexistent_AccountId()
     {
@@ -118,18 +121,18 @@ public class DeviceRepositoryTest
         Assert.That(id, Is.EqualTo(1));
         var nonExistentDevices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, null);
         Assert.That(nonExistentDevices, Is.Empty);
-        
+
         // add some device
         const string displayName = "testdevice";
         const int accountId = 1;
         var device = new Device(displayName, Guid.NewGuid(), accountId);
         await _deviceRepository.SaveDeviceAsync(device);
-        
+
         // get nonexistent account again
         var nonExistentDevices2 = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, null);
         Assert.That(nonExistentDevices, Is.Empty);
     }
-    
+
     [Test]
     public async Task GetAllDisplayNamesForAccountAsync_Recognizes_Current_Device()
     {
