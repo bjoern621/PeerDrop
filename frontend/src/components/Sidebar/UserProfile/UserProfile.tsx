@@ -336,9 +336,9 @@ export const UserProfile = () => {
                                             DeviceStatus.ONLINE
                                                 ? css.deviceOnline
                                                 : device.status ===
-                                                  DeviceStatus.TEMPORARILY_OFFLINE
-                                                ? css.deviceTmpOffline
-                                                : css.deviceOffline
+                                                    DeviceStatus.TEMPORARILY_OFFLINE
+                                                  ? css.deviceTmpOffline
+                                                  : css.deviceOffline
                                         }
                                     ></span>
                                     {device.name}
