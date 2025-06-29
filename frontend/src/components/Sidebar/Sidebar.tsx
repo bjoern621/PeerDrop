@@ -7,14 +7,14 @@ import { UserProfile } from "./UserProfile/UserProfile";
 import errorAsValue from "../../util/ErrorAsValue";
 import { StatusResponse } from "../dtos/StatusResponse";
 import { assert } from "../../util/Assert";
-import { useResetConnections } from "../../context/ResetContext";
+import { useResetWebsocket } from "../../context/ResetContext";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [showLogin, setShowLogin] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
 
-    const resetConnections = useResetConnections();
+    const resetWebsocketConnection = useResetWebsocket();
 
     const getLoggedInStatus = async () => {
         const [response, err] = await errorAsValue(
@@ -73,7 +73,7 @@ export const Sidebar = () => {
     }
 
     function onLogin() {
-        resetConnections();
+        resetWebsocketConnection();
         setLoggedIn(true);
     }
 

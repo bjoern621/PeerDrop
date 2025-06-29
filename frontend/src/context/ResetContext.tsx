@@ -1,13 +1,13 @@
 import { createContext, useContext } from "react";
 
 export type ConnectionsContextType = {
-    resetConnections: () => void;
+    resetWebsocketConnection: () => void;
 };
 
 export const ResetContext = createContext<ConnectionsContextType | null>(null);
 
-export function useResetConnections() {
+export function useResetWebsocket() {
     const context = useContext(ResetContext);
     if (!context) throw new Error("ResetContext not available in context.");
-    return context.resetConnections;
+    return context.resetWebsocketConnection;
 }

@@ -42,8 +42,6 @@ export const UserProfile = () => {
         const onHeartbeatReceived = (
             message: TypedMessage<DeviceHeartbeatMessage>
         ) => {
-            console.log("Received heartbeat message:", message);
-
             setDevices(prevDevices =>
                 prevDevices.map(device =>
                     device.uuid === message.msg.uuid

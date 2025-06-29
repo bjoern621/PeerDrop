@@ -31,17 +31,19 @@ export function ConnectionProvider({
 
     const [, forceUpdate] = useState(0);
 
-    const resetConnections = () => {
+    // Resets the WebSocket connection by closing the current connection and opening a new one.
+    // This gets the user a new client token..
+    const resetWebsocketConnection = () => {
         wsRef.current?.closeActiveConnection();
         wsRef.current?.openWebSocket();
 
-        forceUpdate(n => n + 1);
+        forceUpdate(n => n + 1); // Inform React that the state has changed to trigger a re-render. This effectively updates the context values.
     };
 
     return (
         <WebSocketContext.Provider value={wsRef.current}>
             <PeerConnectionContext.Provider value={pcmRef.current}>
-                <ResetContext.Provider value={{ resetConnections }}>
+                <ResetContext.Provider value={{ resetWebsocketConnection }}>
                     {children}
                 </ResetContext.Provider>
             </PeerConnectionContext.Provider>

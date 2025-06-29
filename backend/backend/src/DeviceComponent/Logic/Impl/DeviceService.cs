@@ -30,7 +30,7 @@ public class DeviceService() : IDeviceService
         while (true)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS));
-            Console.WriteLine("Checking for inactive devices...");
+            // Console.WriteLine("Checking for inactive devices...");
 
             var now = DateTime.UtcNow;
             var inactiveThreshold = now - TimeSpan.FromMilliseconds(INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS + INACTIVE_HEARTBEAT_THRESHOLD_MS);
@@ -46,7 +46,7 @@ public class DeviceService() : IDeviceService
                 // Remove device because it has not sent a heartbeat in the last INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS + INACTIVE_HEARTBEAT_THRESHOLD_MS milliseconds
 
                 _activeDevices.TryRemove(kvp.Key, out _);
-                Console.WriteLine($"Removed inactive device {kvp.Value.DeviceGuid} for client {kvp.Key}");
+                // Console.WriteLine($"Removed inactive device {kvp.Value.DeviceGuid} for client {kvp.Key}");
 
                 using var scope = _scopeFactory.CreateScope();
                 var repo = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
@@ -73,7 +73,7 @@ public class DeviceService() : IDeviceService
 
         foreach (var token in activeClientTokensForUserId)
         {
-            Console.WriteLine($"Forwarding heartbeat for device {uuid} to client {token}");
+            // Console.WriteLine($"Forwarding heartbeat for device {uuid} to client {token}");
             var forwardedHeartbeatMessage = new DeviceHeartbeatMessage
             {
                 Uuid = uuid,
@@ -86,13 +86,13 @@ public class DeviceService() : IDeviceService
 
     public async Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message)
     {
-        Console.WriteLine($"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}");
+        // Console.WriteLine($"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}");
 
         int? realUserId = _webSocketHandler.GetUserIdForClientToken(clientToken);
         if (realUserId == null)
         {
             // No userId found for the clientToken (user has websocket connection but is not logged in)
-            Console.WriteLine($"No userId found for client token {clientToken}. Heartbeat is not valid.");
+            // Console.WriteLine($"No userId found for client token {clientToken}. Heartbeat is not valid.");
             return;
         }
 
@@ -103,14 +103,14 @@ public class DeviceService() : IDeviceService
         if (device == null)
         {
             // Device not found in the database
-            Console.WriteLine($"Device with UUID {message.Uuid} not found in the database. Heartbeat is not valid.");
+            // Console.WriteLine($"Device with UUID {message.Uuid} not found in the database. Heartbeat is not valid.");
             return;
         }
 
         if (device.GetAccountId() != realUserId)
         {
             // Device does not belong to the sending user
-            Console.WriteLine($"Device with UUID {message.Uuid} does not belong to user {realUserId}. Heartbeat is not valid.");
+            // Console.WriteLine($"Device with UUID {message.Uuid} does not belong to user {realUserId}. Heartbeat is not valid.");
             return;
         }
 
@@ -120,12 +120,12 @@ public class DeviceService() : IDeviceService
             {
                 deviceInfo.LastHeartbeat = DateTime.UtcNow;
                 deviceInfo.LastDeviceStatus = message.DeviceStatus;
-                Console.WriteLine($"Updated heartbeat for device {message.Uuid} for client {clientToken}");
+                // Console.WriteLine($"Updated heartbeat for device {message.Uuid} for client {clientToken}");
             }
             else
             {
                 _activeDevices[clientToken] = new RuntimeDeviceInformation { DeviceGuid = message.Uuid, LastHeartbeat = DateTime.UtcNow, LastDeviceStatus = message.DeviceStatus };
-                Console.WriteLine($"Registered new device {message.Uuid} for client {clientToken}");
+                // Console.WriteLine($"Registered new device {message.Uuid} for client {clientToken}");
             }
         }
 
