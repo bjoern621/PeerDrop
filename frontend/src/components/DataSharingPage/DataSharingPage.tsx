@@ -280,16 +280,16 @@ export function DataSharingPage() {
                                     >
                                         {progressDisplay ? (
                                             <img
-                                                src={barchartIcon}
-                                                alt="Simple view icon"
+                                                src={percentIcon}
+                                                alt="Detailed view icon"
                                                 className={
                                                     css.detailProgressIcon
                                                 }
                                             />
                                         ) : (
                                             <img
-                                                src={percentIcon}
-                                                alt="Detailed view icon"
+                                                src={barchartIcon}
+                                                alt="Simple view icon"
                                                 className={
                                                     css.detailProgressIcon
                                                 }
