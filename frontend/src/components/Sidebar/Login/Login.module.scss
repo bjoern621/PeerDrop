@@ -34,7 +34,7 @@
 .submitbutton {
     border-radius: 8px;
     border: none;
-    background-color: #444444;
+    background-color: var(--black);
     color: white;
     text-align: center;
     text-decoration: none;
@@ -58,7 +58,7 @@
     margin: 0;
     color: var(--black);
 
-    button {
+    a {
         text-decoration: underline;
 
         &:hover {

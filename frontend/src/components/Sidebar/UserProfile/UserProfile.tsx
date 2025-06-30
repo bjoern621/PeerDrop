@@ -1,7 +1,7 @@
 import css from "./UserProfile.module.scss";
 import userIcon from "../../../assets/account_circle_icon.svg";
 import userIconLight from "../../../assets/account_circle_icon_light.svg";
-import deleteIcon from "../../../assets/delete_icon.svg";
+import deleteIconDark from "../../../assets/delete_icon.svg";
 import deleteIconLight from "../../../assets/delete_icon_light.svg";
 import addIcon from "../../../assets/add_icon.svg";
 import logoutIcon from "../../../assets/logout_icon.svg";
@@ -378,7 +378,7 @@ export const UserProfile = () => {
                                             deleteDevice(device);
                                         }}
                                     >
-                                        <img src={deleteIcon} />
+                                        <img src={deleteIconDark} />
                                     </span>
                                 </span>
                             </button>

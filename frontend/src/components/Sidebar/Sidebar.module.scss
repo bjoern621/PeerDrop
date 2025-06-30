@@ -3,10 +3,10 @@
     transition: width 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
-    background-color: #ebebeb;
+    background-color: var(--light);
     padding: 1rem;
     height: 100vh;
-    color: #232323;
+    color: var(--black);
     gap: 1rem;
 }
 
@@ -16,10 +16,9 @@
     transition: width 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
-    background-color: #ebebeb;
+    background-color: var(--light);
     padding: 1rem;
     height: 100vh;
-    color: #232323;
 }
 
 .sidebarHeader {
@@ -35,6 +34,7 @@
         margin: 0;
         font-size: 26px;
         font-weight: normal;
+        color: black;
     }
 }
 
@@ -47,10 +47,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 5px;
+    padding: 10px;
 
     &:hover {
-        background-color: #d0d0d0;
+        background-color: rgba(0, 0, 0, 0.2);
     }
 
     img {

@@ -22,6 +22,7 @@ body {
 
     --black: #444;
     --white: #fff;
+    --light: #ebebeb;
 
     background-color: var(--white);
     color: var(--black);
@@ -59,5 +60,6 @@ a {
 }
 
 img {
+    user-select: none;
     pointer-events: none; /* Disables dragging */
 }

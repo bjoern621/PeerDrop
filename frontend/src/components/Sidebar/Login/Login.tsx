@@ -126,10 +126,7 @@ export const Login = ({ onSwitchToRegister, onLogin }: LoginProps) => {
                 </button>
             </form>
             <p className={css.loginlink}>
-                oder{" "}
-                <button type="button" onClick={onSwitchToRegister}>
-                    Registrieren
-                </button>
+                oder <a onClick={onSwitchToRegister}>Registrieren</a>
             </p>
         </div>
     );
