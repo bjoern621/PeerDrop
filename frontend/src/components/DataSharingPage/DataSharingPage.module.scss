@@ -70,6 +70,7 @@
 }
 
 .dropAreaMessage {
+    user-select: none;
     font-size: 75px;
     font-weight: bold;
     color: var(--black);

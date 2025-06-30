@@ -60,5 +60,6 @@ a {
 }
 
 img {
+    user-select: none;
     pointer-events: none; /* Disables dragging */
 }
