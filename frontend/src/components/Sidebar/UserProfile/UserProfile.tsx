@@ -12,12 +12,9 @@ import { LoginResponse } from "../../../util/dtos/LoginResponse";
 import { DeviceResponse } from "../../../util/dtos/DeviceResponse";
 import { DeviceStatus } from "../../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMessage";
-import {
-    MessageHandler,
-    TypedMessage,
-} from "../../../services/WebSocketService";
-import { MessageType } from "../../../services/MessageType";
+import { MessageHandler } from "../../../services/WebSocketService";
 import { useWebSocketService } from "../../../context/WebSocketContext";
+import { MessageType } from "../../../types/MessageType";
 
 interface DeviceDisplay {
     status: DeviceStatus;
@@ -40,9 +37,7 @@ export const UserProfile = () => {
     const HEARTBEAT_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO THE BACKEND VARIABLE: INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS
 
     const handleHeartbeatMessage = useCallback(() => {
-        const onHeartbeatReceived = (
-            message: TypedMessage<DeviceHeartbeatMessage>
-        ) => {
+        const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
             setDevices(prevDevices =>
                 prevDevices.map(device =>
                     device.uuid === message.msg.uuid
@@ -71,13 +66,10 @@ export const UserProfile = () => {
             return; // The user might not have registered the device
         }
 
-        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-            type: MessageType.DEVICE_HEARTBEAT,
-            msg: {
-                uuid: deviceUuid,
-                status: DeviceStatus.ONLINE,
-            },
-        };
+        const heartbeat = new DeviceHeartbeatMessage({
+            uuid: deviceUuid,
+            status: DeviceStatus.ONLINE,
+        });
 
         websocketService.sendMessage(heartbeat);
     }, [websocketService]);
@@ -96,13 +88,10 @@ export const UserProfile = () => {
                 return; // The user might not have registered the device
             }
 
-            const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-                type: MessageType.DEVICE_HEARTBEAT,
-                msg: {
-                    uuid: deviceUuid,
-                    status: DeviceStatus.OFFLINE,
-                },
-            };
+            const heartbeat = new DeviceHeartbeatMessage({
+                uuid: deviceUuid,
+                status: DeviceStatus.OFFLINE,
+            });
             websocketService.sendMessage(heartbeat);
 
             window.removeEventListener("beforeunload", handleTabClose);
