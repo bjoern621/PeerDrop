@@ -1,8 +1,8 @@
 import css from "./DataSharingPage.module.scss";
 import { useCallback, useEffect, useRef, useState } from "react";
-import dragdropIcon from "../../assets/dragdropicon.svg";
-import percentIcon from "../../assets/percent_icon.svg";
-import barchartIcon from "../../assets/barchart_icon.svg";
+import dragdropIcon from "../../assets/drag_and_drop.svg";
+import percentIcon from "../../assets/percent.svg";
+import barChartIcon from "../../assets/bar_chart.svg";
 import { useNavigate } from "react-router";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { assert } from "../../util/Assert";
@@ -313,7 +313,7 @@ export function DataSharingPage() {
                                             ) : (
                                                 <>
                                                     <img
-                                                        src={barchartIcon}
+                                                        src={barChartIcon}
                                                         alt="Simple view icon"
                                                         className={
                                                             css.detailProgressIcon

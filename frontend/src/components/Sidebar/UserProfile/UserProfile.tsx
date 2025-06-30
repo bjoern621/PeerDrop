@@ -1,9 +1,9 @@
 import css from "./UserProfile.module.scss";
-import userIcon from "../../../assets/account_circle_icon.svg";
-import userIconLight from "../../../assets/account_circle_icon_light.svg";
-import deleteIcon from "../../../assets/delete_icon.svg";
-import deleteIconLight from "../../../assets/delete_icon_light.svg";
-import addIcon from "../../../assets/add_icon.svg";
+import userIcon from "../../../assets/account_circle_black.svg";
+import userIconLight from "../../../assets/account_circle_light.svg";
+import deleteIconDark from "../../../assets/delete_dark.svg";
+import deleteIconLight from "../../../assets/delete_light.svg";
+import addIcon from "../../../assets/add.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
 import { useCallback, useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
@@ -350,7 +350,7 @@ export const UserProfile = () => {
                                             deleteDevice(device);
                                         }}
                                     >
-                                        <img src={deleteIcon} />
+                                        <img src={deleteIconDark} />
                                     </span>
                                 </span>
                             </button>

@@ -38,9 +38,10 @@
     font-size: 23px;
     margin-top: 0.5rem;
     margin-bottom: 5px;
+    width: auto;
 
     &:hover {
-        background-color: #333;
+        background-color: black;
     }
 }
 
@@ -55,23 +56,24 @@
 }
 
 .dropAreaTextContainer {
+    margin-top: 50px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     width: 100%;
+    opacity: 50%;
 }
 
 .dropAreaIcon {
     width: 200px;
-    height: 200px;
 }
 
 .dropAreaMessage {
     user-select: none;
     font-size: 75px;
     font-weight: bold;
-    color: #c9c9c9;
+    color: var(--black);
     margin-bottom: 1rem;
     margin-top: 0;
 }
@@ -130,7 +132,7 @@
     position: relative;
 
     &:hover {
-        background-color: #c9c9c9;
+        background-color: var(--light);
     }
 
     &:hover .detailProgressTooltip {
@@ -210,7 +212,7 @@
 }
 
 .progressBar::-webkit-progress-bar {
-    background-color: #ebebeb;
+    background-color: var(--light);
     border-radius: 8px;
 }
 
@@ -220,7 +222,7 @@
 }
 
 .progressBar::-moz-progress-bar {
-    background-color: #444;
+    background-color: var(--black);
 }
 
 .progressStatusText {
