@@ -22,10 +22,6 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         {
             Console.WriteLine($"Session Token received {sessionToken}");
         }
-        if (context.Request.Cookies.ContainsKey("deviceUuid"))
-        {
-            return Results.BadRequest("Device is already registered.");
-        }
 
         var result = await login.HandleGetCurrentUser(context);
         if (result is Ok<LoginResponse> okResult)
@@ -55,7 +51,6 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         var deviceUuid = Guid.NewGuid();
 
         // Create a new device object to save in the repository
-        //var device = new Device(displayName, deviceUuid, accountId);
         var device = Device.Of(displayName, deviceUuid, accountId);
         // Save the device to the repository (database)
         await repo.SaveDeviceAsync(device);
