@@ -67,7 +67,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         return Results.Ok(new DeviceRegisterDto { uuid = deviceUuid });
     }
 
-    private string GetBrowserAndOs(string userAgent)
+    private static string GetBrowserAndOs(string userAgent)
     {
         // Extract OS from the User-Agent string (between parentheses)
         var osRegex = new Regex(@"\(([^)]+)\)");
