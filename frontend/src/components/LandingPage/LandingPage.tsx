@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { TypedMessage } from "../../services/WebSocketService";
 import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
@@ -10,11 +9,12 @@ import { OTPInput, SlotProps } from "input-otp";
 import { WaitingDialog } from "../Popups/WaitingDialog";
 import { ConfirmDialog } from "../Popups/ConfirmDialog";
 import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
-import { MessageType } from "../../services/MessageType";
 import { useWebSocketService } from "../../context/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
+import { MessageType } from "../../types/MessageType";
+import { TestMessage } from "../../types/common/TestMessage";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -66,13 +66,10 @@ export default function LandingPage() {
             return; // The user might not have registered the device
         }
 
-        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-            type: MessageType.DEVICE_HEARTBEAT,
-            msg: {
-                uuid: deviceUuid,
-                status: DeviceStatus.ONLINE,
-            },
-        };
+        const heartbeat = new DeviceHeartbeatMessage({
+            uuid: deviceUuid,
+            status: DeviceStatus.ONLINE,
+        });
 
         websocket.sendMessage(heartbeat);
     }, [websocket]);
@@ -87,16 +84,9 @@ export default function LandingPage() {
         };
         websocket.subscribeMessage(MessageType.TEST, handler);
 
-        type TestMessage = {
-            message: string;
-        };
-
-        const testMessage: TypedMessage<TestMessage> = {
-            type: MessageType.TEST,
-            msg: {
-                message: "Hallo Server",
-            },
-        };
+        const testMessage = new TestMessage({
+            message: "Hallo Server",
+        });
 
         setTimeout(() => {
             websocket.sendMessage(testMessage);

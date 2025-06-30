@@ -8,8 +8,6 @@ import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { assert } from "../../util/Assert";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
-import { MessageType } from "../../services/MessageType";
-import { TypedMessage } from "../../services/WebSocketService";
 import { useWebSocketService } from "../../context/WebSocketContext";
 
 enum FileDirection {
@@ -61,13 +59,10 @@ export function DataSharingPage() {
             return; // The user might not have registered the device
         }
 
-        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-            type: MessageType.DEVICE_HEARTBEAT,
-            msg: {
-                uuid: deviceUuid,
-                status: DeviceStatus.BUSY,
-            },
-        };
+        const heartbeat = new DeviceHeartbeatMessage({
+            uuid: deviceUuid,
+            status: DeviceStatus.BUSY,
+        });
 
         websocketService.sendMessage(heartbeat);
     }, [websocketService]);
