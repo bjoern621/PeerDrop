@@ -165,13 +165,12 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
                 }
                 catch (FormatException)
                 {
-                    return Results.BadRequest("Invalid device UUID format.");
+                    deviceGuid = Guid.Empty;
                 }
 
                 devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceGuid);
             }
             // Proceed with fetching the devices for the user
-
             else
             {
                 devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, Guid.Empty);
