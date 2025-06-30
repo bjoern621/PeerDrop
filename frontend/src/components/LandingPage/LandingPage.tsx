@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { assert } from "../../util/Assert";
 import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
-import checkmark from "../../assets/checkmark.svg";
-import copyContent from "../../assets/copy_content.svg";
-import forwardarrow from "../../assets/forwardarrow_light.svg";
+import checkmarkIcon from "../../assets/checkmark.svg";
+import copyContentIcon from "../../assets/copy_content.svg";
+import rightArrow from "../../assets/right_arrow_light.svg";
 import { OTPInput, SlotProps } from "input-otp";
 import { WaitingDialog } from "../Popups/WaitingDialog";
 import { ConfirmDialog } from "../Popups/ConfirmDialog";
@@ -241,13 +241,13 @@ export default function LandingPage() {
                         <></>
                     ) : tokenCopyStatus === TokenCopyStatus.HOVER ? (
                         <img
-                            src={copyContent}
+                            src={copyContentIcon}
                             alt="Token kopieren"
                             className={css.tokenOverlayIcon}
                         />
                     ) : (
                         <img
-                            src={checkmark}
+                            src={checkmarkIcon}
                             alt="Token kopiert"
                             className={css.tokenOverlayIcon}
                         />
@@ -282,7 +282,7 @@ export default function LandingPage() {
                         className={css.connectButton}
                     >
                         <img
-                            src={forwardarrow}
+                            src={rightArrow}
                             alt="Verbinden"
                             className={css.connectButtonIcon}
                         />

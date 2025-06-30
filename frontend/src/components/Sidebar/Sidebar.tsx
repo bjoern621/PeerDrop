@@ -2,8 +2,8 @@ import { Register } from "./Register/Register";
 import { Login } from "./Login/Login";
 import { useEffect, useState } from "react";
 import smallLogo from "../../assets/logo_small.png";
-import backarrow from "../../assets/backarrow.svg";
-import forwardarrow from "../../assets/forwardarrow.svg";
+import leftArrowIcon from "../../assets/left_arrow.svg";
+import rightArrowIcon from "../../assets/right_arrow.svg";
 import css from "./Sidebar.module.scss";
 import { UserProfile } from "./UserProfile/UserProfile";
 import errorAsValue from "../../util/ErrorAsValue";
@@ -90,13 +90,13 @@ export const Sidebar = () => {
                 >
                     {isCollapsed ? (
                         <img
-                            src={forwardarrow}
+                            src={rightArrowIcon}
                             alt="Expand Sidebar"
                             className={css.arrowIcon}
                         />
                     ) : (
                         <img
-                            src={backarrow}
+                            src={leftArrowIcon}
                             alt="Collapse Sidebar"
                             className={css.arrowIcon}
                         />
