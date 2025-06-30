@@ -45,7 +45,7 @@ public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher
         return Results.Ok(new LoginResponse("Logged in successfully"));
     }
 
-    public async Task<IResult> HandleLogout(HttpContext context)
+    public IResult HandleLogout(HttpContext context)
     {
         // Clear the session
         context.Session.Clear();
