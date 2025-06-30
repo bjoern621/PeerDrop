@@ -237,8 +237,9 @@ export default function LandingPage() {
                 loading="eager"
             />
             <button
-                className={`${css.ownTokenContainer} ${clientToken ? css.tokenLoaded : ""
-                    }`}
+                className={`${css.ownTokenContainer} ${
+                    clientToken ? css.tokenLoaded : ""
+                }`}
                 onMouseEnter={onTokenHover}
                 onMouseLeave={onTokenHoverLeave}
                 onClick={copyTokenToClipboard}
@@ -246,7 +247,7 @@ export default function LandingPage() {
                 <span className={css.tooltip}>Dein Token</span>
                 <div className={css.tokenOverlay}>
                     {!clientToken ||
-                        tokenCopyStatus === TokenCopyStatus.IDLE ? (
+                    tokenCopyStatus === TokenCopyStatus.IDLE ? (
                         <></>
                     ) : tokenCopyStatus === TokenCopyStatus.HOVER ? (
                         <img
