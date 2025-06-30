@@ -83,39 +83,32 @@ export const UserProfile = () => {
     }, [websocketService]);
 
     /**
-     * Sends an offline heartbeat message if the user has registered the device.
-     */
-    const sendOfflineHeartbeat = useCallback(() => {
-        const deviceUuid: string | undefined = document.cookie
-            .split("; ")
-            .find(row => row.startsWith("deviceUuid="))
-            ?.split("=")[1];
-
-        if (!deviceUuid) {
-            return; // The user might not have registered the device
-        }
-
-        const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
-            type: MessageType.DEVICE_HEARTBEAT,
-            msg: {
-                uuid: deviceUuid,
-                status: DeviceStatus.OFFLINE,
-            },
-        };
-        websocketService.sendMessage(heartbeat);
-    }, [websocketService]);
-
-    /**
      * Sets up an event listener to send an offline heartbeat when the tab is closed.
      */
     const registerOfflineHeartbeatOnClose = useCallback(() => {
         const handleTabClose = () => {
-            sendOfflineHeartbeat();
+            const deviceUuid: string | undefined = document.cookie
+                .split("; ")
+                .find(row => row.startsWith("deviceUuid="))
+                ?.split("=")[1];
+
+            if (!deviceUuid) {
+                return; // The user might not have registered the device
+            }
+
+            const heartbeat: TypedMessage<DeviceHeartbeatMessage> = {
+                type: MessageType.DEVICE_HEARTBEAT,
+                msg: {
+                    uuid: deviceUuid,
+                    status: DeviceStatus.OFFLINE,
+                },
+            };
+            websocketService.sendMessage(heartbeat);
 
             window.removeEventListener("beforeunload", handleTabClose);
         };
         window.addEventListener("beforeunload", handleTabClose);
-    }, [sendOfflineHeartbeat]);
+    }, [websocketService]);
 
     /**
      * Sends a heartbeat message every HEARTBEAT_INTERVAL_MS.
@@ -312,8 +305,6 @@ export const UserProfile = () => {
             console.error("Error logging out:", response.statusText);
             return;
         }
-
-        sendOfflineHeartbeat();
 
         window.location.reload();
     };
