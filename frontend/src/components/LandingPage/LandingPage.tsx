@@ -5,6 +5,7 @@ import css from "./LandingPage.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
 import checkmark from "../../assets/checkmark.svg";
 import copyContent from "../../assets/copy_content.svg";
+import forwardarrow from "../../assets/forwardarrow_light.svg";
 import { OTPInput, SlotProps } from "input-otp";
 import { WaitingDialog } from "../Popups/WaitingDialog";
 import { ConfirmDialog } from "../Popups/ConfirmDialog";
@@ -288,9 +289,13 @@ export default function LandingPage() {
                     ></OTPInput>
                     <button
                         onClick={() => void connectToPeer()}
-                        className={css.button}
+                        className={css.connectButton}
                     >
-                        &gt;
+                        <img
+                            src={forwardarrow}
+                            alt="Verbinden"
+                            className={css.connectButtonIcon}
+                        />
                     </button>
                 </div>
                 <div>Anderes Token eingeben, um Verbindung aufzubauen</div>
