@@ -199,4 +199,59 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             return Results.BadRequest("Invalid account ID in session.");
         }
     }
+
+
+    public async Task<IResult> DeleteDeviceAsync(HttpContext context)
+    {
+        // Check for session cookie
+        if (!context.Request.Cookies.TryGetValue(".AspNetCore.Session", out var sessionToken))
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = login.HandleGetCurrentUser(context).Result;
+        if (result is Ok<LoginResponse> okResult)
+        {
+            Console.WriteLine($"User is logged in: {okResult.Value}");
+        }
+        else
+        {
+            return Results.Forbid();
+        }
+
+        // Access the session using the sessionToken or from the session store
+        var accountId = context.Session.GetString("UserId");
+
+        if (string.IsNullOrEmpty(accountId))
+        {
+            return Results.NotFound();
+        }
+
+        if (!context.Request.Cookies.TryGetValue("deviceUuid", out var deviceUuid))
+        {
+            return Results.NoContent();
+        }
+
+
+        if (int.TryParse(accountId, out var parsedAccountId))
+        {
+            // Proceed with deleting the device
+            var deviceGuid = Guid.Parse(deviceUuid);
+            await repo.DeleteDeviceAsync(parsedAccountId, deviceGuid);
+            context.Response.Cookies.Append("deviceUuid", "", new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddDays(-1),
+                HttpOnly = false,
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax,
+                Path = "/" // Pfad muss der gleiche sein, wie der in LocalStorage angegebene
+        });
+            return Results.Ok("Device deleted successfully.");
+        }
+        else
+        {
+            return Results.BadRequest("Invalid account ID in session.");
+        }
+    }
+
 }

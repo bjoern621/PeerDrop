@@ -11,7 +11,10 @@ public class DeviceRoutes : IDeviceRoutes
             handler.RegisterDeviceAsync(context));
 
         app.MapGet("/devices", (IDeviceHandler handler, HttpContext context) =>
-            handler.GetDevicesByUserAsync(context)); 
+            handler.GetDevicesByUserAsync(context));
+
+        app.MapDelete("/device/delete", (IDeviceHandler handler, HttpContext context) =>
+            handler.DeleteDeviceAsync(context));
 
         return Task.CompletedTask;
     }

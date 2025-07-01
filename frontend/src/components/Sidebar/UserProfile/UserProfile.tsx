@@ -240,16 +240,16 @@ export const UserProfile = () => {
         };
 
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/delete`, {
                 method: "DELETE",
+                credentials: "include",
                 headers: {
-                    Authorization: "Bearer " + localStorage.getItem("token"),
+                    Authorization: "Bearer " + localStorage.getItem("deviceUuid"),
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(currentDevice),
             })
         );
-
         if (err) {
             console.error("Error unregistering device:", err);
             return;
@@ -257,8 +257,10 @@ export const UserProfile = () => {
             console.error("Error unregistering device:", response.statusText);
             return;
         }
+        setDevices(devices.filter(d => d.uuid !== localStorage.getItem("deviceUuid")));
 
         setCurrentDeviceRegistered(false);
+        setRegisterButtonDisabled(false);
     };
 
     const deleteDevice = (device: DeviceDisplay) => {

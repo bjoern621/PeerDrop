@@ -37,9 +37,10 @@ builder.Services.AddCors(options => options.AddPolicy(
     corsAllowFrontendOrigin,
     policyBuilder =>
         policyBuilder.WithOrigins(frontendOrigin)
-                     .WithHeaders("Content-Type", "User-Agent")
+                     .WithHeaders("Content-Type", "User-Agent", "Authorization")
                      .WithExposedHeaders("Location")
                      .AllowCredentials() // Required to allow session cookies
+                     .WithMethods("GET", "POST", "DELETE")
         ));
 
 var host = Environment.GetEnvironmentVariable("DB_HOST")
@@ -81,12 +82,13 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
+app.UseCors(corsAllowFrontendOrigin);
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
-app.UseCors(corsAllowFrontendOrigin);
 
 app.UseSession(); // Enables session handling on incoming requests
 

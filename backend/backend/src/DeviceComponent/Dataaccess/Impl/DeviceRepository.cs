@@ -55,12 +55,13 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
         return devices;
     }
 
-    public async Task<int> DeleteAsync(Guid uuid)
+    public async Task<int> DeleteDeviceAsync(int accountId, Guid uuid)
     {
         await using var cmd = _dataSource.CreateCommand(
-            "DELETE FROM devices WHERE uuid = @uuid"
+            "DELETE FROM devices WHERE uuid = @uuid AND account_id = @accountId"
         );
         cmd.Parameters.AddWithValue("@uuid", uuid);
+        cmd.Parameters.AddWithValue("@accountid", accountId);
 
         return await cmd.ExecuteNonQueryAsync(); // returns number of affected rows
     }
