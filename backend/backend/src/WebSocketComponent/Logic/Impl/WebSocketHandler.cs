@@ -11,7 +11,7 @@ namespace backend.WebSocketComponent.Logic.Impl;
 
 using MessageType = string;
 
-public class WebSocketHandler : IWebSocketHandler
+public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHandler
 {
     private readonly ConcurrentDictionary<string, RuntimeClientInformation> ActiveConnections = new(); // String is the client token
     private readonly Random Random = new();
@@ -149,7 +149,6 @@ public class WebSocketHandler : IWebSocketHandler
                 break;
 
             var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            // Console.WriteLine($"Received message from {clientToken}: {messageJson}");
 
             try
             {
@@ -226,16 +225,15 @@ public class WebSocketHandler : IWebSocketHandler
                 var typedData = messageData.Deserialize<T>();
                 if (typedData == null)
                 {
-                    Console.WriteLine($"Warning: Failed to deserialize message of type {messageType} to {typeof(T).Name}");
+                    logger.LogError($"Warning: Failed to deserialize message of type {messageType} to {typeof(T).Name}");
                     return Task.CompletedTask;
-
                 }
 
                 return handler(clientToken, typedData);
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"Error deserializing message of type {messageType} to {typeof(T).Name}: {ex.Message}");
+                logger.LogError($"Error deserializing message of type {messageType} to {typeof(T).Name}: {ex.Message}");
                 return Task.CompletedTask;
             }
         }

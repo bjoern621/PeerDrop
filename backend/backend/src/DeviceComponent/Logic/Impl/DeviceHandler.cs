@@ -9,7 +9,7 @@ using backend.AccountComponent.Common.Api.DTOs;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
-public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService) : IDeviceHandler
+public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService, ILogger<DeviceHandler> logger) : IDeviceHandler
 {
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
@@ -18,11 +18,13 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         {
             return Results.Unauthorized();
         }
+        
         var result = await login.HandleGetCurrentUser(context);
         if (result is not Ok<LoginResponse>)
         {
             return Results.Unauthorized();
         }
+        
         var accountIdCon = context.Session.GetString("UserId");
         if (!int.TryParse(accountIdCon, out var accountId))
         {
@@ -121,6 +123,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         {
             return Results.Unauthorized();
         }
+        
         var result = await login.HandleGetCurrentUser(context);
         if (result is not Ok<LoginResponse>)
         {

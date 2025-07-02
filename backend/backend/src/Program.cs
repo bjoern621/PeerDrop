@@ -25,6 +25,7 @@ using backend.DeviceComponent.Logic.Impl;
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddConsole();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -103,17 +104,5 @@ var deviceRoutes = app.Services.GetRequiredService<IDeviceRoutes>();
 await deviceRoutes.RegisterRoutes(app);
 var deviceWebsocketMessages = app.Services.GetRequiredService<IDeviceWebsocketMessages>();
 deviceWebsocketMessages.SubscribeToMessageHandlers();
-var webSocketHandler = app.Services.GetRequiredService<IWebSocketHandler>();
-webSocketHandler.SubscribeToMessageType<TestMessage>("test", async (clientId, message) =>
-{
-    Console.WriteLine($"Received message from client {clientId}: {message.Message}");
-
-    TestMessage response = new()
-    {
-        Message = "Hallo vom Server!"
-    };
-
-    await webSocketHandler.SendMessage(clientId, response);
-});
 
 app.Run();

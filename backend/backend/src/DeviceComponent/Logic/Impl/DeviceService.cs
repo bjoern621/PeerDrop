@@ -2,11 +2,13 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Logic.Api;
+using backend.DeviceComponent.Logic.Types;
 using backend.WebSocketComponent.Logic.Api;
 
-namespace backend.DeviceComponent.Logic.Api;
+namespace backend.DeviceComponent.Logic.Impl;
 
-public class DeviceService() : IDeviceService
+public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
 {
     // Maps client tokens to device information
     // Devices with DeviceStatus "offline" might or might not be in this list
@@ -19,7 +21,7 @@ public class DeviceService() : IDeviceService
     private readonly IWebSocketHandler _webSocketHandler = null!;
     private readonly IServiceScopeFactory _scopeFactory = null!; // Used to get a scoped IDeviceRepository
 
-    public DeviceService(IWebSocketHandler webSocketHandler, IServiceScopeFactory scopeFactory) : this()
+    public DeviceService(IWebSocketHandler webSocketHandler, IServiceScopeFactory scopeFactory, ILogger<DeviceService> logger) : this(logger)
     {
         _webSocketHandler = webSocketHandler;
         _scopeFactory = scopeFactory;
@@ -31,7 +33,7 @@ public class DeviceService() : IDeviceService
         while (true)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS));
-            // Console.WriteLine("Checking for inactive devices...");
+            logger.LogTrace("Checking for inactive devices...");
 
             var now = DateTime.UtcNow;
             var inactiveThreshold = now - TimeSpan.FromMilliseconds(INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS + INACTIVE_HEARTBEAT_THRESHOLD_MS);
@@ -47,7 +49,7 @@ public class DeviceService() : IDeviceService
                 // Remove device because it has not sent a heartbeat in the last INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS + INACTIVE_HEARTBEAT_THRESHOLD_MS milliseconds
 
                 _activeDevices.TryRemove(kvp.Key, out _);
-                // Console.WriteLine($"Removed inactive device {kvp.Value.DeviceGuid} for client {kvp.Key}");
+                logger.LogDebug($"Removed inactive device {kvp.Value.DeviceGuid} for client {kvp.Key}");
 
                 bool anotherEntryForThisDeviceAvailable = _activeDevices.Values.Any(deviceInfo => deviceInfo.DeviceGuid == kvp.Value.DeviceGuid);
 
@@ -84,7 +86,7 @@ public class DeviceService() : IDeviceService
 
         foreach (var token in activeClientTokensForUserId)
         {
-            // Console.WriteLine($"Forwarding heartbeat for device {uuid} to client {token}");
+            logger.LogDebug($"Forwarding heartbeat for device {uuid} to client {token}");
             var forwardedHeartbeatMessage = new DeviceHeartbeatMessage
             {
                 Uuid = uuid,
@@ -97,13 +99,13 @@ public class DeviceService() : IDeviceService
 
     public async Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message)
     {
-        // Console.WriteLine($"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}");
+        logger.LogDebug($"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}");
 
         int? realUserId = _webSocketHandler.GetUserIdForClientToken(clientToken);
         if (realUserId == null)
         {
             // No userId found for the clientToken (user has websocket connection but is not logged in)
-            // Console.WriteLine($"No userId found for client token {clientToken}. Heartbeat is not valid.");
+            logger.LogDebug($"No userId found for client token {clientToken}. Heartbeat is not valid.");
             return;
         }
 
@@ -114,14 +116,14 @@ public class DeviceService() : IDeviceService
         if (device == null)
         {
             // Device not found in the database
-            // Console.WriteLine($"Device with UUID {message.Uuid} not found in the database. Heartbeat is not valid.");
+            logger.LogDebug($"Device with UUID {message.Uuid} not found in the database. Heartbeat is not valid.");
             return;
         }
 
         if (device.GetAccountId() != realUserId)
         {
             // Device does not belong to the sending user
-            // Console.WriteLine($"Device with UUID {message.Uuid} does not belong to user {realUserId}. Heartbeat is not valid.");
+            logger.LogDebug($"Device with UUID {message.Uuid} does not belong to user {realUserId}. Heartbeat is not valid.");
             return;
         }
 
@@ -131,12 +133,12 @@ public class DeviceService() : IDeviceService
             {
                 deviceInfo.LastHeartbeat = DateTime.UtcNow;
                 deviceInfo.LastDeviceStatus = message.DeviceStatus;
-                // Console.WriteLine($"Updated heartbeat for device {message.Uuid} for client {clientToken}");
+                logger.LogDebug($"Updated heartbeat for device {message.Uuid} for client {clientToken}");
             }
             else
             {
                 _activeDevices[clientToken] = new RuntimeDeviceInformation { DeviceGuid = message.Uuid, LastHeartbeat = DateTime.UtcNow, LastDeviceStatus = message.DeviceStatus };
-                // Console.WriteLine($"Registered new device {message.Uuid} for client {clientToken}");
+                logger.LogDebug($"Registered new device {message.Uuid} for client {clientToken}");
             }
         }
 
