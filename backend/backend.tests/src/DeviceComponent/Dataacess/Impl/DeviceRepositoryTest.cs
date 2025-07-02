@@ -180,4 +180,26 @@ public class DeviceRepositoryTest
         var result = await _deviceRepository.DeleteDeviceAsync(accountId, uuid);
         Assert.That(result, Is.EqualTo(1));
     }
+
+    [Test]
+    public async Task DeleteAsync_DeletesNoDevice_IfDeviceUuid_OrAccountId_DoesntExist()
+    {
+        var account = new Account("testuser", "testpassword");
+        var id = await _accountRepository.SaveAsync(account);
+        Assert.That(id, Is.EqualTo(1));
+        // add some device
+        const string displayName = "testdevice";
+        var accountId = 1;
+        Guid guid = Guid.NewGuid();
+        var device = new Device(displayName, guid, accountId);
+        var uuid = await _deviceRepository.SaveDeviceAsync(device);
+        guid = new Guid("11223344-5566-7788-99AA-BBCCDDEEFF00");
+        var result = await _deviceRepository.DeleteDeviceAsync(accountId, guid);
+        Assert.That(result, Is.EqualTo(0));
+        accountId = 53;
+        result = await _deviceRepository.DeleteDeviceAsync(accountId, uuid);
+        Assert.That(result, Is.EqualTo(0));
+        result = await _deviceRepository.DeleteDeviceAsync(accountId, guid);
+        Assert.That(result, Is.EqualTo(0));
+    }
 }

@@ -171,4 +171,65 @@ public class DeviceHandlerTests
         // Assert
         Assert.That(result, Is.TypeOf<UnauthorizedHttpResult>());
     }
+
+    [Test]
+    public async Task DeleteDeviceCurrent()
+    {
+        // Arrange
+        var context = CreateValidContext("1", true, deviceUuid: Guid.NewGuid(), userAgent: "Windows Mozilla");
+
+        _loginHandlerMock.Setup(l => l.HandleGetCurrentUser(context))
+            .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
+
+
+        var deviceUuidHeader = context.Request.Headers["deviceUuid"].FirstOrDefault();
+        Guid deviceUuid = !string.IsNullOrEmpty(deviceUuidHeader) ? Guid.Parse(deviceUuidHeader) : Guid.NewGuid();
+
+        _repoMock.Setup(r => r.SaveDeviceAsync(It.IsAny<Device>()))
+                 .ReturnsAsync(deviceUuid);
+
+        var userIdString = context.Session.GetString("UserId") ?? "1";
+        _repoMock.Setup(r => r.DeleteDeviceAsync(int.Parse(userIdString), deviceUuid))
+             .ReturnsAsync(1);
+
+        var result = await _deviceHandler.RegisterDeviceAsync(context);
+        Assert.That(result, Is.TypeOf<Ok<DeviceRegisterDto>>());
+        var okResult = result as Ok<DeviceRegisterDto>;
+        Assert.That(okResult?.Value, Has.Property("uuid"));
+
+        var result2 = await _deviceHandler.DeleteCurrentDeviceAsync(context);
+
+        Assert.That(result2, Is.TypeOf<Ok<string>>());
+        var okResult2 = result2 as Ok<string>;
+        Assert.That(okResult2?.Value, Is.EqualTo("Device deleted successfully."));
+    }
+    
+    [Test]
+    public async Task DeleteOtherDevice()
+    {
+        // Arrange
+        var deviceUuid = Guid.NewGuid();
+        var context = CreateValidContext("1", true, deviceUuid: Guid.NewGuid(), userAgent: "Windows Mozilla");
+
+        // Set up the request body as a JSON string containing the UUID
+        var json = System.Text.Json.JsonSerializer.Serialize(deviceUuid);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        context.Request.Body = new MemoryStream(bytes);
+        context.Request.ContentType = "application/json";
+
+        _loginHandlerMock.Setup(l => l.HandleGetCurrentUser(context))
+            .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
+
+        var userIdString = context.Session.GetString("UserId") ?? "1";
+        _repoMock.Setup(r => r.DeleteDeviceAsync(int.Parse(userIdString), deviceUuid))
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _deviceHandler.DeleteOtherDeviceAsync(context);
+
+        // Assert
+        Assert.That(result, Is.TypeOf<Ok<string>>());
+        var okResult = result as Ok<string>;
+        Assert.That(okResult?.Value, Is.EqualTo("Device deleted successfully."));
+    }
 }
