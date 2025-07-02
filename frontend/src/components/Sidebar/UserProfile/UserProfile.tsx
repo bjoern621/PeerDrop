@@ -35,8 +35,6 @@ export const UserProfile = () => {
 
     const websocketService = useWebSocketService();
 
-    const HEARTBEAT_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO THE BACKEND VARIABLE: INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS
-
     const handleHeartbeatMessage = useCallback(() => {
         const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
             setDevices(prevDevices =>
@@ -55,22 +53,23 @@ export const UserProfile = () => {
     }, [websocketService]);
 
     const handleDeviceChangedMessage = useCallback(() => {
-        const onDeviceChange = async (message: DeviceChangedMessage) => {
+        const onDeviceChanged = async (message: DeviceChangedMessage) => {
             console.log(message);
             await fetchDevices();
-            if (message.msg.status === "online") {
-                setDevices(prevDevices =>
-                prevDevices.map(device =>
-                    device.uuid === message.msg.uuid
-                        ? { ...device, status: message.msg.status }
-                        : device
-                )
-            );
-            }
+            // if (message.msg.status === DeviceStatus.ONLINE) {
+            //     setDevices(prevDevices =>
+            //         prevDevices.map(device =>
+            //             device.uuid === message.msg.uuid
+            //                 ? { ...device, status: message.msg.status }
+            //                 : device
+            //         )
+            //     );
+            // }
         };
+
         websocketService.subscribeMessage(
             MessageType.DEVICE_CHANGED,
-            onDeviceChange as MessageHandler
+            onDeviceChanged as MessageHandler
         );
     }, [websocketService]);
 
@@ -120,19 +119,6 @@ export const UserProfile = () => {
         window.addEventListener("beforeunload", handleTabClose);
     }, [websocketService]);
 
-    /**
-     * Sends a heartbeat message every HEARTBEAT_INTERVAL_MS.
-     */
-    const sendContinuousHeartbeat = useCallback(() => {
-        const timer = setInterval(() => {
-            sendHeartbeatIfPossible();
-        }, HEARTBEAT_INTERVAL_MS);
-
-        return () => {
-            clearTimeout(timer);
-        };
-    }, [sendHeartbeatIfPossible, HEARTBEAT_INTERVAL_MS]);
-
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
@@ -141,18 +127,14 @@ export const UserProfile = () => {
 
         handleHeartbeatMessage();
 
-
         sendHeartbeatIfPossible();
 
         registerOfflineHeartbeatOnClose();
-
-        sendContinuousHeartbeat();
     }, [
         handleDeviceChangedMessage,
         handleHeartbeatMessage,
         sendHeartbeatIfPossible,
         registerOfflineHeartbeatOnClose,
-        sendContinuousHeartbeat,
     ]);
 
     const fetchDevices = async () => {

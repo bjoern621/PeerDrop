@@ -9,6 +9,7 @@ import { assert } from "../../util/Assert";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { useWebSocketService } from "../../context/WebSocketContext";
+import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 
 enum FileDirection {
     UP = "up",
@@ -67,6 +68,19 @@ export function DataSharingPage() {
         websocketService.sendMessage(heartbeat);
     }, [websocketService]);
 
+    /**
+     * Sends a heartbeat message every HEARTBEAT_INTERVAL_MS.
+     */
+    const sendContinuousHeartbeat = useCallback(() => {
+        const timer = setInterval(() => {
+            sendHeartbeatIfPossible();
+        }, HEARTBEAT_INTERVAL_MS);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [sendHeartbeatIfPossible]);
+
     useEffect(() => {
         assert(
             peerConnectionManager,
@@ -96,7 +110,14 @@ export function DataSharingPage() {
         peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
 
         sendHeartbeatIfPossible();
-    }, [peerConnectionManager, navigate, sendHeartbeatIfPossible]);
+
+        sendContinuousHeartbeat();
+    }, [
+        peerConnectionManager,
+        navigate,
+        sendHeartbeatIfPossible,
+        sendContinuousHeartbeat,
+    ]);
 
     function getSizeInHumanReadableFormat(size: number): string {
         const units = ["B", "KB", "MB", "GB", "TB"];
