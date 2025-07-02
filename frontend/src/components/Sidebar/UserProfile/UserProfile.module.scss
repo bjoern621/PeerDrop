@@ -12,11 +12,37 @@
     height: 200px;
 }
 
+.profileNameContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
 .greeting {
     margin: 0;
     font-weight: normal;
     font-size: 2.5rem;
     color: black;
+}
+
+.logoutButton {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100%;
+    margin-left: 10px;
+    padding: 10px;
+
+    &:hover {
+        background-color: #d0d0d0;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+    }
 }
 
 .registeredDevices {

@@ -7,8 +7,32 @@ import { Observable } from "../util/observer/Observable";
 import { IceCandidateMessage } from "../types/rtc/IceCandidateMessage";
 import { SdpMessage } from "../types/rtc/SdpMessage";
 
-const iceServers: RTCConfiguration = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+const serversConfig: RTCConfiguration = {
+    iceServers: [
+        {
+            urls: "stun:stun.relay.metered.ca:80",
+        },
+        {
+            urls: "turn:global.relay.metered.ca:80",
+            username: "7cfed80f2da5f327b1e8a894",
+            credential: "Uvb5QuG/FHIpdQYA",
+        },
+        {
+            urls: "turn:global.relay.metered.ca:80?transport=tcp",
+            username: "7cfed80f2da5f327b1e8a894",
+            credential: "Uvb5QuG/FHIpdQYA",
+        },
+        {
+            urls: "turn:global.relay.metered.ca:443",
+            username: "7cfed80f2da5f327b1e8a894",
+            credential: "Uvb5QuG/FHIpdQYA",
+        },
+        {
+            urls: "turns:global.relay.metered.ca:443?transport=tcp",
+            username: "7cfed80f2da5f327b1e8a894",
+            credential: "Uvb5QuG/FHIpdQYA",
+        },
+    ],
 };
 
 export class WebRTCConnection {
@@ -36,7 +60,7 @@ export class WebRTCConnection {
         this.signalingChannel = signalingChannel;
         this.polite =
             signalingChannel.getLocalClientToken()! < this.remoteToken;
-        this.peerConnection = new RTCPeerConnection(iceServers);
+        this.peerConnection = new RTCPeerConnection(serversConfig);
 
         this.setupEmittedWebRTCEvents();
 

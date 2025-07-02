@@ -70,7 +70,7 @@ public class DeviceHandlerTests
     }
 
     [Test]
-    public async Task RegisterDeviceAsync_WhenDeviceAlreadyRegistered_ReturnsBadRequest()
+    public async Task RegisterDeviceAsync_WhenDeviceAlreadyRegistered_ReturnsOkWithOverrittenUuid()
     {
         Guid guid = Guid.NewGuid();
         // Arrange
@@ -80,7 +80,10 @@ public class DeviceHandlerTests
         var result = await _deviceHandler.RegisterDeviceAsync(context);
 
         // Assert
-        Assert.That(result, Is.TypeOf<BadRequest<string>>());
+        Assert.That(result, Is.TypeOf<Ok<DeviceRegisterDto>>());
+        var okResult = result as Ok<DeviceRegisterDto>;
+        Assert.That(okResult?.Value, Has.Property("uuid"));
+        Assert.That(okResult?.Value!.uuid, !Is.EqualTo(guid));
     }
 
     [Test]
