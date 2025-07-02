@@ -46,7 +46,6 @@ export const UserProfile = () => {
                 )
             );
         };
-        fetchDevices();
 
         websocketService.subscribeMessage(
             MessageType.DEVICE_HEARTBEAT,
@@ -294,7 +293,6 @@ export const UserProfile = () => {
             console.error("Error unregistering device:", response.statusText);
             return;
         }
-        fetchDevices();
         setCurrentDeviceRegistered(false);
         setRegisterButtonDisabled(false);
     };
@@ -308,9 +306,15 @@ export const UserProfile = () => {
             })
         );
         if (err) {
+            toast.error(
+                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error unregistering device:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error unregistering device:", response.statusText);
             return;
         }
