@@ -206,6 +206,8 @@ export class PeerConnectionManager {
         ) => {
             this.closePeerConnection();
 
+            this.expectedRemoteToken = message.msg.remoteToken;
+
             this.webrtcConnection = new WebRTCConnection(
                 this.signaling,
                 message.msg.remoteToken

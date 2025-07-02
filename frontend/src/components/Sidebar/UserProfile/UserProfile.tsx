@@ -15,6 +15,7 @@ import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMes
 import { MessageHandler } from "../../../services/WebSocketService";
 import { useWebSocketService } from "../../../context/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
+import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
 import { toast } from "react-toastify";
 
 interface DeviceDisplay {
@@ -27,8 +28,6 @@ interface DeviceDisplay {
 export const UserProfile = () => {
     const [userName, setUserName] = useState<string | null>(null);
     const [devices, setDevices] = useState<DeviceDisplay[]>([]);
-    const [connectedDevice, setConnectedDevice] =
-        useState<DeviceDisplay | null>(null);
     const [currentDeviceRegistered, setCurrentDeviceRegistered] =
         useState(false);
     const [registerButtonDisabled, setRegisterButtonDisabled] = useState(false);
@@ -255,9 +254,22 @@ export const UserProfile = () => {
     };
 
     const connectDevice = (device: DeviceDisplay) => {
-        if (connectedDevice?.name === device.name) return;
-        console.log("Connecting to device " + device.name);
-        setConnectedDevice(device);
+        if (device.status !== DeviceStatus.ONLINE) {
+            toast.warn(
+                `Dein Gerät ${device.name} ist nicht bereit für eine Verbindung.`,
+                {
+                    toastId: "instant-message-toast",
+                    updateId: "instant-message-toast",
+                }
+            );
+            return;
+        }
+
+        const msg = new QuickConnectMessage({
+            deviceUuid: device.uuid,
+        });
+
+        websocketService.sendMessage(msg);
     };
 
     const deleteCurrentDevice = async () => {
@@ -373,7 +385,7 @@ export const UserProfile = () => {
                                         src={userIconLight}
                                         className={css.deviceStatusBase}
                                     />
-                                    <p>Current Device</p>
+                                    <p>Dieses Gerät</p>
                                 </span>
                                 <span className={css.deleteButtonContainer}>
                                     <span
@@ -391,12 +403,7 @@ export const UserProfile = () => {
                     {devices.map((device, index) => (
                         <li key={index} className={css.deviceListItem}>
                             <button
-                                className={[
-                                    css.connectButton,
-                                    connectedDevice === device
-                                        ? css.selected
-                                        : "",
-                                ].join(" ")}
+                                className={css.connectButton}
                                 onClick={() => connectDevice(device)}
                             >
                                 <span className={css.deviceInfo}>
