@@ -1,9 +1,10 @@
 import css from "./UserProfile.module.scss";
 import userIcon from "../../../assets/account_circle_black.svg";
 import userIconLight from "../../../assets/account_circle_light.svg";
-import deleteIconDark from "../../../assets/delete_dark.svg";
-import deleteIconLight from "../../../assets/delete_light.svg";
+import deleteIconDark from "../../../assets/delete_light.svg";
+import deleteIconLight from "../../../assets/delete_dark.svg";
 import addIcon from "../../../assets/add.svg";
+import logoutIcon from "../../../assets/logout.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
 import { useCallback, useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
@@ -76,7 +77,7 @@ export const UserProfile = () => {
     /**
      * Sets up an event listener to send an offline heartbeat when the tab is closed.
      */
-    const sendOfflineHeartbeat = useCallback(() => {
+    const registerOfflineHeartbeatOnClose = useCallback(() => {
         const handleTabClose = () => {
             const deviceUuid: string | undefined = document.cookie
                 .split("; ")
@@ -119,13 +120,13 @@ export const UserProfile = () => {
 
         sendHeartbeatIfPossible();
 
-        sendOfflineHeartbeat();
+        registerOfflineHeartbeatOnClose();
 
         sendContinuousHeartbeat();
     }, [
         handleHeartbeatMessage,
         sendHeartbeatIfPossible,
-        sendOfflineHeartbeat,
+        registerOfflineHeartbeatOnClose,
         sendContinuousHeartbeat,
     ]);
 
@@ -278,10 +279,37 @@ export const UserProfile = () => {
         }
     }
 
+    const logout = async () => {
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/logout`, {
+                method: "POST",
+                credentials: "include",
+            })
+        );
+
+        if (err) {
+            console.error("Error logging out:", err);
+            return;
+        } else if (!response.ok) {
+            console.error("Error logging out:", response.statusText);
+            return;
+        }
+
+        window.location.reload();
+    };
+
     return (
         <div className={css.container}>
             <img className={css.profilePicture} src={userIcon}></img>
-            <h3 className={css.greeting}>Hi {userName}!</h3>
+            <div className={css.profileNameContainer}>
+                <h3 className={css.greeting}>Hi {userName}!</h3>
+                <button
+                    className={css.logoutButton}
+                    onClick={() => void logout()}
+                >
+                    <img src={logoutIcon} alt="Logout" />
+                </button>
+            </div>
             <div className={css.registeredDevices}>
                 <h4>Registrierte Geräte</h4>
                 <ul className={css.deviceList}>
