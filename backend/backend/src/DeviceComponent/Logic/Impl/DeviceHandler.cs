@@ -22,10 +22,6 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         {
             Console.WriteLine($"Session Token received {sessionToken}");
         }
-        if (context.Request.Cookies.ContainsKey("deviceUuid"))
-        {
-            return Results.BadRequest("Device is already registered.");
-        }
 
         var result = await login.HandleGetCurrentUser(context);
         if (result is Ok<LoginResponse> okResult)
@@ -55,7 +51,6 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         var deviceUuid = Guid.NewGuid();
 
         // Create a new device object to save in the repository
-        //var device = new Device(displayName, deviceUuid, accountId);
         var device = Device.Of(displayName, deviceUuid, accountId);
         // Save the device to the repository (database)
         await repo.SaveDeviceAsync(device);
@@ -72,7 +67,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         return Results.Ok(new DeviceRegisterDto { uuid = deviceUuid });
     }
 
-    private string GetBrowserAndOs(string userAgent)
+    private static string GetBrowserAndOs(string userAgent)
     {
         // Extract OS from the User-Agent string (between parentheses)
         var osRegex = new Regex(@"\(([^)]+)\)");
@@ -170,13 +165,12 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
                 }
                 catch (FormatException)
                 {
-                    return Results.BadRequest("Invalid device UUID format.");
+                    deviceGuid = Guid.Empty;
                 }
 
                 devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceGuid);
             }
             // Proceed with fetching the devices for the user
-
             else
             {
                 devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, Guid.Empty);
