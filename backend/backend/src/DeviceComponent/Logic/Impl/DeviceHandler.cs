@@ -151,6 +151,19 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
                 }
 
                 devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceGuid);
+                var exists = devices.Any(d => d.Uuid == deviceGuid);
+                if (!exists)
+                {
+                    // Cookie löschen, weil das Gerät nicht mehr existiert
+                    context.Response.Cookies.Append("deviceUuid", "", new CookieOptions
+                    {
+                        Expires = DateTimeOffset.UtcNow.AddDays(-1),
+                        HttpOnly = false,
+                        IsEssential = true,
+                        SameSite = SameSiteMode.Lax,
+                        Path = "/"
+                    });
+                }
             }
             // Proceed with fetching the devices for the user
             else
