@@ -303,6 +303,9 @@ export const UserProfile = () => {
                 method: "DELETE",
                 credentials: "include",
                 body: JSON.stringify(device.uuid),
+                headers: {
+                "Content-Type": "application/json",
+            },
             })
         );
         if (err) {
