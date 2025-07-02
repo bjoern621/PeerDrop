@@ -229,6 +229,13 @@ export const UserProfile = () => {
     };
 
     const connectDevice = (device: DeviceDisplay) => {
+        if (device.status !== DeviceStatus.ONLINE) {
+            console.warn(
+                `Cannot connect to device ${device.name} because it is not online.`
+            );
+            return;
+        }
+
         const msg = new QuickConnectMessage({
             deviceUuid: device.uuid,
         });
