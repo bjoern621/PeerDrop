@@ -2,6 +2,8 @@ import { Register } from "./Register/Register";
 import { Login } from "./Login/Login";
 import { useEffect, useState } from "react";
 import smallLogo from "../../assets/logo_small.png";
+import leftArrowIcon from "../../assets/left_arrow.svg";
+import rightArrowIcon from "../../assets/right_arrow.svg";
 import css from "./Sidebar.module.scss";
 import { UserProfile } from "./UserProfile/UserProfile";
 import errorAsValue from "../../util/ErrorAsValue";
@@ -86,7 +88,19 @@ export const Sidebar = () => {
                     onClick={onCollapseSidebar}
                     className={css.collapseButton}
                 >
-                    {isCollapsed ? ">" : "<"}
+                    {isCollapsed ? (
+                        <img
+                            src={rightArrowIcon}
+                            alt="Expand Sidebar"
+                            className={css.arrowIcon}
+                        />
+                    ) : (
+                        <img
+                            src={leftArrowIcon}
+                            alt="Collapse Sidebar"
+                            className={css.arrowIcon}
+                        />
+                    )}
                 </button>
             </div>
             {!isCollapsed && (

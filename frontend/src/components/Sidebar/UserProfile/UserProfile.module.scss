@@ -2,24 +2,56 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     width: 100%;
     font-size: 22px;
+    overflow: hidden;
 }
 
 .profilePicture {
-    margin: 10px;
+    flex-shrink: 0;
     height: 200px;
+}
+
+.profileNameContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .greeting {
     margin: 0;
     font-weight: normal;
     font-size: 2.5rem;
+    color: black;
+}
+
+.logoutButton {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100%;
+    margin-left: 10px;
+    padding: 10px;
+
+    &:hover {
+        background-color: #d0d0d0;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+    }
 }
 
 .registeredDevices {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+
     h4 {
         margin: 0;
         font-weight: normal;
@@ -29,21 +61,24 @@
 .deviceList {
     margin: 0;
     padding: 0;
-}
-
-.deviceListItem {
-    --buttonheight: 50px;
-
-    height: var(--buttonheight);
-    list-style: none;
+    overflow-y: auto;
+    flex: 1;
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
+    flex-direction: column;
+    gap: 5px;
+    min-height: 0;
+    position: relative;
+
+    :has(.registeredCurrentDevice),
+    :has(.unregisteredCurrentDevice) {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: var(--light);
+    }
 }
 
-.currentDevice {
+.registeredCurrentDevice {
     width: 100%;
     height: 100%;
     border-radius: 100px;
@@ -55,15 +90,8 @@
     padding: 0 0 0 15px;
 }
 
-.addCurrentDeviceButton {
-    width: 100%;
-    height: 100%;
-    border-radius: 100px;
-    background-color: var(--black);
-    color: var(--white);
-    display: flex;
-    align-items: center;
-    padding: 0 0 0 15px;
+.unregisteredCurrentDevice {
+    @extend .registeredCurrentDevice;
 
     &:hover {
         background-color: black;
@@ -76,9 +104,16 @@
     }
 }
 
-.addIcon {
-    height: 20px;
-    margin-right: 15px;
+.deviceListItem {
+    --buttonheight: 50px;
+
+    height: var(--buttonheight);
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .connectButton {
@@ -104,6 +139,7 @@
     height: 100%;
     width: var(--buttonheight);
     padding: 5px;
+    flex-shrink: 0;
 }
 
 .deleteButton {
@@ -113,6 +149,7 @@
     justify-content: center;
     border-radius: 100%;
     height: 100%;
+    padding: 10px;
 
     &:hover {
         background-color: rgba(0, 0, 0, 0.2);
@@ -122,11 +159,14 @@
 .deviceInfo {
     display: flex;
     align-items: center;
+    overflow: hidden;
+    width: 100%;
 
-    img {
-        width: 20px;
-        height: 20px;
-        margin-right: 15px;
+    p {
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 
@@ -136,6 +176,7 @@
     border-radius: 50%;
     display: inline-block;
     margin-right: 15px;
+    flex-shrink: 0;
 }
 
 .deviceOnline {

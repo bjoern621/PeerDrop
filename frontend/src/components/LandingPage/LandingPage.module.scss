@@ -59,12 +59,12 @@
     bottom: 2rem;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #323232;
+    background-color: var(--black);
     color: #fff;
     padding: 0.75rem 1.5rem;
     border-radius: 4px;
     font-size: 0.9rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 6px 4px var(--shadow);
     z-index: 1000;
     animation: fadeInOut 3s forwards;
 }
@@ -124,16 +124,16 @@
     gap: 10px;
 }
 
-.button {
+.connectButton {
     width: 80px;
     height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     background-color: var(--black);
-    color: var(--white);
 
     border-radius: 15px;
-
-    text-align: center;
 
     font-size: 3rem;
     font-weight: bold;
@@ -141,6 +141,10 @@
     &:hover {
         background-color: black;
     }
+}
+
+.connectButtonIcon {
+    height: 50%;
 }
 
 .input-container {
