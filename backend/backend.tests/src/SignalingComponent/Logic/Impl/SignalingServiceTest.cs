@@ -3,6 +3,7 @@ using backend.DeviceComponent.Logic.Api;
 using backend.SignalingComponent.Common.Api.DTOs;
 using backend.SignalingComponent.Logic.Impl;
 using backend.WebSocketComponent.Logic.Api;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -22,7 +23,7 @@ public class SignalingServiceTest
         _mockHandler = new Mock<IWebSocketHandler>();
         _mockScopeFactory = new Mock<IServiceScopeFactory>();
         _mockDeviceService = new Mock<IDeviceService>();
-        _service = new SignalingService(_mockHandler.Object, _mockScopeFactory.Object, _mockDeviceService.Object);
+        _service = new SignalingService(_mockHandler.Object, _mockScopeFactory.Object, _mockDeviceService.Object, NullLogger<SignalingService>.Instance);
     }
 
     [Test]
@@ -92,7 +93,7 @@ public class SignalingServiceTest
                 msg.RemoteToken == clientId &&
                 JsonElement.DeepEquals(msg.IceCandidate, iceElement)
             )
-        ), Times.Once); ;
+        ), Times.Once);
     }
 
     [Test]
@@ -124,7 +125,7 @@ public class SignalingServiceTest
                 msg.RemoteToken == clientId &&
                 JsonElement.DeepEquals(msg.Description, sdpElement)
             )
-        ), Times.Once); ;
+        ), Times.Once);
     }
 
     [Test]

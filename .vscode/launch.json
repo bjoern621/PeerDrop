@@ -14,7 +14,10 @@
             "cwd": "${workspaceFolder}/backend/backend",
             "launchSettingsFilePath": "${workspaceFolder}/backend/backend/Properties/launchSettings.json",
             "launchSettingsProfile": "http",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "env": {
+                "LOGGING__LOGLEVEL__DEFAULT": "Information"
+            }
         },
         {
             "type": "node-terminal",
