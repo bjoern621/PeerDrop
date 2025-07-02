@@ -304,8 +304,8 @@ export const UserProfile = () => {
                 credentials: "include",
                 body: JSON.stringify(device.uuid),
                 headers: {
-                "Content-Type": "application/json",
-            },
+                    "Content-Type": "application/json",
+                },
             })
         );
         if (err) {
