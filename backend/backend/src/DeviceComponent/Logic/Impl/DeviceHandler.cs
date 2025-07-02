@@ -40,6 +40,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         var device = Device.Of(displayName, deviceUuid, accountId);
         // Save the device to the repository (database)
         await repo.SaveDeviceAsync(device);
+        await _deviceService.HandleDeviceDelete(deviceUuid, accountId, "online");
 
         context.Response.Cookies.Append("deviceUuid", deviceUuid.ToString(), new CookieOptions
         {
@@ -230,6 +231,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             // Proceed with deleting the device
             var deviceGuid = Guid.Parse(deviceUuid);
             await repo.DeleteDeviceAsync(parsedAccountId, deviceGuid);
+            await _deviceService.HandleDeviceDelete(deviceGuid, parsedAccountId, "offline");
             context.Response.Cookies.Append("deviceUuid", "", new CookieOptions
             {
                 Expires = DateTimeOffset.UtcNow.AddDays(-1),
@@ -283,6 +285,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             }
             // Proceed with deleting the device
             await repo.DeleteDeviceAsync(parsedAccountId, deviceUuid);
+            await _deviceService.HandleDeviceDelete(deviceUuid, parsedAccountId, "offline");
             return Results.Ok("Device deleted successfully.");
         }
         else

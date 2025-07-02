@@ -85,7 +85,6 @@ public class WebSocketHandler : IWebSocketHandler
                 WebSocketMessageType.Text,
                 true,
                 CancellationToken.None);
-
             return true;
         }
         catch (Exception)

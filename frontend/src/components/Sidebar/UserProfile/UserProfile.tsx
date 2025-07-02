@@ -17,6 +17,7 @@ import { useWebSocketService } from "../../../context/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
 import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
 import { toast } from "react-toastify";
+import { DeviceChangedMessage } from "../../../types/device/DeviceChangedMessage";
 
 interface DeviceDisplay {
     status: DeviceStatus;
@@ -50,6 +51,26 @@ export const UserProfile = () => {
         websocketService.subscribeMessage(
             MessageType.DEVICE_HEARTBEAT,
             onHeartbeatReceived as MessageHandler
+        );
+    }, [websocketService]);
+
+    const handleDeviceChangedMessage = useCallback(() => {
+        const onDeviceChange = async (message: DeviceChangedMessage) => {
+            console.log(message);
+            await fetchDevices();
+            if (message.msg.status === "online") {
+                setDevices(prevDevices =>
+                prevDevices.map(device =>
+                    device.uuid === message.msg.uuid
+                        ? { ...device, status: message.msg.status }
+                        : device
+                )
+            );
+            }
+        };
+        websocketService.subscribeMessage(
+            MessageType.DEVICE_CHANGED,
+            onDeviceChange as MessageHandler
         );
     }, [websocketService]);
 
@@ -116,7 +137,10 @@ export const UserProfile = () => {
         void fetchUserName();
         void fetchDevices();
 
+        handleDeviceChangedMessage();
+
         handleHeartbeatMessage();
+
 
         sendHeartbeatIfPossible();
 
@@ -124,6 +148,7 @@ export const UserProfile = () => {
 
         sendContinuousHeartbeat();
     }, [
+        handleDeviceChangedMessage,
         handleHeartbeatMessage,
         sendHeartbeatIfPossible,
         registerOfflineHeartbeatOnClose,

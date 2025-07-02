@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.WebSocketComponent.Logic.Api;
@@ -142,6 +143,38 @@ public class DeviceService() : IDeviceService
         // TODO maybe exlude sender token from the forwarded list
         SendHeartbeatToAllActiveClientTokens(realUserId.Value, message.Uuid, message.DeviceStatus);
     }
+
+
+    public async Task HandleDeviceRegister(Guid uuid, int userId, string deviceStatus)
+    {
+        await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
+    }
+    public async Task HandleDeviceDelete(Guid uuid, int userId, string deviceStatus)
+    {
+        await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
+    }
+
+    /// <summary>
+    /// Sends a heartbeat message to all active client tokens of the user.
+    /// This is used to inform all clients of the user's devices about the current device status.
+    /// </summary>
+    private async Task SendChangedDeviceToAllActiveClientTokens(int userId, Guid uuid, string deviceStatus)
+    {
+        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId);
+
+        foreach (var token in activeClientTokensForUserId)
+        {
+            // Console.WriteLine($"Forwarding heartbeat for device {uuid} to client {token}");
+            var forwardedChangedDeviceMessage = new DeviceChangesMessage
+            {
+                Uuid = uuid,
+                DeviceStatus = deviceStatus
+            };
+            var result = await _webSocketHandler.SendMessage(token, forwardedChangedDeviceMessage);
+            Console.WriteLine(result.ToString());
+        }
+    }
+
 
     public string GetDeviceStatus(Guid deviceUuid)
     {
