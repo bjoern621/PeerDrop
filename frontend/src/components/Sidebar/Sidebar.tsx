@@ -10,6 +10,7 @@ import errorAsValue from "../../util/ErrorAsValue";
 import { StatusResponse } from "../../util/dtos/StatusResponse";
 import { assert } from "../../util/Assert";
 import { useResetWebsocket } from "../../context/ResetContext";
+import { toast } from "react-toastify";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(true);
@@ -27,14 +28,15 @@ export const Sidebar = () => {
         );
 
         if (err) {
-            console.error("Fehler beim Abrufen des Login-Status:", err);
+            toast.error(
+                "Fehler beim Abrufen des Login-Status. Bitte versuche es später erneut."
+            );
             return false;
         }
 
         if (!response.ok) {
-            console.error(
-                "Fehler beim Abrufen des Login-Status:",
-                response.statusText
+            toast.error(
+                "Fehler beim Abrufen des Login-Status. Bitte versuche es später erneut."
             );
             return false;
         }
@@ -42,6 +44,9 @@ export const Sidebar = () => {
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
+            toast.error(
+                "Fehler beim Abrufen des Login-Status. Bitte versuche es später erneut."
+            );
             console.error("Fehler beim Parsen der Antwort:", parseError);
             return false;
         }
