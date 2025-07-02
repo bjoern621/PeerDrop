@@ -2,16 +2,21 @@ import { Register } from "./Register/Register";
 import { Login } from "./Login/Login";
 import { useEffect, useState } from "react";
 import smallLogo from "../../assets/logo_small.png";
+import leftArrowIcon from "../../assets/left_arrow.svg";
+import rightArrowIcon from "../../assets/right_arrow.svg";
 import css from "./Sidebar.module.scss";
 import { UserProfile } from "./UserProfile/UserProfile";
 import errorAsValue from "../../util/ErrorAsValue";
-import { StatusResponse } from "../dtos/StatusResponse";
+import { StatusResponse } from "../../util/dtos/StatusResponse";
 import { assert } from "../../util/Assert";
+import { useResetWebsocket } from "../../context/ResetContext";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [showLogin, setShowLogin] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
+
+    const resetWebsocketConnection = useResetWebsocket();
 
     const getLoggedInStatus = async () => {
         const [response, err] = await errorAsValue(
@@ -70,6 +75,7 @@ export const Sidebar = () => {
     }
 
     function onLogin() {
+        resetWebsocketConnection();
         setLoggedIn(true);
     }
 
@@ -82,7 +88,19 @@ export const Sidebar = () => {
                     onClick={onCollapseSidebar}
                     className={css.collapseButton}
                 >
-                    {isCollapsed ? ">" : "<"}
+                    {isCollapsed ? (
+                        <img
+                            src={rightArrowIcon}
+                            alt="Expand Sidebar"
+                            className={css.arrowIcon}
+                        />
+                    ) : (
+                        <img
+                            src={leftArrowIcon}
+                            alt="Collapse Sidebar"
+                            className={css.arrowIcon}
+                        />
+                    )}
                 </button>
             </div>
             {!isCollapsed && (
@@ -100,12 +118,7 @@ export const Sidebar = () => {
                             onLogin={onLogin}
                         />
                     )}
-                    <img
-                        src={smallLogo}
-                        alt="Logo"
-                        className={css.logo}
-                        loading="eager"
-                    />
+                    <img src={smallLogo} alt="Logo" className={css.logo} />
                 </>
             )}
         </div>

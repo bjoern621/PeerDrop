@@ -9,7 +9,7 @@ using backend.AccountComponent.Common.Api.DTOs;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
-public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) : IDeviceHandler
+public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService) : IDeviceHandler
 {
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
@@ -21,10 +21,6 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
         else
         {
             Console.WriteLine($"Session Token received {sessionToken}");
-        }
-        if (context.Request.Cookies.ContainsKey("deviceUuid"))
-        {
-            return Results.BadRequest("Device is already registered.");
         }
 
         var result = await login.HandleGetCurrentUser(context);
@@ -55,24 +51,23 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
         var deviceUuid = Guid.NewGuid();
 
         // Create a new device object to save in the repository
-        //var device = new Device(displayName, deviceUuid, accountId);
         var device = Device.Of(displayName, deviceUuid, accountId);
         // Save the device to the repository (database)
         await repo.SaveDeviceAsync(device);
 
         context.Response.Cookies.Append("deviceUuid", deviceUuid.ToString(), new CookieOptions
         {
-            HttpOnly = true,
+            HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (you may validate the cookie on the server side by using the auth session token)
             IsEssential = true,
             SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddYears(5)
         });
 
         // Return the UUID in the response so that it can be stored in the frontend cookie
-        return Results.Ok(new DeviceRegisterDto{ uuid = deviceUuid });
+        return Results.Ok(new DeviceRegisterDto { uuid = deviceUuid });
     }
 
-    private string GetBrowserAndOs(string userAgent)
+    private static string GetBrowserAndOs(string userAgent)
     {
         // Extract OS from the User-Agent string (between parentheses)
         var osRegex = new Regex(@"\(([^)]+)\)");
@@ -170,20 +165,26 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login) :
                 }
                 catch (FormatException)
                 {
-                    return Results.BadRequest("Invalid device UUID format.");
+                    deviceGuid = Guid.Empty;
                 }
 
                 devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceGuid);
             }
             // Proceed with fetching the devices for the user
-
             else
             {
                 devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, Guid.Empty);
             }
+
             var deviceResponse = new DeviceResponseDTO
             {
-                Devices = devices
+                Devices = [.. devices.Select(device => new DeviceLoginDto
+                {
+                    Uuid = device.Uuid,
+                    DisplayName = device.DisplayName,
+                    IsCurrentDevice = device.IsCurrentDevice,
+                    Status = _deviceService.GetDeviceStatus(device.Uuid)
+                })]
             };
             return Results.Ok(deviceResponse);  // Return the devices or relevant data
         }

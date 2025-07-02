@@ -38,9 +38,10 @@
     font-size: 23px;
     margin-top: 0.5rem;
     margin-bottom: 5px;
+    width: auto;
 
     &:hover {
-        background-color: #333;
+        background-color: black;
     }
 }
 
@@ -55,31 +56,34 @@
 }
 
 .dropAreaTextContainer {
+    margin-top: 50px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     width: 100%;
+    opacity: 50%;
 }
 
 .dropAreaIcon {
     width: 200px;
-    height: 200px;
 }
 
 .dropAreaMessage {
+    user-select: none;
     font-size: 75px;
     font-weight: bold;
-    color: #c9c9c9;
+    color: var(--black);
     margin-bottom: 1rem;
     margin-top: 0;
 }
 
 .fileTable {
+    --font-size: 25px;
     border-collapse: collapse;
     width: 100%;
     border-spacing: 0;
-    font-size: 25px;
+    font-size: var(--font-size);
 
     tr:nth-child(even) {
         background-color: #dadada;
@@ -112,6 +116,67 @@
     }
 }
 
+.fileProgressHeaderCell {
+    display: flex;
+    align-items: center;
+}
+
+.detailProgressButton {
+    border-radius: 100%;
+    margin-left: 5px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    position: relative;
+
+    &:hover {
+        background-color: var(--light);
+    }
+
+    &:hover .detailProgressTooltip {
+        visibility: visible;
+    }
+}
+
+.detailProgressIconContainer {
+    display: flex;
+}
+
+.detailProgressIcon {
+    width: 100%;
+}
+
+.detailProgressTooltip {
+    visibility: hidden;
+    position: absolute;
+    background-color: var(--black);
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 10px;
+    width: max-content;
+    white-space: nowrap;
+
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 5px;
+
+    // Arrow pointing to button
+    &::after {
+        content: " ";
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent var(--black) transparent;
+    }
+}
+
 .noFilesText {
     font-size: 25px;
     margin-top: 20px;
@@ -126,7 +191,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 1px;
 }
 
 .smallColumn {
@@ -135,6 +199,11 @@
 }
 
 .fileProgress {
+    display: flex;
+    align-items: center;
+}
+
+.progressBar {
     height: 20px;
     width: 200px;
     margin-left: 1rem;
@@ -142,20 +211,21 @@
     border: none;
 }
 
-.fileProgress::-webkit-progress-bar {
-    background-color: #ebebeb;
+.progressBar::-webkit-progress-bar {
+    background-color: var(--light);
     border-radius: 8px;
 }
 
-.fileProgress::-webkit-progress-value {
+.progressBar::-webkit-progress-value {
     background-color: #444;
     border-radius: 8px 0 0 8px;
 }
 
-.fileProgress::-moz-progress-bar {
-    background-color: #444;
+.progressBar::-moz-progress-bar {
+    background-color: var(--black);
 }
 
 .progressStatusText {
     margin-left: 1rem;
+    width: 200px;
 }

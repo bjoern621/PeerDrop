@@ -1,13 +1,11 @@
 import { assert } from "../util/Assert";
 import errorAsValue from "../util/ErrorAsValue";
-import {
-    ClientToken,
-    TypedMessage,
-    WebSocketService,
-} from "./WebSocketService";
-import { MessageType } from "./MessageType";
+import { ClientToken, WebSocketService } from "./WebSocketService";
+import { MessageType } from "../types/MessageType";
 import { Logger } from "../util/Logger";
 import { Observable } from "../util/observer/Observable";
+import { IceCandidateMessage } from "../types/rtc/IceCandidateMessage";
+import { SdpMessage } from "../types/rtc/SdpMessage";
 
 const serversConfig: RTCConfiguration = {
     iceServers: [
@@ -35,16 +33,6 @@ const serversConfig: RTCConfiguration = {
             credential: "Uvb5QuG/FHIpdQYA",
         },
     ],
-};
-
-export type IceCandidateMessage = {
-    remoteToken: ClientToken;
-    iceCandidate: RTCIceCandidateInit;
-};
-
-export type SDPMessage = {
-    remoteToken: ClientToken;
-    description: RTCSessionDescriptionInit;
 };
 
 export class WebRTCConnection {
@@ -331,8 +319,8 @@ export class WebRTCConnection {
             async message => {
                 this.log("Received REMOTE ICE candidate message");
 
-                const iceCandidateMessage = message.msg as IceCandidateMessage;
-                const candidate = iceCandidateMessage.iceCandidate;
+                const iceCandidateMessage = message as IceCandidateMessage;
+                const candidate = iceCandidateMessage.msg.iceCandidate;
 
                 this.log("Adding ICE candidate");
 
@@ -364,8 +352,8 @@ export class WebRTCConnection {
         this.signalingChannel.subscribeMessage(
             MessageType.SDP,
             async message => {
-                const sdpMessage = message.msg as SDPMessage;
-                const description = sdpMessage.description;
+                const sdpMessage = message as SdpMessage;
+                const description = sdpMessage.msg.description;
 
                 this.log("Received SDP ", description.type, " message");
 
@@ -402,13 +390,10 @@ export class WebRTCConnection {
                     this.log("Setting LOCAL DESCRIPTION");
 
                     await this.peerConnection.setLocalDescription();
-                    const descriptionMessage: TypedMessage<SDPMessage> = {
-                        type: MessageType.SDP,
-                        msg: {
-                            remoteToken: this.remoteToken,
-                            description: this.peerConnection.localDescription!,
-                        },
-                    };
+                    const descriptionMessage = new SdpMessage({
+                        remoteToken: this.remoteToken,
+                        description: this.peerConnection.localDescription!,
+                    });
 
                     this.log("Sending SDP answer...");
 
@@ -431,13 +416,10 @@ export class WebRTCConnection {
             );
 
             if (!err) {
-                const descriptionMessage: TypedMessage<SDPMessage> = {
-                    type: MessageType.SDP,
-                    msg: {
-                        remoteToken: this.remoteToken,
-                        description: this.peerConnection.localDescription!,
-                    },
-                };
+                const descriptionMessage = new SdpMessage({
+                    remoteToken: this.remoteToken,
+                    description: this.peerConnection.localDescription!,
+                });
 
                 this.log("Sending SDP offer...");
 
@@ -455,13 +437,10 @@ export class WebRTCConnection {
             this.log("STUN Server ICE Candidate received, forwarding");
 
             if (event.candidate) {
-                const iceCandidateMessage: TypedMessage<IceCandidateMessage> = {
-                    type: MessageType.ICE_CANDIDATE,
-                    msg: {
-                        remoteToken: this.remoteToken,
-                        iceCandidate: event.candidate,
-                    },
-                };
+                const iceCandidateMessage = new IceCandidateMessage({
+                    remoteToken: this.remoteToken,
+                    iceCandidate: event.candidate,
+                });
                 this.signalingChannel.sendMessage(iceCandidateMessage);
             }
         };

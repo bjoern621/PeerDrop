@@ -1,17 +1,10 @@
 import { assert, never } from "../util/Assert";
-import { MessageType } from "./MessageType";
+import { MessageType } from "../types/MessageType";
 import { Logger } from "../util/Logger";
+import { ITypedMessage } from "../types/ITypedMessage";
+import { ClientTokenMessage } from "../types/token/ClientTokenMessage";
 
-export type MessageHandler = (typedMessage: TypedMessage<unknown>) => unknown;
-
-export type TypedMessage<T = unknown> = {
-    type: MessageType;
-    msg: T;
-};
-
-type ClientTokenMessage = {
-    token: ClientToken;
-};
+export type MessageHandler = (typedMessage: ITypedMessage) => unknown;
 
 export type ClientToken = string;
 
@@ -38,8 +31,13 @@ export class WebSocketService {
      */
     public constructor() {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
-        this.connectToServer();
 
+        this.openWebSocket();
+    }
+
+    public openWebSocket(): void {
+        assert(!this.socket, "WebSocket is already open.");
+        this.connectToServer();
         this.waitForLocalClientToken();
     }
 
@@ -62,9 +60,9 @@ export class WebSocketService {
                 return;
             }
 
-            const typedMessage: TypedMessage<unknown> = JSON.parse(
+            const typedMessage: ITypedMessage = JSON.parse(
                 event.data
-            ) as TypedMessage<unknown>;
+            ) as ITypedMessage;
 
             // Notify all subscribers for this message type
             const handlers = this.messageHandlers.get(typedMessage.type);
@@ -84,9 +82,7 @@ export class WebSocketService {
      * subscription to the message type is automatically removed.
      */
     private waitForLocalClientToken() {
-        const handleClientTokenMessage = (
-            message: TypedMessage<ClientTokenMessage>
-        ) => {
+        const handleClientTokenMessage = (message: ClientTokenMessage) => {
             this.log("Received client token:", message.msg.token);
 
             this.localToken = message.msg.token;
@@ -115,7 +111,14 @@ export class WebSocketService {
 
         switch (this.socket.readyState) {
             case WebSocket.CONNECTING:
-                return false;
+                // this.log("WebSocket is not yet open. Delaying close.");
+                this.socket.addEventListener("open", () => {
+                    assert(this.socket);
+                    this.socket.close();
+                    this.socket = undefined;
+                });
+
+                return true;
             case WebSocket.OPEN:
                 this.socket.close();
                 this.socket = undefined;
@@ -131,8 +134,17 @@ export class WebSocketService {
         return true;
     }
 
-    public sendMessage<T>(message: TypedMessage<T>) {
+    public sendMessage(message: ITypedMessage) {
         assert(this.socket);
+
+        if (this.socket.readyState !== WebSocket.OPEN) {
+            // this.log("WebSocket is not yet open. Delaying message send.");
+            this.socket.addEventListener("open", () => {
+                this.sendMessage(message);
+            });
+
+            return;
+        }
 
         this.socket.send(JSON.stringify(message));
     }

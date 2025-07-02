@@ -1,24 +1,26 @@
 import css from "./UserProfile.module.scss";
-import userIcon from "../../../assets/account_circle_icon.svg";
-import userIconLight from "../../../assets/account_circle_icon_light.svg";
-import deleteIcon from "../../../assets/delete_icon.svg";
-import deleteIconLight from "../../../assets/delete_icon_light.svg";
-import addIcon from "../../../assets/add_icon.svg";
+import userIcon from "../../../assets/account_circle_black.svg";
+import userIconLight from "../../../assets/account_circle_light.svg";
+import deleteIconDark from "../../../assets/delete_light.svg";
+import deleteIconLight from "../../../assets/delete_dark.svg";
+import addIcon from "../../../assets/add.svg";
+import logoutIcon from "../../../assets/logout.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
-import { LoginResponse } from "../../dtos/LoginResponse";
-import { DeviceResponse } from "../../dtos/DeviceResponse";
-
-enum DeviceStatus {
-    ONLINE = "online",
-    OFFLINE = "offline",
-}
+import { LoginResponse } from "../../../util/dtos/LoginResponse";
+import { DeviceResponse } from "../../../util/dtos/DeviceResponse";
+import { DeviceStatus } from "../../../types/device/DeviceStatus";
+import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMessage";
+import { MessageHandler } from "../../../services/WebSocketService";
+import { useWebSocketService } from "../../../context/WebSocketContext";
+import { MessageType } from "../../../types/MessageType";
 
 interface DeviceDisplay {
     status: DeviceStatus;
     current: boolean;
     name: string;
+    uuid: string;
 }
 
 export const UserProfile = () => {
@@ -30,10 +32,104 @@ export const UserProfile = () => {
         useState(false);
     const [registerButtonDisabled, setRegisterButtonDisabled] = useState(false);
 
+    const websocketService = useWebSocketService();
+
+    const HEARTBEAT_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO THE BACKEND VARIABLE: INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS
+
+    const handleHeartbeatMessage = useCallback(() => {
+        const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
+            setDevices(prevDevices =>
+                prevDevices.map(device =>
+                    device.uuid === message.msg.uuid
+                        ? { ...device, status: message.msg.status }
+                        : device
+                )
+            );
+        };
+
+        websocketService.subscribeMessage(
+            MessageType.DEVICE_HEARTBEAT,
+            onHeartbeatReceived as MessageHandler
+        );
+    }, [websocketService]);
+
+    /**
+     * Sends a heartbeat message if the user has registered the device.
+     */
+    const sendHeartbeatIfPossible = useCallback(() => {
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat = new DeviceHeartbeatMessage({
+            uuid: deviceUuid,
+            status: DeviceStatus.ONLINE,
+        });
+
+        websocketService.sendMessage(heartbeat);
+    }, [websocketService]);
+
+    /**
+     * Sets up an event listener to send an offline heartbeat when the tab is closed.
+     */
+    const registerOfflineHeartbeatOnClose = useCallback(() => {
+        const handleTabClose = () => {
+            const deviceUuid: string | undefined = document.cookie
+                .split("; ")
+                .find(row => row.startsWith("deviceUuid="))
+                ?.split("=")[1];
+
+            if (!deviceUuid) {
+                return; // The user might not have registered the device
+            }
+
+            const heartbeat = new DeviceHeartbeatMessage({
+                uuid: deviceUuid,
+                status: DeviceStatus.OFFLINE,
+            });
+            websocketService.sendMessage(heartbeat);
+
+            window.removeEventListener("beforeunload", handleTabClose);
+        };
+        window.addEventListener("beforeunload", handleTabClose);
+    }, [websocketService]);
+
+    /**
+     * Sends a heartbeat message every HEARTBEAT_INTERVAL_MS.
+     */
+    const sendContinuousHeartbeat = useCallback(() => {
+        const timer = setInterval(() => {
+            sendHeartbeatIfPossible();
+        }, HEARTBEAT_INTERVAL_MS);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [sendHeartbeatIfPossible, HEARTBEAT_INTERVAL_MS]);
+
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
-    }, []);
+
+        handleHeartbeatMessage();
+
+        sendHeartbeatIfPossible();
+
+        registerOfflineHeartbeatOnClose();
+
+        sendContinuousHeartbeat();
+    }, [
+        handleHeartbeatMessage,
+        sendHeartbeatIfPossible,
+        registerOfflineHeartbeatOnClose,
+        sendContinuousHeartbeat,
+    ]);
+
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
@@ -63,7 +159,8 @@ export const UserProfile = () => {
             .map(deviceName => ({
                 name: deviceName.displayName,
                 current: deviceName.isCurrentDevice,
-                status: DeviceStatus.ONLINE, // Hier Status Logik einführen
+                status: deviceName.status,
+                uuid: deviceName.uuid,
             }))
             .filter(device => !device.current);
         const isCurrentDevice = devicesData.devices.some(
@@ -128,6 +225,8 @@ export const UserProfile = () => {
         }
 
         setCurrentDeviceRegistered(true);
+
+        sendHeartbeatIfPossible();
     };
 
     const connectDevice = (device: DeviceDisplay) => {
@@ -169,32 +268,75 @@ export const UserProfile = () => {
         setDevices(devices.filter(d => d.name !== device.name));
     };
 
+    function getDeviceStatusClass(status: DeviceStatus) {
+        switch (status) {
+            case DeviceStatus.ONLINE:
+                return css.deviceOnline;
+            case DeviceStatus.BUSY:
+                return css.deviceBusy;
+            default:
+                return css.deviceOffline;
+        }
+    }
+
+    const logout = async () => {
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/logout`, {
+                method: "POST",
+                credentials: "include",
+            })
+        );
+
+        if (err) {
+            console.error("Error logging out:", err);
+            return;
+        } else if (!response.ok) {
+            console.error("Error logging out:", response.statusText);
+            return;
+        }
+
+        window.location.reload();
+    };
+
     return (
         <div className={css.container}>
             <img className={css.profilePicture} src={userIcon}></img>
-            <h3 className={css.greeting}>Hi {userName}!</h3>
+            <div className={css.profileNameContainer}>
+                <h3 className={css.greeting}>Hi {userName}!</h3>
+                <button
+                    className={css.logoutButton}
+                    onClick={() => void logout()}
+                >
+                    <img src={logoutIcon} alt="Logout" />
+                </button>
+            </div>
             <div className={css.registeredDevices}>
                 <h4>Registrierte Geräte</h4>
                 <ul className={css.deviceList}>
                     <li key={-1} className={css.deviceListItem}>
                         {!currentDeviceRegistered ? (
                             <button
-                                className={css.addCurrentDeviceButton}
+                                className={css.unregisteredCurrentDevice}
                                 type="button"
                                 onClick={() => void registerCurrentDevice()}
                                 disabled={registerButtonDisabled}
                             >
-                                <img
-                                    src={addIcon}
-                                    className={css.addIcon}
-                                ></img>
-                                Gerät hinzufügen
+                                <span className={css.deviceInfo}>
+                                    <img
+                                        src={addIcon}
+                                        className={css.deviceStatusBase}
+                                    ></img>
+                                    <p>Gerät hinzufügen</p>
+                                </span>
                             </button>
                         ) : (
-                            <div className={css.currentDevice}>
+                            <div className={css.registeredCurrentDevice}>
                                 <span className={css.deviceInfo}>
-                                    <img src={userIconLight} />
-                                    Current Device
+                                    <img
+                                        src={userIconLight}
+                                        className={css.deviceStatusBase}
+                                    />
+                                    <p>Current Device</p>
                                 </span>
                                 <span className={css.deleteButtonContainer}>
                                     <span
@@ -222,14 +364,11 @@ export const UserProfile = () => {
                             >
                                 <span className={css.deviceInfo}>
                                     <span
-                                        className={
-                                            device.status ===
-                                            DeviceStatus.ONLINE
-                                                ? css.deviceOnline
-                                                : css.deviceOffline
-                                        }
+                                        className={getDeviceStatusClass(
+                                            device.status
+                                        )}
                                     ></span>
-                                    {device.name}
+                                    <p>{device.name}</p>
                                 </span>
                                 <span className={css.deleteButtonContainer}>
                                     <span
@@ -239,7 +378,7 @@ export const UserProfile = () => {
                                             deleteDevice(device);
                                         }}
                                     >
-                                        <img src={deleteIcon} />
+                                        <img src={deleteIconDark} />
                                     </span>
                                 </span>
                             </button>

@@ -2,44 +2,17 @@ import { assert } from "../util/Assert";
 import { WebRTCConnection } from "./WebRTCConnection";
 import {
     MessageHandler,
-    TypedMessage,
     WebSocketService,
     ClientToken,
 } from "./WebSocketService";
-import { MessageType } from "./MessageType";
+import { MessageType } from "../types/MessageType";
 import { IObservable, Observable } from "../util/observer/Observable";
 import { Logger } from "../util/Logger";
-
-export type RemoteTokenMessage = {
-    requestID?: string;
-    remoteToken: ClientToken;
-};
-
-type CloseConnectionMessage = {
-    requestID?: string;
-    remoteToken: ClientToken;
-};
-
-// This message is sent to a remote peer to request a connection.
-type ConnectionRequestMessage = {
-    remoteToken: ClientToken;
-};
-
-// This message is sent to the signaling server to cancel a connection request.
-type ConnectionRequestCancelledMessage = {
-    remoteToken?: ClientToken;
-};
-
-// This message is the response to a connection request. It may be successful or not.
-type ConnectionResponseMessage = {
-    accepted: boolean; // true if the connection request was accepted by the remote peer, false otherwise or if the remote peer is not available.
-    remoteToken: ClientToken;
-};
-
-// This message signals that the local client should immediately establish a WebRTC connection to the specified remote peer. Both peers will receive this message when the server decides they should connect.
-type EstablishConnectionMessage = {
-    remoteToken: ClientToken;
-};
+import { ConnectionRequestCancelledMessage } from "../types/connection/ConnectionRequestCancelledMessage";
+import { ConnectionRequestMessage } from "../types/connection/ConnectionRequestMessage";
+import { ConnectionResponseMessage } from "../types/connection//ConnectionResponseMessage";
+import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
+import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
 
 export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
@@ -96,7 +69,7 @@ export class PeerConnectionManager {
 
     private handleConnectionRequestCancelledMessage() {
         const onConnectionRequestCancelledReceived = (
-            message: TypedMessage<ConnectionRequestCancelledMessage>
+            message: ConnectionRequestCancelledMessage
         ) => {
             const requestingPeerToken = message.msg.remoteToken;
             this.log("Received remote token:", message.msg.remoteToken);
@@ -135,11 +108,8 @@ export class PeerConnectionManager {
             return false;
         }
 
-        const connectionRequestCancelMessage: TypedMessage<ConnectionRequestCancelledMessage> =
-            {
-                type: MessageType.CONNECTION_REQUEST_CANCELLED,
-                msg: {},
-            };
+        const connectionRequestCancelMessage =
+            new ConnectionRequestCancelledMessage({});
 
         this.signaling.sendMessage(connectionRequestCancelMessage);
 
@@ -150,7 +120,7 @@ export class PeerConnectionManager {
 
     private handleConnectionResponseMessages() {
         const onConnectionResponseReceived = (
-            message: TypedMessage<ConnectionResponseMessage>
+            message: ConnectionResponseMessage
         ) => {
             if (this.expectedRemoteToken !== message.msg.remoteToken) {
                 return;
@@ -173,35 +143,46 @@ export class PeerConnectionManager {
     }
 
     public acceptConnectionRequest(remoteToken: ClientToken) {
-        const connectionResponseMessage: TypedMessage<ConnectionResponseMessage> =
-            {
-                type: MessageType.CONNECTION_RESPONSE,
-                msg: {
-                    accepted: true,
-                    remoteToken: remoteToken,
-                },
-            };
+        const connectionResponseMessage = new ConnectionResponseMessage({
+            accepted: true,
+            remoteToken: remoteToken,
+        });
 
         this.signaling.sendMessage(connectionResponseMessage);
     }
 
     public rejectConnectionRequest(remoteToken: ClientToken) {
-        const connectionResponseMessage: TypedMessage<ConnectionResponseMessage> =
-            {
-                type: MessageType.CONNECTION_RESPONSE,
-                msg: {
-                    accepted: false,
-                    remoteToken: remoteToken,
-                },
-            };
+        const connectionResponseMessage = new ConnectionResponseMessage({
+            accepted: false,
+            remoteToken: remoteToken,
+        });
 
         this.signaling.sendMessage(connectionResponseMessage);
     }
 
     private handleConnectionRequestMessage() {
         const onConnectionRequestReceived = (
-            message: TypedMessage<EstablishConnectionMessage>
+            message: EstablishConnectionMessage
         ) => {
+            //Before Processing the connection request, check if we are already in a WebRTC connection.
+            if (this.webrtcConnection && this.expectedRemoteToken) {
+                this.log(
+                    "Received connection request while already in a WebRTC connection. Sending cancel message."
+                );
+
+                const cancelMessage = new ConnectionResponseMessage({
+                    accepted: false,
+                    remoteToken: message.msg.remoteToken,
+                });
+
+                this.log(
+                    "Token in ConnectionRequestCancelledMessage:",
+                    message.msg.remoteToken
+                );
+                this.signaling.sendMessage(cancelMessage);
+                return;
+            }
+
             this.expectedRemoteToken = message.msg.remoteToken;
 
             this.onConnectionRequestReceivedObservable.notify(
@@ -220,7 +201,7 @@ export class PeerConnectionManager {
      */
     private handleConnectionEstablishmentMessage() {
         const onEstablishConnectionReceived = (
-            message: TypedMessage<EstablishConnectionMessage>
+            message: EstablishConnectionMessage
         ) => {
             this.closePeerConnection();
 
@@ -254,13 +235,9 @@ export class PeerConnectionManager {
 
         this.expectedRemoteToken = remoteToken;
 
-        const connectionRequestMessage: TypedMessage<ConnectionRequestMessage> =
-            {
-                type: MessageType.CONNECTION_REQUEST,
-                msg: {
-                    remoteToken: remoteToken,
-                },
-            };
+        const connectionRequestMessage = new ConnectionRequestMessage({
+            remoteToken: remoteToken,
+        });
 
         this.handleConnectionResponseMessages();
 
@@ -282,12 +259,9 @@ export class PeerConnectionManager {
 
         this.webrtcConnection.closePeerConnection();
 
-        const closeConnectionMessage: TypedMessage<CloseConnectionMessage> = {
-            type: MessageType.CLOSE_CONNECTION,
-            msg: {
-                remoteToken: this.expectedRemoteToken!,
-            },
-        };
+        const closeConnectionMessage = new CloseConnectionMessage({
+            remoteToken: this.expectedRemoteToken!,
+        });
 
         this.signaling.sendMessage(closeConnectionMessage);
         this.log("Sent close connection message to signaling server");
@@ -306,7 +280,7 @@ export class PeerConnectionManager {
      */
     private waitForCloseConnectionRequest() {
         const handleCloseConnectionRequest = (
-            message: TypedMessage<CloseConnectionMessage>
+            message: CloseConnectionMessage
         ) => {
             this.log(
                 "Received close connection request:",
