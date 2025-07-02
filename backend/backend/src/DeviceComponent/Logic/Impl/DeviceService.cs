@@ -167,7 +167,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
 
         foreach (var token in activeClientTokensForUserId)
         {
-            Console.WriteLine($"Sending device change for device {uuid} to client {token}");
+            logger.LogDebug($"Sending device change for device {uuid} to client {token}");
             var forwardedChangedDeviceMessage = new DeviceChangedMessage { };
             await _webSocketHandler.SendMessage(token, forwardedChangedDeviceMessage);
         }
