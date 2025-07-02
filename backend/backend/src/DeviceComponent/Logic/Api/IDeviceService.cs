@@ -5,5 +5,18 @@ namespace backend.DeviceComponent.Logic.Api;
 public interface IDeviceService
 {
     Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message);
+
+    /// <summary>
+    /// Gets the status of a device by its UUID.
+    /// Returns either "offline", "online", or "busy".
+    /// </summary>
     string GetDeviceStatus(Guid deviceUuid);
+
+    /// <summary>
+    /// Gets the client token for a device by its UUID.
+    /// There may be multiple client tokens for a device if the user has multiple active sessions or old entries aren't deleted yet.
+    /// Returns the first client token that matches the device UUID and has device status "online".
+    /// It is not guaranteed that the returned client token is still valid, as the client may have been disconnected / logged out. Use GetDeviceStatus() to check the actual status.
+    /// </summary>
+    string GetClientTokenByDeviceUuid(Guid deviceUuid);
 }

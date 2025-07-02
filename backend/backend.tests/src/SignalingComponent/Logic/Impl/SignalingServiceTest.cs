@@ -1,9 +1,10 @@
 ﻿using System.Text.Json;
+using backend.DeviceComponent.Logic.Api;
 using backend.SignalingComponent.Common.Api.DTOs;
 using backend.SignalingComponent.Logic.Impl;
-using backend.WebSocketComponent.Common.Api.DTOs;
 using backend.WebSocketComponent.Logic.Api;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace backend.tests.SignalingComponent.Logic.Impl;
@@ -12,13 +13,17 @@ namespace backend.tests.SignalingComponent.Logic.Impl;
 public class SignalingServiceTest
 {
     private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IServiceScopeFactory> _mockScopeFactory;
+    private Mock<IDeviceService> _mockDeviceService;
     private SignalingService _service;
 
     [SetUp]
     public void Setup()
     {
         _mockHandler = new Mock<IWebSocketHandler>();
-        _service = new SignalingService(_mockHandler.Object, NullLogger<SignalingService>.Instance);
+        _mockScopeFactory = new Mock<IServiceScopeFactory>();
+        _mockDeviceService = new Mock<IDeviceService>();
+        _service = new SignalingService(_mockHandler.Object, _mockScopeFactory.Object, _mockDeviceService.Object, NullLogger<SignalingService>.Instance);
     }
 
     [Test]
@@ -73,7 +78,7 @@ public class SignalingServiceTest
                       """;
         using var doc = JsonDocument.Parse(iceJson);
         JsonElement iceElement = doc.RootElement.Clone(); // Clone to keep it alive after disposing
-        
+
         var iceMsg = new IceCandidateMessage()
         {
             RemoteToken = remoteToken,
@@ -88,7 +93,7 @@ public class SignalingServiceTest
                 msg.RemoteToken == clientId &&
                 JsonElement.DeepEquals(msg.IceCandidate, iceElement)
             )
-        ), Times.Once);;
+        ), Times.Once);
     }
 
     [Test]
@@ -104,7 +109,7 @@ public class SignalingServiceTest
                       """;
         using var doc = JsonDocument.Parse(sdpJson);
         JsonElement sdpElement = doc.RootElement.Clone(); // Clone to keep it alive after disposing
-        
+
         var sdpMessage = new SdpMessage
         {
             RemoteToken = remoteToken,
@@ -120,7 +125,7 @@ public class SignalingServiceTest
                 msg.RemoteToken == clientId &&
                 JsonElement.DeepEquals(msg.Description, sdpElement)
             )
-        ), Times.Once);;
+        ), Times.Once);
     }
 
     [Test]
@@ -193,11 +198,11 @@ public class SignalingServiceTest
     {
         var peerA = "ABCDE";
         var peerB = "BCDEF";
-        
+
         _mockHandler.Setup(h => h.RemoteTokenExists(peerB)).Returns(true);
         await _service.HandleConnectionRequest(peerA, new ConnectionRequestMessage { RemoteToken = peerB });
         _mockHandler.Setup(h => h.RemoteTokenExists(peerA)).Returns(true);
-        
+
         var response = new ConnectionResponseMessage
         {
             RemoteToken = peerA,

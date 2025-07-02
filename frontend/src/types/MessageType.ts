@@ -11,4 +11,5 @@ export const enum MessageType {
     ESTABLISH_CONNECTION = "establish-connection",
     CONNECTION_REQUEST_CANCELLED = "connection-request-cancelled",
     DEVICE_HEARTBEAT = "device-heartbeat",
+    QUICK_CONNECT = "quick-connect",
 }
