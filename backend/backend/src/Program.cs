@@ -86,8 +86,8 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
-app.UseCors(corsAllowFrontendOrigin);
 
+app.UseCors(corsAllowFrontendOrigin);
 
 app.UseSession(); // Enables session handling on incoming requests
 
