@@ -116,7 +116,6 @@ export default function LandingPage() {
         );
 
         sendHeartbeatIfPossible();
-
     }, [websocket, peerConnectionManager, sendHeartbeatIfPossible]);
 
     const connectToPeer = () => {
