@@ -175,33 +175,31 @@ public class DeviceHandlerTests
     [Test]
     public async Task DeleteDeviceCurrent()
     {
-        // Arrange
-        var context = CreateValidContext("1", true, deviceUuid: Guid.NewGuid(), userAgent: "Windows Mozilla");
+    // Arrange
+    var deviceUuid = Guid.NewGuid();
+    var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
 
-        _loginHandlerMock.Setup(l => l.HandleGetCurrentUser(context))
-            .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
+    _loginHandlerMock.Setup(l => l.HandleGetCurrentUser(context))
+        .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
 
+    var userIdString = context.Session.GetString("UserId") ?? "1";
+    _repoMock.Setup(r => r.SaveDeviceAsync(It.IsAny<Device>()))
+        .ReturnsAsync(deviceUuid);
+    _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid))
+        .ReturnsAsync(new Device("TestDevice", deviceUuid, int.Parse(userIdString)));
+    _repoMock.Setup(r => r.DeleteDeviceAsync(int.Parse(userIdString), deviceUuid))
+        .ReturnsAsync(1);
 
-        var deviceUuidHeader = context.Request.Headers["deviceUuid"].FirstOrDefault();
-        Guid deviceUuid = !string.IsNullOrEmpty(deviceUuidHeader) ? Guid.Parse(deviceUuidHeader) : Guid.NewGuid();
+    var result = await _deviceHandler.RegisterDeviceAsync(context);
+    Assert.That(result, Is.TypeOf<Ok<DeviceRegisterDto>>());
+    var okResult = result as Ok<DeviceRegisterDto>;
+    Assert.That(okResult?.Value, Has.Property("uuid"));
 
-        _repoMock.Setup(r => r.SaveDeviceAsync(It.IsAny<Device>()))
-                 .ReturnsAsync(deviceUuid);
+    var result2 = await _deviceHandler.DeleteCurrentDeviceAsync(context);
 
-        var userIdString = context.Session.GetString("UserId") ?? "1";
-        _repoMock.Setup(r => r.DeleteDeviceAsync(int.Parse(userIdString), deviceUuid))
-             .ReturnsAsync(1);
-
-        var result = await _deviceHandler.RegisterDeviceAsync(context);
-        Assert.That(result, Is.TypeOf<Ok<DeviceRegisterDto>>());
-        var okResult = result as Ok<DeviceRegisterDto>;
-        Assert.That(okResult?.Value, Has.Property("uuid"));
-
-        var result2 = await _deviceHandler.DeleteCurrentDeviceAsync(context);
-
-        Assert.That(result2, Is.TypeOf<Ok<string>>());
-        var okResult2 = result2 as Ok<string>;
-        Assert.That(okResult2?.Value, Is.EqualTo("Device deleted successfully."));
+    Assert.That(result2, Is.TypeOf<Ok<string>>());
+    var okResult2 = result2 as Ok<string>;
+    Assert.That(okResult2?.Value, Is.EqualTo("Device deleted successfully."));
     }
     
     [Test]
@@ -221,6 +219,8 @@ public class DeviceHandlerTests
             .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
 
         var userIdString = context.Session.GetString("UserId") ?? "1";
+        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid))
+            .ReturnsAsync(new Device("TestDevice", deviceUuid, int.Parse(userIdString)));
         _repoMock.Setup(r => r.DeleteDeviceAsync(int.Parse(userIdString), deviceUuid))
             .ReturnsAsync(1);
 

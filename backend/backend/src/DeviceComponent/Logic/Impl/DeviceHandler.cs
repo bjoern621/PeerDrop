@@ -221,6 +221,12 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
 
         if (int.TryParse(accountId, out var parsedAccountId))
         {
+            // Prüfen, ob das Device existiert und zu diesem Account gehört
+            var device = await repo.GetDeviceByUuidAsync(Guid.Parse(deviceUuid));
+            if (device == null || device.GetAccountId() != parsedAccountId)
+            {
+                return Results.Forbid(); // oder NotFound
+            }
             // Proceed with deleting the device
             var deviceGuid = Guid.Parse(deviceUuid);
             await repo.DeleteDeviceAsync(parsedAccountId, deviceGuid);
@@ -269,6 +275,12 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
 
         if (int.TryParse(accountId, out var parsedAccountId))
         {
+            // Prüfen, ob das Device existiert und zu diesem Account gehört
+            var device = await repo.GetDeviceByUuidAsync(Guid.Parse(deviceUuid.ToString()));
+            if (device == null || device.GetAccountId() != parsedAccountId)
+            {
+                return Results.Forbid(); // oder NotFound
+            }
             // Proceed with deleting the device
             await repo.DeleteDeviceAsync(parsedAccountId, deviceUuid);
             return Results.Ok("Device deleted successfully.");

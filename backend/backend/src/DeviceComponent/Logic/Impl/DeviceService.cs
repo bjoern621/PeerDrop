@@ -161,4 +161,20 @@ public class DeviceService() : IDeviceService
         // The device is not in the _activeDevices list meaning it's offline
         return "offline";
     }
+
+    public string GetClientTokenByDeviceUuid(Guid deviceUuid)
+    {
+        lock (_activeDevices)
+        {
+            foreach (var kvp in _activeDevices)
+            {
+                if (kvp.Value.DeviceGuid == deviceUuid && kvp.Value.LastDeviceStatus == "online")
+                {
+                    return kvp.Key;
+                }
+            }
+        }
+
+        return string.Empty;
+    }
 }
