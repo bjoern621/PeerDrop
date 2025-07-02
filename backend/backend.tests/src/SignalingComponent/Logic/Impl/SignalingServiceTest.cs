@@ -3,6 +3,7 @@ using backend.SignalingComponent.Common.Api.DTOs;
 using backend.SignalingComponent.Logic.Impl;
 using backend.WebSocketComponent.Common.Api.DTOs;
 using backend.WebSocketComponent.Logic.Api;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace backend.tests.SignalingComponent.Logic.Impl;
@@ -17,7 +18,7 @@ public class SignalingServiceTest
     public void Setup()
     {
         _mockHandler = new Mock<IWebSocketHandler>();
-        _service = new SignalingService(_mockHandler.Object);
+        _service = new SignalingService(_mockHandler.Object, NullLogger<SignalingService>.Instance);
     }
 
     [Test]

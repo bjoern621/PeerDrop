@@ -4,7 +4,7 @@ using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.SignalingComponent.Logic.Impl;
 
-public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingService
+public class SignalingService(IWebSocketHandler webSocketHandler, ILogger<SignalingService> logger) : ISignalingService
 {
     private readonly IWebSocketHandler _webSocketHandler = webSocketHandler;
 
@@ -13,7 +13,7 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
 
     public async Task HandleRemoteTokenMessage(string clientId, RemoteTokenMessage message)
     {
-        Console.WriteLine($"from {clientId}: Local Token");
+        logger.LogDebug($"from {clientId}: Local Token");
         string remoteToken = message.RemoteToken;
         string requestId = message.RequestId!;
 
@@ -26,7 +26,7 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
             };
 
             await _webSocketHandler.SendMessage(clientId, exception);
-            Console.WriteLine($"to {clientId}: ERROR: Remote token {remoteToken} does not exist");
+            logger.LogDebug($"to {clientId}: Remote token {remoteToken} does not exist");
         }
         else
         {
@@ -43,16 +43,16 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
             };
 
             await _webSocketHandler.SendMessage(clientId, success);
-            Console.WriteLine($"to {clientId}: SUCCESS: Remote token {remoteToken} exists");
+            logger.LogDebug($"to {clientId}: SUCCESS: Remote token {remoteToken} exists");
 
             await _webSocketHandler.SendMessage(remoteToken, response);
-            Console.WriteLine($"to {remoteToken}: Remote Token");
+            logger.LogDebug($"to {remoteToken}: Remote Token");
         }
     }
 
     public async Task HandleIceCandidateMessage(string clientId, IceCandidateMessage message)
     {
-        Console.WriteLine($"from {clientId}: Local ICE Candidate");
+        logger.LogTrace($"from {clientId}: Local ICE Candidate");
         string remoteToken = message.RemoteToken;
 
         var response = new IceCandidateMessage
@@ -62,12 +62,12 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
         };
 
         await _webSocketHandler.SendMessage(remoteToken, response);
-        Console.WriteLine($"to {remoteToken}: Remote ICE Candidate");
+        logger.LogTrace($"to {remoteToken}: Remote ICE Candidate");
     }
 
     public async Task HandleSdpMessage(string clientId, SdpMessage message)
     {
-        Console.WriteLine($"from {clientId}: Local SDP");
+        logger.LogTrace($"from {clientId}: Local SDP");
         string remoteToken = message.RemoteToken;
 
         var response = new SdpMessage
@@ -77,12 +77,12 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
         };
 
         await _webSocketHandler.SendMessage(remoteToken, response);
-        Console.WriteLine($"to {remoteToken}: Remote SDP");
+        logger.LogTrace($"to {remoteToken}: Remote SDP");
     }
 
     public async Task HandleCloseConnection(string clientId, CloseConnectionMessage message)
     {
-        Console.WriteLine($"from {clientId}: Close Connection");
+        logger.LogDebug($"from {clientId}: Close Connection");
         string remoteToken = message.RemoteToken;
 
         var response = new CloseConnectionMessage
@@ -91,12 +91,12 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
         };
 
         await _webSocketHandler.SendMessage(remoteToken, response);
-        Console.WriteLine($"to {remoteToken}: Close Connection");
+        logger.LogDebug($"to {remoteToken}: Close Connection");
     }
 
     public async Task HandleConnectionRequest(string clientId, ConnectionRequestMessage message)
     {
-        Console.WriteLine($"from {clientId}: Connection Request");
+        logger.LogDebug($"from {clientId}: Connection Request");
         string remoteToken = message.RemoteToken;
 
         if (!_webSocketHandler.RemoteTokenExists(remoteToken))
@@ -108,12 +108,12 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
             };
 
             await _webSocketHandler.SendMessage(clientId, rejectedMessage);
-            Console.WriteLine($"to {clientId}: Connection Request Rejected: Remote token {remoteToken} does not exist");
+            logger.LogDebug($"to {clientId}: Connection Request Rejected: Remote token {remoteToken} does not exist");
             return;
         }
 
         openRequests[clientId] = remoteToken;
-        Console.WriteLine($"Connection request from {clientId} to {remoteToken} is now open.");
+        logger.LogDebug($"Connection request from {clientId} to {remoteToken} is now open.");
 
         var forwardedConnectionRequest = new ConnectionRequestMessage
         {
@@ -121,19 +121,19 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
         };
 
         await _webSocketHandler.SendMessage(remoteToken, forwardedConnectionRequest);
-        Console.WriteLine($"to {remoteToken}: Connection Request from {clientId}");
+        logger.LogDebug($"to {remoteToken}: Connection Request from {clientId}");
     }
 
     public async Task HandleConnectionResponse(string clientId, ConnectionResponseMessage message)
     {
-        Console.WriteLine($"from {clientId}: Connection Response");
+        logger.LogDebug($"from {clientId}: Connection Response");
         var requestingClientToken = message.RemoteToken;
 
         if (!_webSocketHandler.RemoteTokenExists(requestingClientToken))
         {
             // Client that sent the request completely disconnected while waiting for a response.
             // Or the client that sent the response made a mistake.
-            Console.WriteLine($"Connection response from {clientId} for unknown request {requestingClientToken}. Ignoring.");
+            logger.LogDebug($"Connection response from {clientId} for unknown request {requestingClientToken}. Ignoring.");
             openRequests.Remove(requestingClientToken); // Probably better to remove the request in disconnect handler or with timeout.
             return;
         }
@@ -141,8 +141,7 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
         if (!openRequests.TryGetValue(requestingClientToken, out var respondingClientToken) || respondingClientToken != clientId)
         {
             // The requesting client does not have an open request for this responding client.
-            // Console.WriteLine($"Connection response from {clientId} for unknown request {requestingClientToken}. Ignoring.");
-            Console.WriteLine($"Connection response from {clientId} for request {requestingClientToken} that does not match the open request. Ignoring.");
+            logger.LogDebug($"Connection response from {clientId} for request {requestingClientToken} that does not match the open request. Ignoring.");
             return;
         }
 
@@ -155,7 +154,7 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
             RemoteToken = clientId
         };
         await _webSocketHandler.SendMessage(requestingClientToken, messageForRequestingClient);
-        Console.WriteLine($"to {requestingClientToken}: Connection Response from {clientId} (Accepted: {message.Accepted})");
+        logger.LogDebug($"to {requestingClientToken}: Connection Response from {clientId} (Accepted: {message.Accepted})");
 
         // Tell clients that they should start the connection process.
         if (message.Accepted)
@@ -166,7 +165,7 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
             };
 
             _ = _webSocketHandler.SendMessage(requestingClientToken, establishConnectionMessageToRequestingClient);
-            Console.WriteLine($"to {requestingClientToken}: Establish Connection with {clientId}");
+            logger.LogDebug($"to {requestingClientToken}: Establish Connection with {clientId}");
 
             var establishConnectionMessageToRespondingClient = new EstablishConnectionMessage
             {
@@ -174,20 +173,20 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
             };
 
             _ = _webSocketHandler.SendMessage(clientId, establishConnectionMessageToRespondingClient);
-            Console.WriteLine($"to {clientId}: Establish Connection with {requestingClientToken}");
+            logger.LogDebug($"to {clientId}: Establish Connection with {requestingClientToken}");
         }
     }
 
     public async Task HandleConnectionRequestCancelled(string clientToken, ConnectionRequestCancelledMessage messageData)
     {
-        Console.WriteLine($"from {clientToken}: Connection Request Cancelled");
+        logger.LogDebug($"from {clientToken}: Connection Request Cancelled");
         // Note: The received messageData.RemoteToken is not checked / used. This means that the requesting client can cancel their active request even if their messageData is faulty.
 
         openRequests.TryGetValue(clientToken, out var remoteToken);
         if (remoteToken == null)
         {
             // The requesting client does not have an open request.
-            Console.WriteLine($"Connection request from {clientToken} cancelled, but no open request found.");
+            logger.LogDebug($"Connection request from {clientToken} cancelled, but no open request found.");
             return;
         }
 
@@ -197,7 +196,7 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
         {
             // The requesting client cancelled their request, but the remote token does not exist.
             // This can happen if the remote client disconnected while the request was open.
-            Console.WriteLine($"Connection request from {clientToken} cancelled, but remote token {remoteToken} does not exist.");
+            logger.LogDebug($"Connection request from {clientToken} cancelled, but remote token {remoteToken} does not exist.");
             return;
         }
 
@@ -208,6 +207,6 @@ public class SignalingService(IWebSocketHandler webSocketHandler) : ISignalingSe
         };
 
         await _webSocketHandler.SendMessage(remoteToken, msg);
-        Console.WriteLine($"to {remoteToken}: Connection Request Cancelled from {clientToken}");
+        logger.LogDebug($"to {remoteToken}: Connection Request Cancelled from {clientToken}");
     }
 }

@@ -9,7 +9,7 @@ using backend.AccountComponent.Common.Api.DTOs;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
-public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService) : IDeviceHandler
+public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService, ILogger<DeviceHandler> logger) : IDeviceHandler
 {
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
@@ -20,13 +20,13 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         }
         else
         {
-            Console.WriteLine($"Session Token received {sessionToken}");
+            logger.LogDebug($"Session Token received {sessionToken}");
         }
 
         var result = await login.HandleGetCurrentUser(context);
         if (result is Ok<LoginResponse> okResult)
         {
-            Console.WriteLine($"User is logged in: {okResult.Value}");
+            logger.LogDebug($"User is logged in: {okResult.Value}");
         }
         else
         {
@@ -36,11 +36,11 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         if (int.TryParse(accountIdCon, out var accountId))
         {
             // accountId is now an int
-            Console.WriteLine("Id was successfully parsed.");
+            logger.LogDebug("Id was successfully parsed.");
         }
         else
         {
-            Console.WriteLine("Id is not an integer.");
+            logger.LogDebug("Id is not an integer.");
         }
 
         // Retrieve the display name from the User-Agent header (you can extract specific info if needed)
@@ -137,7 +137,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         var result = await login.HandleGetCurrentUser(context);
         if (result is Ok<LoginResponse> okResult)
         {
-            Console.WriteLine($"User is logged in: {okResult.Value}");
+            logger.LogDebug($"User is logged in: {okResult.Value}");
         }
         else
         {
