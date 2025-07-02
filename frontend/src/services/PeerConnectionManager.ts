@@ -170,13 +170,10 @@ export class PeerConnectionManager {
                     "Received connection request while already in a WebRTC connection. Sending cancel message."
                 );
 
-                const cancelMessage: TypedMessage<ConnectionResponseMessage> = {
-                    type: MessageType.CONNECTION_RESPONSE,
-                    msg: {
-                        accepted: false,
-                        remoteToken: message.msg.remoteToken,
-                    },
-                };
+                const cancelMessage = new ConnectionResponseMessage({
+                    accepted: false,
+                    remoteToken: message.msg.remoteToken,
+                });
 
                 this.log(
                     "Token in ConnectionRequestCancelledMessage:",
