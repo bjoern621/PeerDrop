@@ -1,8 +1,8 @@
 import css from "./UserProfile.module.scss";
 import userIcon from "../../../assets/account_circle_black.svg";
 import userIconLight from "../../../assets/account_circle_light.svg";
-import deleteIconDark from "../../../assets/delete_light.svg";
-import deleteIconLight from "../../../assets/delete_dark.svg";
+import deleteIconDark from "../../../assets/delete_dark.svg";
+import deleteIconLight from "../../../assets/delete_light.svg";
 import addIcon from "../../../assets/add.svg";
 import logoutIcon from "../../../assets/logout.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
@@ -15,6 +15,8 @@ import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMes
 import { MessageHandler } from "../../../services/WebSocketService";
 import { useWebSocketService } from "../../../context/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
+import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
+import { toast } from "react-toastify";
 
 interface DeviceDisplay {
     status: DeviceStatus;
@@ -26,8 +28,6 @@ interface DeviceDisplay {
 export const UserProfile = () => {
     const [userName, setUserName] = useState<string | null>(null);
     const [devices, setDevices] = useState<DeviceDisplay[]>([]);
-    const [connectedDevice, setConnectedDevice] =
-        useState<DeviceDisplay | null>(null);
     const [currentDeviceRegistered, setCurrentDeviceRegistered] =
         useState(false);
     const [registerButtonDisabled, setRegisterButtonDisabled] = useState(false);
@@ -140,9 +140,15 @@ export const UserProfile = () => {
         );
 
         if (err) {
+            toast.error(
+                "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut."
+            );
             console.error("Error fetching devices:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut."
+            );
             console.error("Error fetching devices:", response.statusText);
             return;
         }
@@ -150,6 +156,9 @@ export const UserProfile = () => {
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
+            toast.error(
+                "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut."
+            );
             console.error("Error parsing device names:", parseError);
             return;
         }
@@ -181,9 +190,15 @@ export const UserProfile = () => {
         );
 
         if (err) {
+            toast.error(
+                "Fehler beim Abrufen des Benutzernamens. Bitte versuche es später erneut."
+            );
             console.error("Error fetching user name:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Abrufen des Benutzernamens. Bitte versuche es später erneut."
+            );
             console.error("Error fetching user name:", response.statusText);
             return;
         }
@@ -191,6 +206,9 @@ export const UserProfile = () => {
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
+            toast.error(
+                "Fehler beim Abrufen des Benutzernamens. Bitte versuche es später erneut."
+            );
             console.error("Error parsing user name response:", parseError);
             return;
         }
@@ -218,9 +236,15 @@ export const UserProfile = () => {
         setRegisterButtonDisabled(false);
 
         if (err) {
+            toast.error(
+                "Fehler beim Registrieren des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error registering device:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Registrieren des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error registering device:", response.statusText);
             return;
         }
@@ -231,9 +255,22 @@ export const UserProfile = () => {
     };
 
     const connectDevice = (device: DeviceDisplay) => {
-        if (connectedDevice?.name === device.name) return;
-        console.log("Connecting to device " + device.name);
-        setConnectedDevice(device);
+        if (device.status !== DeviceStatus.ONLINE) {
+            toast.warn(
+                `Dein Gerät ${device.name} ist nicht bereit für eine Verbindung.`,
+                {
+                    toastId: "instant-message-toast",
+                    updateId: "instant-message-toast",
+                }
+            );
+            return;
+        }
+
+        const msg = new QuickConnectMessage({
+            deviceUuid: device.uuid,
+        });
+
+        websocketService.sendMessage(msg);
     };
 
     const deleteCurrentDevice = async () => {
@@ -245,9 +282,15 @@ export const UserProfile = () => {
         );
 
         if (err) {
+            toast.error(
+                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error unregistering device:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error unregistering device:", response.statusText);
             return;
         }
@@ -294,9 +337,15 @@ export const UserProfile = () => {
         );
 
         if (err) {
+            toast.error(
+                "Fehler beim Ausloggen. Bitte versuche es später erneut."
+            );
             console.error("Error logging out:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Ausloggen. Bitte versuche es später erneut."
+            );
             console.error("Error logging out:", response.statusText);
             return;
         }
@@ -342,7 +391,7 @@ export const UserProfile = () => {
                                         src={userIconLight}
                                         className={css.deviceStatusBase}
                                     />
-                                    <p>Current Device</p>
+                                    <p>Dieses Gerät</p>
                                 </span>
                                 <span className={css.deleteButtonContainer}>
                                     <span
@@ -360,12 +409,7 @@ export const UserProfile = () => {
                     {devices.map((device, index) => (
                         <li key={index} className={css.deviceListItem}>
                             <button
-                                className={[
-                                    css.connectButton,
-                                    connectedDevice === device
-                                        ? css.selected
-                                        : "",
-                                ].join(" ")}
+                                className={css.connectButton}
                                 onClick={() => connectDevice(device)}
                             >
                                 <span className={css.deviceInfo}>
