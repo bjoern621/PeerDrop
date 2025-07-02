@@ -111,7 +111,11 @@ export function DataSharingPage() {
 
         sendHeartbeatIfPossible();
 
-        sendContinuousHeartbeat();
+        const cleanupHeartbeats = sendContinuousHeartbeat();
+
+        return () => {
+            cleanupHeartbeats();
+        };
     }, [
         peerConnectionManager,
         navigate,

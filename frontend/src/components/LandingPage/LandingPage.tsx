@@ -131,7 +131,11 @@ export default function LandingPage() {
 
         sendHeartbeatIfPossible();
 
-        sendContinuousHeartbeat();
+        const cleanupHeartbeats = sendContinuousHeartbeat();
+
+        return () => {
+            cleanupHeartbeats();
+        };
     }, [
         websocket,
         peerConnectionManager,
