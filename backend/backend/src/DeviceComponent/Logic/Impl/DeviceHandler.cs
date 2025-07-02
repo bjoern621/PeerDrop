@@ -18,13 +18,13 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         {
             return Results.Unauthorized();
         }
-        
+
         var result = await login.HandleGetCurrentUser(context);
         if (result is not Ok<LoginResponse>)
         {
             return Results.Unauthorized();
         }
-        
+
         var accountIdCon = context.Session.GetString("UserId");
         if (!int.TryParse(accountIdCon, out var accountId))
         {
@@ -123,7 +123,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         {
             return Results.Unauthorized();
         }
-        
+
         var result = await login.HandleGetCurrentUser(context);
         if (result is not Ok<LoginResponse>)
         {
@@ -204,7 +204,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         var result = login.HandleGetCurrentUser(context).Result;
         if (result is not Ok<LoginResponse>)
         {
-            return Results.Forbid();
+            return Results.Unauthorized();
         }
 
         // Access the session using the sessionToken or from the session store
@@ -212,12 +212,12 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
 
         if (string.IsNullOrEmpty(accountId))
         {
-            return Results.NotFound();
+            return Results.Unauthorized();
         }
 
         if (!context.Request.Cookies.TryGetValue("deviceUuid", out var deviceUuid))
         {
-            return Results.NoContent();
+            return Results.Unauthorized();
         }
 
         if (int.TryParse(accountId, out var parsedAccountId))
@@ -226,7 +226,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             var device = await repo.GetDeviceByUuidAsync(Guid.Parse(deviceUuid));
             if (device == null || device.GetAccountId() != parsedAccountId)
             {
-                return Results.Forbid(); // oder NotFound
+                return Results.Unauthorized();
             }
             // Proceed with deleting the device
             var deviceGuid = Guid.Parse(deviceUuid);
@@ -266,7 +266,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
 
         if (string.IsNullOrEmpty(accountId))
         {
-            return Results.NotFound();
+            return Results.Unauthorized();
         }
 
         var deviceUuid = await context.Request.ReadFromJsonAsync<Guid>();
@@ -281,7 +281,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             var device = await repo.GetDeviceByUuidAsync(Guid.Parse(deviceUuid.ToString()));
             if (device == null || device.GetAccountId() != parsedAccountId)
             {
-                return Results.Forbid(); // oder NotFound
+                return Results.Unauthorized();
             }
             // Proceed with deleting the device
             await repo.DeleteDeviceAsync(parsedAccountId, deviceUuid);
