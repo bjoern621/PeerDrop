@@ -399,7 +399,7 @@ export const UserProfile = () => {
                                         className={css.deleteButton}
                                         onClick={e => {
                                             e.stopPropagation();
-                                            deleteOtherDevice(device);
+                                            void deleteOtherDevice(device);
                                         }}
                                     >
                                         <img src={deleteIconDark} />
