@@ -236,7 +236,6 @@ export const UserProfile = () => {
     };
 
     const deleteCurrentDevice = async () => {
-
         const [response, err] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/device/deleteCurrent`, {
                 method: "DELETE",
@@ -248,7 +247,7 @@ export const UserProfile = () => {
                 },
             })
         );
-        
+
         if (err) {
             console.error("Error unregistering device:", err);
             return;
@@ -265,8 +264,6 @@ export const UserProfile = () => {
     };
 
     const deleteOtherDevice = async (device: DeviceDisplay) => {
-        console.log("Deleting device " + device.name);
-
         const [response, err] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/device/deleteOther`, {
                 method: "DELETE",
