@@ -13,8 +13,6 @@ import { useWebSocketService } from "../../context/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
-import { MessageType } from "../../types/MessageType";
-import { TestMessage } from "../../types/common/TestMessage";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -75,22 +73,7 @@ export default function LandingPage() {
     }, [websocket]);
 
     useEffect(() => {
-        console.log("useEffect triggered");
-
         assert(websocket, "WebSocketService is not initialized.");
-
-        const handler = (message: unknown) => {
-            console.log("Received message:", message);
-        };
-        websocket.subscribeMessage(MessageType.TEST, handler);
-
-        const testMessage = new TestMessage({
-            message: "Hallo Server",
-        });
-
-        setTimeout(() => {
-            websocket.sendMessage(testMessage);
-        }, 1000);
 
         const token = websocket.getLocalClientToken();
         let checkToken: number | undefined = undefined;
@@ -134,10 +117,6 @@ export default function LandingPage() {
 
         sendHeartbeatIfPossible();
 
-        return () => {
-            clearInterval(checkToken);
-            websocket.unsubscribeMessage(MessageType.TEST, handler);
-        };
     }, [websocket, peerConnectionManager, sendHeartbeatIfPossible]);
 
     const connectToPeer = () => {

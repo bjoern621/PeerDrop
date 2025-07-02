@@ -137,7 +137,6 @@ export function DataSharingPage() {
             setFiles(prevFiles => new Map(prevFiles.set(uuid, fileDisplay)));
 
             peerConnectionManager.sendFile(file, uuid);
-            console.log("DATASHARINGPAGE: sendFile triggered with uuid:", uuid);
         }
 
         // Reset input to allow re-adding the same file
