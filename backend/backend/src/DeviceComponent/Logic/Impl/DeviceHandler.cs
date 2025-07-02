@@ -9,7 +9,7 @@ using backend.AccountComponent.Common.Api.DTOs;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
-public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService, ILogger<DeviceHandler> logger) : IDeviceHandler
+public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService) : IDeviceHandler
 {
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
