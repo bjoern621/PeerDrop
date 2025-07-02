@@ -6,5 +6,4 @@ public interface IDeviceHandler
     Task<IResult> GetDevicesByUserAsync(HttpContext context);
     Task<IResult> DeleteCurrentDeviceAsync(HttpContext context);
     Task<IResult> DeleteOtherDeviceAsync(HttpContext context);
-    Task<IResult> CheckDeviceCookieAsync(HttpContext context);
 }

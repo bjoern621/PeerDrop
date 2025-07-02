@@ -115,7 +115,6 @@ export const UserProfile = () => {
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
-        void checkDeviceCookie();
 
         handleHeartbeatMessage();
 
@@ -288,26 +287,6 @@ export const UserProfile = () => {
         }
         setDevices(devices.filter(d => d.uuid !== device.uuid));
     };
-
-    const checkDeviceCookie = async() => {
-        const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/checkCookie`, {
-                method: "GET",
-                credentials: "include",
-                headers: {
-                    Authorization: "Bearer " + localStorage.getItem("deviceUuid"), 
-                    "Content-Type": "application/json",
-                },
-            })
-        );
-        if (err) {
-            console.error("Error unregistering device:", err);
-            return;
-        } else if (!response.ok) {
-            console.error("Error unregistering device:", response.statusText);
-            return;
-        }
-    }
 
     function getDeviceStatusClass(status: DeviceStatus) {
         switch (status) {

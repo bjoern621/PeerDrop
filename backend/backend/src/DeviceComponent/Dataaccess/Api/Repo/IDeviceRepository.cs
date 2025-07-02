@@ -9,6 +9,4 @@ public interface IDeviceRepository
     Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, Guid uuid);
     Task<int> DeleteDeviceAsync(int accountId, Guid uuid);
     Task<Device?> GetDeviceByUuidAsync(Guid uuid);
-
-    Task<bool> CheckDeviceCookieAsync(int accountId, Guid uuid);
 }

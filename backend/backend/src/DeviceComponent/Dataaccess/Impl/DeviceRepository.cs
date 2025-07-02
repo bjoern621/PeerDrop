@@ -87,15 +87,4 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
             return null; // No device found with the given UUID
         });
     }
-
-    public async Task<bool> CheckDeviceCookieAsync(int accountId, Guid uuid)
-    {
-        await using var cmd = _dataSource.CreateCommand(
-            "SELECT uuid FROM devices WHERE uuid = @uuid AND account_id = @accountId"
-        );
-        cmd.Parameters.AddWithValue("@uuid", uuid);
-        cmd.Parameters.AddWithValue("@accountid", accountId);
-
-        return await cmd.ExecuteNonQueryAsync() > 0;
-    }
 }

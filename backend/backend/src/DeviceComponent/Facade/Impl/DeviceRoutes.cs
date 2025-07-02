@@ -10,9 +10,6 @@ public class DeviceRoutes : IDeviceRoutes
         app.MapGet("/devices", (IDeviceHandler handler, HttpContext context) =>
             handler.GetDevicesByUserAsync(context));
 
-        app.MapGet("/device/checkCookie", (IDeviceHandler handler, HttpContext context) =>
-            handler.CheckDeviceCookieAsync(context));
-
         app.MapPost("/device/register", (IDeviceHandler handler, HttpContext context) =>
             handler.RegisterDeviceAsync(context));
 

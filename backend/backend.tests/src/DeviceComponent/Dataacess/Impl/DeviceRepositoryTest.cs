@@ -177,7 +177,7 @@ public class DeviceRepositoryTest
         Guid guid = Guid.NewGuid();
         var device = new Device(displayName, guid, accountId);
         var uuid = await _deviceRepository.SaveDeviceAsync(device);
-        var result = await _deviceRepository.DeleteAsync(uuid);
+        var result = await _deviceRepository.DeleteDeviceAsync(accountId, uuid);
         Assert.That(result, Is.EqualTo(1));
     }
 }
