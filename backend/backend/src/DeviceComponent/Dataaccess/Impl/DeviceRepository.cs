@@ -61,7 +61,7 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
             "DELETE FROM devices WHERE uuid = @uuid AND account_id = @accountId"
         );
         cmd.Parameters.AddWithValue("@uuid", uuid);
-        cmd.Parameters.AddWithValue("@accountid", accountId);
+        cmd.Parameters.AddWithValue("@accountId", accountId);
 
         return await cmd.ExecuteNonQueryAsync(); // returns number of affected rows
     }

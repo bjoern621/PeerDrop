@@ -245,7 +245,8 @@ export const UserProfile = () => {
                 method: "DELETE",
                 credentials: "include",
                 headers: {
-                    Authorization: "Bearer " + localStorage.getItem("deviceUuid"),
+                    Authorization:
+                        "Bearer " + localStorage.getItem("deviceUuid"),
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(currentDevice),
@@ -258,13 +259,15 @@ export const UserProfile = () => {
             console.error("Error unregistering device:", response.statusText);
             return;
         }
-        setDevices(devices.filter(d => d.uuid !== localStorage.getItem("deviceUuid")));
+        setDevices(
+            devices.filter(d => d.uuid !== localStorage.getItem("deviceUuid"))
+        );
 
         setCurrentDeviceRegistered(false);
         setRegisterButtonDisabled(false);
     };
 
-    const deleteDevice = async(device: DeviceDisplay) => {
+    const deleteOtherDevice = async (device: DeviceDisplay) => {
         console.log("Deleting device " + device.name);
 
         const [response, err] = await errorAsValue(
@@ -272,7 +275,8 @@ export const UserProfile = () => {
                 method: "DELETE",
                 credentials: "include",
                 headers: {
-                    Authorization: "Bearer " + localStorage.getItem("deviceUuid"),
+                    Authorization:
+                        "Bearer " + localStorage.getItem("deviceUuid"),
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(device.uuid),
@@ -395,7 +399,7 @@ export const UserProfile = () => {
                                         className={css.deleteButton}
                                         onClick={e => {
                                             e.stopPropagation();
-                                            deleteDevice(device);
+                                            deleteOtherDevice(device);
                                         }}
                                     >
                                         <img src={deleteIconDark} />
