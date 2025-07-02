@@ -46,6 +46,7 @@ export const UserProfile = () => {
                 )
             );
         };
+        fetchDevices();
 
         websocketService.subscribeMessage(
             MessageType.DEVICE_HEARTBEAT,
@@ -237,14 +238,9 @@ export const UserProfile = () => {
 
     const deleteCurrentDevice = async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/deleteCurrent`, {
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/device`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: {
-                    Authorization:
-                        "Bearer " + localStorage.getItem("deviceUuid"),
-                    "Content-Type": "application/json",
-                },
             })
         );
 
@@ -255,24 +251,16 @@ export const UserProfile = () => {
             console.error("Error unregistering device:", response.statusText);
             return;
         }
-        setDevices(
-            devices.filter(d => d.uuid !== localStorage.getItem("deviceUuid"))
-        );
-
+        fetchDevices();
         setCurrentDeviceRegistered(false);
         setRegisterButtonDisabled(false);
     };
 
     const deleteOtherDevice = async (device: DeviceDisplay) => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/deleteOther`, {
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: {
-                    Authorization:
-                        "Bearer " + localStorage.getItem("deviceUuid"),
-                    "Content-Type": "application/json",
-                },
                 body: JSON.stringify(device.uuid),
             })
         );
