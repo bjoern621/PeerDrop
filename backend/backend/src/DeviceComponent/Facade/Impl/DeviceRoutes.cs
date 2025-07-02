@@ -7,14 +7,20 @@ public class DeviceRoutes : IDeviceRoutes
 {
     public Task RegisterRoutes(WebApplication app)
     {
-        app.MapPost("/device/register", (IDeviceHandler handler, HttpContext context) =>
-            handler.RegisterDeviceAsync(context));
-
         app.MapGet("/devices", (IDeviceHandler handler, HttpContext context) =>
             handler.GetDevicesByUserAsync(context));
 
-        app.MapDelete("/device/delete", (IDeviceHandler handler, HttpContext context) =>
-            handler.DeleteDeviceAsync(context));
+        app.MapGet("/device/checkCookie", (IDeviceHandler handler, HttpContext context) =>
+            handler.CheckDeviceCookieAsync(context));
+
+        app.MapPost("/device/register", (IDeviceHandler handler, HttpContext context) =>
+            handler.RegisterDeviceAsync(context));
+
+        app.MapDelete("/device/deleteCurrent", (IDeviceHandler handler, HttpContext context) =>
+            handler.DeleteCurrentDeviceAsync(context));
+        
+        app.MapDelete("/device/deleteOther", (IDeviceHandler handler, HttpContext context) =>
+            handler.DeleteOtherDeviceAsync(context));
 
         return Task.CompletedTask;
     }

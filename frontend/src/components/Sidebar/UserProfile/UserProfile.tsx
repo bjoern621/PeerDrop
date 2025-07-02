@@ -114,6 +114,7 @@ export const UserProfile = () => {
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
+        void checkDeviceCookie();
 
         handleHeartbeatMessage();
 
@@ -240,7 +241,7 @@ export const UserProfile = () => {
         };
 
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/delete`, {
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/deleteCurrent`, {
                 method: "DELETE",
                 credentials: "include",
                 headers: {
@@ -263,11 +264,49 @@ export const UserProfile = () => {
         setRegisterButtonDisabled(false);
     };
 
-    const deleteDevice = (device: DeviceDisplay) => {
+    const deleteDevice = async(device: DeviceDisplay) => {
         console.log("Deleting device " + device.name);
 
-        setDevices(devices.filter(d => d.name !== device.name));
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/deleteOther`, {
+                method: "DELETE",
+                credentials: "include",
+                headers: {
+                    Authorization: "Bearer " + localStorage.getItem("deviceUuid"),
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(device.uuid),
+            })
+        );
+        if (err) {
+            console.error("Error unregistering device:", err);
+            return;
+        } else if (!response.ok) {
+            console.error("Error unregistering device:", response.statusText);
+            return;
+        }
+        setDevices(devices.filter(d => d.uuid !== device.uuid));
     };
+
+    const checkDeviceCookie = async() => {
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/checkCookie`, {
+                method: "GET",
+                credentials: "include",
+                headers: {
+                    Authorization: "Bearer " + localStorage.getItem("deviceUuid"), 
+                    "Content-Type": "application/json",
+                },
+            })
+        );
+        if (err) {
+            console.error("Error unregistering device:", err);
+            return;
+        } else if (!response.ok) {
+            console.error("Error unregistering device:", response.statusText);
+            return;
+        }
+    }
 
     function getDeviceStatusClass(status: DeviceStatus) {
         switch (status) {
