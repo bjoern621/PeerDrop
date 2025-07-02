@@ -82,12 +82,11 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-app.UseCors(corsAllowFrontendOrigin);
-
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
+app.UseCors(corsAllowFrontendOrigin);
 
 
 app.UseSession(); // Enables session handling on incoming requests

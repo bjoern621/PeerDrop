@@ -236,9 +236,6 @@ export const UserProfile = () => {
     };
 
     const deleteCurrentDevice = async () => {
-        const currentDevice = {
-            name: "Current Device",
-        };
 
         const [response, err] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/device/deleteCurrent`, {
@@ -249,9 +246,9 @@ export const UserProfile = () => {
                         "Bearer " + localStorage.getItem("deviceUuid"),
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(currentDevice),
             })
         );
+        
         if (err) {
             console.error("Error unregistering device:", err);
             return;

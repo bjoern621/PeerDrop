@@ -18,29 +18,15 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         {
             return Results.Unauthorized();
         }
-        else
-        {
-            Console.WriteLine($"Session Token received {sessionToken}");
-        }
-
         var result = await login.HandleGetCurrentUser(context);
-        if (result is Ok<LoginResponse> okResult)
-        {
-            Console.WriteLine($"User is logged in: {okResult.Value}");
-        }
-        else
+        if (result is not Ok<LoginResponse>)
         {
             return Results.Unauthorized();
         }
         var accountIdCon = context.Session.GetString("UserId");
-        if (int.TryParse(accountIdCon, out var accountId))
+        if (!int.TryParse(accountIdCon, out var accountId))
         {
-            // accountId is now an int
-            Console.WriteLine("Id was successfully parsed.");
-        }
-        else
-        {
-            Console.WriteLine("Id is not an integer.");
+            return Results.BadRequest("Invalid account ID in session.");
         }
 
         // Retrieve the display name from the User-Agent header (you can extract specific info if needed)
@@ -135,11 +121,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             return Results.Unauthorized();
         }
         var result = await login.HandleGetCurrentUser(context);
-        if (result is Ok<LoginResponse> okResult)
-        {
-            Console.WriteLine($"User is logged in: {okResult.Value}");
-        }
-        else
+        if (result is not Ok<LoginResponse>)
         {
             return Results.Unauthorized();
         }
@@ -204,14 +186,11 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         }
 
         var result = login.HandleGetCurrentUser(context).Result;
-        if (result is Ok<LoginResponse> okResult)
-        {
-            Console.WriteLine($"User is logged in: {okResult.Value}");
-        }
-        else
+        if (result is not Ok<LoginResponse>)
         {
             return Results.Forbid();
         }
+
 
         // Access the session using the sessionToken or from the session store
         var accountId = context.Session.GetString("UserId");
@@ -257,15 +236,10 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         }
 
         var result = login.HandleGetCurrentUser(context).Result;
-        if (result is Ok<LoginResponse> okResult)
+        if (result is not Ok<LoginResponse>)
         {
-            Console.WriteLine($"User is logged in: {okResult.Value}");
+            return Results.Unauthorized();
         }
-        else
-        {
-            return Results.Forbid();
-        }
-
         // Access the session using the sessionToken or from the session store
         var accountId = context.Session.GetString("UserId");
 
