@@ -225,12 +225,18 @@ export class PeerConnectionManager {
      */
     public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
         if (remoteToken.length !== 5) {
-            toast.warn("Peer Token muss 5 Zeichen lang sein");
+            toast.warn("Peer Token muss 5 Zeichen lang sein", {
+                toastId: "instant-message-toast",
+                updateId: "instant-message-toast",
+            });
             return false;
         }
 
         if (this.signaling.getLocalClientToken() === remoteToken) {
-            toast.warn("Kann Token nicht an sich selbst senden");
+            toast.warn("Kann Token nicht an sich selbst senden", {
+                toastId: "instant-message-toast",
+                updateId: "instant-message-toast",
+            });
             return false;
         }
 

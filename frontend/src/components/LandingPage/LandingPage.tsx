@@ -155,8 +155,8 @@ export default function LandingPage() {
                     setTokenCopyStatus(TokenCopyStatus.COPIED);
 
                     toast.success("Token in die Zwischenablage kopiert!", {
-                        toastId: "copy-clipboard-toast",
-                        updateId: "copy-clipboard-toast",
+                        toastId: "instant-message-toast",
+                        updateId: "instant-message-toast",
                     });
                 })
                 .catch(err => {
