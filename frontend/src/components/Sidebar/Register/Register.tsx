@@ -3,6 +3,7 @@ import { useState } from "react";
 import { UserLoginDto } from "../../../util/dtos/UserLoginDto";
 import { assert } from "../../../util/Assert";
 import css from "./Register.module.scss";
+import { toast } from "react-toastify";
 
 interface RegisterProps {
     onSwitchToLogin: () => void;
@@ -89,6 +90,9 @@ export const Register = ({ onSwitchToLogin, onLogin }: RegisterProps) => {
         );
 
         if (err1) {
+            toast.error(
+                "Fehler beim Registrieren. Bitte versuche es später erneut."
+            );
             console.error("Fehler beim Registrieren:", err1);
             return;
         } else if (response.status == 409) {

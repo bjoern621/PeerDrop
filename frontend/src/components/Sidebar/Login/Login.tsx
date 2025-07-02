@@ -2,6 +2,7 @@ import errorAsValue from "../../../util/ErrorAsValue";
 import { useState } from "react";
 import { UserLoginDto } from "../../../util/dtos/UserLoginDto";
 import css from "./Login.module.scss";
+import { toast } from "react-toastify";
 
 interface LoginProps {
     onSwitchToRegister: () => void;
@@ -70,6 +71,9 @@ export const Login = ({ onSwitchToRegister, onLogin }: LoginProps) => {
         );
 
         if (err1) {
+            toast.error(
+                "Fehler beim Einloggen. Bitte versuche es später erneut."
+            );
             console.error("Fehler beim Einloggen:", err1);
             return;
         } else if (!response.ok) {

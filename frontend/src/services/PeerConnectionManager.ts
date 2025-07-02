@@ -13,6 +13,7 @@ import { ConnectionRequestMessage } from "../types/connection/ConnectionRequestM
 import { ConnectionResponseMessage } from "../types/connection//ConnectionResponseMessage";
 import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
 import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
+import { toast } from "react-toastify";
 
 export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
@@ -224,12 +225,12 @@ export class PeerConnectionManager {
      */
     public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
         if (remoteToken.length !== 5) {
-            console.warn("Peer token must be 5 characters long.");
+            toast.warn("Peer Token muss 5 Zeichen lang sein");
             return false;
         }
 
         if (this.signaling.getLocalClientToken() === remoteToken) {
-            console.error("Cannot send token to self.");
+            toast.warn("Kann Token nicht an sich selbst senden");
             return false;
         }
 
@@ -295,6 +296,8 @@ export class PeerConnectionManager {
 
             this.expectedRemoteToken = undefined;
             this.webrtcConnection = undefined;
+
+            toast.info("Der Peer hat die Verbindung geschlossen");
         };
 
         this.signaling.subscribeMessage(
