@@ -255,8 +255,8 @@ export const UserProfile = () => {
 
     const connectDevice = (device: DeviceDisplay) => {
         if (device.status !== DeviceStatus.ONLINE) {
-            console.warn(
-                `Cannot connect to device ${device.name} because it is not online.`
+            toast.warn(
+                `Gerät ${device.name} ist nicht bereit. Bitte versuche es später erneut.`
             );
             return;
         }
