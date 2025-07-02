@@ -97,6 +97,22 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
         }
     }
 
+    /// <summary>
+    /// Sends a heartbeat message to all active client tokens of the user.
+    /// This is used to inform all clients of the user's devices about the current device status.
+    /// </summary>
+    private async Task SendChangedDeviceToAllActiveClientTokens(int userId, Guid uuid, string deviceStatus)
+    {
+        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId);
+
+        foreach (var token in activeClientTokensForUserId)
+        {
+            logger.LogDebug($"Sending device change for device {uuid} to client {token}");
+            var forwardedChangedDeviceMessage = new DeviceChangedMessage { };
+            await _webSocketHandler.SendMessage(token, forwardedChangedDeviceMessage);
+        }
+    }
+
     public async Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message)
     {
         logger.LogDebug($"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}");
@@ -131,21 +147,27 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
         {
             if (_activeDevices.TryGetValue(clientToken, out var deviceInfo))
             {
+                if (deviceInfo.DeviceGuid != message.Uuid)
+                {
+                    // The device UUID does not match the one stored for this client token
+                    logger.LogDebug($"Device UUID mismatch for client {clientToken}: expected {deviceInfo.DeviceGuid}, received {message.Uuid}.");
+                    return;
+                }
+
+                logger.LogDebug($"Updated heartbeat for device {message.Uuid} for client {clientToken} from {deviceInfo.LastDeviceStatus} to {message.DeviceStatus}");
                 deviceInfo.LastHeartbeat = DateTime.UtcNow;
                 deviceInfo.LastDeviceStatus = message.DeviceStatus;
-                logger.LogDebug($"Updated heartbeat for device {message.Uuid} for client {clientToken}");
             }
             else
             {
                 _activeDevices[clientToken] = new RuntimeDeviceInformation { DeviceGuid = message.Uuid, LastHeartbeat = DateTime.UtcNow, LastDeviceStatus = message.DeviceStatus };
-                logger.LogDebug($"Registered new device {message.Uuid} for client {clientToken}");
+                logger.LogDebug($"Registered new device {message.Uuid} for client {clientToken} with status {message.DeviceStatus}");
             }
         }
 
         // TODO maybe exlude sender token from the forwarded list
         SendHeartbeatToAllActiveClientTokens(realUserId.Value, message.Uuid, message.DeviceStatus);
     }
-
 
     public async Task HandleDeviceRegister(Guid uuid, int userId, string deviceStatus)
     {
@@ -154,23 +176,17 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
 
     public async Task HandleDeviceDelete(Guid uuid, int userId, string deviceStatus)
     {
-        await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
-    }
-
-    /// <summary>
-    /// Sends a heartbeat message to all active client tokens of the user.
-    /// This is used to inform all clients of the user's devices about the current device status.
-    /// </summary>
-    private async Task SendChangedDeviceToAllActiveClientTokens(int userId, Guid uuid, string deviceStatus)
-    {
-        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId);
-
-        foreach (var token in activeClientTokensForUserId)
+        // Delete from the _activeDevices list
+        foreach (var kvp in _activeDevices.ToArray())
         {
-            logger.LogDebug($"Sending device change for device {uuid} to client {token}");
-            var forwardedChangedDeviceMessage = new DeviceChangedMessage { };
-            await _webSocketHandler.SendMessage(token, forwardedChangedDeviceMessage);
+            if (kvp.Value.DeviceGuid == uuid)
+            {
+                _activeDevices.TryRemove(kvp.Key, out _);
+                logger.LogDebug($"Removed deleted device {kvp.Value.DeviceGuid} for client {kvp.Key}");
+            }
         }
+
+        await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
     }
 
     public string GetDeviceStatus(Guid deviceUuid)
@@ -180,6 +196,10 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
             foreach (var kvp in _activeDevices)
             {
                 var deviceInfo = kvp.Value;
+                // Console.WriteLine(deviceInfo.DeviceGuid);
+                // Console.WriteLine(deviceUuid);
+                // Console.WriteLine(kvp.Key);
+                // Console.WriteLine(_webSocketHandler.GetUserIdForClientToken(kvp.Key));
                 if (deviceInfo.DeviceGuid == deviceUuid && _webSocketHandler.GetUserIdForClientToken(kvp.Key) != null)
                 {
                     // LastDeviceStatus is valid if the device is in the _activeDevices list and has a valid userId (client is logged in)
