@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
 using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Logic.Api;
+using backend.DeviceComponent.Logic.Types;
 using backend.WebSocketComponent.Logic.Api;
 
-namespace backend.DeviceComponent.Logic.Api;
+namespace backend.DeviceComponent.Logic.Impl;
 
 public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
 {

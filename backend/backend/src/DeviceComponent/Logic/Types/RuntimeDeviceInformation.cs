@@ -1,4 +1,4 @@
-namespace backend.DeviceComponent.Logic.Api;
+namespace backend.DeviceComponent.Logic.Types;
 
 public class RuntimeDeviceInformation
 {
