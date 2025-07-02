@@ -16,6 +16,7 @@ import { MessageHandler } from "../../../services/WebSocketService";
 import { useWebSocketService } from "../../../context/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
 import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
+import { toast } from "react-toastify";
 
 interface DeviceDisplay {
     status: DeviceStatus;
@@ -138,9 +139,15 @@ export const UserProfile = () => {
         );
 
         if (err) {
+            toast.error(
+                "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut."
+            );
             console.error("Error fetching devices:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut."
+            );
             console.error("Error fetching devices:", response.statusText);
             return;
         }
@@ -148,6 +155,9 @@ export const UserProfile = () => {
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
+            toast.error(
+                "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut."
+            );
             console.error("Error parsing device names:", parseError);
             return;
         }
@@ -179,9 +189,15 @@ export const UserProfile = () => {
         );
 
         if (err) {
+            toast.error(
+                "Fehler beim Abrufen des Benutzernamens. Bitte versuche es später erneut."
+            );
             console.error("Error fetching user name:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Abrufen des Benutzernamens. Bitte versuche es später erneut."
+            );
             console.error("Error fetching user name:", response.statusText);
             return;
         }
@@ -189,6 +205,9 @@ export const UserProfile = () => {
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
+            toast.error(
+                "Fehler beim Abrufen des Benutzernamens. Bitte versuche es später erneut."
+            );
             console.error("Error parsing user name response:", parseError);
             return;
         }
@@ -216,9 +235,15 @@ export const UserProfile = () => {
         setRegisterButtonDisabled(false);
 
         if (err) {
+            toast.error(
+                "Fehler beim Registrieren des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error registering device:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Registrieren des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error registering device:", response.statusText);
             return;
         }
@@ -260,9 +285,15 @@ export const UserProfile = () => {
         );
 
         if (err) {
+            toast.error(
+                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error unregistering device:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
+            );
             console.error("Error unregistering device:", response.statusText);
             return;
         }
@@ -296,9 +327,15 @@ export const UserProfile = () => {
         );
 
         if (err) {
+            toast.error(
+                "Fehler beim Ausloggen. Bitte versuche es später erneut."
+            );
             console.error("Error logging out:", err);
             return;
         } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Ausloggen. Bitte versuche es später erneut."
+            );
             console.error("Error logging out:", response.statusText);
             return;
         }

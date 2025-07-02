@@ -15,6 +15,7 @@ import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 import { MessageType } from "../../types/MessageType";
 import { TestMessage } from "../../types/common/TestMessage";
+import { toast } from "react-toastify";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -44,8 +45,6 @@ export default function LandingPage() {
     const waitingDialog = useRef<HTMLDialogElement | null>(null);
     const confirmDialog = useRef<HTMLDialogElement | null>(null);
     const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
-    const [showSnackbar, setShowSnackbar] = useState(false);
-    const snackbarTimeout = useRef<number | null>(null);
     const [tokenCopyStatus, setTokenCopyStatus] = useState(
         TokenCopyStatus.IDLE
     );
@@ -110,12 +109,11 @@ export default function LandingPage() {
         peerConnectionManager.setOnConnectionResponseReceivedCallback(
             (accepted: boolean) => {
                 if (accepted) {
-                    // console.log("ACCEPTED");
                     waitingDialog.current!.close();
                     showLoadingDialog();
                 } else {
-                    // console.log("REJECTED");
                     waitingDialog.current!.close();
+                    toast.error("Verbindungsanfrage wurde abgelehnt!");
                 }
             }
         );
@@ -150,22 +148,16 @@ export default function LandingPage() {
     };
 
     const copyTokenToClipboard = () => {
-        // Force hide first to reset animation
-        setShowSnackbar(false);
         if (clientToken) {
             navigator.clipboard
                 .writeText(clientToken)
                 .then(() => {
                     setTokenCopyStatus(TokenCopyStatus.COPIED);
 
-                    if (snackbarTimeout.current) {
-                        clearTimeout(snackbarTimeout.current);
-                    }
-                    // Then re-show in next tick
-                    setShowSnackbar(true);
-                    snackbarTimeout.current = window.setTimeout(() => {
-                        setShowSnackbar(false);
-                    }, 3000);
+                    toast.success("Token in die Zwischenablage kopiert!", {
+                        toastId: "instant-message-toast",
+                        updateId: "instant-message-toast",
+                    });
                 })
                 .catch(err => {
                     console.error("Failed to copy token:", err);
@@ -301,11 +293,6 @@ export default function LandingPage() {
                 token={remoteTokenOfRequestingPeer}
             />
             <AwaitConnectionDialog ref={awaitConnectionDialog} />
-            {showSnackbar && (
-                <div className={css.snackbar}>
-                    Token in die Zwischenablage kopiert!
-                </div>
-            )}
         </div>
     );
 }
