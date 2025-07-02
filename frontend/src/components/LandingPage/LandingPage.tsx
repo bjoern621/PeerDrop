@@ -154,7 +154,10 @@ export default function LandingPage() {
                 .then(() => {
                     setTokenCopyStatus(TokenCopyStatus.COPIED);
 
-                    toast.success("Token in die Zwischenablage kopiert!");
+                    toast.success("Token in die Zwischenablage kopiert!", {
+                        toastId: "copy-clipboard-toast",
+                        updateId: "copy-clipboard-toast",
+                    });
                 })
                 .catch(err => {
                     console.error("Failed to copy token:", err);
