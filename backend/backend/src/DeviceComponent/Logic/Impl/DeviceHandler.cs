@@ -193,7 +193,6 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         }
     }
 
-
     public async Task<IResult> DeleteCurrentDeviceAsync(HttpContext context)
     {
         // Check for session cookie
@@ -208,7 +207,6 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             return Results.Forbid();
         }
 
-
         // Access the session using the sessionToken or from the session store
         var accountId = context.Session.GetString("UserId");
 
@@ -221,7 +219,6 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         {
             return Results.NoContent();
         }
-
 
         if (int.TryParse(accountId, out var parsedAccountId))
         {

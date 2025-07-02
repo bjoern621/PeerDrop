@@ -151,6 +151,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
     {
         await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
     }
+
     public async Task HandleDeviceDelete(Guid uuid, int userId, string deviceStatus)
     {
         await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
@@ -166,17 +167,11 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
 
         foreach (var token in activeClientTokensForUserId)
         {
-            // Console.WriteLine($"Forwarding heartbeat for device {uuid} to client {token}");
-            var forwardedChangedDeviceMessage = new DeviceChangesMessage
-            {
-                Uuid = uuid,
-                DeviceStatus = deviceStatus
-            };
-            var result = await _webSocketHandler.SendMessage(token, forwardedChangedDeviceMessage);
-            Console.WriteLine(result.ToString());
+            Console.WriteLine($"Sending device change for device {uuid} to client {token}");
+            var forwardedChangedDeviceMessage = new DeviceChangedMessage { };
+            await _webSocketHandler.SendMessage(token, forwardedChangedDeviceMessage);
         }
     }
-
 
     public string GetDeviceStatus(Guid deviceUuid)
     {
