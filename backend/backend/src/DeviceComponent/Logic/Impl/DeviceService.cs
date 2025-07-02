@@ -48,6 +48,16 @@ public class DeviceService() : IDeviceService
                 _activeDevices.TryRemove(kvp.Key, out _);
                 // Console.WriteLine($"Removed inactive device {kvp.Value.DeviceGuid} for client {kvp.Key}");
 
+                bool anotherEntryForThisDeviceAvailable = _activeDevices.Values.Any(deviceInfo => deviceInfo.DeviceGuid == kvp.Value.DeviceGuid);
+
+                if (anotherEntryForThisDeviceAvailable)
+                {
+                    // The device might be still online through another connection.
+                    // Do not send an "offline" update.
+                    // Console.WriteLine($"Device {kvp.Value.DeviceGuid} might still be online through another connection, not sending offline update.");
+                    continue;
+                }
+
                 using var scope = _scopeFactory.CreateScope();
                 var repo = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
                 var device = await repo.GetDeviceByUuidAsync(kvp.Value.DeviceGuid);
