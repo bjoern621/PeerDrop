@@ -256,7 +256,11 @@ export const UserProfile = () => {
     const connectDevice = (device: DeviceDisplay) => {
         if (device.status !== DeviceStatus.ONLINE) {
             toast.warn(
-                `Gerät ${device.name} ist nicht bereit. Bitte versuche es später erneut.`
+                `Dein Gerät ${device.name} ist nicht bereit für eine Verbindung.`,
+                {
+                    toastId: "instant-message-toast",
+                    updateId: "instant-message-toast",
+                }
             );
             return;
         }
