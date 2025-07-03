@@ -11,6 +11,9 @@ namespace backend.DeviceComponent.Logic.Impl;
 
 public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService) : IDeviceHandler
 {
+    readonly string frontendOrigin = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN") ??
+                    throw new ApplicationException("FRONTEND_ORIGIN not set");
+
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
 
@@ -50,7 +53,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             IsEssential = true,
             SameSite = SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddYears(5),
-            Domain = "peerdrop.bjoernblessin.de",
+            Domain = frontendOrigin,
         });
 
         // Return the UUID in the response so that it can be stored in the frontend cookie
@@ -170,7 +173,7 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
                     IsEssential = true,
                     SameSite = SameSiteMode.Lax,
                     Path = "/",
-                    Domain = "peerdrop.bjoernblessin.de"
+                    Domain = frontendOrigin
                 });
             }
         }
