@@ -196,10 +196,6 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
             foreach (var kvp in _activeDevices)
             {
                 var deviceInfo = kvp.Value;
-                // Console.WriteLine(deviceInfo.DeviceGuid);
-                // Console.WriteLine(deviceUuid);
-                // Console.WriteLine(kvp.Key);
-                // Console.WriteLine(_webSocketHandler.GetUserIdForClientToken(kvp.Key));
                 if (deviceInfo.DeviceGuid == deviceUuid && _webSocketHandler.GetUserIdForClientToken(kvp.Key) != null)
                 {
                     // LastDeviceStatus is valid if the device is in the _activeDevices list and has a valid userId (client is logged in)
