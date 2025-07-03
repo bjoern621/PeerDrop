@@ -17,7 +17,6 @@ import { useWebSocketService } from "../../../context/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
 import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
 import { toast } from "react-toastify";
-import { DeviceChangedMessage } from "../../../types/device/DeviceChangedMessage";
 
 interface DeviceDisplay {
     status: DeviceStatus;
@@ -53,8 +52,7 @@ export const UserProfile = () => {
     }, [websocketService]);
 
     const handleDeviceChangedMessage = useCallback(() => {
-        const onDeviceChanged = async (message: DeviceChangedMessage) => {
-            console.log(message);
+        const onDeviceChanged = async () => {
             await fetchDevices();
         };
 
@@ -167,7 +165,6 @@ export const UserProfile = () => {
 
         const devicesData = responseBody as DeviceResponse;
         assert(devicesData && devicesData.devices, "Invalid device response");
-        console.log("Fetched devices:", devicesData.devices);
         const updatedDevices: DeviceDisplay[] = devicesData.devices
             .map(device => ({
                 name: device.displayName,
