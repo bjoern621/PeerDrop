@@ -169,21 +169,27 @@ export const UserProfile = () => {
             return;
         }
 
+        const currentDeviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
         const devicesData = responseBody as DeviceResponse;
         assert(devicesData && devicesData.devices, "Invalid device response");
+        console.log("Fetched devices:", devicesData.devices);
         const updatedDevices: DeviceDisplay[] = devicesData.devices
-            .map(deviceName => ({
-                name: deviceName.displayName,
-                current: deviceName.isCurrentDevice,
-                status: deviceName.status,
-                uuid: deviceName.uuid,
+            .map(device => ({
+                name: device.displayName,
+                current: device.uuid === currentDeviceUuid,
+                status: device.status,
+                uuid: device.uuid,
             }))
-            .filter(device => !device.current);
-        const isCurrentDevice = devicesData.devices.some(
-            device => device.isCurrentDevice
+            .filter(deviceDisplay => !deviceDisplay.current);
+        const hasCurrentDevice = devicesData.devices.some(
+            device => device.uuid === currentDeviceUuid
         );
-        setRegisterButtonDisabled(isCurrentDevice);
-        setCurrentDeviceRegistered(isCurrentDevice);
+        setRegisterButtonDisabled(hasCurrentDevice);
+        setCurrentDeviceRegistered(hasCurrentDevice);
         setDevices(updatedDevices);
     };
 
