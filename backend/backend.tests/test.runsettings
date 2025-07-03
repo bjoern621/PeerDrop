@@ -6,6 +6,7 @@
       <DB_USERNAME>postgres</DB_USERNAME>
       <DB_PASSWORD>passwort</DB_PASSWORD>
       <DB_DATABASE_NAME>peerdrop</DB_DATABASE_NAME>
+      <FRONTEND_DOMAIN>testdomain</FRONTEND_DOMAIN>
     </EnvironmentVariables>
   </RunConfiguration>
 </RunSettings>

@@ -11,6 +11,9 @@ namespace backend.DeviceComponent.Logic.Impl;
 
 public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService) : IDeviceHandler
 {
+    readonly string frontendDomain = Environment.GetEnvironmentVariable("FRONTEND_DOMAIN") ??
+                    throw new ApplicationException("FRONTEND_DOMAIN not set");
+
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
 
@@ -49,7 +52,8 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (you may validate the cookie on the server side by using the auth session token)
             IsEssential = true,
             SameSite = SameSiteMode.Lax,
-            Expires = DateTimeOffset.UtcNow.AddYears(5)
+            Expires = DateTimeOffset.UtcNow.AddYears(5),
+            Domain = frontendDomain,
         });
 
         // Return the UUID in the response so that it can be stored in the frontend cookie
@@ -168,7 +172,8 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
                     HttpOnly = false,
                     IsEssential = true,
                     SameSite = SameSiteMode.Lax,
-                    Path = "/"
+                    Path = "/",
+                    Domain = frontendDomain
                 });
             }
         }
