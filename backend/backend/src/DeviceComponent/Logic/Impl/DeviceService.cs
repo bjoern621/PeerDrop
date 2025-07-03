@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
@@ -50,6 +51,16 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
                 _activeDevices.TryRemove(kvp.Key, out _);
                 logger.LogDebug($"Removed inactive device {kvp.Value.DeviceGuid} for client {kvp.Key}");
 
+                bool anotherEntryForThisDeviceAvailable = _activeDevices.Values.Any(deviceInfo => deviceInfo.DeviceGuid == kvp.Value.DeviceGuid);
+
+                if (anotherEntryForThisDeviceAvailable)
+                {
+                    // The device might be still online through another connection.
+                    // Do not send an "offline" update.
+                    // Console.WriteLine($"Device {kvp.Value.DeviceGuid} might still be online through another connection, not sending offline update.");
+                    continue;
+                }
+
                 using var scope = _scopeFactory.CreateScope();
                 var repo = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
                 var device = await repo.GetDeviceByUuidAsync(kvp.Value.DeviceGuid);
@@ -83,6 +94,22 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
             };
 
             _webSocketHandler.SendMessage(token, forwardedHeartbeatMessage);
+        }
+    }
+
+    /// <summary>
+    /// Sends a heartbeat message to all active client tokens of the user.
+    /// This is used to inform all clients of the user's devices about the current device status.
+    /// </summary>
+    private async Task SendChangedDeviceToAllActiveClientTokens(int userId, Guid uuid, string deviceStatus)
+    {
+        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId);
+
+        foreach (var token in activeClientTokensForUserId)
+        {
+            logger.LogDebug($"Sending device change for device {uuid} to client {token}");
+            var forwardedChangedDeviceMessage = new DeviceChangedMessage { };
+            await _webSocketHandler.SendMessage(token, forwardedChangedDeviceMessage);
         }
     }
 
@@ -120,19 +147,46 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
         {
             if (_activeDevices.TryGetValue(clientToken, out var deviceInfo))
             {
+                if (deviceInfo.DeviceGuid != message.Uuid)
+                {
+                    // The device UUID does not match the one stored for this client token
+                    logger.LogDebug($"Device UUID mismatch for client {clientToken}: expected {deviceInfo.DeviceGuid}, received {message.Uuid}.");
+                    return;
+                }
+
+                logger.LogDebug($"Updated heartbeat for device {message.Uuid} for client {clientToken} from {deviceInfo.LastDeviceStatus} to {message.DeviceStatus}");
                 deviceInfo.LastHeartbeat = DateTime.UtcNow;
                 deviceInfo.LastDeviceStatus = message.DeviceStatus;
-                logger.LogDebug($"Updated heartbeat for device {message.Uuid} for client {clientToken}");
             }
             else
             {
                 _activeDevices[clientToken] = new RuntimeDeviceInformation { DeviceGuid = message.Uuid, LastHeartbeat = DateTime.UtcNow, LastDeviceStatus = message.DeviceStatus };
-                logger.LogDebug($"Registered new device {message.Uuid} for client {clientToken}");
+                logger.LogDebug($"Registered new device {message.Uuid} for client {clientToken} with status {message.DeviceStatus}");
             }
         }
 
         // TODO maybe exlude sender token from the forwarded list
         SendHeartbeatToAllActiveClientTokens(realUserId.Value, message.Uuid, message.DeviceStatus);
+    }
+
+    public async Task HandleDeviceRegister(Guid uuid, int userId, string deviceStatus)
+    {
+        await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
+    }
+
+    public async Task HandleDeviceDelete(Guid uuid, int userId, string deviceStatus)
+    {
+        // Delete from the _activeDevices list
+        foreach (var kvp in _activeDevices.ToArray())
+        {
+            if (kvp.Value.DeviceGuid == uuid)
+            {
+                _activeDevices.TryRemove(kvp.Key, out _);
+                logger.LogDebug($"Removed deleted device {kvp.Value.DeviceGuid} for client {kvp.Key}");
+            }
+        }
+
+        await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
     }
 
     public string GetDeviceStatus(Guid deviceUuid)

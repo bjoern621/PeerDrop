@@ -16,7 +16,7 @@
             "launchSettingsProfile": "http",
             "console": "integratedTerminal",
             "env": {
-                "LOGGING__LOGLEVEL__DEFAULT": "Information"
+                "LOGGING__LOGLEVEL__DEFAULT": "Information" // None, Critical, Error, Warning, Information, Debug, Trace
             }
         },
         {

@@ -20,6 +20,10 @@ export const Layout = () => {
                 draggable
                 pauseOnHover
                 theme="light"
+                style={{
+                    font: "Source Sans 3",
+                    fontWeight: "bold",
+                }}
             />
         </div>
     );

@@ -10,10 +10,6 @@ public class DeviceLoginDto
     public required string DisplayName { get; set; }
 
     [Required]
-    [JsonPropertyName("isCurrentDevice")]
-    public required bool IsCurrentDevice { get; set; }
-
-    [Required]
     [JsonPropertyName("uuid")]
     public required Guid Uuid { get; set; }
 

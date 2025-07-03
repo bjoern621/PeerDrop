@@ -28,6 +28,14 @@ public class ExceptionHandlingMiddleware
 
     private Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        // If the response has already started (e.g., for a WebSocket connection),
+        // we can't send a new response. Just log the error and exit.
+        if (context.Response.HasStarted)
+        {
+            _logger.LogWarning("Could not write error response. Response has already started, likely due to a WebSocket exception.");
+            return Task.CompletedTask;
+        }
+
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = exception switch
         {

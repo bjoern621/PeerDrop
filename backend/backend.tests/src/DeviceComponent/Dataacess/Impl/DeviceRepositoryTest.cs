@@ -134,38 +134,6 @@ public class DeviceRepositoryTest
     }
 
     [Test]
-    public async Task GetAllDisplayNamesForAccountAsync_Recognizes_Current_Device()
-    {
-        var account = new Account("testuser", "testpassword");
-        var id = await _accountRepository.SaveAsync(account);
-        Assert.That(id, Is.EqualTo(1));
-        // add some device
-        const string displayName = "testdevice";
-        const int accountId = 1;
-        Guid guid = Guid.NewGuid();
-        var device = new Device(displayName, guid, accountId);
-        await _deviceRepository.SaveDeviceAsync(device);
-        List<DeviceLoginDto> devices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, guid);
-        Assert.That(devices.First().IsCurrentDevice, Is.EqualTo(true));
-    }
-
-    [Test]
-    public async Task GetAllDisplayNamesForAccountAsync_Recognizes_Not_Current_Device()
-    {
-        var account = new Account("testuser", "testpassword");
-        var id = await _accountRepository.SaveAsync(account);
-        Assert.That(id, Is.EqualTo(1));
-        // add some device
-        const string displayName = "testdevice";
-        const int accountId = 1;
-        Guid guid = Guid.NewGuid();
-        var device = new Device(displayName, guid, accountId);
-        await _deviceRepository.SaveDeviceAsync(device);
-        List<DeviceLoginDto> uuid = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, Guid.NewGuid());
-        Assert.That(uuid.ElementAt(0).IsCurrentDevice, Is.EqualTo(false));
-    }
-
-    [Test]
     public async Task DeleteAsync_Deletes_Device()
     {
         var account = new Account("testuser", "testpassword");
@@ -177,7 +145,29 @@ public class DeviceRepositoryTest
         Guid guid = Guid.NewGuid();
         var device = new Device(displayName, guid, accountId);
         var uuid = await _deviceRepository.SaveDeviceAsync(device);
-        var result = await _deviceRepository.DeleteAsync(uuid);
+        var result = await _deviceRepository.DeleteDeviceAsync(accountId, uuid);
         Assert.That(result, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task DeleteAsync_DeletesNoDevice_IfDeviceUuid_OrAccountId_DoesntExist()
+    {
+        var account = new Account("testuser", "testpassword");
+        var id = await _accountRepository.SaveAsync(account);
+        Assert.That(id, Is.EqualTo(1));
+        // add some device
+        const string displayName = "testdevice";
+        var accountId = 1;
+        Guid guid = Guid.NewGuid();
+        var device = new Device(displayName, guid, accountId);
+        var uuid = await _deviceRepository.SaveDeviceAsync(device);
+        guid = new Guid("11223344-5566-7788-99AA-BBCCDDEEFF00");
+        var result = await _deviceRepository.DeleteDeviceAsync(accountId, guid);
+        Assert.That(result, Is.EqualTo(0));
+        accountId = 53;
+        result = await _deviceRepository.DeleteDeviceAsync(accountId, uuid);
+        Assert.That(result, Is.EqualTo(0));
+        result = await _deviceRepository.DeleteDeviceAsync(accountId, guid);
+        Assert.That(result, Is.EqualTo(0));
     }
 }

@@ -14,6 +14,7 @@ import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 import { toast } from "react-toastify";
+import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -71,6 +72,19 @@ export default function LandingPage() {
         websocket.sendMessage(heartbeat);
     }, [websocket]);
 
+    /**
+     * Sends a heartbeat message every HEARTBEAT_INTERVAL_MS.
+     */
+    const sendContinuousHeartbeat = useCallback(() => {
+        const timer = setInterval(() => {
+            sendHeartbeatIfPossible();
+        }, HEARTBEAT_INTERVAL_MS);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [sendHeartbeatIfPossible]);
+
     useEffect(() => {
         assert(websocket, "WebSocketService is not initialized.");
 
@@ -116,7 +130,18 @@ export default function LandingPage() {
         );
 
         sendHeartbeatIfPossible();
-    }, [websocket, peerConnectionManager, sendHeartbeatIfPossible]);
+
+        const cleanupHeartbeats = sendContinuousHeartbeat();
+
+        return () => {
+            cleanupHeartbeats();
+        };
+    }, [
+        websocket,
+        peerConnectionManager,
+        sendHeartbeatIfPossible,
+        sendContinuousHeartbeat,
+    ]);
 
     const connectToPeer = () => {
         const successfullySent =

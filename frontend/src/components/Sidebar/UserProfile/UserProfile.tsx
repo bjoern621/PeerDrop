@@ -17,6 +17,7 @@ import { useWebSocketService } from "../../../context/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
 import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
 import { toast } from "react-toastify";
+import { DeviceChangedMessage } from "../../../types/device/DeviceChangedMessage";
 
 interface DeviceDisplay {
     status: DeviceStatus;
@@ -34,8 +35,6 @@ export const UserProfile = () => {
 
     const websocketService = useWebSocketService();
 
-    const HEARTBEAT_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO THE BACKEND VARIABLE: INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS
-
     const handleHeartbeatMessage = useCallback(() => {
         const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
             setDevices(prevDevices =>
@@ -50,6 +49,18 @@ export const UserProfile = () => {
         websocketService.subscribeMessage(
             MessageType.DEVICE_HEARTBEAT,
             onHeartbeatReceived as MessageHandler
+        );
+    }, [websocketService]);
+
+    const handleDeviceChangedMessage = useCallback(() => {
+        const onDeviceChanged = async (message: DeviceChangedMessage) => {
+            console.log(message);
+            await fetchDevices();
+        };
+
+        websocketService.subscribeMessage(
+            MessageType.DEVICE_CHANGED,
+            onDeviceChanged as MessageHandler
         );
     }, [websocketService]);
 
@@ -99,35 +110,22 @@ export const UserProfile = () => {
         window.addEventListener("beforeunload", handleTabClose);
     }, [websocketService]);
 
-    /**
-     * Sends a heartbeat message every HEARTBEAT_INTERVAL_MS.
-     */
-    const sendContinuousHeartbeat = useCallback(() => {
-        const timer = setInterval(() => {
-            sendHeartbeatIfPossible();
-        }, HEARTBEAT_INTERVAL_MS);
-
-        return () => {
-            clearTimeout(timer);
-        };
-    }, [sendHeartbeatIfPossible, HEARTBEAT_INTERVAL_MS]);
-
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
+
+        handleDeviceChangedMessage();
 
         handleHeartbeatMessage();
 
         sendHeartbeatIfPossible();
 
         registerOfflineHeartbeatOnClose();
-
-        sendContinuousHeartbeat();
     }, [
+        handleDeviceChangedMessage,
         handleHeartbeatMessage,
         sendHeartbeatIfPossible,
         registerOfflineHeartbeatOnClose,
-        sendContinuousHeartbeat,
     ]);
 
     const fetchDevices = async () => {
@@ -162,21 +160,27 @@ export const UserProfile = () => {
             return;
         }
 
+        const currentDeviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
         const devicesData = responseBody as DeviceResponse;
         assert(devicesData && devicesData.devices, "Invalid device response");
+        console.log("Fetched devices:", devicesData.devices);
         const updatedDevices: DeviceDisplay[] = devicesData.devices
-            .map(deviceName => ({
-                name: deviceName.displayName,
-                current: deviceName.isCurrentDevice,
-                status: deviceName.status,
-                uuid: deviceName.uuid,
+            .map(device => ({
+                name: device.displayName,
+                current: device.uuid === currentDeviceUuid,
+                status: device.status,
+                uuid: device.uuid,
             }))
-            .filter(device => !device.current);
-        const isCurrentDevice = devicesData.devices.some(
-            device => device.isCurrentDevice
+            .filter(deviceDisplay => !deviceDisplay.current);
+        const hasCurrentDevice = devicesData.devices.some(
+            device => device.uuid === currentDeviceUuid
         );
-        setRegisterButtonDisabled(isCurrentDevice);
-        setCurrentDeviceRegistered(isCurrentDevice);
+        setRegisterButtonDisabled(hasCurrentDevice);
+        setCurrentDeviceRegistered(hasCurrentDevice);
         setDevices(updatedDevices);
     };
 
@@ -273,18 +277,10 @@ export const UserProfile = () => {
     };
 
     const deleteCurrentDevice = async () => {
-        const currentDevice = {
-            name: "Current Device",
-        };
-
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/device`, {
                 method: "DELETE",
-                headers: {
-                    Authorization: "Bearer " + localStorage.getItem("token"),
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(currentDevice),
+                credentials: "include",
             })
         );
 
@@ -301,14 +297,35 @@ export const UserProfile = () => {
             console.error("Error unregistering device:", response.statusText);
             return;
         }
-
         setCurrentDeviceRegistered(false);
+        setRegisterButtonDisabled(false);
     };
 
-    const deleteDevice = (device: DeviceDisplay) => {
-        console.log("Deleting device " + device.name);
-
-        setDevices(devices.filter(d => d.name !== device.name));
+    const deleteOtherDevice = async (device: DeviceDisplay) => {
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
+                method: "DELETE",
+                credentials: "include",
+                body: JSON.stringify(device.uuid),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+        );
+        if (err) {
+            toast.error(
+                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
+            );
+            console.error("Error unregistering device:", err);
+            return;
+        } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
+            );
+            console.error("Error unregistering device:", response.statusText);
+            return;
+        }
+        setDevices(devices.filter(d => d.uuid !== device.uuid));
     };
 
     function getDeviceStatusClass(status: DeviceStatus) {
@@ -419,7 +436,7 @@ export const UserProfile = () => {
                                         className={css.deleteButton}
                                         onClick={e => {
                                             e.stopPropagation();
-                                            deleteDevice(device);
+                                            void deleteOtherDevice(device);
                                         }}
                                     >
                                         <img src={deleteIconDark} />
