@@ -56,15 +56,6 @@ export const UserProfile = () => {
         const onDeviceChanged = async (message: DeviceChangedMessage) => {
             console.log(message);
             await fetchDevices();
-            // if (message.msg.status === DeviceStatus.ONLINE) {
-            //     setDevices(prevDevices =>
-            //         prevDevices.map(device =>
-            //             device.uuid === message.msg.uuid
-            //                 ? { ...device, status: message.msg.status }
-            //                 : device
-            //         )
-            //     );
-            // }
         };
 
         websocketService.subscribeMessage(
