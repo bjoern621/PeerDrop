@@ -1,7 +1,6 @@
 import errorAsValue from "../../../util/ErrorAsValue";
 import { useState } from "react";
 import { UserLoginDto } from "../../../util/dtos/UserLoginDto";
-import { assert } from "../../../util/Assert";
 import css from "./Register.module.scss";
 import { toast } from "react-toastify";
 
@@ -104,15 +103,6 @@ export const Register = ({ onSwitchToLogin, onLogin }: RegisterProps) => {
             return;
         }
 
-        const newUserLocation = response.headers.get("Location");
-        assert(
-            newUserLocation,
-            "Fehler: Location-Header fehlt in der Antwort."
-        );
-        const newUserEndpoint = `${
-            import.meta.env.VITE_BACKEND_URL
-        }${newUserLocation}`;
-        console.log("Benutzer registriert:", newUserEndpoint);
         onLogin();
     }
 
