@@ -114,7 +114,7 @@ public class DeviceHandlerTests
         _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, guid))
                  .ReturnsAsync(new List<DeviceLoginDto>
                  {
-                     new DeviceLoginDto { DisplayName = "Windows Mozilla", IsCurrentDevice = true, Uuid = guid, Status = "online" },
+                     new DeviceLoginDto { DisplayName = "Windows Mozilla",  Uuid = guid, Status = "online" },
                  });
 
         // Act
@@ -127,7 +127,6 @@ public class DeviceHandlerTests
         Assert.That(okResult.Value, Is.Not.Null, "Value is null");
         Assert.That(okResult.Value.Devices, Is.Not.Null, "Devices list is null");
         Assert.That(okResult?.Value?.Devices[0].DisplayName, Is.EqualTo("Windows Mozilla"));
-        Assert.That(okResult?.Value?.Devices[0].IsCurrentDevice, Is.True);
     }
 
     [Test]
@@ -139,8 +138,8 @@ public class DeviceHandlerTests
         _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, It.IsAny<Guid>()))
             .ReturnsAsync(new List<DeviceLoginDto>
             {
-                new() { DisplayName = "Windows Mozilla", IsCurrentDevice = false, Uuid = Guid.Empty, Status = "online" },
-                new() { DisplayName = "Windows Mozilla", IsCurrentDevice = false, Uuid = Guid.Empty , Status = "online" }
+                new() { DisplayName = "Windows Mozilla",  Uuid = Guid.Empty, Status = "online" },
+                new() { DisplayName = "Windows Mozilla",  Uuid = Guid.Empty , Status = "online" }
             });
 
         // Act

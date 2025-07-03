@@ -2,7 +2,6 @@ using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 using Npgsql;
 using backend.DeviceComponent.Common.DTOs;
-using System.Diagnostics;
 
 namespace backend.DeviceComponent.Dataaccess.Impl;
 
@@ -46,7 +45,6 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
             var deviceDto = new DeviceLoginDto
             {
                 DisplayName = reader.GetString(1),  // Get the display_name (second column)
-                IsCurrentDevice = reader.GetGuid(0) == uuid,
                 Uuid = reader.GetGuid(0),
                 Status = "invalid" // Should be updated later
             };

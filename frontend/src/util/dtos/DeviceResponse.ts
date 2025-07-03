@@ -8,7 +8,6 @@ import { DeviceStatus } from "../../types/device/DeviceStatus";
 export interface DeviceResponse {
     devices: {
         displayName: string;
-        isCurrentDevice: boolean;
         uuid: string;
         status: DeviceStatus;
     }[];

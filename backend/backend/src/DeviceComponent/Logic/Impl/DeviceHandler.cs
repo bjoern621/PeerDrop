@@ -181,7 +181,6 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
                 {
                     Uuid = device.Uuid,
                     DisplayName = device.DisplayName,
-                    IsCurrentDevice = device.IsCurrentDevice,
                     Status = _deviceService.GetDeviceStatus(device.Uuid)
                 })]
             };
