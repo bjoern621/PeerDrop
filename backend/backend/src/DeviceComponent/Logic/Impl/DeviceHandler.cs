@@ -138,58 +138,56 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             return Results.Unauthorized();
         }
 
-        if (int.TryParse(accountId, out var parsedAccountId))
+        if (!int.TryParse(accountId, out var parsedAccountId))
         {
-            var deviceUuid = context.Request.Cookies["deviceUuid"];
-            List<DeviceLoginDto>? devices;
-            if (!string.IsNullOrEmpty(deviceUuid))
-            {
-                Guid deviceGuid;
-                try
-                {
-                    deviceGuid = Guid.Parse(deviceUuid);
-                }
-                catch (FormatException)
-                {
-                    deviceGuid = Guid.Empty;
-                }
+            return Results.BadRequest("Invalid account ID in session.");
+        }
 
-                devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceGuid);
-                var exists = devices.Any(d => d.Uuid == deviceGuid);
-                if (!exists)
-                {
-                    // Cookie löschen, weil das Gerät nicht mehr existiert
-                    context.Response.Cookies.Append("deviceUuid", "", new CookieOptions
-                    {
-                        Expires = DateTimeOffset.UtcNow.AddDays(-1),
-                        HttpOnly = false,
-                        IsEssential = true,
-                        SameSite = SameSiteMode.Lax,
-                        Path = "/"
-                    });
-                }
-            }
-            // Proceed with fetching the devices for the user
-            else
+        var deviceUuid = context.Request.Cookies["deviceUuid"];
+        List<DeviceLoginDto>? devices;
+        if (!string.IsNullOrEmpty(deviceUuid))
+        {
+            Guid deviceGuid;
+            try
             {
-                devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, Guid.Empty);
+                deviceGuid = Guid.Parse(deviceUuid);
+            }
+            catch (FormatException)
+            {
+                deviceGuid = Guid.Empty;
             }
 
-            var deviceResponse = new DeviceResponseDTO
+            devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceGuid);
+            var exists = devices.Any(d => d.Uuid == deviceGuid);
+            if (!exists)
             {
-                Devices = [.. devices.Select(device => new DeviceLoginDto
+                // Cookie löschen, weil das Gerät nicht mehr existiert
+                context.Response.Cookies.Append("deviceUuid", "", new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddDays(-1),
+                    HttpOnly = false,
+                    IsEssential = true,
+                    SameSite = SameSiteMode.Lax,
+                    Path = "/"
+                });
+            }
+        }
+        // Proceed with fetching the devices for the user
+        else
+        {
+            devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, Guid.Empty);
+        }
+
+        var deviceResponse = new DeviceResponseDTO
+        {
+            Devices = [.. devices.Select(device => new DeviceLoginDto
                 {
                     Uuid = device.Uuid,
                     DisplayName = device.DisplayName,
                     Status = _deviceService.GetDeviceStatus(device.Uuid)
                 })]
-            };
-            return Results.Ok(deviceResponse);  // Return the devices or relevant data
-        }
-        else
-        {
-            return Results.BadRequest("Invalid account ID in session.");
-        }
+        };
+        return Results.Ok(deviceResponse);  // Return the devices or relevant data
     }
 
     public async Task<IResult> DeleteCurrentDeviceAsync(HttpContext context)
@@ -219,24 +217,22 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             return Results.Unauthorized();
         }
 
-        if (int.TryParse(accountId, out var parsedAccountId))
-        {
-            // Prüfen, ob das Device existiert und zu diesem Account gehört
-            var device = await repo.GetDeviceByUuidAsync(Guid.Parse(deviceUuid));
-            if (device == null || device.GetAccountId() != parsedAccountId)
-            {
-                return Results.Unauthorized();
-            }
-            // Proceed with deleting the device
-            var deviceGuid = Guid.Parse(deviceUuid);
-            await repo.DeleteDeviceAsync(parsedAccountId, deviceGuid);
-            await _deviceService.HandleDeviceDelete(deviceGuid, parsedAccountId, "offline");
-            return Results.Ok("Device deleted successfully.");
-        }
-        else
+        if (!int.TryParse(accountId, out var parsedAccountId))
         {
             return Results.BadRequest("Invalid account ID in session.");
         }
+
+        // Prüfen, ob das Device existiert und zu diesem Account gehört
+        var device = await repo.GetDeviceByUuidAsync(Guid.Parse(deviceUuid));
+        if (device == null || device.GetAccountId() != parsedAccountId)
+        {
+            return Results.Unauthorized();
+        }
+        // Proceed with deleting the device
+        var deviceGuid = Guid.Parse(deviceUuid);
+        await repo.DeleteDeviceAsync(parsedAccountId, deviceGuid);
+        await _deviceService.HandleDeviceDelete(deviceGuid, parsedAccountId, "offline");
+        return Results.Ok("Device deleted successfully.");
     }
 
     public async Task<IResult> DeleteOtherDeviceAsync(HttpContext context)
@@ -266,23 +262,20 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             return Results.BadRequest("Device UUID is required.");
         }
 
-        if (int.TryParse(accountId, out var parsedAccountId))
-        {
-            // Prüfen, ob das Device existiert und zu diesem Account gehört
-            var device = await repo.GetDeviceByUuidAsync(Guid.Parse(deviceUuid.ToString()));
-            if (device == null || device.GetAccountId() != parsedAccountId)
-            {
-                return Results.Unauthorized();
-            }
-            // Proceed with deleting the device
-            await repo.DeleteDeviceAsync(parsedAccountId, deviceUuid);
-            await _deviceService.HandleDeviceDelete(deviceUuid, parsedAccountId, "offline");
-            return Results.Ok("Device deleted successfully.");
-        }
-        else
+        if (!int.TryParse(accountId, out var parsedAccountId))
         {
             return Results.BadRequest("Invalid account ID in session.");
         }
-    }
 
+        // Prüfen, ob das Device existiert und zu diesem Account gehört
+        var device = await repo.GetDeviceByUuidAsync(Guid.Parse(deviceUuid.ToString()));
+        if (device == null || device.GetAccountId() != parsedAccountId)
+        {
+            return Results.Unauthorized();
+        }
+        // Proceed with deleting the device
+        await repo.DeleteDeviceAsync(parsedAccountId, deviceUuid);
+        await _deviceService.HandleDeviceDelete(deviceUuid, parsedAccountId, "offline");
+        return Results.Ok("Device deleted successfully.");
+    }
 }
