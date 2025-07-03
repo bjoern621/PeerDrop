@@ -18,6 +18,7 @@ jobs:
       DB_USERNAME: postgres
       DB_PASSWORD: passwort
       DB_DATABASE_NAME: peerdrop
+      FRONTEND_DOMAIN: testdomain
 
     steps:
       - name: Checkout repository
