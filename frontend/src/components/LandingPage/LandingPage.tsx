@@ -285,7 +285,7 @@ export default function LandingPage() {
                         />
                     </button>
                 </div>
-                <div>Anderes Token eingeben, um Verbindung aufzubauen</div>
+                <div>Fremdes Token eingeben, um Verbindung aufzubauen</div>
             </div>
             <WaitingDialog
                 ref={waitingDialog}
