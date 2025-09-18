@@ -1,7 +1,7 @@
 FROM node:lts AS react-build
 WORKDIR /app
 
-ARG VITE_APP_VERSION=prod
+ARG VITE_APP_VERSION=production
 ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
 COPY package.json ./
