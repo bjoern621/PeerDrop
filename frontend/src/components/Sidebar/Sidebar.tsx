@@ -86,44 +86,57 @@ export const Sidebar = () => {
 
     return (
         <div className={isCollapsed ? css.collapsed : css.expanded}>
-            <div className={css.sidebarHeader}>
-                {!isCollapsed ? <h2>Benutzer</h2> : <></>}
-                <button
-                    type="button"
-                    onClick={onCollapseSidebar}
-                    className={css.collapseButton}
-                >
-                    {isCollapsed ? (
-                        <img
-                            src={rightArrowIcon}
-                            alt="Expand Sidebar"
-                            className={css.arrowIcon}
-                        />
-                    ) : (
-                        <img
-                            src={leftArrowIcon}
-                            alt="Collapse Sidebar"
-                            className={css.arrowIcon}
-                        />
-                    )}
-                </button>
+            <div>
+                <div className={css.sidebarHeader}>
+                    {!isCollapsed ? <h2>Benutzer</h2> : <></>}
+                    <button
+                        type="button"
+                        onClick={onCollapseSidebar}
+                        className={css.collapseButton}
+                    >
+                        {isCollapsed ? (
+                            <img
+                                src={rightArrowIcon}
+                                alt="Expand Sidebar"
+                                className={css.arrowIcon}
+                            />
+                        ) : (
+                            <img
+                                src={leftArrowIcon}
+                                alt="Collapse Sidebar"
+                                className={css.arrowIcon}
+                            />
+                        )}
+                    </button>
+                </div>
+
+                {!isCollapsed && (
+                    <>
+                        {loggedIn ? (
+                            <UserProfile />
+                        ) : showLogin ? (
+                            <Login
+                                onSwitchToRegister={toggleLoginRegister}
+                                onLogin={onLogin}
+                            />
+                        ) : (
+                            <Register
+                                onSwitchToLogin={toggleLoginRegister}
+                                onLogin={onLogin}
+                            />
+                        )}
+                    </>
+                )}
             </div>
+
             {!isCollapsed && (
                 <>
-                    {loggedIn ? (
-                        <UserProfile />
-                    ) : showLogin ? (
-                        <Login
-                            onSwitchToRegister={toggleLoginRegister}
-                            onLogin={onLogin}
-                        />
-                    ) : (
-                        <Register
-                            onSwitchToLogin={toggleLoginRegister}
-                            onLogin={onLogin}
-                        />
-                    )}
-                    <img src={smallLogo} alt="Logo" className={css.logo} />
+                    <div>
+                        <img src={smallLogo} alt="Logo" className={css.logo} />
+                        <div className={css.versionText}>
+                            Build {import.meta.env.VITE_APP_VERSION}
+                        </div>
+                    </div>
                 </>
             )}
         </div>
