@@ -134,7 +134,7 @@ export const Sidebar = () => {
                     <div>
                         <img src={smallLogo} alt="Logo" className={css.logo} />
                         <div className={css.versionText}>
-                            Build {import.meta.env.VITE_APP_VERSION}
+                            Build: {import.meta.env.VITE_APP_VERSION}
                         </div>
                     </div>
                 </>
