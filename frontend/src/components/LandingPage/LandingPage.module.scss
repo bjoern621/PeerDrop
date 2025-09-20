@@ -97,9 +97,7 @@
 }
 
 .token {
-    transition:
-        filter 0.2s ease,
-        opacity 0.2s ease;
+    transition: filter 0.2s ease, opacity 0.2s ease;
 }
 
 .peer-token-container {
@@ -178,5 +176,34 @@
     }
     50% {
         opacity: 0;
+    }
+}
+
+.quickLinks {
+    position: absolute;
+    display: flex;
+    flex-direction: row-reverse;
+
+    top: 20px;
+    right: 20px;
+
+    height: 65px;
+    width: 200px;
+}
+
+.quickLinkAnchor {
+    height: 100%;
+    background-color: red;
+    aspect-ratio: 1;
+
+    > div {
+        background-color: turquoise;
+        height: 100%;
+        width: 100%;
+    }
+
+    > img {
+        height: 100%;
+        width: 100%;
     }
 }

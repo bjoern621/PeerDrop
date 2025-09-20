@@ -1,0 +1,57 @@
+.tooltip-on-hover {
+    position: relative;
+
+    &:hover {
+        .tooltip {
+            opacity: 1;
+            scale: 1;
+        }
+    }
+
+    .tooltip {
+        user-select: none;
+    }
+}
+
+.tooltip {
+    pointer-events: none;
+
+    color: white;
+    background-color: rgba(0, 0, 0, 0.75);
+    padding: 5px 10px;
+    border-radius: 5px;
+
+    z-index: 999;
+    position: absolute;
+
+    opacity: 0;
+    scale: 0.9;
+
+    transition: opacity 0.1s, scale 0.1s;
+
+    &.bottom {
+        top: calc(100% + 5px);
+        left: 50%;
+        translate: -50%;
+    }
+
+    &.top {
+        bottom: calc(100% + 5px);
+        left: 50%;
+        translate: -50%;
+    }
+
+    &.right {
+        left: calc(100% + 5px);
+        top: 50%;
+        translate: 0 -50%;
+    }
+
+    &.left {
+        right: calc(100% + 5px);
+        top: 50%;
+        translate: 0 -50%;
+    }
+
+    text-wrap: nowrap;
+}
