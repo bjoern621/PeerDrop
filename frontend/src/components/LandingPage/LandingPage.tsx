@@ -230,7 +230,7 @@ export default function LandingPage() {
                     href="https://github.com/bjoern621/PeerDrop"
                     className={`tooltip-on-hover ${css.quickLinkAnchor}`}
                 >
-                    {/* <img src={gitHubIcon} alt="GitHub Logo" /> */}
+                    <img src={gitHubIcon} alt="GitHub Logo" />
                     <div className="tooltip bottom">Auf GitHub ansehen</div>
                 </a>
             </div>

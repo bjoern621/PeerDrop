@@ -180,27 +180,22 @@
 }
 
 .quickLinks {
-    position: absolute;
+    position: fixed;
     display: flex;
     flex-direction: row-reverse;
 
-    top: 20px;
-    right: 20px;
+    top: 30px;
+    right: 30px;
 
     height: 65px;
     width: 200px;
+
+    gap: 15px;
 }
 
 .quickLinkAnchor {
     height: 100%;
-    background-color: red;
     aspect-ratio: 1;
-
-    > div {
-        background-color: turquoise;
-        height: 100%;
-        width: 100%;
-    }
 
     > img {
         height: 100%;
