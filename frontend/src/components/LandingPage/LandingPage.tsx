@@ -16,6 +16,7 @@ import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessag
 import { toast } from "react-toastify";
 import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 import gitHubIcon from "../../assets/github-mark.svg";
+import gitHubIconBlack from "../../assets/github-mark-black.svg";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -230,8 +231,17 @@ export default function LandingPage() {
                     href="https://github.com/bjoern621/PeerDrop"
                     className={`tooltip-on-hover ${css.quickLinkAnchor}`}
                 >
-                    <img src={gitHubIcon} alt="GitHub Logo" />
-                    <div className="tooltip bottom">Auf GitHub ansehen</div>
+                    <img
+                        src={gitHubIcon}
+                        alt="GitHub Logo"
+                        className={css.quickLinkIcon}
+                    />
+                    <img
+                        src={gitHubIconBlack}
+                        alt="GitHub Logo"
+                        className={css.quickLinkIconHover}
+                    />
+                    <div className="tooltip left">Auf GitHub ansehen</div>
                 </a>
             </div>
 

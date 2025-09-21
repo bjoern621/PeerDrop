@@ -33,24 +33,52 @@
         top: calc(100% + 5px);
         left: 50%;
         translate: -50%;
+
+        &::after {
+            border-color: transparent transparent var(--black) transparent;
+            margin-left: -5px;
+            bottom: 100%;
+            left: 50%;
+        }
     }
 
     &.top {
         bottom: calc(100% + 5px);
         left: 50%;
         translate: -50%;
+
+        &::after {
+            border-color: var(--black) transparent transparent transparent;
+            margin-left: -5px;
+            top: 100%;
+            left: 50%;
+        }
     }
 
     &.right {
         left: calc(100% + 5px);
         top: 50%;
         translate: 0 -50%;
+
+        &::after {
+            border-color: transparent var(--black) transparent transparent;
+            margin-top: -5px;
+            top: 50%;
+            right: 100%;
+        }
     }
 
     &.left {
         right: calc(100% + 5px);
         top: 50%;
         translate: 0 -50%;
+
+        &::after {
+            border-color: transparent transparent transparent var(--black);
+            margin-top: -5px;
+            top: 50%;
+            left: 100%;
+        }
     }
 
     text-wrap: nowrap;
@@ -58,11 +86,7 @@
     &::after {
         content: " ";
         position: absolute;
-        bottom: 100%;
-        left: 50%;
-        margin-left: -5px;
         border-width: 5px;
         border-style: solid;
-        border-color: transparent transparent var(--black) transparent;
     }
 }

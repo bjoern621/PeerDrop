@@ -201,4 +201,16 @@
         height: 100%;
         width: 100%;
     }
+
+    &:hover .quickLinkIconHover {
+        display: block;
+    }
+
+    &:hover .quickLinkIcon {
+        display: none;
+    }
+
+    .quickLinkIconHover {
+        display: none;
+    }
 }
