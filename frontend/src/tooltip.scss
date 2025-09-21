@@ -27,7 +27,9 @@
     opacity: 0;
     scale: 0.9;
 
-    transition: opacity 0.1s, scale 0.1s;
+    transition:
+        opacity 0.1s,
+        scale 0.1s;
 
     &.bottom {
         top: calc(100% + 5px);
