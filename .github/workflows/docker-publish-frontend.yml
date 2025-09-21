@@ -4,7 +4,7 @@ on:
     workflow_call:
         inputs:
             tags:
-                description: 'Comma-separated list of tags for the Docker image e.g., "1, 1.2, 1.2.3"'
+                description: 'Comma-separated list of tags for the Docker image e.g., "1, 1.2, 1.2.3". The last tag is used as the primary tag (displayed in the UI).'
                 required: true
                 type: string
 
@@ -39,6 +39,15 @@ jobs:
                   TAGS=$(echo "${{ inputs.tags }}" | tr ',' '\n' | sed "s|^|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:|" | paste -sd "," -)
                   echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
+            - name: Extract primary version from input tags (last tag)
+              id: extract_primary_version
+              run: |
+                  RAW="${{ inputs.tags }}"
+                  primary_version="${RAW##*,}"
+                  primary_version="$(echo "$primary_version" | xargs)"
+                  echo "primary_version=$primary_version" >> $GITHUB_OUTPUT
+                  echo "Extracted primary version: $primary_version"
+
             - name: Build and push Docker image
               id: build-and-push
               uses: docker/build-push-action@v5
@@ -49,3 +58,5 @@ jobs:
                   tags: ${{ steps.tagger.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
+                  build-args: |
+                      VITE_APP_VERSION=${{ steps.extract_primary_version.outputs.primary_version }}
