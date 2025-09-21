@@ -180,3 +180,39 @@
         opacity: 0;
     }
 }
+
+.quickLinks {
+    position: fixed;
+    display: flex;
+    flex-direction: row-reverse;
+
+    top: 30px;
+    right: 30px;
+
+    height: 65px;
+    width: 200px;
+
+    gap: 15px;
+}
+
+.quickLinkAnchor {
+    height: 100%;
+    aspect-ratio: 1;
+
+    > img {
+        height: 100%;
+        width: 100%;
+    }
+
+    &:hover .quickLinkIconHover {
+        display: block;
+    }
+
+    &:hover .quickLinkIcon {
+        display: none;
+    }
+
+    .quickLinkIconHover {
+        display: none;
+    }
+}

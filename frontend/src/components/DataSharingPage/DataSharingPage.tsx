@@ -308,7 +308,7 @@ export function DataSharingPage() {
                                     Fortschritt
                                     <button
                                         onClick={onToggleDetailedProgress}
-                                        className={css.detailProgressButton}
+                                        className={`tooltip-on-hover ${css.detailProgressButton}`}
                                     >
                                         <div
                                             className={
@@ -317,42 +317,36 @@ export function DataSharingPage() {
                                         >
                                             {progressDisplay ===
                                             FileProgressDisplay.DETAILED ? (
-                                                <>
-                                                    <img
-                                                        src={percentIcon}
-                                                        alt="Detailed view icon"
-                                                        className={
-                                                            css.detailProgressIcon
-                                                        }
-                                                    />
-                                                    <span
-                                                        className={
-                                                            css.detailProgressTooltip
-                                                        }
-                                                    >
+                                                <img
+                                                    src={percentIcon}
+                                                    alt="Detailed view icon"
+                                                    className={
+                                                        css.detailProgressIcon
+                                                    }
+                                                />
+                                            ) : (
+                                                <img
+                                                    src={barChartIcon}
+                                                    alt="Simple view icon"
+                                                    className={
+                                                        css.detailProgressIcon
+                                                    }
+                                                />
+                                            )}
+                                            <div className="tooltip bottom">
+                                                {progressDisplay ===
+                                                FileProgressDisplay.DETAILED ? (
+                                                    <>
                                                         Zu einfacher Ansicht
                                                         wechseln
-                                                    </span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <img
-                                                        src={barChartIcon}
-                                                        alt="Simple view icon"
-                                                        className={
-                                                            css.detailProgressIcon
-                                                        }
-                                                    />
-                                                    <span
-                                                        className={
-                                                            css.detailProgressTooltip
-                                                        }
-                                                    >
+                                                    </>
+                                                ) : (
+                                                    <>
                                                         Zu detaillierter Ansicht
                                                         wechseln
-                                                    </span>
-                                                </>
-                                            )}
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     </button>
                                 </div>

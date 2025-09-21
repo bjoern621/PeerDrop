@@ -15,6 +15,8 @@ import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 import { toast } from "react-toastify";
 import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
+import gitHubIcon from "../../assets/github-mark.svg";
+import gitHubIconBlack from "../../assets/github-mark-black.svg";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -223,6 +225,26 @@ export default function LandingPage() {
                 alt="Banner Logo von PeerDrop"
                 loading="eager"
             />
+
+            <div className={css.quickLinks}>
+                <a
+                    href="https://github.com/bjoern621/PeerDrop"
+                    className={`tooltip-on-hover ${css.quickLinkAnchor}`}
+                >
+                    <img
+                        src={gitHubIcon}
+                        alt="GitHub Logo"
+                        className={css.quickLinkIcon}
+                    />
+                    <img
+                        src={gitHubIconBlack}
+                        alt="GitHub Logo"
+                        className={css.quickLinkIconHover}
+                    />
+                    <div className="tooltip left">Auf GitHub ansehen</div>
+                </a>
+            </div>
+
             <button
                 className={`${css.ownTokenContainer} ${
                     clientToken ? css.tokenLoaded : ""
