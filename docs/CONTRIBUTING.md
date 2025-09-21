@@ -30,9 +30,5 @@ Dieser Leitfaden beschreibt den Prozess, wie du beitragen kannst.
 ## Release und Deployment
 
 -   **Merge:** Nach erfolgreichem Review und Genehmigung wird der Pull Request in den `main`-Branch gemerged.
--   **Release:** Anschließend wird ein neuer Release mit einer entsprechenden Versionsnummer erstellt.
--   **Deployment:** Die neue Version wird auf der Produktivumgebung deployed.
-
-## Weitere Informationen
-
--   Der neue Release ist jetzt öffentlich. In [README.md](/README.md) ist beschrieben, wie die Webseite genutzt werden kann.
+-   **Release:** Anschließend kann ein neuer Release mit einer entsprechenden Versionsnummer erstellt werden.
+-   **Deployment:** Die neue Version wird nach einem Release automatisch auf der Produktivumgebung deployed.
