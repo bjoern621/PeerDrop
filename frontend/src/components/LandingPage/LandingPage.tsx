@@ -85,7 +85,7 @@ export default function LandingPage() {
 
     const confirmConnection = useCallback(
         (remoteToken: string) => {
-            console.log(`YES ${remoteToken}`);
+            // console.log(`YES ${remoteToken}`);
 
             assert(remoteToken, "Remote token is not set.");
             peerConnectionManager.acceptConnectionRequest(remoteToken);
@@ -97,7 +97,7 @@ export default function LandingPage() {
 
     const declineConnection = useCallback(
         (remoteToken: string) => {
-            console.log(`NO ${remoteToken}`);
+            // console.log(`NO ${remoteToken}`);
 
             assert(remoteToken, "Remote token is not set.");
             peerConnectionManager.rejectConnectionRequest(remoteToken);
