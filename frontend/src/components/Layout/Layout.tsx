@@ -21,6 +21,11 @@ export const Layout = () => {
                 style={{
                     font: "Source Sans 3",
                     fontWeight: "bold",
+                    maxHeight: "calc(100vh - 40px)",
+                    overflowY: "auto",
+                    scrollbarWidth: "thin",
+                    scrollbarGutter: "stable",
+                    overflowX: "hidden",
                 }}
             />
         </div>
