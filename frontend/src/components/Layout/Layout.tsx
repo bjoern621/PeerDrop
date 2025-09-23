@@ -15,7 +15,6 @@ export const Layout = () => {
                 autoClose={3000}
                 hideProgressBar={false}
                 newestOnTop={false}
-                closeOnClick
                 pauseOnFocusLoss
                 pauseOnHover
                 theme="light"
