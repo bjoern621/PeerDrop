@@ -1,11 +1,10 @@
 ﻿using System.Text.Json;
-using backend.DeviceComponent.Logic.Api;
 using backend.SignalingComponent.Common.Api.DTOs;
 using backend.SignalingComponent.Logic.Impl;
 using backend.WebSocketComponent.Logic.Api;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using backend.SignalingComponent.Logic.Api;
 
 namespace backend.tests.SignalingComponent.Logic.Impl;
 
@@ -13,17 +12,13 @@ namespace backend.tests.SignalingComponent.Logic.Impl;
 public class SignalingServiceTest
 {
     private Mock<IWebSocketHandler> _mockHandler;
-    private Mock<IServiceScopeFactory> _mockScopeFactory;
-    private Mock<IDeviceService> _mockDeviceService;
-    private SignalingService _service;
+    private ISignalingService _service;
 
     [SetUp]
     public void Setup()
     {
         _mockHandler = new Mock<IWebSocketHandler>();
-        _mockScopeFactory = new Mock<IServiceScopeFactory>();
-        _mockDeviceService = new Mock<IDeviceService>();
-        _service = new SignalingService(_mockHandler.Object, _mockScopeFactory.Object, _mockDeviceService.Object, NullLogger<SignalingService>.Instance);
+        _service = new SignalingService(_mockHandler.Object, NullLogger<SignalingService>.Instance);
     }
 
     [Test]
@@ -126,114 +121,5 @@ public class SignalingServiceTest
                 JsonElement.DeepEquals(msg.Description, sdpElement)
             )
         ), Times.Once);
-    }
-
-    [Test]
-    public async Task HandleCloseConnection_ForwardsMessage()
-    {
-        var clientId = "ABCDE";
-        var remoteToken = "BCDEF";
-
-        var msg = new CloseConnectionMessage { RemoteToken = remoteToken };
-
-        await _service.HandleCloseConnection(clientId, msg);
-
-        _mockHandler.Verify(h => h.SendMessage(remoteToken,
-            It.Is<CloseConnectionMessage>(m => m.RemoteToken == clientId)));
-    }
-
-    [Test]
-    public async Task HandleConnectionRequest_RemoteNotFound_SendsRejection()
-    {
-        var clientId = "ABCDE";
-        var remoteToken = "BCDEF";
-
-        _mockHandler.Setup(h => h.RemoteTokenExists(remoteToken)).Returns(false);
-
-        var msg = new ConnectionRequestMessage { RemoteToken = remoteToken };
-
-        await _service.HandleConnectionRequest(clientId, msg);
-
-        _mockHandler.Verify(h => h.SendMessage(clientId,
-            It.Is<ConnectionResponseMessage>(m => m.Accepted == false && m.RemoteToken == remoteToken)));
-    }
-
-    [Test]
-    public async Task HandleConnectionRequest_RemoteFound_StoresRequestAndForwards()
-    {
-        var clientId = "ABCDE";
-        var remoteToken = "BCDEF";
-
-        _mockHandler.Setup(h => h.RemoteTokenExists(remoteToken)).Returns(true);
-
-        var msg = new ConnectionRequestMessage { RemoteToken = remoteToken };
-
-        await _service.HandleConnectionRequest(clientId, msg);
-
-        _mockHandler.Verify(h => h.SendMessage(remoteToken,
-            It.Is<ConnectionRequestMessage>(m => m.RemoteToken == clientId)));
-    }
-
-    [Test]
-    public async Task HandleConnectionResponse_TokensMismatch_DoesNothing()
-    {
-        var clientId = "ABCDE";
-        var remoteToken = "BCDEF";
-
-        var msg = new ConnectionResponseMessage
-        {
-            RemoteToken = remoteToken,
-            Accepted = true
-        };
-
-        // Internal state not prepared with open request
-        await _service.HandleConnectionResponse(clientId, msg);
-
-        _mockHandler.Verify(h => h.SendMessage(It.IsAny<string>(), It.IsAny<ConnectionResponseMessage>()), Times.Never);
-        _mockHandler.Verify(h => h.SendMessage(It.IsAny<string>(), It.IsAny<EstablishConnectionMessage>()), Times.Never);
-    }
-
-    [Test]
-    public async Task HandleConnectionResponse_Accepted_SendsConnectionEstablishedMessages()
-    {
-        var peerA = "ABCDE";
-        var peerB = "BCDEF";
-
-        _mockHandler.Setup(h => h.RemoteTokenExists(peerB)).Returns(true);
-        await _service.HandleConnectionRequest(peerA, new ConnectionRequestMessage { RemoteToken = peerB });
-        _mockHandler.Setup(h => h.RemoteTokenExists(peerA)).Returns(true);
-
-        var response = new ConnectionResponseMessage
-        {
-            RemoteToken = peerA,
-            Accepted = true
-        };
-
-        await _service.HandleConnectionResponse(peerB, response);
-
-        _mockHandler.Verify(h => h.SendMessage(peerA,
-            It.Is<ConnectionResponseMessage>(m => m.Accepted)));
-
-        _mockHandler.Verify(h => h.SendMessage(peerA,
-            It.Is<EstablishConnectionMessage>(m => m.RemoteToken == peerB)));
-
-        _mockHandler.Verify(h => h.SendMessage(peerB,
-            It.Is<EstablishConnectionMessage>(m => m.RemoteToken == peerA)));
-    }
-
-    [Test]
-    public async Task HandleConnectionRequestCancelled_RemoteTokenExists_ForwardCancellation()
-    {
-        var requester = "ABCDE";
-        var responder = "BCDEF";
-
-        _mockHandler.Setup(h => h.RemoteTokenExists(responder)).Returns(true);
-
-        await _service.HandleConnectionRequest(requester, new ConnectionRequestMessage { RemoteToken = responder });
-
-        await _service.HandleConnectionRequestCancelled(requester, new ConnectionRequestCancelledMessage { RemoteToken = responder });
-
-        _mockHandler.Verify(h => h.SendMessage(responder,
-            It.Is<ConnectionRequestCancelledMessage>(m => m.RemoteToken == requester)));
     }
 }

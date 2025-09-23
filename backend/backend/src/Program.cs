@@ -10,7 +10,6 @@ using backend.SignalingComponent.Facade.Api;
 using backend.SignalingComponent.Facade.Impl;
 using backend.SignalingComponent.Logic.Api;
 using backend.SignalingComponent.Logic.Impl;
-using backend.WebSocketComponent.Common.Api.DTOs;
 using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
@@ -21,6 +20,10 @@ using backend.DeviceComponent.Logic.Api;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Impl;
 using backend.DeviceComponent.Logic.Impl;
+using backend.ConnectionComponent.Logic.Api;
+using backend.ConnectionComponent.Facade.Api;
+using backend.ConnectionComponent.Logic.Impl;
+using backend.ConnectionComponent.Facade.Impl;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
@@ -66,6 +69,9 @@ builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
 builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
 builder.Services.AddSingleton<IDeviceWebsocketMessages, DeviceWebsocketMessages>();
 builder.Services.AddSingleton<IDeviceService, DeviceService>();
+builder.Services.AddSingleton<IConnectionWebsocketMessages, ConnectionWebsocketMessages>();
+builder.Services.AddSingleton<ITokenConnectService, TokenConnectService>();
+builder.Services.AddSingleton<IQuickConnectService, QuickConnectService>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -104,5 +110,7 @@ var deviceRoutes = app.Services.GetRequiredService<IDeviceRoutes>();
 await deviceRoutes.RegisterRoutes(app);
 var deviceWebsocketMessages = app.Services.GetRequiredService<IDeviceWebsocketMessages>();
 deviceWebsocketMessages.SubscribeToMessageHandlers();
+var connectionWSMessages = app.Services.GetRequiredService<IConnectionWebsocketMessages>();
+connectionWSMessages.SubscribeToMessageHandlers();
 
 app.Run();
