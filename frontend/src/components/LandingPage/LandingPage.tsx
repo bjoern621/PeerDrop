@@ -136,16 +136,17 @@ export default function LandingPage() {
                 }
             }
         );
+
+        const confirmConnectionToastId = "confirm-connection-toast";
+
         peerConnectionManager.setOnConnectionRequestReceivedCallback(
             (requestingPeerToken: string) => {
-                const toastId = "confirm-connection-toast";
-
                 toast.info(
                     <ConfirmConnectToast
                         requestingPeerToken={requestingPeerToken}
                         onAccept={() => confirmConnection(requestingPeerToken)}
                         onReject={() => declineConnection(requestingPeerToken)}
-                        toastId={toastId}
+                        toastId={confirmConnectionToastId}
                     />,
                     {
                         closeOnClick: false,
@@ -154,14 +155,14 @@ export default function LandingPage() {
                         progress: 1,
                         closeButton: false,
                         className: "confirm-connection-toast-style", // Set in toast-styles.scss
-                        toastId: toastId,
+                        toastId: confirmConnectionToastId,
                     }
                 );
             }
         );
         peerConnectionManager.setOnConnectionRequestCancelledReceivedCallback(
             () => {
-                // confirmDialog.current!.close();
+                toast.dismiss(confirmConnectionToastId);
                 waitingDialog.current!.close();
             }
         );
