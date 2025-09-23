@@ -18,8 +18,7 @@
     > button {
         text-align: center;
         text-wrap: nowrap;
-        height: 40px;
-        padding: 5px;
+        padding: 10px 15px;
 
         border-left: 2px solid var(--shadow);
 
@@ -37,8 +36,6 @@
     &:active {
         background-color: #c3e6cb;
     }
-
-    border-radius: 0 var(--toastify-toast-bd-radius) 0 0;
 }
 
 .rejectButton {

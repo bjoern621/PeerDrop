@@ -4,4 +4,5 @@
     width: auto;
     padding: 0 0 var(--toastify-progress-bar-height)
         var(--toastify-toast-padding);
+    overflow: hidden;
 }
