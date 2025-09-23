@@ -66,6 +66,8 @@ export class PeerConnectionManager {
         this.handleConnectionRequestCancelledMessage();
 
         this.waitForCloseConnectionRequest();
+
+        this.handleConnectionResponseMessages();
     }
 
     private handleConnectionRequestCancelledMessage() {
@@ -127,10 +129,7 @@ export class PeerConnectionManager {
                 return;
             }
 
-            this.signaling.unsubscribeMessage(
-                MessageType.CONNECTION_RESPONSE,
-                onConnectionResponseReceived as MessageHandler
-            );
+            this.expectedRemoteToken = undefined;
 
             this.onConnectionResponseReceivedObservable.notify(
                 message.msg.accepted
@@ -247,8 +246,6 @@ export class PeerConnectionManager {
         const connectionRequestMessage = new ConnectionRequestMessage({
             remoteToken: remoteToken,
         });
-
-        this.handleConnectionResponseMessages();
 
         this.signaling.sendMessage(connectionRequestMessage);
 
