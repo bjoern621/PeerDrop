@@ -83,20 +83,27 @@ export default function LandingPage() {
         };
     }, [sendHeartbeatIfPossible]);
 
-    const confirmConnection = useCallback((remoteToken: string) => {
-        console.log(`YES ${remoteToken}`);
+    const confirmConnection = useCallback(
+        (remoteToken: string) => {
+            console.log(`YES ${remoteToken}`);
 
-        // showLoadingDialog();
-    }, []);
+            assert(remoteToken, "Remote token is not set.");
+            peerConnectionManager.acceptConnectionRequest(remoteToken);
 
-    const declineConnection = (remoteToken: string) => {
-        console.log(`NO ${remoteToken}`);
-        // confirmDialog.current!.close();
-        // assert(remoteTokenOfRequestingPeer, "Remote token is not set.");
-        // peerConnectionManager.rejectConnectionRequest(
-        //     remoteTokenOfRequestingPeer
-        // );
-    };
+            showLoadingDialog();
+        },
+        [peerConnectionManager]
+    );
+
+    const declineConnection = useCallback(
+        (remoteToken: string) => {
+            console.log(`NO ${remoteToken}`);
+
+            assert(remoteToken, "Remote token is not set.");
+            peerConnectionManager.rejectConnectionRequest(remoteToken);
+        },
+        [peerConnectionManager]
+    );
 
     useEffect(() => {
         assert(websocket, "WebSocketService is not initialized.");
@@ -172,6 +179,7 @@ export default function LandingPage() {
         sendHeartbeatIfPossible,
         sendContinuousHeartbeat,
         confirmConnection,
+        declineConnection,
     ]);
 
     const connectToPeer = () => {
