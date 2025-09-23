@@ -7,7 +7,6 @@ import copyContentIcon from "../../assets/copy_content.svg";
 import rightArrow from "../../assets/right_arrow_light.svg";
 import { OTPInput, SlotProps } from "input-otp";
 import { WaitingDialog } from "../Popups/WaitingDialog";
-import { ConfirmDialog } from "../Popups/ConfirmDialog";
 import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 import { useWebSocketService } from "../../context/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
@@ -17,6 +16,7 @@ import { toast } from "react-toastify";
 import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 import gitHubIcon from "../../assets/github-mark.svg";
 import gitHubIconBlack from "../../assets/github-mark-black.svg";
+import ConfirmConnectToast from "./ConfirmConnectToast/ConfirmConnectToast";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -44,14 +44,10 @@ export default function LandingPage() {
     const [clientToken, setClientToken] = useState<string | null>(null);
     const [remoteToken, setRemoteToken] = useState<string>("");
     const waitingDialog = useRef<HTMLDialogElement | null>(null);
-    const confirmDialog = useRef<HTMLDialogElement | null>(null);
     const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
     const [tokenCopyStatus, setTokenCopyStatus] = useState(
         TokenCopyStatus.IDLE
     );
-
-    const [remoteTokenOfRequestingPeer, setRemoteTokenOfRequestingPeer] =
-        useState<string | undefined>(undefined);
 
     /**
      * Sends a heartbeat message if the user has registered the device.
@@ -87,6 +83,21 @@ export default function LandingPage() {
         };
     }, [sendHeartbeatIfPossible]);
 
+    const confirmConnection = useCallback((remoteToken: string) => {
+        console.log(`YES ${remoteToken}`);
+
+        // showLoadingDialog();
+    }, []);
+
+    const declineConnection = (remoteToken: string) => {
+        console.log(`NO ${remoteToken}`);
+        // confirmDialog.current!.close();
+        // assert(remoteTokenOfRequestingPeer, "Remote token is not set.");
+        // peerConnectionManager.rejectConnectionRequest(
+        //     remoteTokenOfRequestingPeer
+        // );
+    };
+
     useEffect(() => {
         assert(websocket, "WebSocketService is not initialized.");
 
@@ -120,13 +131,30 @@ export default function LandingPage() {
         );
         peerConnectionManager.setOnConnectionRequestReceivedCallback(
             (requestingPeerToken: string) => {
-                setRemoteTokenOfRequestingPeer(requestingPeerToken);
-                confirmDialog.current!.showModal();
+                const toastId = "confirm-connection-toast";
+
+                toast.info(
+                    <ConfirmConnectToast
+                        requestingPeerToken={requestingPeerToken}
+                        onAccept={() => confirmConnection(requestingPeerToken)}
+                        onReject={() => declineConnection(requestingPeerToken)}
+                        toastId={toastId}
+                    />,
+                    {
+                        closeOnClick: false,
+                        autoClose: false,
+                        hideProgressBar: false,
+                        progress: 1,
+                        closeButton: false,
+                        className: "confirm-connection-toast-style", // Set in toast-styles.scss
+                        toastId: toastId,
+                    }
+                );
             }
         );
         peerConnectionManager.setOnConnectionRequestCancelledReceivedCallback(
             () => {
-                confirmDialog.current!.close();
+                // confirmDialog.current!.close();
                 waitingDialog.current!.close();
             }
         );
@@ -143,6 +171,7 @@ export default function LandingPage() {
         peerConnectionManager,
         sendHeartbeatIfPossible,
         sendContinuousHeartbeat,
+        confirmConnection,
     ]);
 
     const connectToPeer = () => {
@@ -162,8 +191,8 @@ export default function LandingPage() {
                     setTokenCopyStatus(TokenCopyStatus.COPIED);
 
                     toast.success("Token in die Zwischenablage kopiert!", {
-                        toastId: "instant-message-toast",
-                        updateId: "instant-message-toast",
+                        toastId: "token-copied-toast",
+                        updateId: "token-copied-toast",
                     });
                 })
                 .catch(err => {
@@ -183,30 +212,6 @@ export default function LandingPage() {
         if (peerConnectionManager.cancelConnectionRequest(remoteToken)) {
             waitingDialog.current!.close();
         }
-    };
-
-    const declineConnection = () => {
-        // console.log(`NO ${remoteTokenOfRequestingPeer}`);
-
-        confirmDialog.current!.close();
-
-        assert(remoteTokenOfRequestingPeer, "Remote token is not set.");
-        peerConnectionManager.rejectConnectionRequest(
-            remoteTokenOfRequestingPeer
-        );
-    };
-
-    const confirmConnection = () => {
-        // console.log(`YES ${remoteTokenOfRequestingPeer}`);
-
-        confirmDialog.current!.close();
-
-        assert(remoteTokenOfRequestingPeer, "Remote token is not set.");
-        peerConnectionManager.acceptConnectionRequest(
-            remoteTokenOfRequestingPeer
-        );
-
-        showLoadingDialog();
     };
 
     const onTokenHover = () => {
@@ -312,12 +317,6 @@ export default function LandingPage() {
             <WaitingDialog
                 ref={waitingDialog}
                 onCancel={() => interruptWaiting()}
-            />
-            <ConfirmDialog
-                ref={confirmDialog}
-                onCancel={() => declineConnection()}
-                onConfirm={() => confirmConnection()}
-                token={remoteTokenOfRequestingPeer}
             />
             <AwaitConnectionDialog ref={awaitConnectionDialog} />
         </div>

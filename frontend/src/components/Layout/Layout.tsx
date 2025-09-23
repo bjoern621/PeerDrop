@@ -17,7 +17,6 @@ export const Layout = () => {
                 newestOnTop={false}
                 closeOnClick
                 pauseOnFocusLoss
-                draggable
                 pauseOnHover
                 theme="light"
                 style={{

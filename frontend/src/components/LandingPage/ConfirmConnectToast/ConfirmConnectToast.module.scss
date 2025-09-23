@@ -1,0 +1,52 @@
+.container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 15px;
+}
+
+.message {
+    display: flex;
+    align-items: center;
+    // text-wrap: nowrap;
+}
+
+.buttonContainer {
+    display: flex;
+    flex-direction: column;
+
+    > button {
+        text-align: center;
+        text-wrap: nowrap;
+        height: 40px;
+        padding: 5px;
+
+        border-left: 2px solid var(--shadow);
+
+        &:not(:last-child) {
+            border-bottom: 2px solid var(--shadow);
+        }
+    }
+}
+
+.acceptButton {
+    &:hover {
+        background-color: #d4edda;
+    }
+
+    &:active {
+        background-color: #c3e6cb;
+    }
+
+    border-radius: 0 var(--toastify-toast-bd-radius) 0 0;
+}
+
+.rejectButton {
+    &:hover {
+        background-color: #f8d7da;
+    }
+
+    &:active {
+        background-color: #f5c6cb;
+    }
+}

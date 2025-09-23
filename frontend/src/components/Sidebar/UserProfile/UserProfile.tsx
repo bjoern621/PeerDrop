@@ -259,8 +259,8 @@ export const UserProfile = () => {
             toast.warn(
                 `Dein Gerät ${device.name} ist nicht bereit für eine Verbindung.`,
                 {
-                    toastId: "instant-message-toast",
-                    updateId: "instant-message-toast",
+                    toastId: "device-not-online-toast",
+                    updateId: "device-not-online-toast",
                 }
             );
             return;
