@@ -235,10 +235,13 @@ export class PeerConnectionManager {
         }
 
         if (this.signaling.getLocalClientToken() === remoteToken) {
-            toast.warn("Kann Token nicht an sich selbst senden.", {
-                toastId: "instant-message-toast",
-                updateId: "instant-message-toast",
-            });
+            toast.warn(
+                "Bitte gib einen fremden Token ein, nicht deinen eigenen.",
+                {
+                    toastId: "instant-message-toast",
+                    updateId: "instant-message-toast",
+                }
+            );
             return false;
         }
 
