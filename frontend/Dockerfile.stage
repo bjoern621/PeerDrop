@@ -17,13 +17,15 @@ FROM nginx:latest
 
 COPY --from=react-build /app/dist/ /www/html
 
-COPY ./nginx.conf /etc/nginx/nginx.conf
-
-COPY ./common-headers.conf /etc/nginx/includes/common-headers.conf
-# COPY ./csp-header.conf /etc/nginx/includes/csp-header.conf
+COPY ./nginx.conf /etc/nginx/templates/nginx.conf.template
+COPY ./common-headers.conf /etc/nginx/templates/common-headers.conf.template
 
 # Copied build to nginx image
 
-CMD ["nginx", "-g", "daemon off;"]
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 80

@@ -2,7 +2,7 @@ import errorAsValue from "../../../util/ErrorAsValue";
 import { useState } from "react";
 import { UserLoginDto } from "../../../util/dtos/UserLoginDto";
 import css from "./Login.module.scss";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 
 interface LoginProps {
     onSwitchToRegister: () => void;

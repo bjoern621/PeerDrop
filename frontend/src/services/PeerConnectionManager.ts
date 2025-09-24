@@ -13,7 +13,7 @@ import { ConnectionRequestMessage } from "../types/connection/ConnectionRequestM
 import { ConnectionResponseMessage } from "../types/connection//ConnectionResponseMessage";
 import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
 import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 
 export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
