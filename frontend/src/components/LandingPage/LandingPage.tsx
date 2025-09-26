@@ -13,7 +13,7 @@ import { useWebSocketService } from "../../context/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 import gitHubIcon from "../../assets/github-mark.svg";
 import gitHubIconBlack from "../../assets/github-mark-black.svg";
@@ -295,6 +295,7 @@ export default function LandingPage() {
                                 </div>
                             </>
                         )}
+                        autoComplete="off"
                     ></OTPInput>
                     <button
                         onClick={() => void connectToPeer()}
