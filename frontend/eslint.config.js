@@ -45,6 +45,18 @@ export default tseslint.config(
                         "Use errorAsValue() instead of try-catch blocks for better error handling.",
                 },
             ],
+            "no-restricted-imports": [
+                "error",
+                {
+                    paths: [
+                        {
+                            name: "react-toastify",
+                            message:
+                                "react-toastify doesn't work with the CSP Header. Please use 'react-toastify/unstyled' instead.",
+                        },
+                    ],
+                },
+            ],
         },
     }
 );

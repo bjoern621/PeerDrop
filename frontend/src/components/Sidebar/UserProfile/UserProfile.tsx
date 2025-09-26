@@ -16,7 +16,7 @@ import { MessageHandler } from "../../../services/WebSocketService";
 import { useWebSocketService } from "../../../context/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
 import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 
 interface DeviceDisplay {
     status: DeviceStatus;

@@ -13,7 +13,7 @@ import { ConnectionRequestMessage } from "../types/connection/ConnectionRequestM
 import { ConnectionResponseMessage } from "../types/connection//ConnectionResponseMessage";
 import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
 import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 
 export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
@@ -234,10 +234,13 @@ export class PeerConnectionManager {
         }
 
         if (this.signaling.getLocalClientToken() === remoteToken) {
-            toast.warn("Kann Token nicht an sich selbst senden.", {
-                toastId: "cannot-send-to-self-toast",
-                updateId: "cannot-send-to-self-toast",
-            });
+            toast.warn(
+                "Bitte gib einen fremden Token ein, nicht deinen eigenen.",
+                {
+                    toastId: "cannot-send-to-self-toast",
+                    updateId: "cannot-send-to-self-toast",
+                }
+            );
             return false;
         }
 
