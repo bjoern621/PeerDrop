@@ -50,6 +50,10 @@ services:
         depends_on:
             - backend
         restart: unless-stopped
+        environment:
+            - BACKEND_HOST=localhost
+            - BACKEND_PORT=8080
+            - WS_SCHEME=ws
 
 volumes:
     postgres_data:

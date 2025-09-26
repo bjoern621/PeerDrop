@@ -10,7 +10,7 @@ import errorAsValue from "../../util/ErrorAsValue";
 import { StatusResponse } from "../../util/dtos/StatusResponse";
 import { assert } from "../../util/Assert";
 import { useResetWebsocket } from "../../context/ResetContext";
-import { toast } from "react-toastify";
+import { toast } from "react-toastify/unstyled";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(true);
