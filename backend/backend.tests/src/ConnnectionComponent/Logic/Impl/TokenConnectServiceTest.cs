@@ -1,4 +1,5 @@
 using backend.ConnectionComponent.Common.Api.DTOs;
+using backend.ConnectionComponent.Dataaccess.Api;
 using backend.ConnectionComponent.Logic.Api;
 using backend.ConnectionComponent.Logic.Impl;
 using backend.DeviceComponent.Logic.Api;
@@ -15,6 +16,8 @@ public class TokenConnectServiceTest
     private Mock<IWebSocketHandler> _mockHandler;
     private Mock<IServiceScopeFactory> _mockScopeFactory;
     private Mock<IDeviceService> _mockDeviceService;
+    private Mock<IOpenConnectionRequestRepository> _mockOpenConnectionRequestRepository;
+    private Mock<IConnectionInitiationService> _mockConnectionInitiationService;
     private ITokenConnectService _service;
 
     [SetUp]
@@ -23,7 +26,14 @@ public class TokenConnectServiceTest
         _mockHandler = new Mock<IWebSocketHandler>();
         _mockScopeFactory = new Mock<IServiceScopeFactory>();
         _mockDeviceService = new Mock<IDeviceService>();
-        _service = new TokenConnectService(_mockHandler.Object, NullLogger<TokenConnectService>.Instance);
+        _mockOpenConnectionRequestRepository = new Mock<IOpenConnectionRequestRepository>();
+        _mockConnectionInitiationService = new Mock<IConnectionInitiationService>();
+        _service = new TokenConnectService(
+            _mockHandler.Object,
+            NullLogger<TokenConnectService>.Instance,
+            _mockOpenConnectionRequestRepository.Object,
+            _mockConnectionInitiationService.Object
+        );
     }
 
     [Test]

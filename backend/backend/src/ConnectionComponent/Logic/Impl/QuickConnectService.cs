@@ -1,4 +1,5 @@
 using backend.ConnectionComponent.Common.Api.DTOs;
+using backend.ConnectionComponent.Dataaccess.Api;
 using backend.ConnectionComponent.Logic.Api;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
@@ -6,9 +7,27 @@ using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.ConnectionComponent.Logic.Impl;
 
-public class QuickConnectService(IWebSocketHandler webSocketHandler, IServiceScopeFactory scopeFactory, IDeviceService deviceService) : IQuickConnectService
+public class QuickConnectService : IQuickConnectService
 {
-    private readonly IWebSocketHandler _webSocketHandler = webSocketHandler;
+    private readonly IWebSocketHandler _webSocketHandler;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IDeviceService _deviceService;
+    private readonly IConnectionInitiationService _connectionInitiationService;
+    private readonly IOpenConnectionRequestRepository _openConnectionRequestRepository;
+
+    public QuickConnectService(
+        IWebSocketHandler webSocketHandler,
+        IServiceScopeFactory scopeFactory,
+        IDeviceService deviceService,
+        IConnectionInitiationService connectionInitiationService,
+        IOpenConnectionRequestRepository openConnectionRequestRepository)
+    {
+        _webSocketHandler = webSocketHandler;
+        _scopeFactory = scopeFactory;
+        _deviceService = deviceService;
+        _connectionInitiationService = connectionInitiationService;
+        _openConnectionRequestRepository = openConnectionRequestRepository;
+    }
 
     public async Task HandleQuickConnectMessage(string clientToken, QuickConnectMessage message)
     {
@@ -21,7 +40,7 @@ public class QuickConnectService(IWebSocketHandler webSocketHandler, IServiceSco
             return;
         }
 
-        using var scope = scopeFactory.CreateScope();
+        using var scope = _scopeFactory.CreateScope();
         var deviceRepository = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
         var device = await deviceRepository.GetDeviceByUuidAsync(deviceUuid);
         if (device == null)
@@ -36,13 +55,13 @@ public class QuickConnectService(IWebSocketHandler webSocketHandler, IServiceSco
             return;
         }
 
-        if (deviceService.GetDeviceStatus(deviceUuid) != "online")
+        if (_deviceService.GetDeviceStatus(deviceUuid) != "online")
         {
             // Device is not ready for any connections.
             return;
         }
 
-        var peerClientToken = deviceService.GetClientTokenByDeviceUuid(deviceUuid);
+        var peerClientToken = _deviceService.GetClientTokenByDeviceUuid(deviceUuid);
         if (peerClientToken == null)
         {
             // No client token found for the device UUID, this is unlikely because we just checked the device status to be "online", but it may have been removed in the meantime.
@@ -55,19 +74,6 @@ public class QuickConnectService(IWebSocketHandler webSocketHandler, IServiceSco
             return;
         }
 
-        // Tell clients that they should start the connection process.
-        var establishConnectionMessageToRequestingClient = new EstablishConnectionMessage
-        {
-            RemoteToken = peerClientToken
-        };
-
-        _ = _webSocketHandler.SendMessage(clientToken, establishConnectionMessageToRequestingClient);
-
-        var establishConnectionMessageToRespondingClient = new EstablishConnectionMessage
-        {
-            RemoteToken = clientToken
-        };
-
-        _ = _webSocketHandler.SendMessage(peerClientToken, establishConnectionMessageToRespondingClient);
+        await _connectionInitiationService.InitiateConnection(clientToken, peerClientToken);
     }
 }

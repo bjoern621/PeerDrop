@@ -24,6 +24,8 @@ using backend.ConnectionComponent.Logic.Api;
 using backend.ConnectionComponent.Facade.Api;
 using backend.ConnectionComponent.Logic.Impl;
 using backend.ConnectionComponent.Facade.Impl;
+using backend.ConnectionComponent.Dataaccess.Api;
+using backend.ConnectionComponent.Dataaccess.Impl;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
@@ -72,6 +74,8 @@ builder.Services.AddSingleton<IDeviceService, DeviceService>();
 builder.Services.AddSingleton<IConnectionWebsocketMessages, ConnectionWebsocketMessages>();
 builder.Services.AddSingleton<ITokenConnectService, TokenConnectService>();
 builder.Services.AddSingleton<IQuickConnectService, QuickConnectService>();
+builder.Services.AddSingleton<IConnectionInitiationService, ConnectionInitiationService>();
+builder.Services.AddSingleton<IOpenConnectionRequestRepository, OpenConnectionRequestRepository>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
