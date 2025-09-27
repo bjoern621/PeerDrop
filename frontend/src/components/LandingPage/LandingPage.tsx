@@ -131,6 +131,7 @@ export default function LandingPage() {
                     // console.log("ACCEPTED");
                     waitingDialog.current!.close();
                     showLoadingDialog();
+                    dismissAllToasts();
                 } else {
                     // console.log("REJECTED");
                     waitingDialog.current!.close();
@@ -220,8 +221,11 @@ export default function LandingPage() {
         }
     };
 
-    // Shows a loading dialog while the connection is being established
-    // Will be automatically closed by navigation to DataSharingPage
+    /**
+     * Shows a loading dialog while the connection is being established.
+     *
+     * Will be automatically closed by navigation to DataSharingPage.
+     */
     const showLoadingDialog = () => {
         awaitConnectionDialog.current!.showModal();
     };
