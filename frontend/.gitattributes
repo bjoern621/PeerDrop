@@ -1,0 +1,2 @@
+# Force LF line endings for specific file types
+*.sh eol=lf
