@@ -4,6 +4,10 @@ namespace backend.ConnectionComponent.Dataaccess.Api;
 
 public interface IOpenConnectionRequestRepository
 {
+    /// <summary>
+    /// Adds a new open connection request from requesterToken to targetToken.
+    /// If there is already an open request from requesterToken, it will be silently replaced.
+    /// </summary>
     void Add(string requesterToken, string targetToken);
     /// <summary>
     /// Removes an open connection request made by the requesterToken.
