@@ -10,5 +10,8 @@ public interface IOpenConnectionRequestRepository
     /// </summary>
     /// <returns>true if the object was removed successfully; otherwise, false</returns>
     bool TryRemove(string requesterToken, [MaybeNullWhen(false)] out string targetToken);
+    /// <summary>
+    /// Finds and removes all requesters that have an open connection request targeting the specified targetToken.
+    /// </summary>
     IEnumerable<string> FindAndRemoveRequestersForTarget(string targetToken);
 }
