@@ -6,7 +6,7 @@ public interface ITokenConnectService
 {
     Task HandleCloseConnection(string clientId, CloseConnectionMessage message);
     /// <summary>
-    /// Wird aufgerufen, wenn ein Client eine Token-Verbindungsanfrage {see:ConnectionRequestMessage} über den WebSocket sendet.
+    /// Wird aufgerufen, wenn ein Client eine Token-Verbindungsanfrage <see cref="backend.ConnectionComponent.Common.Api.DTOs.ConnectionRequestMessage"/> über den WebSocket sendet.
     /// </summary>
     Task HandleConnectionRequest(string clientId, ConnectionRequestMessage message);
     Task HandleConnectionResponse(string clientId, ConnectionResponseMessage message);

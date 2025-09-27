@@ -173,7 +173,6 @@ export default function LandingPage() {
             (remoteToken: string) => {
                 const toastId = confirmConnectionToastIdPrefix + remoteToken;
                 toast.dismiss(toastId);
-                waitingDialog.current!.close();
             }
         );
 
