@@ -19,12 +19,6 @@ public class OpenConnectionRequestRepository : IOpenConnectionRequestRepository
         return _openRequests.TryRemove(requesterToken, out targetToken);
     }
 
-    public bool IsClientBusy(string clientToken)
-    {
-        // A client is busy if they are making a request (a key) or are the target of a request (a value).
-        return _openRequests.ContainsKey(clientToken) || _openRequests.Values.Contains(clientToken);
-    }
-
     public IEnumerable<string> FindAndRemoveRequestersForTarget(string targetToken)
     {
         var requesters = _openRequests
