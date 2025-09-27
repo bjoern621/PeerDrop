@@ -105,6 +105,8 @@ export default function LandingPage() {
         [peerConnectionManager]
     );
 
+    const dismissAllToasts = () => toast.dismiss();
+
     useEffect(() => {
         assert(websocket, "WebSocketService is not initialized.");
 
@@ -147,7 +149,10 @@ export default function LandingPage() {
                 toast.info(
                     <ConfirmConnectToast
                         requestingPeerToken={requestingPeerToken}
-                        onAccept={() => confirmConnection(requestingPeerToken)}
+                        onAccept={() => {
+                            dismissAllToasts();
+                            confirmConnection(requestingPeerToken);
+                        }}
                         onReject={() => declineConnection(requestingPeerToken)}
                         toastId={toastId}
                     />,

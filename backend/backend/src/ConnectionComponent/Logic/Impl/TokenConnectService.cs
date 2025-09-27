@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using backend.ConnectionComponent.Common.Api.DTOs;
 using backend.ConnectionComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Api;
@@ -9,7 +10,7 @@ public class TokenConnectService(IWebSocketHandler webSocketHandler, ILogger<Tok
     private readonly IWebSocketHandler _webSocketHandler = webSocketHandler;
 
     // This dictionary keeps track of open connection requests. It maps the requesting client token to the token of the client they are trying to connect to.
-    private readonly Dictionary<string, string> openRequests = [];
+    private readonly ConcurrentDictionary<string, string> openRequests = [];
 
     public async Task HandleConnectionRequest(string clientId, ConnectionRequestMessage message)
     {
@@ -51,7 +52,7 @@ public class TokenConnectService(IWebSocketHandler webSocketHandler, ILogger<Tok
             // Client that sent the request completely disconnected while waiting for a response.
             // Or the client that sent the response made a mistake.
             logger.LogDebug($"Connection response from {clientId} for unknown request {requestingClientToken}. Ignoring.");
-            openRequests.Remove(requestingClientToken); // Probably better to remove the request in disconnect handler or with timeout.
+            openRequests.TryRemove(requestingClientToken, out _); // Probably better to remove the request in disconnect handler or with timeout.
             return;
         }
 
@@ -62,7 +63,9 @@ public class TokenConnectService(IWebSocketHandler webSocketHandler, ILogger<Tok
             return;
         }
 
-        openRequests.Remove(requestingClientToken);
+        // Validation success
+
+        openRequests.TryRemove(requestingClientToken, out _);
 
         // Forward the response to the requesting client.
         var messageForRequestingClient = new ConnectionResponseMessage
@@ -107,7 +110,7 @@ public class TokenConnectService(IWebSocketHandler webSocketHandler, ILogger<Tok
             return;
         }
 
-        openRequests.Remove(clientToken);
+        openRequests.TryRemove(clientToken, out _);
 
         if (!_webSocketHandler.RemoteTokenExists(remoteToken))
         {
