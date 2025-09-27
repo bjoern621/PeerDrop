@@ -1,12 +1,12 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using backend.ConnectionComponent.Dataaccess.Api;
 
 namespace backend.ConnectionComponent.Dataaccess.Impl;
 
 public class OpenConnectionRequestRepository : IOpenConnectionRequestRepository
 {
+    // This dictionary maps the requesting client token to the token of the client they are trying to connect to.
     private readonly ConcurrentDictionary<string, string> _openRequests = new();
 
     public void Add(string requesterToken, string targetToken)
