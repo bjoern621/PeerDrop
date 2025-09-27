@@ -1,5 +1,6 @@
 @use "tooltip.scss";
-@use "toast-styles.scss";
+@import "react-toastify/dist/ReactToastify.css";
+@import "toast-styles.scss";
 
 @font-face {
     font-family: "Source Sans 3";

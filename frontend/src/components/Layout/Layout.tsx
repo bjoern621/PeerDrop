@@ -2,7 +2,6 @@ import { Outlet } from "react-router";
 import { Sidebar } from "../Sidebar/Sidebar";
 import css from "./Layout.module.scss";
 import { ToastContainer } from "react-toastify/unstyled";
-import "react-toastify/dist/ReactToastify.css";
 
 export const Layout = () => {
     return (
