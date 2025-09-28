@@ -85,8 +85,6 @@ export default function LandingPage() {
 
     const confirmConnection = useCallback(
         (remoteToken: string) => {
-            // console.log(`YES ${remoteToken}`);
-
             assert(remoteToken, "Remote token is not set.");
             peerConnectionManager.acceptConnectionRequest(remoteToken);
 
@@ -97,8 +95,6 @@ export default function LandingPage() {
 
     const declineConnection = useCallback(
         (remoteToken: string) => {
-            // console.log(`NO ${remoteToken}`);
-
             assert(remoteToken, "Remote token is not set.");
             peerConnectionManager.rejectConnectionRequest(remoteToken);
         },
@@ -128,12 +124,10 @@ export default function LandingPage() {
         peerConnectionManager.setOnConnectionResponseReceivedCallback(
             (accepted: boolean) => {
                 if (accepted) {
-                    // console.log("ACCEPTED");
                     waitingDialog.current!.close();
                     showLoadingDialog();
                     dismissAllToasts();
                 } else {
-                    // console.log("REJECTED");
                     waitingDialog.current!.close();
                     toast.error("Verbindungsanfrage wurde abgelehnt!");
                 }
