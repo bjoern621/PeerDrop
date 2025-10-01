@@ -1,27 +1,10 @@
-@import "tooltip.scss";
-
-@font-face {
-    font-family: "Source Sans 3";
-    src: url(assets/Fonts/Source_Sans_3/SourceSans3-VariableFont_wght.ttf);
-}
-
-@font-face {
-    font-family: "Roboto Mono";
-    src: url(assets/Fonts/Roboto_Mono/RobotoMono-VariableFont_wght.ttf);
-}
-
-* {
-    box-sizing: border-box;
-}
-
-html {
-    height: 100%;
-}
+@use "theme/reset.scss";
+@use "theme/themes.scss";
+@use "theme/spacing.scss";
+@use "theme/typography.scss";
+@import "theme/tooltip.scss";
 
 body {
-    margin: 0;
-    height: 100%;
-
     --black: #444;
     --white: #fff;
     --light: #ebebeb;
@@ -31,37 +14,12 @@ body {
     --shadow-rgb: 39, 39, 42;
     --shadow: rgba(var(--shadow-rgb), 0.1);
 
-    font-family: "Source Sans 3", sans-serif;
-
     fill: var(--black); // SVG fill color
 }
 
-#root {
-    height: 100%;
-}
-
-a,
 button {
-    all: unset;
-    box-sizing: border-box;
-    outline: revert; /* Enables accessibility outline */
-    cursor: pointer;
-}
-
-button {
-    user-select: none;
-
     &:focus-visible {
         outline: 4px solid var(--light-blue);
         outline-offset: 1px;
     }
-}
-
-a {
-    user-select: text;
-}
-
-img {
-    user-select: none;
-    pointer-events: none; /* Disables dragging */
 }

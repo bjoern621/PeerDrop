@@ -1,0 +1,13 @@
+@use "./colors.scss" as colors;
+
+body {
+    @include colors.neutral();
+
+    &:not(.dark) {
+        @include colors.light();
+    }
+
+    &.dark {
+        @include colors.dark();
+    }
+}

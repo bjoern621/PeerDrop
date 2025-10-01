@@ -1,0 +1,37 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    height: 100%;
+}
+
+#root {
+    height: 100%;
+}
+
+a,
+button {
+    all: unset;
+    box-sizing: border-box;
+    outline: revert; /* Enables accessibility outline */
+    cursor: pointer;
+}
+
+button {
+    user-select: none;
+}
+
+a {
+    user-select: text;
+}
+
+img {
+    user-select: none;
+    pointer-events: none; /* Disables dragging */
+}
