@@ -13,12 +13,30 @@
 }
 
 @mixin light {
+    --text: oklch(15.64% 0.023 211.63);
+    --background: oklch(97.63% 0.014 213.1);
+    --primary: oklch(55.39% 0.088 216.91);
+    --secondary: oklch(79.75% 0.149 168.83);
+    --accent: oklch(55.1% 0.222 26.66);
+
     --text: oklch(15.635% 0.02258 211.669);
     --text-muted: oklch(38.864% 0.02258 211.669);
 
     --bg-light: oklch(98% 0.014 213);
     --bg: oklch(95% 0.014 213);
     --bg-dark: oklch(91% 0.014 213);
+
+    --primary-50: oklch(96% 0.088 216.91);
+    --primary-100: oklch(92% 0.088 216.91);
+    --primary-200: oklch(88% 0.088 216.91);
+    --primary-300: oklch(80% 0.088 216.91);
+    --primary-400: oklch(72% 0.088 216.91);
+    --primary-500: oklch(55% 0.088 216.91);
+    --primary-600: oklch(48% 0.088 216.91);
+    --primary-700: oklch(42% 0.088 216.91);
+    --primary-800: oklch(36% 0.088 216.91);
+    --primary-900: oklch(30% 0.088 216.91);
+    --primary-950: oklch(24% 0.088 216.91);
 
     --brand-50: #e0f2f8;
     --brand-100: #cfeef8;
@@ -94,12 +112,30 @@
 }
 
 @mixin dark {
+    --text: oklch(97.63% 0.014 213.1);
+    --background: oklch(15.64% 0.023 211.63);
+    --primary: oklch(78.02% 0.092 213.55);
+    --secondary: oklch(75.35% 0.147 167.43);
+    --accent: oklch(63.24% 0.235 23.04);
+
     --text: oklch(97.05% 0.018 209.43);
     --text-muted: oklch(70.72% 0.018 209.43);
 
     --bg-dark: oklch(15.635% 0.02258 211.669);
     --bg: oklch(24.797% 0.02258 211.669);
     --bg-light: oklch(35% 0.02258 211.669);
+
+    --primary-50: oklch(92% 0.092 213.55);
+    --primary-100: oklch(86% 0.092 213.55);
+    --primary-200: oklch(80% 0.092 213.55);
+    --primary-300: oklch(74% 0.092 213.55);
+    --primary-400: oklch(68% 0.092 213.55);
+    --primary-500: oklch(62% 0.092 213.55);
+    --primary-600: oklch(56% 0.092 213.55);
+    --primary-700: oklch(50% 0.092 213.55);
+    --primary-800: oklch(44% 0.092 213.55);
+    --primary-900: oklch(38% 0.092 213.55);
+    --primary-950: oklch(32% 0.092 213.55);
 
     --brand-50: #000101;
     --brand-100: #000e14;
