@@ -1,13 +1,78 @@
 @font-face {
-    font-family: "Source Sans 3";
-    src: url(assets/Fonts/Source_Sans_3/SourceSans3-VariableFont_wght.ttf);
-}
-
-@font-face {
     font-family: "Roboto Mono";
     src: url(assets/Fonts/Roboto_Mono/RobotoMono-VariableFont_wght.ttf);
 }
 
+@font-face {
+    font-family: "Jost";
+    src: url(assets/Fonts/Jost/Jost-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: "Atma";
+    font-weight: 300;
+    src: url(assets/Fonts/Atma/Atma-Light.ttf);
+}
+
+@font-face {
+    font-family: "Atma";
+    font-weight: 400;
+    src: url(assets/Fonts/Atma/Atma-Regular.ttf);
+}
+
+@font-face {
+    font-family: "Atma";
+    font-weight: 500;
+    src: url(assets/Fonts/Atma/Atma-Medium.ttf);
+}
+
+@font-face {
+    font-family: "Atma";
+    font-weight: 600;
+    src: url(assets/Fonts/Atma/Atma-SemiBold.ttf);
+}
+
+@font-face {
+    font-family: "Atma";
+    font-weight: 700;
+    src: url(assets/Fonts/Atma/Atma-Bold.ttf);
+}
+
 body {
     font-family: "Source Sans 3", sans-serif;
+}
+
+@mixin sizes {
+    --font-size-xxs: 0.75rem; // 12px
+    --font-size-xs: 0.875rem; // 14px
+    --font-size-s: 1rem; // 16px
+    --font-size-xl: 2.5rem; // 40px
+    --font-size-2xl: 3rem; // 48px
+
+    --line-height-xxs: 1.333; // 16px / 12px = 1.333
+    --line-height-xs: 1.143; // 16px / 14px = 1.143
+    --line-height-s: 1.5; // 24px / 16px = 1.5
+    --line-height-xl: 1.2; // 48px / 40px = 1.2
+    --line-height-2xl: 1.167; // 56px / 48px = 1.167
+}
+
+.text-xxs {
+    font-size: var(--text-xxs-size);
+    line-height: var(--text-xxs-line);
+}
+.text-xs {
+    font-size: var(--text-xs-size);
+    line-height: var(--text-xs-line);
+}
+.text-s {
+    font-size: var(--text-s-size);
+    line-height: var(--text-s-line);
+}
+.text-xl {
+    font-size: var(--text-xl-size);
+    line-height: var(--text-xl-line);
+}
+.text-2xl {
+    font-size: var(--text-2xl-size);
+    line-height: var(--text-2xl-line);
 }
