@@ -66,6 +66,8 @@ export class PeerConnectionManager {
         this.handleConnectionRequestCancelledMessage();
 
         this.waitForCloseConnectionRequest();
+
+        this.handleConnectionResponseMessages();
     }
 
     private handleConnectionRequestCancelledMessage() {
@@ -127,10 +129,7 @@ export class PeerConnectionManager {
                 return;
             }
 
-            this.signaling.unsubscribeMessage(
-                MessageType.CONNECTION_RESPONSE,
-                onConnectionResponseReceived as MessageHandler
-            );
+            this.expectedRemoteToken = undefined;
 
             this.onConnectionResponseReceivedObservable.notify(
                 message.msg.accepted
@@ -228,8 +227,8 @@ export class PeerConnectionManager {
     public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
         if (remoteToken.length !== 5) {
             toast.warn("Peer Token muss 5 Zeichen lang sein.", {
-                toastId: "instant-message-toast",
-                updateId: "instant-message-toast",
+                toastId: "token-length-toast",
+                updateId: "token-length-toast",
             });
             return false;
         }
@@ -238,8 +237,8 @@ export class PeerConnectionManager {
             toast.warn(
                 "Bitte gib einen fremden Token ein, nicht deinen eigenen.",
                 {
-                    toastId: "instant-message-toast",
-                    updateId: "instant-message-toast",
+                    toastId: "cannot-send-to-self-toast",
+                    updateId: "cannot-send-to-self-toast",
                 }
             );
             return false;
@@ -250,8 +249,6 @@ export class PeerConnectionManager {
         const connectionRequestMessage = new ConnectionRequestMessage({
             remoteToken: remoteToken,
         });
-
-        this.handleConnectionResponseMessages();
 
         this.signaling.sendMessage(connectionRequestMessage);
 

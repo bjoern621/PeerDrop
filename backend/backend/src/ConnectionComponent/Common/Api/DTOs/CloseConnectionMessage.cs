@@ -1,17 +1,17 @@
 using System.Text.Json.Serialization;
 using backend.WebSocketComponent.Common.Api.DTOs;
 
-namespace backend.SignalingComponent.Common.Api.DTOs;
+namespace backend.ConnectionComponent.Common.Api.DTOs;
 
-public class ConnectionResponseMessage : ITypedMessage
+public class CloseConnectionMessage : ITypedMessage
 {
-    public static string TypeString => "connection-response";
+    public static string TypeString => "close-connection";
 
     [JsonIgnore]
     public string InstanceTypeString => TypeString;
 
-    [JsonPropertyName("accepted")]
-    public bool Accepted { get; set; }
+    [JsonPropertyName("requestID")]
+    public string? RequestId { get; set; }
 
     [JsonPropertyName("remoteToken")]
     public required string RemoteToken { get; set; }

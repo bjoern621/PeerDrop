@@ -1,0 +1,3 @@
+{
+    "dotnet.unitTests.runSettingsPath": "${workspaceFolder}/backend/backend.tests/test.runsettings" // Zur Nutzung in der C# Dev Kit Extension
+}
