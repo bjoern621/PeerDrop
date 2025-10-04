@@ -62,12 +62,12 @@
 body {
     @include neutral();
     @include alpha();
+}
 
-    &:not(.dark) {
-        @include light();
-    }
+[data-theme="dark"] {
+    @include dark();
+}
 
-    &.dark {
-        @include dark();
-    }
+[data-theme="light"] {
+    @include light();
 }
