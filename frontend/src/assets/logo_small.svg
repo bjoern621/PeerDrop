@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="475.844"
+   height="362.844"
+   viewBox="0 0 475.844 362.844"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="logo_small.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#999999"
+     borderopacity="1"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.137119"
+     inkscape:cx="388.70162"
+     inkscape:cy="200.06701"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="2552"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <defs
+     id="defs1">
+    <style
+       id="style1">
+      .cls-1 {
+        fill-rule: evenodd;
+        fill: #FFFFFF;
+      }
+    </style>
+  </defs>
+  <path
+     id="outline_upper_merged_"
+     data-name="outline upper (merged)"
+     class="cls-1"
+     d="M206.684,157.027a48.932,48.932,0,0,1-2.462-19.717h0.227a58.767,58.767,0,1,0,0-117.535H78.543a58.767,58.767,0,1,0,0,117.535H164.4a88.981,88.981,0,0,0,1.355,19.773H78.542A78.541,78.541,0,1,1,78.542,0H204.448A78.529,78.529,0,0,1,206.684,157.027ZM452.862,339.858a78.518,78.518,0,0,1-111.041-.033L198.036,196.04A78.473,78.473,0,0,1,250.343,62.092,48.647,48.647,0,0,1,253.2,78.544c0,1.095-.049,2.178-0.12,3.254A58.716,58.716,0,0,0,212.01,182.067L355.8,325.852a58.732,58.732,0,1,0,83.06-83.06L295.07,99.007c-1.228-1.228-2.5-2.377-3.811-3.474a87.21,87.21,0,0,0,1.668-16.992c0-2.033-.093-4.044-0.228-6.043a78.643,78.643,0,0,1,16.345,12.533L452.829,228.816A78.518,78.518,0,0,1,452.862,339.858Z"
+     style="fill:#000000" />
+</svg>
