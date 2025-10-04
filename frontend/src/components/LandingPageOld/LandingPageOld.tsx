@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { assert } from "../../util/Assert";
-import css from "./LandingPage.module.scss";
+import css from "./LandingPageOld.module.scss";
 import bannerLogo from "../../assets/banner_logo.png";
 import checkmarkIcon from "../../assets/checkmark.svg";
 import copyContentIcon from "../../assets/copy_content.svg";
@@ -37,7 +37,7 @@ enum TokenCopyStatus {
     COPIED,
 }
 
-export default function LandingPage() {
+export default function LandingPageOld() {
     const websocket = useWebSocketService();
     const peerConnectionManager = usePeerConnectionManager();
 
