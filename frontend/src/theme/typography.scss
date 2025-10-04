@@ -39,19 +39,23 @@
 }
 
 body {
-    font-family: "Source Sans 3", sans-serif;
+    font-family: "Jost", sans-serif;
 }
 
 @mixin sizes {
     --font-size-xxs: 0.75rem; // 12px
     --font-size-xs: 0.875rem; // 14px
     --font-size-s: 1rem; // 16px
+    --font-size-m: 1.5rem; // 24px
+    --font-size-l: 2rem; // 32px
     --font-size-xl: 2.5rem; // 40px
     --font-size-2xl: 3rem; // 48px
 
     --line-height-xxs: 1.333; // 16px / 12px = 1.333
     --line-height-xs: 1.143; // 16px / 14px = 1.143
     --line-height-s: 1.5; // 24px / 16px = 1.5
+    --line-height-m: 1.333; // 32px / 24px = 1.333
+    --line-height-l: 1.25; // 40px / 32px = 1.25
     --line-height-xl: 1.2; // 48px / 40px = 1.2
     --line-height-2xl: 1.167; // 56px / 48px = 1.167
 }
@@ -67,6 +71,14 @@ body {
 .text-s {
     font-size: var(--text-s-size);
     line-height: var(--text-s-line);
+}
+.text-m {
+    font-size: var(--text-m-size);
+    line-height: var(--text-m-line);
+}
+.text-l {
+    font-size: var(--text-l-size);
+    line-height: var(--text-l-line);
 }
 .text-xl {
     font-size: var(--text-xl-size);
