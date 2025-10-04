@@ -5,21 +5,10 @@
 @import "theme/tooltip.scss";
 
 body {
-    --black: #444;
-    --white: #fff;
-    --light: #ebebeb;
+    background-color: var(--background);
+    color: var(--text);
+    fill: var(--text); // SVG fill color
 
-    background-color: var(--white);
-    color: var(--black);
     --shadow-rgb: 39, 39, 42;
     --shadow: rgba(var(--shadow-rgb), 0.1);
-
-    fill: var(--black); // SVG fill color
-}
-
-button {
-    &:focus-visible {
-        outline: 4px solid var(--light-blue);
-        outline-offset: 1px;
-    }
 }

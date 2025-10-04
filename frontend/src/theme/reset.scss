@@ -1,18 +1,11 @@
-* {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
-html {
-    height: 100%;
-}
-
-body {
+* {
     margin: 0;
-    height: 100%;
-}
-
-#root {
-    height: 100%;
 }
 
 a,
@@ -34,4 +27,10 @@ a {
 img {
     user-select: none;
     pointer-events: none; /* Disables dragging */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        interpolate-size: allow-keywords;
+    }
 }
