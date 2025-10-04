@@ -1,24 +1,16 @@
-import { useThemeContext } from "../../context/ThemeContext";
+import Hero from "./Hero/Hero";
+import css from "./Landing.module.scss";
+import Tutorial from "./Tutorial/Tutorial";
+import UnderTheHood from "./UnderTheHood/UnderTheHood";
+import Why from "./Why/Why";
 
 export default function Landing() {
-    const { setTheme } = useThemeContext();
-
-    const toggleTheme = () => {
-        const themes: ("light" | "dark" | "system")[] = [
-            "light",
-            "dark",
-            "system",
-        ];
-        const randomIndex = Math.floor(Math.random() * themes.length);
-        const randomTheme = themes[randomIndex];
-        setTheme(randomTheme);
-    };
-
     return (
-        <div>
-            <h1>Welcome to PeerDrop</h1>
-            <p>This is the landing page.</p>
-            <button onClick={toggleTheme}>Switch mode</button>
+        <div className={css.container}>
+            <Hero />
+            <Tutorial />
+            <Why />
+            <UnderTheHood />
         </div>
     );
 }
