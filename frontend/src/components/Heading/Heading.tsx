@@ -1,10 +1,22 @@
+import { NavLink } from "react-router";
 import Logo from "../Logo/Logo";
+import css from "./Heading.module.scss";
 
-export default function Heading({ children }: { children: React.ReactNode }) {
+export default function Heading() {
     return (
-        <header>
+        <header className={css.header}>
             <Logo />
-            <h1 className="text-3xl font-bold mb-4">{children}</h1>
+            <div className={css.navigation}>
+                <NavLink data-text="So funktioniert's" to="/">
+                    So funktioniert's
+                </NavLink>
+                <NavLink data-text="Dateien teilen" to="#abc">
+                    Dateien teilen
+                </NavLink>
+                <NavLink data-text="Old Landing" to="/old">
+                    Old Landing
+                </NavLink>
+            </div>
         </header>
     );
 }

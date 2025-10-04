@@ -1,13 +1,10 @@
-import bannerLogoImg from "../../assets/banner-logo.png";
+import BannerLogo from "../../assets/logo_banner.svg";
 import css from "./Logo.module.scss";
 
 export default function Logo() {
     return (
-        <img
-            src={bannerLogoImg}
-            className={css.logo}
-            alt="Banner Logo von PeerDrop"
-            loading="eager"
-        />
+        <div className={css.logo}>
+            <BannerLogo />
+        </div>
     );
 }
