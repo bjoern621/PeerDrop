@@ -7,7 +7,7 @@ export default function Hero() {
                 Sichere P2P-Dateiübertragung <br />
                 <span className="text-highlight">direkt im Browser</span>
             </h1>
-            <p>
+            <p className="text-muted">
                 PeerDrop ermöglicht es dir, Dateien sicher und digital souverän
                 zwischen Geräten zu teilen. Keine Server, keine Speicherung,
                 super einfach.

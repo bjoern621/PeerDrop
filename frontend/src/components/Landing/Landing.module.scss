@@ -6,6 +6,13 @@
             text-decoration-color: var(--text);
             text-underline-position: under;
         }
+
+        .text-muted {
+            color: var(--text-muted);
+            font-weight: var(--font-weight-regular);
+            text-align: center;
+            margin-top: var(--space-16);
+        }
     }
 
     h2 {

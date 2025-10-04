@@ -4,6 +4,9 @@ export default function Tutorial() {
             <h2>
                 <span className="text-highlight">So einfach</span> geht's
             </h2>
+            <p className="text-muted">
+                Es braucht nur drei Schritte für eine sichere Dateiübertragung
+            </p>
         </section>
     );
 }
