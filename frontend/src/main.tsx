@@ -4,7 +4,7 @@ import "./index.scss";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { PageNotFound } from "./components/PageNotFound/PageNotFound.tsx";
 import LandingPageOld from "./components/LandingPageOld/LandingPageOld.tsx";
-import { Layout } from "./components/Layout/Layout.tsx";
+import { LayoutOld } from "./components/LayoutOld/LayoutOld.tsx";
 import { DataSharingPage } from "./components/DataSharingPage/DataSharingPage.tsx";
 import { ConnectionProvider } from "./context/connection/ConnectionProvider.tsx";
 import Landing from "./components/Landing/Landing.tsx";
@@ -17,7 +17,7 @@ createRoot(document.getElementById("root")!).render(
                 <ConnectionProvider>
                     <Routes>
                         <Route path="/" element={<Landing />} />
-                        <Route element={<Layout />}>
+                        <Route element={<LayoutOld />}>
                             <Route path="/old" element={<LandingPageOld />} />
                             <Route
                                 path="/share"
