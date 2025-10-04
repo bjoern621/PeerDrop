@@ -38,10 +38,6 @@
     src: url(assets/Fonts/Atma/Atma-Bold.ttf);
 }
 
-body {
-    font-family: "Jost", sans-serif;
-}
-
 @mixin sizes {
     --font-size-xxs: 0.75rem; // 12px
     --font-size-xs: 0.875rem; // 14px
@@ -58,6 +54,18 @@ body {
     --line-height-l: 1.25; // 40px / 32px = 1.25
     --line-height-xl: 1.2; // 48px / 40px = 1.2
     --line-height-2xl: 1.167; // 56px / 48px = 1.167
+}
+
+@mixin weights {
+    --font-weight-thin: 100;
+    --font-weight-extralight: 200;
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --font-weight-black: 900;
 }
 
 .text-xxs {
@@ -87,4 +95,11 @@ body {
 .text-2xl {
     font-size: var(--text-2xl-size);
     line-height: var(--text-2xl-line);
+}
+
+body {
+    @include sizes();
+    @include weights();
+
+    font-family: "Jost", sans-serif;
 }

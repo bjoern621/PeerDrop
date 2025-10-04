@@ -10,11 +10,8 @@ export default function Heading() {
                 <NavLink data-text="So funktioniert's" to="/">
                     So funktioniert's
                 </NavLink>
-                <NavLink data-text="Dateien teilen" to="#abc">
+                <NavLink data-text="Dateien teilen" to="/old">
                     Dateien teilen
-                </NavLink>
-                <NavLink data-text="Old Landing" to="/old">
-                    Old Landing
                 </NavLink>
             </div>
         </header>

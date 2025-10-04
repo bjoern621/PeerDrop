@@ -1,5 +1,5 @@
 .header {
-    padding: var(--space-8) var(--space-64);
+    padding: var(--space-16) var(--space-64);
 
     position: relative;
 }
@@ -18,8 +18,12 @@
         align-items: center;
         flex-direction: column;
 
+        font-weight: var(--font-weight-regular);
+        color: var(--text-muted);
+
         &:global(.active) {
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
+            color: var(--text);
         }
     }
 

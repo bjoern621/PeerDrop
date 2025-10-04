@@ -11,4 +11,7 @@ body {
 
     --shadow-rgb: 39, 39, 42;
     --shadow: rgba(var(--shadow-rgb), 0.1);
+
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
 }

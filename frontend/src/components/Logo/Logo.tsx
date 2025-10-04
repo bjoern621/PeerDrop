@@ -1,10 +1,6 @@
-import BannerLogo from "../../assets/logo_banner.svg";
+import BannerLogo from "../../assets/logo_banner.svg?react";
 import css from "./Logo.module.scss";
 
 export default function Logo() {
-    return (
-        <div className={css.logo}>
-            <BannerLogo />
-        </div>
-    );
+    return <BannerLogo className={css.logo} />;
 }
