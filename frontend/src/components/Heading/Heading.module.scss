@@ -1,9 +1,14 @@
 .header {
+    position: relative;
+    border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
+}
+
+.headerContent {
+    max-width: 1200px;
+    margin: auto;
     padding: var(--space-16) var(--space-64);
 
     position: relative;
-
-    border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
 }
 
 .navigation {

@@ -5,14 +5,16 @@ import css from "./Heading.module.scss";
 export default function Heading() {
     return (
         <header className={css.header}>
-            <Logo />
-            <div className={css.navigation}>
-                <NavLink data-text="So funktioniert's" to="/">
-                    So funktioniert's
-                </NavLink>
-                <NavLink data-text="Dateien teilen" to="/old">
-                    Dateien teilen
-                </NavLink>
+            <div className={css.headerContent}>
+                <Logo />
+                <div className={css.navigation}>
+                    <NavLink data-text="So funktioniert's" to="/">
+                        So funktioniert's
+                    </NavLink>
+                    <NavLink data-text="Dateien teilen" to="/old">
+                        Dateien teilen
+                    </NavLink>
+                </div>
             </div>
         </header>
     );
