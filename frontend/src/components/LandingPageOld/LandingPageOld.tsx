@@ -9,14 +9,14 @@ import { OTPInput, SlotProps } from "input-otp";
 import { WaitingDialog } from "../Popups/WaitingDialog";
 import { ConfirmDialog } from "../Popups/ConfirmDialog";
 import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
-import { useWebSocketService } from "../../context/WebSocketContext";
-import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 import { toast } from "react-toastify/unstyled";
 import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 import gitHubIcon from "../../assets/github-mark.svg";
 import gitHubIconBlack from "../../assets/github-mark-black.svg";
+import { useWebSocketService } from "../../context/connection/WebSocketContext";
+import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (

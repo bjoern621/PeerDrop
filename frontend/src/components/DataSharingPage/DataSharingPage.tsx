@@ -4,11 +4,11 @@ import dragdropIcon from "../../assets/drag_and_drop.svg";
 import percentIcon from "../../assets/percent.svg";
 import barChartIcon from "../../assets/bar_chart.svg";
 import { useNavigate } from "react-router";
-import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
+import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import { assert } from "../../util/Assert";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
-import { useWebSocketService } from "../../context/WebSocketContext";
+import { useWebSocketService } from "../../context/connection/WebSocketContext";
 import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 
 enum FileDirection {

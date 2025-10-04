@@ -1,10 +1,10 @@
-import { WebSocketService } from "../services/WebSocketService";
-import { PeerConnectionManager } from "../services/PeerConnectionManager";
+import { WebSocketService } from "../../services/WebSocketService";
+import { PeerConnectionManager } from "../../services/PeerConnectionManager";
 import { PeerConnectionContext } from "./PeerConnectionContext";
-import { WebSocketContext } from "./WebSocketContext";
 import { useNavigate } from "react-router";
 import { useRef, useState } from "react";
 import { ResetContext } from "./ResetContext";
+import { WebSocketContext } from "./WebSocketContext";
 
 export function ConnectionProvider({
     children,

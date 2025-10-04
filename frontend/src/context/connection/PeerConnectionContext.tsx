@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
-import { PeerConnectionManager } from "../services/PeerConnectionManager";
-import { assert } from "../util/Assert";
+import { PeerConnectionManager } from "../../services/PeerConnectionManager";
+import { assert } from "../../util/Assert";
 
 export const PeerConnectionContext =
     createContext<PeerConnectionManager | null>(null);

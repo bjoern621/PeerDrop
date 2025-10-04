@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
-import { WebSocketService } from "../services/WebSocketService";
-import { assert } from "../util/Assert";
+import { WebSocketService } from "../../services/WebSocketService";
+import { assert } from "../../util/Assert";
 
 export const WebSocketContext = createContext<WebSocketService | null>(null);
 
