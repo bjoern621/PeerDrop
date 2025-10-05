@@ -4,6 +4,11 @@
 @use "theme/typography.scss";
 @import "theme/tooltip.scss";
 
+html {
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+}
+
 body {
     background-color: var(--background);
     color: var(--text);
