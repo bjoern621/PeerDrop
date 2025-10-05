@@ -1,4 +1,6 @@
 .container {
+    margin: 0 var(--space-64);
+
     :global {
         .text-highlight {
             color: var(--secondary);
@@ -16,8 +18,8 @@
     }
 
     h2 {
-        font-size: var(--font-size-l);
-        line-height: var(--line-height-l);
+        font-size: var(--font-size-m);
+        line-height: var(--line-height-m);
         font-weight: var(--font-weight-medium);
         text-align: center;
         margin-top: var(--space-96);

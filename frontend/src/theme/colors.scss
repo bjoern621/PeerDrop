@@ -38,10 +38,10 @@
 @mixin light {
     --text: oklch(20.412% 0.02397 262.275);
     --text-muted: oklch(40% 0.02397 262.275);
-    --background: #edf2f7;
-    --primary: #23395c;
-    --secondary: #7c9ed5;
-    --accent: #d5071b;
+    --background: oklch(95.88% 0.00869 248.206);
+    --primary: oklch(34.451% 0.06783 259.35);
+    --secondary: oklch(69.534% 0.08992 259.834);
+    --accent: oklch(55.096% 0.22192 26.644);
     --border: rgba(0, 0, 0, var(--a-5));
     --highlight: rgba(255, 255, 255, var(--a-20));
     --shadow: rgba(0, 0, 0, var(--a-5));
@@ -50,18 +50,45 @@
 @mixin dark {
     --text: oklch(91.449% 0.01641 262.811);
     --text-muted: oklch(70% 0.01641 262.811);
-    --background: #080d12;
-    --primary: #6fa4ee;
-    --secondary: #2a4c83;
-    --accent: #f82a3f;
+    --background: oklch(15.612% 0.01356 248.081);
+    --primary: oklch(71.262% 0.1228 256.909);
+    --secondary: oklch(41.993% 0.10033 259.59);
+    --accent: oklch(63.237% 0.23507 23.024);
     --border: rgba(255, 255, 255, var(--a-5));
     --highlight: rgba(255, 255, 255, var(--a-5));
     --shadow: rgba(0, 0, 0, var(--a-20));
 }
 
+@mixin shades {
+    --primary-5: oklch(from var(--primary) l c h / var(--a-5));
+    --primary-10: oklch(from var(--primary) l c h / var(--a-10));
+    --primary-20: oklch(from var(--primary) l c h / var(--a-20));
+    --primary-30: oklch(from var(--primary) l c h / var(--a-30));
+    --primary-40: oklch(from var(--primary) l c h / var(--a-40));
+    --primary-50: oklch(from var(--primary) l c h / var(--a-50));
+    --primary-60: oklch(from var(--primary) l c h / var(--a-60));
+    --primary-70: oklch(from var(--primary) l c h / var(--a-70));
+    --primary-80: oklch(from var(--primary) l c h / var(--a-80));
+    --primary-90: oklch(from var(--primary) l c h / var(--a-90));
+    --primary-95: oklch(from var(--primary) l c h / var(--a-95));
+
+    --secondary-5: oklch(from var(--secondary) l c h / var(--a-5));
+    --secondary-10: oklch(from var(--secondary) l c h / var(--a-10));
+    --secondary-20: oklch(from var(--secondary) l c h / var(--a-20));
+    --secondary-30: oklch(from var(--secondary) l c h / var(--a-30));
+    --secondary-40: oklch(from var(--secondary) l c h / var(--a-40));
+    --secondary-50: oklch(from var(--secondary) l c h / var(--a-50));
+    --secondary-60: oklch(from var(--secondary) l c h / var(--a-60));
+    --secondary-70: oklch(from var(--secondary) l c h / var(--a-70));
+    --secondary-80: oklch(from var(--secondary) l c h / var(--a-80));
+    --secondary-90: oklch(from var(--secondary) l c h / var(--a-90));
+    --secondary-95: oklch(from var(--secondary) l c h / var(--a-95));
+}
+
 body {
     @include neutral();
     @include alpha();
+    @include shades();
 }
 
 [data-theme="dark"] {
