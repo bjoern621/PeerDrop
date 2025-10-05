@@ -1,8 +1,10 @@
 import css from "./Hero.module.scss";
+import Illustration from "../../../assets/hero_illustration.svg?react";
 
 export default function Hero() {
     return (
         <section className={css.container}>
+            <Illustration />
             <h1>
                 Sichere P2P-Dateiübertragung <br />
                 <span className="text-highlight">direkt im Browser</span>

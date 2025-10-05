@@ -3,15 +3,41 @@
 
     text-align: center;
 
-    h1 {
+    > svg {
+        width: 650px;
+    }
+
+    > h1 {
         font-size: var(--font-size-xl);
         line-height: var(--line-height-xl);
         font-weight: var(--font-weight-medium);
         letter-spacing: -0.03em; // 3 %
+        margin-top: var(--space-40);
     }
 
-    p {
+    > p {
         margin: auto;
         max-width: 380px;
     }
+
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+
+        background: radial-gradient(
+            850px circle at 50% 50%,
+            var(--primary-10),
+            transparent 40%
+        );
+
+        overflow: visible;
+    }
+
+    overflow: visible;
 }
