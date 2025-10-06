@@ -1,9 +1,10 @@
 .header {
-    position: relative;
-    border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
-
     position: sticky;
+    z-index: 100;
     top: 0;
+    left: 0;
+
+    border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
     background-color: var(--background);
     box-shadow: 0 4px 10px 2px var(--shadow);
 }
