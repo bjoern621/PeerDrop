@@ -9,6 +9,7 @@
         "lint": "eslint ."
     },
     "dependencies": {
+        "@radix-ui/react-accordion": "^1.2.12",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-router": "^7.6.0",
