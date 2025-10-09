@@ -1,5 +1,8 @@
 import css from "./Hero.module.scss";
 import Illustration from "../../../assets/hero_illustration.svg?react";
+import Arrow from "../../../assets/icons8-arrow-2.svg?react";
+import Link from "../../Button/Link";
+import { TUTORIAL_ID } from "../Tutorial/Tutorial";
 
 export default function Hero() {
     return (
@@ -14,6 +17,23 @@ export default function Hero() {
                 zwischen Geräten zu teilen. Keine Server, keine Speicherung,
                 super einfach.
             </p>
+            <div className={css.actions}>
+                <Link to="/old">
+                    Sofort loslegen
+                    <Arrow />
+                </Link>
+                <Link
+                    to={`#${TUTORIAL_ID}`}
+                    variant="outline"
+                    onClick={() => {
+                        document.getElementById(TUTORIAL_ID)!.scrollIntoView({
+                            block: "center",
+                        });
+                    }}
+                >
+                    Wie funktioniert's ?
+                </Link>
+            </div>
         </section>
     );
 }

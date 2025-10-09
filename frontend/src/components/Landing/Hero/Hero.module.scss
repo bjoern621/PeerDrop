@@ -42,3 +42,10 @@
         pointer-events: none;
     }
 }
+
+.actions {
+    margin-top: var(--space-40);
+    display: flex;
+    justify-content: center;
+    gap: var(--space-16);
+}

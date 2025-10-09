@@ -1,8 +1,10 @@
 import css from "./Tutorial.module.scss";
 
+export const TUTORIAL_ID = "tutorial";
+
 export default function Tutorial() {
     return (
-        <section>
+        <section id={TUTORIAL_ID}>
             <h2>
                 <span className="text-highlight">So einfach</span> geht&#x2019;s
             </h2>

@@ -1,0 +1,40 @@
+.button {
+    padding: var(--space-8) var(--space-24);
+    border-radius: var(--space-4);
+
+    display: inline-flex;
+    align-items: center;
+    text-wrap: nowrap;
+    gap: var(--space-4);
+
+    svg {
+        height: calc(var(--font-size-s) * var(--line-height-s));
+    }
+}
+
+.primary {
+    --color: var(--primary);
+    --hover-color: var(--primary-10);
+}
+
+.secondary {
+    --color: var(--secondary);
+    --hover-color: var(--secondary-10);
+}
+
+.filled {
+    background-color: var(--color);
+    color: var(--background);
+    fill: var(--background);
+}
+
+.outline {
+    background-color: transparent;
+    border: 1px solid var(--color);
+    color: var(--color);
+    fill: var(--color);
+
+    &:hover {
+        background-color: var(--hover-color);
+    }
+}
