@@ -15,7 +15,7 @@ export default function UnderTheHood() {
     const [selectedItem, setSelectedItem] = useState("item-0");
 
     return (
-        <section className={css.container}>
+        <section>
             <h2>
                 Die <span className="text-highlight">technischen</span> Details
             </h2>
