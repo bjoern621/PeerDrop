@@ -7,14 +7,14 @@ export default function Heading() {
         <header className={css.header}>
             <div className={css.headerContent}>
                 <Logo />
-                <div className={css.navigation}>
+                <nav className={css.navigation}>
                     <NavLink data-text="So funktioniert's" to="/">
                         So funktioniert's
                     </NavLink>
                     <NavLink data-text="Dateien teilen" to="/old">
                         Dateien teilen
                     </NavLink>
-                </div>
+                </nav>
             </div>
         </header>
     );

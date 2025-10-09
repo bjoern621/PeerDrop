@@ -1,7 +1,50 @@
+import Logo from "../Logo/Logo";
+import css from "./Footer.module.scss";
+import GitHubIcon from "../../assets/icons8-github.svg?react";
+import Anchor from "../Anchor/Anchor";
+
 export default function Footer() {
     return (
-        <footer>
-            <p>&copy; 2024 PeerDrop. All rights reserved.</p>
+        <footer className={css.footer}>
+            <Logo />
+            <div className={css.heading}>Weiterführende Links</div>
+            <div className={css.heading}>Information</div>
+            <div className={css.heading}>Auch hier</div>
+            <div className={css.version}>
+                Version: <br />
+                {import.meta.env.VITE_APP_VERSION}
+            </div>
+            <nav>
+                <ul>
+                    <li>
+                        <Anchor to="/inside" underline="none">
+                            Inside PeerDrop
+                        </Anchor>
+                    </li>
+                    <li>Preise</li>
+                    <li>Entstehung</li>
+                </ul>
+            </nav>
+            <nav>
+                <ul>
+                    <li>Impressum</li>
+                    <li>Datenschutz</li>
+                    <li>Cookies verwalten</li>
+                    <li>Nutzungsbedingungen</li>
+                </ul>
+            </nav>
+            <nav>
+                <ul className={css.socials}>
+                    <li>
+                        <a
+                            href="https://github.com/bjoern621/PeerDrop"
+                            className={css.iconLink}
+                        >
+                            <GitHubIcon /> GitHub
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </footer>
     );
 }

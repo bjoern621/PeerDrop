@@ -7,6 +7,10 @@
     text-wrap: nowrap;
     gap: var(--space-4);
 
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+    font-weight: var(--font-weight-medium);
+
     svg {
         height: calc(var(--font-size-s) * var(--line-height-s));
     }
