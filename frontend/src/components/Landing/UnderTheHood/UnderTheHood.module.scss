@@ -85,6 +85,13 @@
             background-color: var(--primary);
             color: var(--background);
         }
+
+        &:hover {
+            background-image: linear-gradient(
+                var(--primary-20),
+                var(--primary-20)
+            );
+        }
     }
 }
 
