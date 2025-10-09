@@ -1,3 +1,4 @@
+import CallToAction from "./CallToAction/CallToAction";
 import Hero from "./Hero/Hero";
 import css from "./Landing.module.scss";
 import Tutorial from "./Tutorial/Tutorial";
@@ -11,6 +12,7 @@ export default function Landing() {
             <Tutorial />
             <Why />
             <UnderTheHood />
+            <CallToAction />
         </div>
     );
 }
