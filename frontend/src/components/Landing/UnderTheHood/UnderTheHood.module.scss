@@ -17,6 +17,27 @@
 
     --fill-0: var(--background);
     --fill-1: var(--text);
+
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        --size: 600px;
+        width: var(--size);
+        height: var(--size);
+
+        background: radial-gradient(
+            circle,
+            var(--primary-10) 20%,
+            transparent 70%
+        );
+
+        pointer-events: none;
+    }
 }
 
 .textBoxes {
