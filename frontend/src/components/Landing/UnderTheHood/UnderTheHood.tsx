@@ -65,7 +65,7 @@ export default function UnderTheHood() {
                     <Accordion.Item value="item-1" className={css.textBox}>
                         <Accordion.Header className={css.textBoxHeader}>
                             <Accordion.Trigger>
-                                P2P Verbindungsaufbau
+                                Ende-zu-Ende-Verschlüsselung by Design
                             </Accordion.Trigger>
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
@@ -96,7 +96,7 @@ export default function UnderTheHood() {
                     <Accordion.Item value="item-2" className={css.textBox}>
                         <Accordion.Header className={css.textBoxHeader}>
                             <Accordion.Trigger>
-                                P2P Verbindungsaufbau
+                                Optimierter Dateitransfer
                             </Accordion.Trigger>
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
