@@ -5,12 +5,12 @@ import "./Layout.scss";
 
 export default function Layout() {
     return (
-        <>
+        <div className="layout-container">
             <Heading />
             <main>
                 <Outlet />
             </main>
             <Footer />
-        </>
+        </div>
     );
 }
