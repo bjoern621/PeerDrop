@@ -114,10 +114,10 @@
 
 .textBoxTextWrapper {
     // Make Accordion content fill height:
-    --radix-collapsible-content-height: calc(
-        var(--text-boxes-height) - var(--text-box-header-height) * 3 -
-            var(--text-boxes-gap) * 2 + var(--header-border-radius)
-    ) !important;
+    // --radix-collapsible-content-height: calc(
+    //     var(--text-boxes-height) - var(--text-box-header-height) * 3 -
+    //         var(--text-boxes-gap) * 2 + var(--header-border-radius)
+    // ) !important;
     --border-width: 1px;
 
     background-color: var(--primary-10);
