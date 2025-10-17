@@ -97,7 +97,7 @@
     line-height: var(--text-2xl-line);
 }
 
-body {
+html {
     @include sizes();
     @include weights();
 

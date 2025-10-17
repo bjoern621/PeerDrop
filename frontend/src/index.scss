@@ -6,6 +6,7 @@
 
 html {
     scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) var(--background);
     scrollbar-gutter: stable;
 
     scroll-behavior: smooth;

@@ -85,7 +85,7 @@
     --secondary-95: oklch(from var(--secondary) l c h / var(--a-95));
 }
 
-body {
+html {
     @include neutral();
     @include alpha();
     @include shades();

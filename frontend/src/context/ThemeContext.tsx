@@ -69,7 +69,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, [themePreference]);
 
     useLayoutEffect(() => {
-        document.body.setAttribute("data-theme", colorScheme);
+        document.documentElement.setAttribute("data-theme", colorScheme);
     }, [colorScheme]);
 
     const setThemePreference = (newPreference: ThemePreference) => {
