@@ -24,20 +24,22 @@ const anchorVariants = cva(css.anchor, {
 
 interface AnchorProps extends LinkProps, VariantProps<typeof anchorVariants> {
     children: ReactNode;
+    className?: string;
 }
 
 export default function Anchor({
     underline,
     hover,
     children,
+    className,
     ...props
 }: AnchorProps) {
     return (
         <Link
-            className={anchorVariants({
+            className={`${anchorVariants({
                 underline,
                 hover,
-            })}
+            })} ${className || ""}`}
             {...props}
         >
             {children}

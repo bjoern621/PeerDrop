@@ -4,6 +4,7 @@ import Security from "../../../assets/security.svg?react";
 import Compress from "../../../assets/compression.svg?react";
 import Routes from "../../../assets/all_routes.svg?react";
 import * as Accordion from "@radix-ui/react-accordion";
+import Anchor from "../../Anchor/Anchor";
 
 const illustrations = {
     "item-0": <Routes />,
@@ -134,7 +135,8 @@ export default function UnderTheHood() {
 
             <p className={css.insidePeerDropLink}>
                 Du willst noch mehr über die Technik hinter PeerDrop erfahren?
-                Schau dir unser <a href="/inside">Inside PeerDrop</a> an!
+                Schau dir unser <Anchor to="/inside">Inside PeerDrop</Anchor>{" "}
+                an!
             </p>
         </section>
     );

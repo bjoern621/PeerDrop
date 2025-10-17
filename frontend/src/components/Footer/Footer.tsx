@@ -36,12 +36,13 @@ export default function Footer() {
             <nav>
                 <ul className={css.socials}>
                     <li>
-                        <a
-                            href="https://github.com/bjoern621/PeerDrop"
+                        <Anchor
+                            to="https://github.com/bjoern621/PeerDrop"
+                            underline="none"
                             className={css.iconLink}
                         >
                             <GitHubIcon /> GitHub
-                        </a>
+                        </Anchor>
                     </li>
                 </ul>
             </nav>
