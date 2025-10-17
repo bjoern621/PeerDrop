@@ -22,7 +22,13 @@ export default function UnderTheHood() {
 
             <div className={css.horizontalLayout}>
                 <div className={css.illustrationContainer}>
-                    {illustrations[selectedItem as keyof typeof illustrations]}
+                    <div key={selectedItem} className={css.illustration}>
+                        {
+                            illustrations[
+                                selectedItem as keyof typeof illustrations
+                            ]
+                        }
+                    </div>
                 </div>
 
                 <Accordion.Root
