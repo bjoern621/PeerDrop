@@ -46,25 +46,23 @@ export default function UnderTheHood() {
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
                             <div className={css.textBoxText}>
-                                Die Architektur von PeerDrop basiert auf dem
-                                Prinzip der strikten Trennung von
-                                Verbindungsaufbau und Datentransfer, um maximale
-                                Sicherheit und Effizienz zu garantieren.
-                                <br /> Unser Backend agiert dabei als sicherer
-                                Signaling-Server: Es orchestriert den Kontakt
-                                wie eine Vermittlungsstelle, indem es Metadaten
-                                wie Verbindungswünsche über eine
-                                WebSocket-Verbindung austauscht. Entscheidend
-                                ist, dass dieser Server Ihre Dateien niemals
-                                sieht oder speichert.
-                                <br /> Sobald beide Nutzer der Verbindung
-                                zustimmen, beginnt ein sorgfältig orchestrierter
-                                Handshake. Der Server weist beide Browser an,
-                                eine direkte, Ende-zu-Ende-verschlüsselte
-                                Peer-to-Peer (P2P) Verbindung via WebRTC
-                                aufzubauen. Der gesamte Dateitransfer findet
-                                ausschließlich in diesem privaten Kanal statt
-                                und umgeht unsere Server vollständig.
+                                Wenn du den Code eingibst und auf Verbinden
+                                klickst, startet im Hintergrund der
+                                Verbindungsaufbau: Unser Signaling-Server
+                                tauscht die Verbindungsdaten zwischen den Peers
+                                aus. Danach verbinden sich die Geräte direkt per
+                                WebRTC. Angebot und Antwort, also Offer und
+                                Answer, sowie ICE-Kandidaten werden in Sekunden
+                                verhandelt. Dabei werden alle Verbindungswege
+                                priorisiert: zuerst lokale Verbindungen, dann
+                                über das Internet. Der perfekte Pfad wird
+                                automatisch ausgewählt. Router- und
+                                Firewall-Hürden werden automatisch umgangen,
+                                ganz ohne VPN und ohne gemeinsames WLAN. Weil
+                                nichts auf Server hochgeladen wird, geht es
+                                schneller los als bei Upload-Diensten. Und im
+                                Gegensatz zu reinen LAN-Tools funktioniert
+                                PeerDrop zuverlässig auch quer durchs Internet.
                             </div>
                         </Accordion.Content>
                     </Accordion.Item>
@@ -77,25 +75,27 @@ export default function UnderTheHood() {
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
                             <div className={css.textBoxText}>
-                                Die Architektur von PeerDrop basiert auf dem
-                                Prinzip der strikten Trennung von
-                                Verbindungsaufbau und Datentransfer, um maximale
-                                Sicherheit und Effizienz zu garantieren.
-                                <br /> Unser Backend agiert dabei als sicherer
-                                Signaling-Server: Es orchestriert den Kontakt
-                                wie eine Vermittlungsstelle, indem es Metadaten
-                                wie Verbindungswünsche über eine
-                                WebSocket-Verbindung austauscht. Entscheidend
-                                ist, dass dieser Server Ihre Dateien niemals
-                                sieht oder speichert.
-                                <br /> Sobald beide Nutzer der Verbindung
-                                zustimmen, beginnt ein sorgfältig orchestrierter
-                                Handshake. Der Server weist beide Browser an,
-                                eine direkte, Ende-zu-Ende-verschlüsselte
-                                Peer-to-Peer (P2P) Verbindung via WebRTC
-                                aufzubauen. Der gesamte Dateitransfer findet
-                                ausschließlich in diesem privaten Kanal statt
-                                und umgeht unsere Server vollständig.
+                                Die Ende-zu-Ende-Verschlüsselung ist fest
+                                eingebaut und funktioniert ohne zusätzliches
+                                Setup. Deine Daten laufen über
+                                DTLS-verschlüsselte WebRTC DataChannel direkt
+                                von Gerät zu Gerät, ohne Umwege über Drittserver
+                                und ohne, dass Inhalte zwischengespeichert oder
+                                entschlüsselt werden. Die Schlüssel werden
+                                ausschließlich im Browser ausgehandelt und
+                                verlassen ihn nicht, unsere Server sehen nur das
+                                Minimum, das für die Vermittlung der Verbindung
+                                nötig ist. Wir speichern weder Dateien noch
+                                Transferprotokolle; es gibt keinen Account,
+                                keine Cloud und keine Freigaben, die man später
+                                wieder entfernen müsste. Privacy ohne Aufwand
+                                automatisch und standardmäßig. Du kannst die
+                                Ende-zu-Ende-Verschlüsselung selbst
+                                nachvollziehe, wir sind{" "}
+                                <Anchor to="https://github.com/bjoern621/PeerDrop">
+                                    Open Source
+                                </Anchor>
+                                .
                             </div>
                         </Accordion.Content>
                     </Accordion.Item>
@@ -108,25 +108,20 @@ export default function UnderTheHood() {
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
                             <div className={css.textBoxText}>
-                                Die Architektur von PeerDrop basiert auf dem
-                                Prinzip der strikten Trennung von
-                                Verbindungsaufbau und Datentransfer, um maximale
-                                Sicherheit und Effizienz zu garantieren.
-                                <br /> Unser Backend agiert dabei als sicherer
-                                Signaling-Server: Es orchestriert den Kontakt
-                                wie eine Vermittlungsstelle, indem es Metadaten
-                                wie Verbindungswünsche über eine
-                                WebSocket-Verbindung austauscht. Entscheidend
-                                ist, dass dieser Server Ihre Dateien niemals
-                                sieht oder speichert.
-                                <br /> Sobald beide Nutzer der Verbindung
-                                zustimmen, beginnt ein sorgfältig orchestrierter
-                                Handshake. Der Server weist beide Browser an,
-                                eine direkte, Ende-zu-Ende-verschlüsselte
-                                Peer-to-Peer (P2P) Verbindung via WebRTC
-                                aufzubauen. Der gesamte Dateitransfer findet
-                                ausschließlich in diesem privaten Kanal statt
-                                und umgeht unsere Server vollständig.
+                                Hinter den Kulissen zerlegt PeerDrop Dateien in
+                                kleine Blöcke und passt den Fluss automatisch an
+                                die verfügbare Bandbreite an. So bleiben
+                                Übertragungen stabil, auch wenn das Netz
+                                schwankt, und sie sind trotzdem schnell. Ordner
+                                werden vor dem Senden automatisch komprimiert,
+                                mehrere Dateien laufen parallel in einer
+                                wartenden Pipeline. Abgebrochene Übertragungen
+                                setzt PeerDrop nahtlos fort und bestätigt am
+                                Ende die Integrität jeder Datei. Ergebnis:
+                                spürbar weniger Wartezeit als bei Upload-
+                                Download-Lösungen und keine Limits fremder
+                                Server. Du kannst den Fortschritt der
+                                Übertragung pro Datei in Echtzeit sehen.
                             </div>
                         </Accordion.Content>
                     </Accordion.Item>

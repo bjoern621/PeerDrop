@@ -54,7 +54,7 @@
 }
 
 .textBoxes {
-    --text-boxes-height: 550px;
+    --text-boxes-height: 500px;
     --text-boxes-gap: var(--space-8);
     --text-box-header-height: 60px;
 
@@ -113,6 +113,7 @@
 }
 
 .textBoxTextWrapper {
+    // Make Accordion content fill height:
     --radix-collapsible-content-height: calc(
         var(--text-boxes-height) - var(--text-box-header-height) * 3 -
             var(--text-boxes-gap) * 2 + var(--header-border-radius)
