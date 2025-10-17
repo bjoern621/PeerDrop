@@ -7,7 +7,8 @@ export default function CallToAction() {
         <section className={css.container}>
             <h2>Bereit für sichere Dateiübertragung?</h2>
             <p className="text-muted">
-                Es braucht nur drei Schritte für eine sichere Dateiübertragung
+                Dann verbinde dich auf dem direktesten Weg und teile, was du
+                willst.
             </p>
             <Link to="/old" className={css.ctaButton}>
                 Jetzt loslegen
