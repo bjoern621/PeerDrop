@@ -7,9 +7,9 @@ import * as Accordion from "@radix-ui/react-accordion";
 import Anchor from "../../Anchor/Anchor";
 
 const illustrations = {
-    "item-0": <Routes aria-hidden />,
-    "item-1": <Security aria-hidden />,
-    "item-2": <Compress aria-hidden />,
+    "item-0": <Routes />,
+    "item-1": <Security />,
+    "item-2": <Compress />,
 } as const;
 
 export default function UnderTheHood() {
