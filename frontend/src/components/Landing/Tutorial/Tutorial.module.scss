@@ -2,6 +2,10 @@
     display: flex;
     gap: var(--space-40);
     margin-top: var(--space-24);
+
+    @media (max-width: 850px) {
+        flex-direction: column;
+    }
 }
 
 @mixin card {
