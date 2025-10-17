@@ -6,9 +6,19 @@
     margin-right: auto;
     padding: var(--space-16) 0 var(--space-16) var(--space-64);
 
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1.25fr repeat(3, 1fr);
     gap: var(--space-24);
+
+    // 200 (basis) * 4 + 24 (gap) * 3 + 64 (padding) + 9 (scrollbar)
+    @media (max-width: 945px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    // 200 (basis) * 2 + 24 (gap) + 64 (padding) + 9 (scrollbar)
+    @media (max-width: 497px) {
+        grid-template-columns: 1fr;
+    }
 
     ul {
         padding-left: 0;
@@ -29,13 +39,9 @@
     gap: var(--space-24);
     align-items: flex-start;
 
-    flex: 1;
-
     --head-height: 45px;
 
     &:first-child {
-        flex: 1.25;
-
         > :first-child {
             height: var(--head-height);
         }
