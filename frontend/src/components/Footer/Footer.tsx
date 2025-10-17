@@ -2,6 +2,7 @@ import Logo from "../Logo/Logo";
 import css from "./Footer.module.scss";
 import GitHubIcon from "../../assets/icons8-github.svg?react";
 import Anchor from "../Anchor/Anchor";
+import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
 export default function Footer() {
     return (
@@ -27,6 +28,9 @@ export default function Footer() {
             </nav>
             <nav>
                 <ul>
+                    <li>
+                        <ThemeToggle />
+                    </li>
                     <li>Impressum</li>
                     <li>Datenschutz</li>
                     <li>Cookies verwalten</li>

@@ -1,0 +1,11 @@
+.themeToggle {
+    display: inline-flex;
+    align-items: center;
+    font-weight: var(--font-weight-regular);
+    cursor: pointer;
+    text-underline-position: under;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

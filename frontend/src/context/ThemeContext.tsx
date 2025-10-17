@@ -8,12 +8,14 @@ import {
 } from "react";
 
 const LOCAL_STORAGE_KEY = "theme";
-type Theme = "light" | "dark";
+type ColorScheme = "light" | "dark";
+type ThemePreference = ColorScheme | "system";
 const prefersDarkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 interface ThemeContextType {
-    theme: Theme;
-    setTheme: (theme: Theme | "system") => void;
+    themePreference: ThemePreference;
+    colorScheme: ColorScheme;
+    setThemePreference: (preference: ThemePreference) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -26,52 +28,69 @@ export function useThemeContext() {
     return context;
 }
 
-function isTheme(value: unknown): value is Theme {
+function isColorScheme(value: unknown): value is ColorScheme {
     return value === "light" || value === "dark";
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-    const [theme, setThemeState] = useState<Theme>(() => {
-        const storedTheme = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (isTheme(storedTheme)) {
-            return storedTheme;
-        }
+function isThemePreference(value: unknown): value is ThemePreference {
+    return isColorScheme(value) || value === "system";
+}
 
+export function ThemeProvider({ children }: { children: ReactNode }) {
+    const [themePreference, setThemePreferenceState] =
+        useState<ThemePreference>(() => {
+            const storedPreference = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (isThemePreference(storedPreference)) {
+                return storedPreference;
+            }
+            return "system";
+        });
+
+    const [colorScheme, setColorScheme] = useState<ColorScheme>(() => {
+        const storedPreference = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (isColorScheme(storedPreference)) {
+            return storedPreference;
+        }
         return prefersDarkMediaQuery.matches ? "dark" : "light";
     });
 
     useLayoutEffect(() => {
         const handleChange = () => {
-            if (!localStorage.getItem(LOCAL_STORAGE_KEY)) {
-                setThemeState(prefersDarkMediaQuery.matches ? "dark" : "light");
+            if (themePreference === "system") {
+                setColorScheme(
+                    prefersDarkMediaQuery.matches ? "dark" : "light"
+                );
             }
         };
 
         prefersDarkMediaQuery.addEventListener("change", handleChange);
         return () =>
             prefersDarkMediaQuery.removeEventListener("change", handleChange);
-    }, []);
+    }, [themePreference]);
 
     useLayoutEffect(() => {
-        document.body.setAttribute("data-theme", theme);
-    }, [theme]);
+        document.body.setAttribute("data-theme", colorScheme);
+    }, [colorScheme]);
 
-    const setTheme = (newTheme: Theme | "system") => {
-        if (newTheme === "system") {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
+    const setThemePreference = (newPreference: ThemePreference) => {
+        setThemePreferenceState(newPreference);
 
-            const systemTheme = prefersDarkMediaQuery.matches
+        if (newPreference === "system") {
+            localStorage.setItem(LOCAL_STORAGE_KEY, "system");
+            const systemScheme = prefersDarkMediaQuery.matches
                 ? "dark"
                 : "light";
-            setThemeState(systemTheme);
+            setColorScheme(systemScheme);
         } else {
-            localStorage.setItem(LOCAL_STORAGE_KEY, newTheme);
-            setThemeState(newTheme);
+            localStorage.setItem(LOCAL_STORAGE_KEY, newPreference);
+            setColorScheme(newPreference);
         }
     };
 
     return (
-        <ThemeContext.Provider value={{ theme, setTheme }}>
+        <ThemeContext.Provider
+            value={{ themePreference, colorScheme, setThemePreference }}
+        >
             {children}
         </ThemeContext.Provider>
     );
