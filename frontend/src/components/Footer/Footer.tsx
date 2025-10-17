@@ -7,7 +7,7 @@ import ThemeToggle from "../ThemeToggle/ThemeToggle";
 export default function Footer() {
     return (
         <footer className={css.footer}>
-            <Logo />
+            <Logo aria-hidden />
             <div className={css.heading}>Weiterführende Links</div>
             <div className={css.heading}>Information</div>
             <div className={css.heading}>Auch hier</div>
