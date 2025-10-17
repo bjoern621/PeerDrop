@@ -33,7 +33,7 @@
 }
 
 .iconLink {
-    display: flex;
+    display: inline-flex;
     gap: var(--space-4);
 
     > svg {
