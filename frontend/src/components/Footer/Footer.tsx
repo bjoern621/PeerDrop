@@ -45,7 +45,7 @@ export default function Footer() {
                             underline="none"
                             className={css.iconLink}
                         >
-                            <GitHubIcon /> GitHub
+                            <GitHubIcon aria-hidden /> GitHub
                         </Anchor>
                     </li>
                 </ul>

@@ -38,7 +38,7 @@ export default function Why() {
                     <div className={css.cardContent}>
                         <h3>
                             Super einfach
-                            <EasyIcon />
+                            <EasyIcon aria-hidden />
                         </h3>
                         <p className="text-muted">
                             Vergiss das umständliche Hochladen in eine Cloud und
@@ -60,7 +60,7 @@ export default function Why() {
                     <div className={css.cardContent}>
                         <h3>
                             Deine Daten, deine Kontrolle
-                            <SecurityIcon />
+                            <SecurityIcon aria-hidden />
                         </h3>
                         <p className="text-muted">
                             Wir öffnen eine verschlüsselte Peer-to-Peer
@@ -83,7 +83,7 @@ export default function Why() {
                             Keine Anmeldung, keine
                             <br />
                             Werbung, Open Source
-                            <GiftIcon />
+                            <GiftIcon aria-hidden />
                         </h3>
                         <p className="text-muted">
                             Sende eine einzelne Datei oder deine gesamte
@@ -103,7 +103,7 @@ export default function Why() {
                     <div className={css.cardContent}>
                         <h3>
                             Maximale Geschwindigkeit
-                            <SpeedIcon />
+                            <SpeedIcon aria-hidden />
                         </h3>
                         <p className={"text-muted"}>
                             Du zahlst für eine schnelle Internetverbindung,

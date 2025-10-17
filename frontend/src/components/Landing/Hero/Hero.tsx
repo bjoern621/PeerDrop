@@ -20,7 +20,7 @@ export default function Hero() {
             <div className={css.actions}>
                 <Link to="/old">
                     Sofort loslegen
-                    <Arrow />
+                    <Arrow aria-hidden />
                 </Link>
                 <Link
                     to={`#${TUTORIAL_ID}`}
