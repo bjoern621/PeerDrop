@@ -5,7 +5,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-16);
 
-    @media (max-width: 750px) {
+    @media (max-width: 800px) {
         grid-template-columns: 1fr;
     }
 }
@@ -81,6 +81,12 @@
         line-height: var(--line-height-m);
         font-weight: var(--font-weight-medium);
         text-align: center;
+
+        padding: 0 var(--space-16);
+
+        .noWrap {
+            white-space: nowrap;
+        }
 
         svg {
             height: calc(var(--font-size-m) * var(--line-height-m));

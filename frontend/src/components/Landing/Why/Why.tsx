@@ -37,8 +37,11 @@ export default function Why() {
                     <div className={css.cardBorder}></div>
                     <div className={css.cardContent}>
                         <h3>
-                            Super einfach
-                            <EasyIcon aria-hidden />
+                            Super{" "}
+                            <span className={css.noWrap}>
+                                einfach
+                                <EasyIcon aria-hidden />
+                            </span>
                         </h3>
                         <p className="text-muted">
                             Vergiss das umständliche Hochladen in eine Cloud und
@@ -59,8 +62,11 @@ export default function Why() {
                     <div className={css.cardBorder}></div>
                     <div className={css.cardContent}>
                         <h3>
-                            Deine Daten, deine Kontrolle
-                            <SecurityIcon aria-hidden />
+                            Deine Daten, deine{" "}
+                            <span className={css.noWrap}>
+                                Kontrolle
+                                <SecurityIcon aria-hidden />
+                            </span>
                         </h3>
                         <p className="text-muted">
                             Wir öffnen eine verschlüsselte Peer-to-Peer
@@ -80,8 +86,11 @@ export default function Why() {
                     <div className={css.cardBorder}></div>
                     <div className={css.cardContent}>
                         <h3>
-                            Keine Anmeldung, keine Werbung, Open Source
-                            <GiftIcon aria-hidden />
+                            Keine Anmeldung, keine Werbung, Open{" "}
+                            <span className={css.noWrap}>
+                                Source
+                                <GiftIcon aria-hidden />
+                            </span>
                         </h3>
                         <p className="text-muted">
                             Sende eine einzelne Datei oder deine gesamte
@@ -100,8 +109,11 @@ export default function Why() {
                     <div className={css.cardBorder}></div>
                     <div className={css.cardContent}>
                         <h3>
-                            Maximale Geschwindigkeit
-                            <SpeedIcon aria-hidden />
+                            Maximale{" "}
+                            <span className={css.noWrap}>
+                                Geschwindigkeit
+                                <SpeedIcon aria-hidden />
+                            </span>
                         </h3>
                         <p className={"text-muted"}>
                             Du zahlst für eine schnelle Internetverbindung,
