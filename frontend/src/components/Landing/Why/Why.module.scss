@@ -4,6 +4,10 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-16);
+
+    @media (max-width: 750px) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .cardContainer:hover .cardBorder {

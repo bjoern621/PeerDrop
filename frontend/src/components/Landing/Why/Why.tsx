@@ -80,9 +80,7 @@ export default function Why() {
                     <div className={css.cardBorder}></div>
                     <div className={css.cardContent}>
                         <h3>
-                            Keine Anmeldung, keine
-                            <br />
-                            Werbung, Open Source
+                            Keine Anmeldung, keine Werbung, Open Source
                             <GiftIcon aria-hidden />
                         </h3>
                         <p className="text-muted">
