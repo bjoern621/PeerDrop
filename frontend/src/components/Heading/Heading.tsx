@@ -6,10 +6,10 @@ export default function Heading() {
     return (
         <header className={css.header}>
             <div className={css.headerContent}>
-                <Link to="/">
-                    <Logo title="Zur Startseite navigieren" />
+                <Link to="/" aria-label="Zur Startseite navigieren">
+                    <Logo aria-hidden />
                 </Link>
-                <nav className={css.navigation}>
+                <nav className={css.navigation} aria-label="Hauptnavigation">
                     <NavLink data-text="So funktioniert's" to="/">
                         So funktioniert's
                     </NavLink>

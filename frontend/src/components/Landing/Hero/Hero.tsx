@@ -7,7 +7,7 @@ import { TUTORIAL_ID } from "../Tutorial/Tutorial";
 export default function Hero() {
     return (
         <section className={css.container}>
-            <Illustration />
+            <Illustration aria-hidden />
             <h1>
                 Sichere P2P-Dateiübertragung <br />
                 <span className="text-highlight">direkt im Browser</span>
