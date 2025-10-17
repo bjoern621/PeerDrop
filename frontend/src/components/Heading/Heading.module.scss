@@ -34,10 +34,10 @@
         font-weight: var(--font-weight-regular);
         color: var(--text-muted);
 
+        text-underline-position: under;
+
         &:hover:not(:global(.active)) {
             text-decoration: underline;
-            text-underline-position: below;
-            text-underline-offset: var(--space-4);
         }
 
         &:global(.active) {
