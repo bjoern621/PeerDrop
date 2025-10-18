@@ -91,7 +91,7 @@ export default function UnderTheHood() {
                                 wieder entfernen müsste. Privacy ohne Aufwand
                                 automatisch und standardmäßig. Du kannst die
                                 Ende-zu-Ende-Verschlüsselung selbst
-                                nachvollziehe, wir sind{" "}
+                                nachvollziehen, wir sind{" "}
                                 <Anchor to="https://github.com/bjoern621/PeerDrop">
                                     Open Source
                                 </Anchor>
