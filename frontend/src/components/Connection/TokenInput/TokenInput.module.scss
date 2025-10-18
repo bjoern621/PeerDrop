@@ -1,0 +1,32 @@
+.slots-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.otp-slot {
+    width: 60px;
+    aspect-ratio: 45/65;
+
+    border: 3px solid var(--primary-60);
+    border-radius: var(--space-16);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: var(--font-size-2xl);
+    line-height: var(--line-height-2xl);
+    font-family: "Roboto Mono";
+}
+
+.otpSlotActive {
+    border-color: var(--primary);
+    border-width: 4px;
+}
+
+.otpSlotCaret {
+    border-radius: var(--space-8);
+    background-color: var(--primary-60);
+}

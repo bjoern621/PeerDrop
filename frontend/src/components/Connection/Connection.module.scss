@@ -1,17 +1,109 @@
-@mixin container {
+.container {
+    display: flex;
+    gap: var(--space-24);
+}
+
+@mixin containerBorder {
     border: 3px solid var(--secondary);
     border-radius: var(--space-16);
-    padding: var(--space-8);
+    padding: var(--space-16);
+}
+
+@mixin container {
+    @include containerBorder;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 400px;
+    flex: 1;
 }
 
 .ownTokenContainer {
     @include container;
 
     border-color: var(--secondary);
+
+    > .heading {
+        color: var(--secondary);
+        fill: var(--secondary);
+    }
 }
 
 .connectToPeerContainer {
     @include container;
 
     border-color: var(--primary);
+
+    > .heading {
+        color: var(--primary);
+        fill: var(--primary);
+    }
+}
+
+.heading {
+    font-size: var(--font-size-l);
+    line-height: var(--line-height-l);
+    font-family: "Atma";
+    font-weight: var(--font-weight-semibold);
+
+    > svg {
+        height: calc(var(--font-size-l) * var(--line-height-l));
+        vertical-align: middle;
+        margin-right: var(--space-4);
+    }
+}
+
+.tokenBox {
+    @include containerBorder;
+
+    text-align: center;
+}
+
+.token {
+    font-size: var(--font-size-4xl);
+    line-height: var(--line-height-4xl);
+    font-family: "Roboto Mono";
+    letter-spacing: 0.25em;
+}
+
+.mutedText {
+    color: var(--text-muted);
+    margin-top: var(--space-8);
+    font-weight: var(--font-weight-regular);
+    text-align: center;
+}
+
+.openGroupRoomButton {
+    width: 100%;
+}
+
+.copyButtons {
+    display: flex;
+    gap: var(--space-8);
+
+    margin-top: var(--space-8);
+
+    > * {
+        flex: 1;
+    }
+}
+
+/* Fade-in scale animation copied from UnderTheHood for reuse */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.fadeInScale {
+    animation: fadeInScale 0.5s ease both;
+}
+
+.tokenInputContainer > div {
+    margin-top: var(--space-8);
 }

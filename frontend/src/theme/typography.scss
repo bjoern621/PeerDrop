@@ -47,6 +47,7 @@
     --font-size-xl: 2rem; // 32px
     --font-size-2xl: 2.5rem; // 40px
     --font-size-3xl: 3rem; // 48px
+    --font-size-4xl: 3.5rem; // 56px
 
     --line-height-xxs: 1.333; // 16px / 12px = 1.333
     --line-height-xs: 1.143; // 16px / 14px = 1.143
@@ -56,6 +57,7 @@
     --line-height-xl: 1.25; // 40px / 32px = 1.25
     --line-height-2xl: 1.2; // 48px / 40px = 1.2
     --line-height-3xl: 1.167; // 56px / 48px = 1.167
+    --line-height-4xl: 1.143; // 64px / 56px = 1.143
 
     @media (max-width: 450px) {
         --font-size-2xl: var(--font-size-l);
