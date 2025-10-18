@@ -13,7 +13,7 @@ import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessag
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 import { assert } from "../../util/Assert";
-import { toast, ToastContainer } from "react-toastify/unstyled";
+import { toast } from "react-toastify/unstyled";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Connection() {
@@ -196,22 +196,6 @@ export default function Connection() {
                     Verbinden
                 </Button>
             </div>
-
-            <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-                style={{
-                    font: "Source Sans 3",
-                    fontWeight: "bold",
-                }}
-            />
         </div>
     );
 }
