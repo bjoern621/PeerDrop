@@ -40,7 +40,9 @@ $layout-breakpoint: 850px;
 }
 
 .illustration {
-    animation: fadeInScale 0.5s ease;
+    @media (prefers-reduced-motion: no-preference) {
+        animation: fadeInScale 0.5s ease;
+    }
 
     width: 100%;
 
