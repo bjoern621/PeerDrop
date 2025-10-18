@@ -6,6 +6,7 @@
     align-items: center;
     text-wrap: nowrap;
     gap: var(--space-4);
+    justify-content: center;
 
     font-size: var(--font-size-s);
     line-height: var(--line-height-s);
@@ -19,16 +20,19 @@
 .primary {
     --color: var(--primary);
     --hover-color: var(--primary-10);
+    --pressed-color: var(--primary-20);
 }
 
 .secondary {
     --color: var(--secondary);
     --hover-color: var(--secondary-10);
+    --hover-color: var(--secondary-20);
 }
 
 .neutral {
     --color: var(--text);
     --hover-color: var(--text-muted-10);
+    --pressed-color: var(--text-muted-20);
 }
 
 .filled {
@@ -45,5 +49,9 @@
 
     &:hover {
         background-color: var(--hover-color);
+    }
+
+    &:active {
+        background-color: var(--pressed-color);
     }
 }
