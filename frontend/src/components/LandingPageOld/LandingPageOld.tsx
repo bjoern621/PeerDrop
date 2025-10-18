@@ -7,7 +7,6 @@ import copyContentIcon from "../../assets/copy_content.svg";
 import rightArrow from "../../assets/right_arrow_light.svg";
 import { OTPInput, SlotProps } from "input-otp";
 import { WaitingDialog } from "../Popups/WaitingDialog";
-import { ConfirmDialog } from "../Popups/ConfirmDialog";
 import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
@@ -17,6 +16,7 @@ import gitHubIcon from "../../assets/github-mark.svg";
 import gitHubIconBlack from "../../assets/github-mark-black.svg";
 import { useWebSocketService } from "../../context/connection/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
+import ConfirmConnectToast from "../LandingPage/ConfirmConnectToast/ConfirmConnectToast";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -44,14 +44,10 @@ export default function LandingPageOld() {
     const [clientToken, setClientToken] = useState<string | null>(null);
     const [remoteToken, setRemoteToken] = useState<string>("");
     const waitingDialog = useRef<HTMLDialogElement | null>(null);
-    const confirmDialog = useRef<HTMLDialogElement | null>(null);
     const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
     const [tokenCopyStatus, setTokenCopyStatus] = useState(
         TokenCopyStatus.IDLE
     );
-
-    const [remoteTokenOfRequestingPeer, setRemoteTokenOfRequestingPeer] =
-        useState<string | undefined>(undefined);
 
     /**
      * Sends a heartbeat message if the user has registered the device.
@@ -87,6 +83,26 @@ export default function LandingPageOld() {
         };
     }, [sendHeartbeatIfPossible]);
 
+    const confirmConnection = useCallback(
+        (remoteToken: string) => {
+            assert(remoteToken, "Remote token is not set.");
+            peerConnectionManager.acceptConnectionRequest(remoteToken);
+
+            showLoadingDialog();
+        },
+        [peerConnectionManager]
+    );
+
+    const declineConnection = useCallback(
+        (remoteToken: string) => {
+            assert(remoteToken, "Remote token is not set.");
+            peerConnectionManager.rejectConnectionRequest(remoteToken);
+        },
+        [peerConnectionManager]
+    );
+
+    const dismissAllToasts = () => toast.dismiss();
+
     useEffect(() => {
         assert(websocket, "WebSocketService is not initialized.");
 
@@ -108,26 +124,49 @@ export default function LandingPageOld() {
         peerConnectionManager.setOnConnectionResponseReceivedCallback(
             (accepted: boolean) => {
                 if (accepted) {
-                    // console.log("ACCEPTED");
                     waitingDialog.current!.close();
                     showLoadingDialog();
+                    dismissAllToasts();
                 } else {
-                    // console.log("REJECTED");
                     waitingDialog.current!.close();
                     toast.error("Verbindungsanfrage wurde abgelehnt!");
                 }
             }
         );
+
+        const confirmConnectionToastIdPrefix = "confirm-connection-toast-";
+
         peerConnectionManager.setOnConnectionRequestReceivedCallback(
             (requestingPeerToken: string) => {
-                setRemoteTokenOfRequestingPeer(requestingPeerToken);
-                confirmDialog.current!.showModal();
+                const toastId =
+                    confirmConnectionToastIdPrefix + requestingPeerToken;
+
+                toast.info(
+                    <ConfirmConnectToast
+                        requestingPeerToken={requestingPeerToken}
+                        onAccept={() => {
+                            dismissAllToasts();
+                            confirmConnection(requestingPeerToken);
+                        }}
+                        onReject={() => declineConnection(requestingPeerToken)}
+                        toastId={toastId}
+                    />,
+                    {
+                        closeOnClick: false,
+                        autoClose: false,
+                        hideProgressBar: false,
+                        progress: 1,
+                        closeButton: false,
+                        className: "confirm-connection-toast-style", // Set in toast-styles.scss
+                        toastId: toastId,
+                    }
+                );
             }
         );
         peerConnectionManager.setOnConnectionRequestCancelledReceivedCallback(
-            () => {
-                confirmDialog.current!.close();
-                waitingDialog.current!.close();
+            (remoteToken: string) => {
+                const toastId = confirmConnectionToastIdPrefix + remoteToken;
+                toast.dismiss(toastId);
             }
         );
 
@@ -143,6 +182,8 @@ export default function LandingPageOld() {
         peerConnectionManager,
         sendHeartbeatIfPossible,
         sendContinuousHeartbeat,
+        confirmConnection,
+        declineConnection,
     ]);
 
     const connectToPeer = () => {
@@ -162,8 +203,8 @@ export default function LandingPageOld() {
                     setTokenCopyStatus(TokenCopyStatus.COPIED);
 
                     toast.success("Token in die Zwischenablage kopiert!", {
-                        toastId: "instant-message-toast",
-                        updateId: "instant-message-toast",
+                        toastId: "token-copied-toast",
+                        updateId: "token-copied-toast",
                     });
                 })
                 .catch(err => {
@@ -173,8 +214,11 @@ export default function LandingPageOld() {
         }
     };
 
-    // Shows a loading dialog while the connection is being established
-    // Will be automatically closed by navigation to DataSharingPage
+    /**
+     * Shows a loading dialog while the connection is being established.
+     *
+     * Will be automatically closed by navigation to DataSharingPage.
+     */
     const showLoadingDialog = () => {
         awaitConnectionDialog.current!.showModal();
     };
@@ -183,30 +227,6 @@ export default function LandingPageOld() {
         if (peerConnectionManager.cancelConnectionRequest(remoteToken)) {
             waitingDialog.current!.close();
         }
-    };
-
-    const declineConnection = () => {
-        // console.log(`NO ${remoteTokenOfRequestingPeer}`);
-
-        confirmDialog.current!.close();
-
-        assert(remoteTokenOfRequestingPeer, "Remote token is not set.");
-        peerConnectionManager.rejectConnectionRequest(
-            remoteTokenOfRequestingPeer
-        );
-    };
-
-    const confirmConnection = () => {
-        // console.log(`YES ${remoteTokenOfRequestingPeer}`);
-
-        confirmDialog.current!.close();
-
-        assert(remoteTokenOfRequestingPeer, "Remote token is not set.");
-        peerConnectionManager.acceptConnectionRequest(
-            remoteTokenOfRequestingPeer
-        );
-
-        showLoadingDialog();
     };
 
     const onTokenHover = () => {
@@ -313,12 +333,6 @@ export default function LandingPageOld() {
             <WaitingDialog
                 ref={waitingDialog}
                 onCancel={() => interruptWaiting()}
-            />
-            <ConfirmDialog
-                ref={confirmDialog}
-                onCancel={() => declineConnection()}
-                onConfirm={() => confirmConnection()}
-                token={remoteTokenOfRequestingPeer}
             />
             <AwaitConnectionDialog ref={awaitConnectionDialog} />
         </div>

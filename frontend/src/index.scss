@@ -3,6 +3,8 @@
 @use "theme/spacing.scss";
 @use "theme/typography.scss";
 @use "theme/tooltip.scss";
+@import "react-toastify/dist/ReactToastify.css";
+@import "toast-styles.scss";
 
 html {
     scrollbar-width: thin;

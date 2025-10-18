@@ -18,24 +18,10 @@ public class SignalingFacade : ISignalingFacade
 
     public void SubscribeToMessageHandlers()
     {
-        _webSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(RemoteTokenMessage.TypeString,
-            (clientId, message) => _signalingService.HandleRemoteTokenMessage(clientId, message));
+        _webSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(RemoteTokenMessage.TypeString, _signalingService.HandleRemoteTokenMessage);
 
-        _webSocketHandler.SubscribeToMessageType<IceCandidateMessage>(IceCandidateMessage.TypeString,
-            (clientId, message) => _signalingService.HandleIceCandidateMessage(clientId, message));
+        _webSocketHandler.SubscribeToMessageType<IceCandidateMessage>(IceCandidateMessage.TypeString, _signalingService.HandleIceCandidateMessage);
 
-        _webSocketHandler.SubscribeToMessageType<SdpMessage>(SdpMessage.TypeString,
-            (clientId, message) => _signalingService.HandleSdpMessage(clientId, message));
-
-        _webSocketHandler.SubscribeToMessageType<CloseConnectionMessage>(CloseConnectionMessage.TypeString,
-            (clientId, message) => _signalingService.HandleCloseConnection(clientId, message));
-
-        _webSocketHandler.SubscribeToMessageType<ConnectionRequestMessage>(ConnectionRequestMessage.TypeString, _signalingService.HandleConnectionRequest);
-
-        _webSocketHandler.SubscribeToMessageType<ConnectionResponseMessage>(ConnectionResponseMessage.TypeString, _signalingService.HandleConnectionResponse);
-
-        _webSocketHandler.SubscribeToMessageType<ConnectionRequestCancelledMessage>(ConnectionRequestCancelledMessage.TypeString, _signalingService.HandleConnectionRequestCancelled);
-
-        _webSocketHandler.SubscribeToMessageType<QuickConnectMessage>(QuickConnectMessage.TypeString, _signalingService.HandleQuickConnectMessage);
+        _webSocketHandler.SubscribeToMessageType<SdpMessage>(SdpMessage.TypeString, _signalingService.HandleSdpMessage);
     }
 }

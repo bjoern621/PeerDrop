@@ -138,6 +138,11 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
                 // "The remote party closed the WebSocket connection without completing the close handshake."
                 return;
             }
+            catch (WebSocketException)
+            {
+                // "The remote party closed the WebSocket connection without completing the close handshake."
+                return;
+            }
 
             if (!result.EndOfMessage)
             {
