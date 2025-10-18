@@ -9,12 +9,14 @@
     border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
     background-color: var(--background);
     box-shadow: 0 4px 10px 2px var(--shadow);
+
+    padding: 0 var(--space-24);
 }
 
 .headerContent {
-    max-width: 1200px;
+    max-width: 1072px;
     margin: auto;
-    padding: var(--space-16) var(--space-64);
+    padding: var(--space-16) 0;
 
     position: relative;
 }
