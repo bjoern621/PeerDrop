@@ -10,7 +10,7 @@ export default function CallToAction() {
                 Dann verbinde dich auf dem direktesten Weg und teile, was du
                 willst.
             </p>
-            <Link to="/old" className={css.ctaButton}>
+            <Link to="/connect" className={css.ctaButton}>
                 Jetzt loslegen
                 <Arrow />
             </Link>

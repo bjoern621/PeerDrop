@@ -1,0 +1,17 @@
+@mixin container {
+    border: 3px solid var(--secondary);
+    border-radius: var(--space-16);
+    padding: var(--space-8);
+}
+
+.ownTokenContainer {
+    @include container;
+
+    border-color: var(--secondary);
+}
+
+.connectToPeerContainer {
+    @include container;
+
+    border-color: var(--primary);
+}

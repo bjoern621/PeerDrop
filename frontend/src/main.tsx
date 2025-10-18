@@ -9,11 +9,12 @@ import {
 } from "react-router";
 import { PageNotFound } from "./components/PageNotFound/PageNotFound.tsx";
 import LandingPageOld from "./components/LandingPageOld/LandingPageOld.tsx";
-import { DataSharingPage } from "./components/DataSharingPage/DataSharingPage.tsx";
 import { ConnectionProvider } from "./context/connection/ConnectionProvider.tsx";
 import Landing from "./components/Landing/Landing.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import Layout from "./components/Layout/Layout.tsx";
+import Sharing from "./components/Sharing/Sharing.tsx";
+import Connection from "./components/Connection/Connection.tsx";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -27,8 +28,9 @@ const router = createBrowserRouter(
             errorElement={<PageNotFound />}
         >
             <Route path="/" element={<Landing />} />
-            <Route path="share" element={<DataSharingPage />} />
+            <Route path="share" element={<Sharing />} />
             <Route path="old" element={<LandingPageOld />} />
+            <Route path="connect" element={<Connection />} />
         </Route>
     )
 );

@@ -18,7 +18,7 @@ export default function Hero() {
                 super einfach.
             </p>
             <div className={css.actions}>
-                <Link to="/old">
+                <Link to="/connect">
                     Sofort loslegen
                     <Arrow aria-hidden />
                 </Link>
