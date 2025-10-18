@@ -34,3 +34,14 @@ img {
         interpolate-size: allow-keywords;
     }
 }
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+}
