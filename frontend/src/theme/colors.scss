@@ -83,6 +83,18 @@
     --secondary-80: oklch(from var(--secondary) l c h / var(--a-80));
     --secondary-90: oklch(from var(--secondary) l c h / var(--a-90));
     --secondary-95: oklch(from var(--secondary) l c h / var(--a-95));
+
+    --text-muted-5: oklch(from var(--text-muted) l c h / var(--a-5));
+    --text-muted-10: oklch(from var(--text-muted) l c h / var(--a-10));
+    --text-muted-20: oklch(from var(--text-muted) l c h / var(--a-20));
+    --text-muted-30: oklch(from var(--text-muted) l c h / var(--a-30));
+    --text-muted-40: oklch(from var(--text-muted) l c h / var(--a-40));
+    --text-muted-50: oklch(from var(--text-muted) l c h / var(--a-50));
+    --text-muted-60: oklch(from var(--text-muted) l c h / var(--a-60));
+    --text-muted-70: oklch(from var(--text-muted) l c h / var(--a-70));
+    --text-muted-80: oklch(from var(--text-muted) l c h / var(--a-80));
+    --text-muted-90: oklch(from var(--text-muted) l c h / var(--a-90));
+    --text-muted-95: oklch(from var(--text-muted) l c h / var(--a-95));
 }
 
 html {

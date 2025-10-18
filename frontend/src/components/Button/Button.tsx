@@ -8,6 +8,7 @@ export const buttonVariants = cva(css.button, {
         color_scheme: {
             primary: css.primary,
             secondary: css.secondary,
+            neutral: css.neutral,
         },
         variant: {
             filled: css.filled,

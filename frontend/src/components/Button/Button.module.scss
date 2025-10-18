@@ -26,6 +26,11 @@
     --hover-color: var(--secondary-10);
 }
 
+.neutral {
+    --color: var(--text);
+    --hover-color: var(--text-muted-10);
+}
+
 .filled {
     background-color: var(--color);
     color: var(--background);
