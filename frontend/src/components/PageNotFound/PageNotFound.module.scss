@@ -28,7 +28,7 @@
 }
 
 .heading {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-3xl);
     font-weight: var(--font-weight-semibold);
     margin-bottom: var(--space-16);
 }
@@ -38,11 +38,11 @@
 }
 
 .paragraph {
-    font-size: var(--font-size-m);
+    font-size: var(--font-size-l);
     font-weight: var(--font-weight-regular);
     color: var(--text-muted);
     margin-bottom: var(--space-40);
-    line-height: var(--line-height-m);
+    line-height: var(--line-height-l);
 }
 
 .actions {

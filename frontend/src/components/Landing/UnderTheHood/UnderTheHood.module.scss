@@ -95,8 +95,8 @@
 
         padding: var(--space-16) var(--space-24);
         font-weight: var(--font-weight-medium);
-        font-size: 20px; // TODO: use design tokens
-        line-height: 1.2;
+        font-size: var(--font-size-m);
+        line-height: var(--line-height-m);
 
         &[data-state="open"] {
             background-color: var(--primary);
