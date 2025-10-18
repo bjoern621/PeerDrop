@@ -4,7 +4,7 @@
     text-align: center;
 
     > svg {
-        width: 650px;
+        max-width: 650px;
     }
 
     > h1 {
@@ -48,4 +48,5 @@
     display: flex;
     justify-content: center;
     gap: var(--space-16);
+    flex-wrap: wrap;
 }
