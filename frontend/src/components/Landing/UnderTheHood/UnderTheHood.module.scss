@@ -1,3 +1,5 @@
+$layout-breakpoint: 850px;
+
 .horizontalLayout {
     display: flex;
 
@@ -31,6 +33,10 @@
 
         pointer-events: none;
     }
+
+    @media (max-width: $layout-breakpoint) {
+        display: none;
+    }
 }
 
 .illustration {
@@ -54,9 +60,9 @@
 }
 
 .textBoxes {
-    --text-boxes-height: 500px;
+    // --text-boxes-height: 500px;
     --text-boxes-gap: var(--space-8);
-    --text-box-header-height: 60px;
+    // --text-box-header-height: 60px;
 
     flex: 2;
 
@@ -68,6 +74,10 @@
     margin-left: var(--space-40);
 
     overflow: hidden;
+
+    @media (max-width: $layout-breakpoint) {
+        margin-left: 0;
+    }
 }
 
 .textBox {
@@ -82,7 +92,7 @@
     position: relative;
     z-index: 1;
 
-    height: var(--text-box-header-height);
+    // height: var(--text-box-header-height);
 
     > button {
         flex: 1;
@@ -134,7 +144,7 @@
     margin-top: calc(-1 * var(--header-border-radius));
     padding-top: var(--header-border-radius);
 
-    height: var(--radix-collapsible-content-height);
+    // height: var(--radix-collapsible-content-height);
 
     &[data-state="open"] {
         animation: slideDown 0.6s ease;
