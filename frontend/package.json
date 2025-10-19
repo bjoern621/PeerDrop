@@ -6,7 +6,9 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
-        "lint": "eslint ."
+        "lint": "eslint .",
+        "format": "prettier --write \"**/*.{ts,tsx,js,css,scss,html,json}\"",
+        "format:check": "prettier --check \"**/*.{ts,tsx,js,css,scss,html,json}\""
     },
     "dependencies": {
         "@radix-ui/react-accordion": "^1.2.12",
