@@ -18,17 +18,6 @@
     flex: 1;
 }
 
-.ownTokenContainer {
-    @include container;
-
-    border-color: var(--secondary);
-
-    > .heading {
-        color: var(--secondary);
-        fill: var(--secondary);
-    }
-}
-
 .connectToPeerContainer {
     @include container;
 
@@ -53,39 +42,11 @@
     }
 }
 
-.tokenBox {
-    @include containerBorder;
-
-    text-align: center;
-}
-
-.token {
-    font-size: var(--font-size-4xl);
-    line-height: var(--line-height-4xl);
-    font-family: "Roboto Mono";
-    letter-spacing: 0.25em;
-}
-
 .mutedText {
     color: var(--text-muted);
     margin-top: var(--space-8);
     font-weight: var(--font-weight-regular);
     text-align: center;
-}
-
-.openGroupRoomButton {
-    width: 100%;
-}
-
-.copyButtons {
-    display: flex;
-    gap: var(--space-8);
-
-    margin-top: var(--space-8);
-
-    > * {
-        flex: 1;
-    }
 }
 
 @keyframes fadeInScale {
