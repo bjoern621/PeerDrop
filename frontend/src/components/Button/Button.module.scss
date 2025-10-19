@@ -47,11 +47,19 @@
     color: var(--color);
     fill: var(--color);
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: var(--hover-color);
     }
 
-    &:active {
+    &:active:not(:disabled) {
         background-color: var(--pressed-color);
+    }
+
+    &:disabled {
+        border-color: var(--text-muted);
+        color: var(--text-muted);
+        fill: var(--text-muted);
+        background-color: var(--text-muted-10);
+        cursor: default;
     }
 }
