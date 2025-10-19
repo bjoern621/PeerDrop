@@ -5,9 +5,13 @@ import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
 import { useEffect, useState } from "react";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import { toast } from "react-toastify/unstyled";
+import { useWebSocketService } from "../../../context/connection/WebSocketContext";
+import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMessage";
+import { DeviceStatus } from "../../../types/device/DeviceStatus";
 
 export default function ConnectToPeer() {
     const peerConnectionManager = usePeerConnectionManager();
+    const websocket = useWebSocketService();
 
     const [remoteToken, setRemoteToken] = useState<string>("");
     const [waitingForResponse, setWaitingForResponse] =
@@ -33,7 +37,25 @@ export default function ConnectToPeer() {
                 })();
             }
         );
-    }, [peerConnectionManager]);
+
+        const deviceUuid: string | undefined = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("deviceUuid="))
+            ?.split("=")[1];
+
+        if (!deviceUuid) {
+            return; // The user might not have registered the device
+        }
+
+        const heartbeat = new DeviceHeartbeatMessage({
+            uuid: deviceUuid,
+            status: DeviceStatus.ONLINE,
+        });
+
+        websocket.sendMessage(heartbeat);
+
+        // exhaustive-deps-exclude: peerConnectionManager
+    }, []);
 
     const interruptWaiting = () => {
         if (peerConnectionManager.cancelConnectionRequest(remoteToken)) {

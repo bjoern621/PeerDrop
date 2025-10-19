@@ -3,9 +3,10 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
+import customRules from "./eslint-rules/index.js";
 
 export default tseslint.config(
-    { ignores: ["dist"] },
+    { ignores: ["dist", "eslint-rules/**"] },
     {
         extends: [
             js.configs.recommended,
@@ -27,9 +28,13 @@ export default tseslint.config(
         plugins: {
             "react-hooks": reactHooks,
             "react-refresh": reactRefresh,
+            custom: customRules,
         },
         rules: {
             ...reactHooks.configs.recommended.rules,
+            // Disable the original exhaustive-deps rule and use our custom one
+            "react-hooks/exhaustive-deps": "off",
+            "custom/exhaustive-deps": "error",
             "react-refresh/only-export-components": [
                 "warn",
                 { allowConstantExport: true },
