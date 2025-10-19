@@ -6,12 +6,15 @@ import { ToastContainer } from "react-toastify/unstyled";
 
 export default function Layout() {
     return (
-        <div className="layout-container">
-            <Heading />
-            <main>
-                <Outlet />
-            </main>
-            <Footer />
+        <>
+            <div className="layout-container">
+                <Heading />
+                <main>
+                    <Outlet />
+                </main>
+                <Footer />
+            </div>
+
             <ToastContainer
                 position="top-right"
                 autoClose={3000}
@@ -32,8 +35,11 @@ export default function Layout() {
                     width: "100vw",
                     paddingRight: "16px",
                     right: "0px",
+
+                    pointerEvents: "none",
                 }}
+                toastClassName="toast-root"
             />
-        </div>
+        </>
     );
 }
