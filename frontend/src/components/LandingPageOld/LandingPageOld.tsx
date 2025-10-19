@@ -16,7 +16,7 @@ import gitHubIcon from "../../assets/github-mark.svg";
 import gitHubIconBlack from "../../assets/github-mark-black.svg";
 import { useWebSocketService } from "../../context/connection/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
-import ConfirmConnectToast from "../LandingPage/ConfirmConnectToast/ConfirmConnectToast";
+import ConfirmConnectToast from "../ConfirmConnectToast/ConfirmConnectToast";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
