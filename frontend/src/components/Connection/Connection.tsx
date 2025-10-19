@@ -117,12 +117,11 @@ export default function Connection() {
             cleanupHeartbeats();
         };
     }, [
-        websocket,
-        peerConnectionManager,
-        sendHeartbeatIfPossible,
-        sendContinuousHeartbeat,
         confirmConnection,
         declineConnection,
+        peerConnectionManager,
+        sendContinuousHeartbeat,
+        sendHeartbeatIfPossible,
     ]);
 
     /**
