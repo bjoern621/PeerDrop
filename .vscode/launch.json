@@ -30,7 +30,8 @@
     "compounds": [
         {
             "name": "Launch Frontend and Backend",
-            "configurations": ["Launch Vite", "Launch Backend"]
+            "configurations": ["Launch Vite", "Launch Backend"],
+            "stopAll": true
         }
     ]
 }
