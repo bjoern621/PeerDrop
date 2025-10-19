@@ -11,19 +11,6 @@
     }
 }
 
-.heading {
-    font-size: var(--font-size-l);
-    line-height: var(--line-height-l);
-    font-family: "Atma";
-    font-weight: var(--font-weight-semibold);
-
-    > svg {
-        height: calc(var(--font-size-l) * var(--line-height-l));
-        vertical-align: middle;
-        margin-right: var(--space-4);
-    }
-}
-
 .tokenBox {
     @include connection.containerBorder;
 
@@ -35,13 +22,6 @@
     line-height: var(--line-height-4xl);
     font-family: "Roboto Mono";
     letter-spacing: 0.25em;
-}
-
-.mutedText {
-    color: var(--text-muted);
-    margin-top: var(--space-8);
-    font-weight: var(--font-weight-regular);
-    text-align: center;
 }
 
 .openGroupRoomButton {

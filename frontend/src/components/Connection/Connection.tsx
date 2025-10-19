@@ -1,8 +1,5 @@
 import css from "./Connection.module.scss";
-import ConnectIcon from "../../assets/icons8-computers-connecting.svg?react";
-import Button from "../Button/Button";
-import TokenInput from "./TokenInput/TokenInput";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useWebSocketService } from "../../context/connection/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
@@ -10,21 +7,15 @@ import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 import { assert } from "../../util/Assert";
 import { toast } from "react-toastify/unstyled";
-import "react-toastify/dist/ReactToastify.css";
-import { WaitingDialog } from "../Popups/WaitingDialog";
 import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 import ConfirmConnectToast from "../ConfirmConnectToast/ConfirmConnectToast";
 import OwnToken from "./OwnToken/OwnToken";
+import ConnectToPeer from "./ConnectToPeer/ConnectToPeer";
 
 export default function Connection() {
     const websocket = useWebSocketService();
     const peerConnectionManager = usePeerConnectionManager();
 
-    const [remoteToken, setRemoteToken] = useState<string>("");
-    const [waitingForResponse, setWaitingForResponse] =
-        useState<boolean>(false);
-
-    const waitingDialog = useRef<HTMLDialogElement | null>(null);
     const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
 
     /**
@@ -82,19 +73,6 @@ export default function Connection() {
     const dismissAllToasts = () => toast.dismiss();
 
     useEffect(() => {
-        peerConnectionManager.setOnConnectionResponseReceivedCallback(
-            (accepted: boolean) => {
-                if (accepted) {
-                    waitingDialog.current!.close();
-                    showLoadingDialog();
-                    dismissAllToasts();
-                } else {
-                    waitingDialog.current!.close();
-                    toast.error("Verbindungsanfrage wurde abgelehnt!");
-                }
-            }
-        );
-
         const confirmConnectionToastIdPrefix = "confirm-connection-toast-";
 
         peerConnectionManager.setOnConnectionRequestReceivedCallback(
@@ -118,7 +96,7 @@ export default function Connection() {
                         hideProgressBar: false,
                         progress: 1,
                         closeButton: false,
-                        className: "confirm-connection-toast-style", // Set in toast-styles.scss
+                        className: "confirm-connection-toast-style",
                         toastId: toastId,
                     }
                 );
@@ -147,16 +125,6 @@ export default function Connection() {
         declineConnection,
     ]);
 
-    const connectToPeer = () => {
-        const successfullySent =
-            peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
-
-        if (successfullySent) {
-            setWaitingForResponse(true);
-            // waitingDialog.current!.showModal();
-        }
-    };
-
     /**
      * Shows a loading dialog while the connection is being established.
      *
@@ -166,53 +134,12 @@ export default function Connection() {
         awaitConnectionDialog.current!.showModal();
     };
 
-    const interruptWaiting = () => {
-        if (peerConnectionManager.cancelConnectionRequest(remoteToken)) {
-            waitingDialog.current!.close();
-        }
-    };
-
     return (
         <div className={css.container}>
             <OwnToken />
 
-            <div className={css.connectToPeerContainer}>
-                <h2 className={css.heading}>
-                    <ConnectIcon />
-                    Mit Peer verbinden
-                </h2>
+            <ConnectToPeer />
 
-                <div className={css.tokenInputContainer}>
-                    {waitingForResponse && (
-                        <p className={`${css.mutedText} ${css.fadeInScale}`}>
-                            Warte auf Bestätigung von:
-                        </p>
-                    )}
-                    <TokenInput
-                        value={remoteToken}
-                        onChange={value => setRemoteToken(value.toUpperCase())}
-                    />
-                    {!waitingForResponse && (
-                        <p className={css.mutedText}>
-                            Fremden Token eingeben, um Verbindung aufzubauen
-                        </p>
-                    )}
-                </div>
-
-                <Button
-                    onClick={() => {
-                        connectToPeer();
-                    }}
-                    disabled={waitingForResponse}
-                >
-                    Verbinden
-                </Button>
-            </div>
-
-            <WaitingDialog
-                ref={waitingDialog}
-                onCancel={() => interruptWaiting()}
-            />
             <AwaitConnectionDialog ref={awaitConnectionDialog} />
         </div>
     );
