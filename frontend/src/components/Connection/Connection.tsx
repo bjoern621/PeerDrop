@@ -6,7 +6,7 @@ import GroupIcon from "../../assets/icons8-group.svg?react";
 import CopyIcon from "../../assets/icons8-copy.svg?react";
 import CopyLinkIcon from "../../assets/icons8-copy-link.svg?react";
 import TokenInput from "./TokenInput/TokenInput";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useWebSocketService } from "../../context/connection/WebSocketContext";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
@@ -15,15 +15,24 @@ import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 import { assert } from "../../util/Assert";
 import { toast } from "react-toastify/unstyled";
 import "react-toastify/dist/ReactToastify.css";
+import errorAsValue from "../../util/ErrorAsValue";
+import { WaitingDialog } from "../Popups/WaitingDialog";
+import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
+import ConfirmConnectToast from "../ConfirmConnectToast/ConfirmConnectToast";
 
 export default function Connection() {
     const websocket = useWebSocketService();
     const peerConnectionManager = usePeerConnectionManager();
 
-    const [clientToken, setClientToken] = useState<string>("_____");
+    const [clientToken, setClientToken] = useState<string | undefined>(
+        undefined
+    );
     const [remoteToken, setRemoteToken] = useState<string>("");
     const [waitingForResponse, setWaitingForResponse] =
         useState<boolean>(false);
+
+    const waitingDialog = useRef<HTMLDialogElement | null>(null);
+    const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
 
     /**
      * Sends a heartbeat message if the user has registered the device.
@@ -59,6 +68,26 @@ export default function Connection() {
         };
     }, [sendHeartbeatIfPossible]);
 
+    const confirmConnection = useCallback(
+        (remoteToken: string) => {
+            assert(remoteToken, "Remote token is not set.");
+            peerConnectionManager.acceptConnectionRequest(remoteToken);
+
+            showLoadingDialog();
+        },
+        [peerConnectionManager]
+    );
+
+    const declineConnection = useCallback(
+        (remoteToken: string) => {
+            assert(remoteToken, "Remote token is not set.");
+            peerConnectionManager.rejectConnectionRequest(remoteToken);
+        },
+        [peerConnectionManager]
+    );
+
+    const dismissAllToasts = () => toast.dismiss();
+
     useEffect(() => {
         assert(websocket, "WebSocketService is not initialized.");
 
@@ -80,26 +109,49 @@ export default function Connection() {
         peerConnectionManager.setOnConnectionResponseReceivedCallback(
             (accepted: boolean) => {
                 if (accepted) {
-                    // console.log("ACCEPTED");
-                    // waitingDialog.current!.close();
-                    // showLoadingDialog();
+                    waitingDialog.current!.close();
+                    showLoadingDialog();
+                    dismissAllToasts();
                 } else {
-                    // console.log("REJECTED");
-                    // waitingDialog.current!.close();
+                    waitingDialog.current!.close();
                     toast.error("Verbindungsanfrage wurde abgelehnt!");
                 }
             }
         );
-        // peerConnectionManager.setOnConnectionRequestReceivedCallback(
-        //     (requestingPeerToken: string) => {
-        //         // setRemoteTokenOfRequestingPeer(requestingPeerToken);
-        //         // confirmDialog.current!.showModal();
-        //     }
-        // );
+
+        const confirmConnectionToastIdPrefix = "confirm-connection-toast-";
+
+        peerConnectionManager.setOnConnectionRequestReceivedCallback(
+            (requestingPeerToken: string) => {
+                const toastId =
+                    confirmConnectionToastIdPrefix + requestingPeerToken;
+
+                toast.info(
+                    <ConfirmConnectToast
+                        requestingPeerToken={requestingPeerToken}
+                        onAccept={() => {
+                            dismissAllToasts();
+                            confirmConnection(requestingPeerToken);
+                        }}
+                        onReject={() => declineConnection(requestingPeerToken)}
+                        toastId={toastId}
+                    />,
+                    {
+                        closeOnClick: false,
+                        autoClose: false,
+                        hideProgressBar: false,
+                        progress: 1,
+                        closeButton: false,
+                        className: "confirm-connection-toast-style", // Set in toast-styles.scss
+                        toastId: toastId,
+                    }
+                );
+            }
+        );
         peerConnectionManager.setOnConnectionRequestCancelledReceivedCallback(
-            () => {
-                // confirmDialog.current!.close();
-                // waitingDialog.current!.close();
+            (remoteToken: string) => {
+                const toastId = confirmConnectionToastIdPrefix + remoteToken;
+                toast.dismiss(toastId);
             }
         );
 
@@ -115,7 +167,79 @@ export default function Connection() {
         peerConnectionManager,
         sendHeartbeatIfPossible,
         sendContinuousHeartbeat,
+        confirmConnection,
+        declineConnection,
     ]);
+
+    const copyToken = async () => {
+        if (!clientToken) {
+            return;
+        }
+
+        const [, err] = await errorAsValue(
+            navigator.clipboard.writeText(clientToken)
+        );
+
+        if (err) {
+            console.error("Failed to copy token:", err);
+            return;
+        }
+
+        toast.success("Token in die Zwischenablage kopiert!");
+
+        // navigator.clipboard
+        //     .writeText(clientToken)
+        //     .then(() => {
+        //         toast.success("Token in die Zwischenablage kopiert!", {
+        //             toastId: "token-copied-toast",
+        //             updateId: "token-copied-toast",
+        //         });
+        //     })
+        //     .catch(err => {
+        //         console.error("Failed to copy token:", err);
+        //     });
+    };
+
+    const copyTokenLink = async () => {
+        if (!clientToken) {
+            return;
+        }
+
+        const [, err] = await errorAsValue(
+            navigator.clipboard.writeText(
+                `${import.meta.env.VITE_FRONTEND_DOMAIN}/connect/${clientToken}`
+            )
+        );
+
+        if (err) {
+            console.error("Failed to copy token:", err);
+            return;
+        }
+
+        toast.success("Token-Link in die Zwischenablage kopiert!");
+    };
+
+    const openGroupRoom = () => {
+        toast.info(
+            <ConfirmConnectToast
+                requestingPeerToken={"12345"}
+                onAccept={() => {
+                    dismissAllToasts();
+                }}
+                onReject={() => {}}
+                toastId={"12345"}
+            />,
+            {
+                closeOnClick: false,
+                autoClose: false,
+                hideProgressBar: false,
+                progress: 1,
+                closeButton: false,
+                className: "confirm-connection-toast-style", // Set in toast-styles.scss
+                toastId: "12345",
+            }
+        );
+    };
 
     const connectToPeer = () => {
         const successfullySent =
@@ -124,6 +248,21 @@ export default function Connection() {
         if (successfullySent) {
             setWaitingForResponse(true);
             // waitingDialog.current!.showModal();
+        }
+    };
+
+    /**
+     * Shows a loading dialog while the connection is being established.
+     *
+     * Will be automatically closed by navigation to DataSharingPage.
+     */
+    const showLoadingDialog = () => {
+        awaitConnectionDialog.current!.showModal();
+    };
+
+    const interruptWaiting = () => {
+        if (peerConnectionManager.cancelConnectionRequest(remoteToken)) {
+            waitingDialog.current!.close();
         }
     };
 
@@ -136,7 +275,7 @@ export default function Connection() {
                 </h2>
 
                 <div className={css.tokenBox}>
-                    <div className={css.token}>{clientToken}</div>
+                    <div className={css.token}>{clientToken ?? "_____"}</div>
                     <p className={css.mutedText}>
                         Teile diesen Token mit anderen
                     </p>
@@ -147,16 +286,27 @@ export default function Connection() {
                         variant={"outline"}
                         color_scheme={"neutral"}
                         className={css.openGroupRoomButton}
+                        onClick={() => openGroupRoom()}
                     >
                         <GroupIcon />
                         Gruppenraum öffnen
                     </Button>
                     <div className={css.copyButtons}>
-                        <Button variant={"outline"} color_scheme={"neutral"}>
+                        <Button
+                            variant={"outline"}
+                            color_scheme={"neutral"}
+                            disabled={!clientToken}
+                            onClick={() => void copyToken()}
+                        >
                             <CopyIcon />
                             Token kopieren
                         </Button>
-                        <Button variant={"outline"} color_scheme={"neutral"}>
+                        <Button
+                            variant={"outline"}
+                            color_scheme={"neutral"}
+                            disabled={!clientToken}
+                            onClick={() => void copyTokenLink()}
+                        >
                             <CopyLinkIcon />
                             Token als Link kopieren
                         </Button>
@@ -196,6 +346,12 @@ export default function Connection() {
                     Verbinden
                 </Button>
             </div>
+
+            <WaitingDialog
+                ref={waitingDialog}
+                onCancel={() => interruptWaiting()}
+            />
+            <AwaitConnectionDialog ref={awaitConnectionDialog} />
         </div>
     );
 }
