@@ -1,3 +1,14 @@
+:global(.Toastify__toast.confirm-connection-toast-style) {
+    --toastify-progress-bar-height: 4px;
+
+    width: auto;
+    padding: 0 0 var(--toastify-progress-bar-height)
+        var(--toastify-toast-padding);
+    overflow: hidden;
+
+    min-height: fit-content;
+}
+
 .container {
     display: flex;
     flex-direction: row;
