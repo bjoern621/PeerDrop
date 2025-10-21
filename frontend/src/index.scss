@@ -23,3 +23,9 @@ body {
     line-height: var(--line-height-s);
     font-weight: var(--font-weight-medium);
 }
+
+html,
+body,
+#root {
+    height: 100%;
+}
