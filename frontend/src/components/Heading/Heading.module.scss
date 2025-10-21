@@ -22,6 +22,11 @@ $layout-breakpoint: 650px;
 
     position: relative;
 
+    > a {
+        display: inline-block;
+        vertical-align: top; // inline-block elements align to the baseline by default, which can add extra space below them
+    }
+
     @media (max-width: $layout-breakpoint) {
         display: flex;
         flex-direction: column;
