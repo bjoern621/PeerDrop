@@ -45,3 +45,8 @@ h6 {
     font-size: var(--font-size-s);
     line-height: var(--line-height-s);
 }
+
+p {
+    text-wrap: pretty;
+    max-width: 65ch;
+}

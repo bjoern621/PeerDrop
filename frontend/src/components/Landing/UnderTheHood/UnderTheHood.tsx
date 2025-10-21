@@ -45,7 +45,7 @@ export default function UnderTheHood() {
                             </Accordion.Trigger>
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
-                            <div className={css.textBoxText}>
+                            <p className={css.textBoxText}>
                                 Wenn du den Token eingibst und auf Verbinden
                                 klickst, startet im Hintergrund der
                                 Verbindungsaufbau: Unser Signaling-Server
@@ -63,7 +63,7 @@ export default function UnderTheHood() {
                                 schneller los als bei Upload-Diensten. Und im
                                 Gegensatz zu reinen LAN-Tools funktioniert
                                 PeerDrop zuverlässig auch quer durchs Internet.
-                            </div>
+                            </p>
                         </Accordion.Content>
                     </Accordion.Item>
 
