@@ -46,7 +46,7 @@ export default function UnderTheHood() {
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
                             <div className={css.textBoxText}>
-                                Wenn du den Code eingibst und auf Verbinden
+                                Wenn du den Token eingibst und auf Verbinden
                                 klickst, startet im Hintergrund der
                                 Verbindungsaufbau: Unser Signaling-Server
                                 tauscht die Verbindungsdaten zwischen den Peers
