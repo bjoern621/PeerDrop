@@ -22,23 +22,7 @@ export default function Layout() {
                 newestOnTop={false}
                 pauseOnFocusLoss
                 pauseOnHover
-                theme="light"
-                style={{
-                    font: "Source Sans 3",
-                    fontWeight: "bold",
-                    maxHeight: "calc(100vh - 40px)",
-                    scrollbarWidth: "thin",
-                    scrollbarGutter: "stable",
-
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                    width: "100vw",
-                    paddingRight: "16px",
-                    right: "0px",
-
-                    pointerEvents: "none",
-                }}
-                toastClassName="toast-root"
+                theme="colored"
             />
         </>
     );

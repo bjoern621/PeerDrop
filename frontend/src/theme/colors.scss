@@ -12,13 +12,9 @@
     --white: #fff9fb;
 
     --info: oklch(65.31% 0.13477 242.711);
-    --info-dark: oklch(57.586% 0.11907 242.306);
     --success: oklch(74.67% 0.18174 147.88);
-    --success-dark: oklch(50.114% 0.13772 145.411);
     --warning: oklch(83.579% 0.1689 91.772);
-    --warning-dark: oklch(76.251% 0.15706 82.014);
     --error: oklch(63.066% 0.194 29.425);
-    --error-dark: oklch(54.333% 0.174 29.681);
 }
 
 @mixin alpha {
@@ -45,6 +41,11 @@
     --border: rgba(0, 0, 0, var(--a-5));
     --highlight: rgba(255, 255, 255, var(--a-20));
     --shadow: rgba(0, 0, 0, var(--a-5));
+
+    --info-text: oklch(57.586% 0.11907 242.306);
+    --success-text: oklch(50.114% 0.13772 145.411);
+    --warning-text: oklch(76.251% 0.15706 82.014);
+    --error-text: oklch(54.333% 0.174 29.681);
 }
 
 @mixin dark {
@@ -57,6 +58,11 @@
     --border: rgba(255, 255, 255, var(--a-5));
     --highlight: rgba(255, 255, 255, var(--a-5));
     --shadow: rgba(0, 0, 0, var(--a-20));
+
+    --info-text: var(--info);
+    --success-text: var(--success);
+    --warning-text: var(--warning);
+    --error-text: var(--error);
 }
 
 @mixin shades {
@@ -95,6 +101,54 @@
     --text-muted-80: oklch(from var(--text-muted) l c h / var(--a-80));
     --text-muted-90: oklch(from var(--text-muted) l c h / var(--a-90));
     --text-muted-95: oklch(from var(--text-muted) l c h / var(--a-95));
+
+    --info-5: oklch(from var(--info) l c h / var(--a-5));
+    --info-10: oklch(from var(--info) l c h / var(--a-10));
+    --info-20: oklch(from var(--info) l c h / var(--a-20));
+    --info-30: oklch(from var(--info) l c h / var(--a-30));
+    --info-40: oklch(from var(--info) l c h / var(--a-40));
+    --info-50: oklch(from var(--info) l c h / var(--a-50));
+    --info-60: oklch(from var(--info) l c h / var(--a-60));
+    --info-70: oklch(from var(--info) l c h / var(--a-70));
+    --info-80: oklch(from var(--info) l c h / var(--a-80));
+    --info-90: oklch(from var(--info) l c h / var(--a-90));
+    --info-95: oklch(from var(--info) l c h / var(--a-95));
+
+    --success-5: oklch(from var(--success) l c h / var(--a-5));
+    --success-10: oklch(from var(--success) l c h / var(--a-10));
+    --success-20: oklch(from var(--success) l c h / var(--a-20));
+    --success-30: oklch(from var(--success) l c h / var(--a-30));
+    --success-40: oklch(from var(--success) l c h / var(--a-40));
+    --success-50: oklch(from var(--success) l c h / var(--a-50));
+    --success-60: oklch(from var(--success) l c h / var(--a-60));
+    --success-70: oklch(from var(--success) l c h / var(--a-70));
+    --success-80: oklch(from var(--success) l c h / var(--a-80));
+    --success-90: oklch(from var(--success) l c h / var(--a-90));
+    --success-95: oklch(from var(--success) l c h / var(--a-95));
+
+    --error-5: oklch(from var(--error) l c h / var(--a-5));
+    --error-10: oklch(from var(--error) l c h / var(--a-10));
+    --error-20: oklch(from var(--error) l c h / var(--a-20));
+    --error-30: oklch(from var(--error) l c h / var(--a-30));
+    --error-40: oklch(from var(--error) l c h / var(--a-40));
+    --error-50: oklch(from var(--error) l c h / var(--a-50));
+    --error-60: oklch(from var(--error) l c h / var(--a-60));
+    --error-70: oklch(from var(--error) l c h / var(--a-70));
+    --error-80: oklch(from var(--error) l c h / var(--a-80));
+    --error-90: oklch(from var(--error) l c h / var(--a-90));
+    --error-95: oklch(from var(--error) l c h / var(--a-95));
+
+    --warning-5: oklch(from var(--warning) l c h / var(--a-5));
+    --warning-10: oklch(from var(--warning) l c h / var(--a-10));
+    --warning-20: oklch(from var(--warning) l c h / var(--a-20));
+    --warning-30: oklch(from var(--warning) l c h / var(--a-30));
+    --warning-40: oklch(from var(--warning) l c h / var(--a-40));
+    --warning-50: oklch(from var(--warning) l c h / var(--a-50));
+    --warning-60: oklch(from var(--warning) l c h / var(--a-60));
+    --warning-70: oklch(from var(--warning) l c h / var(--a-70));
+    --warning-80: oklch(from var(--warning) l c h / var(--a-80));
+    --warning-90: oklch(from var(--warning) l c h / var(--a-90));
+    --warning-95: oklch(from var(--warning) l c h / var(--a-95));
 }
 
 html {
