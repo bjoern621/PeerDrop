@@ -74,7 +74,7 @@ export default function UnderTheHood() {
                             </Accordion.Trigger>
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
-                            <div className={css.textBoxText}>
+                            <p className={css.textBoxText}>
                                 Die Ende-zu-Ende-Verschlüsselung ist fest
                                 eingebaut und funktioniert ohne zusätzliches
                                 Setup. Deine Daten laufen über
@@ -96,7 +96,7 @@ export default function UnderTheHood() {
                                     Open Source
                                 </Anchor>
                                 .
-                            </div>
+                            </p>
                         </Accordion.Content>
                     </Accordion.Item>
 
@@ -107,7 +107,7 @@ export default function UnderTheHood() {
                             </Accordion.Trigger>
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
-                            <div className={css.textBoxText}>
+                            <p className={css.textBoxText}>
                                 Hinter den Kulissen zerlegt PeerDrop Dateien in
                                 kleine Blöcke und passt den Fluss automatisch an
                                 die verfügbare Bandbreite an. So bleiben
@@ -122,7 +122,7 @@ export default function UnderTheHood() {
                                 Download-Lösungen und keine Limits fremder
                                 Server. Du kannst den Fortschritt der
                                 Übertragung pro Datei in Echtzeit sehen.
-                            </div>
+                            </p>
                         </Accordion.Content>
                     </Accordion.Item>
                 </Accordion.Root>
