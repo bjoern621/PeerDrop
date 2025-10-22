@@ -26,6 +26,6 @@
     animation: fadeInScale 0.5s ease both;
 }
 
-.tokenInputContainer > div {
-    margin-top: var(--space-8);
+.tokenInputContainer  {
+    margin: var(--space-16) 0;
 }
