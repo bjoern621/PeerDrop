@@ -7,7 +7,7 @@ import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import { Layout } from "./components/Layout/Layout.tsx";
 import { DataSharingPage } from "./components/DataSharingPage/DataSharingPage.tsx";
 import { ConnectionProvider } from "./context/ConnectionProvider.tsx";
-import { loadRuntimeConfig as loadRuntimeEnvVars } from "./util/RuntimeEnvVars.ts";
+import { loadRuntimeEnvVars } from "./util/RuntimeEnvVars.ts";
 
 void loadRuntimeEnvVars().then(() => {
     createRoot(document.getElementById("root")!).render(

@@ -13,7 +13,7 @@ declare global {
 
 let promise: Promise<RuntimeEnvVars> | null = null;
 
-export async function loadRuntimeConfig(): Promise<RuntimeEnvVars> {
+export async function loadRuntimeEnvVars(): Promise<RuntimeEnvVars> {
     if (promise) {
         throw new Error("Runtime config is already being loaded.");
     }
