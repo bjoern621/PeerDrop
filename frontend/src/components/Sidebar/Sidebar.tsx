@@ -11,6 +11,7 @@ import { StatusResponse } from "../../util/dtos/StatusResponse";
 import { assert } from "../../util/Assert";
 import { useResetWebsocket } from "../../context/ResetContext";
 import { toast } from "react-toastify/unstyled";
+import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(true);
@@ -21,7 +22,7 @@ export const Sidebar = () => {
 
     const getLoggedInStatus = async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/me/status`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/me/status`, {
                 method: "GET",
                 credentials: "include",
             })
