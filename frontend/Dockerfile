@@ -1,7 +1,7 @@
 FROM node:lts AS react-build
 WORKDIR /app
 
-ARG VITE_APP_VERSION=production # build-time environment variable
+ARG VITE_APP_VERSION=none # build-time environment variable
 ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
 COPY package.json ./
@@ -25,8 +25,9 @@ COPY ./common-headers.conf /etc/nginx/templates/common-headers.conf.template
 
 # Copied build to nginx image
 
+COPY ./envvars.sh /envvars.sh
 COPY ./entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /envvars.sh /entrypoint.sh
 ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
 
 ENTRYPOINT ["/entrypoint.sh"]

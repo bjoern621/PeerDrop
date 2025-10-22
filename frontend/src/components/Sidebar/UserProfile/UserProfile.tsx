@@ -17,6 +17,7 @@ import { useWebSocketService } from "../../../context/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
 import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
 import { toast } from "react-toastify/unstyled";
+import { getRuntimeEnvVars } from "../../../util/RuntimeEnvVars";
 
 interface DeviceDisplay {
     status: DeviceStatus;
@@ -128,7 +129,7 @@ export const UserProfile = () => {
 
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/devices`, {
                 method: "GET",
                 credentials: "include",
             })
@@ -183,7 +184,7 @@ export const UserProfile = () => {
 
     const fetchUserName = async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/me`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/me`, {
                 method: "GET",
                 credentials: "include",
             })
@@ -223,7 +224,7 @@ export const UserProfile = () => {
         setRegisterButtonDisabled(true);
 
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/register`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/device/register`, {
                 method: "POST",
                 credentials: "include",
                 headers: {
@@ -275,7 +276,7 @@ export const UserProfile = () => {
 
     const deleteCurrentDevice = async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/device`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/device`, {
                 method: "DELETE",
                 credentials: "include",
             })
@@ -300,7 +301,7 @@ export const UserProfile = () => {
 
     const deleteOtherDevice = async (device: DeviceDisplay) => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/devices`, {
                 method: "DELETE",
                 credentials: "include",
                 body: JSON.stringify(device.uuid),
@@ -338,7 +339,7 @@ export const UserProfile = () => {
 
     const logout = async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/logout`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/logout`, {
                 method: "POST",
                 credentials: "include",
             })

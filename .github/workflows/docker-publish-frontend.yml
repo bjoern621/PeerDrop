@@ -53,7 +53,7 @@ jobs:
               uses: docker/build-push-action@v5
               with:
                   context: ./frontend/
-                  file: ./frontend/Dockerfile.prod
+                  file: ./frontend/Dockerfile
                   push: true
                   tags: ${{ steps.tagger.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
                   cache-from: type=gha

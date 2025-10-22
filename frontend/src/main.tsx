@@ -7,19 +7,25 @@ import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import { Layout } from "./components/Layout/Layout.tsx";
 import { DataSharingPage } from "./components/DataSharingPage/DataSharingPage.tsx";
 import { ConnectionProvider } from "./context/ConnectionProvider.tsx";
+import { loadRuntimeEnvVars } from "./util/RuntimeEnvVars.ts";
 
-createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-        <BrowserRouter>
-            <ConnectionProvider>
-                <Routes>
-                    <Route element={<Layout />}>
-                        <Route path="/" element={<LandingPage />} />
-                        <Route path="/share" element={<DataSharingPage />} />
-                        <Route path="*" element={<PageNotFound />} />
-                    </Route>
-                </Routes>
-            </ConnectionProvider>
-        </BrowserRouter>
-    </StrictMode>
-);
+void loadRuntimeEnvVars().then(() => {
+    createRoot(document.getElementById("root")!).render(
+        <StrictMode>
+            <BrowserRouter>
+                <ConnectionProvider>
+                    <Routes>
+                        <Route element={<Layout />}>
+                            <Route path="/" element={<LandingPage />} />
+                            <Route
+                                path="/share"
+                                element={<DataSharingPage />}
+                            />
+                            <Route path="*" element={<PageNotFound />} />
+                        </Route>
+                    </Routes>
+                </ConnectionProvider>
+            </BrowserRouter>
+        </StrictMode>
+    );
+});

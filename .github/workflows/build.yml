@@ -28,7 +28,7 @@ jobs:
               uses: docker/build-push-action@v5
               with:
                   context: ./frontend/
-                  file: ./frontend/Dockerfile.prod
+                  file: ./frontend/Dockerfile
                   tags: ghcr.io/${{ github.repository_owner }}/peerdrop:${{ github.sha }}
 
             - name: Build Backend
