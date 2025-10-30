@@ -3,6 +3,10 @@ import Heading from "../Heading/Heading";
 import Footer from "../Footer/Footer";
 import "./Layout.scss";
 import { ToastContainer } from "react-toastify/unstyled";
+import WarningIcon from "../../assets/icons8-error-2.svg?react";
+import InfoIcon from "../../assets/icons8-info-2.svg?react";
+import SuccessIcon from "../../assets/icons8-check-mark-2.svg?react";
+import ErrorIcon from "../../assets/icons8-high-priority-2.svg?react";
 
 export default function Layout() {
     return (
@@ -23,6 +27,16 @@ export default function Layout() {
                 pauseOnFocusLoss
                 pauseOnHover
                 theme="colored"
+                icon={({ type }) => {
+                    const icons = {
+                        warning: WarningIcon,
+                        info: InfoIcon,
+                        success: SuccessIcon,
+                        error: ErrorIcon,
+                    };
+                    const Icon = icons[type as keyof typeof icons];
+                    return Icon ? <Icon /> : undefined;
+                }}
             />
         </>
     );

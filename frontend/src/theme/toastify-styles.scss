@@ -70,3 +70,8 @@
 .Toastify__progress-bar-theme--colored.Toastify__progress-bar--error {
     background-color: var(--error-text);
 }
+
+.Toastify__toast-icon {
+    fill: currentColor;
+    width: 30px;
+}
