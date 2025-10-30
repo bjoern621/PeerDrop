@@ -16,7 +16,7 @@
     }
 
     > p {
-        margin: auto;
+        margin-top: var(--space-24) !important;
         max-width: 380px;
     }
 
