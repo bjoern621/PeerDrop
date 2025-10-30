@@ -5,8 +5,11 @@
 
     height: 100%;
 
-    align-items: center;
+    align-items: flex-start;
+    align-content: center;
     justify-content: center;
+
+    padding-top: var(--space-24);
 }
 
 @mixin containerBorder {
@@ -22,6 +25,12 @@
     justify-content: space-between;
     height: 400px;
     flex: 1;
+
+    // 550px >= 450px + horizontal padding / margin / border
+    @media (min-width: 550px) {
+        min-width: 450px;
+    }
+
     max-width: 600px;
 
     box-shadow:

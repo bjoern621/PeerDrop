@@ -24,6 +24,7 @@
     line-height: var(--line-height-4xl);
     font-family: "Roboto Mono";
     letter-spacing: 0.25em;
+    margin: ß var(--space-16);
 }
 
 .openGroupRoomButton {
@@ -35,6 +36,8 @@
     gap: var(--space-8);
 
     margin-top: var(--space-8);
+
+    flex-wrap: wrap;
 
     > * {
         flex: 1;
