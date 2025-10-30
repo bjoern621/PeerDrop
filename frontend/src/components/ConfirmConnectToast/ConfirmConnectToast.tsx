@@ -30,12 +30,8 @@ export default function ConnectionRequestToast({
                 Ein Peer möchte sich mit Dir verbinden: {requestingPeerToken}.
             </div>
             <div className={css.buttonContainer}>
-                <button onClick={handleAccept} className={css.acceptButton}>
-                    Verbinden
-                </button>
-                <button onClick={handleReject} className={css.rejectButton}>
-                    Ablehnen
-                </button>
+                <button onClick={handleAccept}>Verbinden</button>
+                <button onClick={handleReject}>Ablehnen</button>
             </div>
         </div>
     );

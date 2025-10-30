@@ -14,7 +14,10 @@
     --toastify-toast-bd-radius: var(--space-4);
 
     --toastify-color-progress-bgo: 0;
-    --toastify-toast-padding: var(--space-8) var(--space-16);
+    --toastify-progress-bar-height: 5px;
+    --toastify-toast-padding: var(--space-8) var(--space-16)
+        calc(var(--space-8) + var(--toastify-progress-bar-height))
+        var(--space-16);
 }
 
 .Toastify__toast-container {
@@ -74,4 +77,12 @@
 .Toastify__toast-icon {
     fill: currentColor;
     width: 30px;
+}
+
+.Toastify__progress-bar--wrp {
+    height: var(--toastify-progress-bar-height);
+}
+
+.Toastify__toast-icon {
+    margin-inline-end: var(--space-8);
 }
