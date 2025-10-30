@@ -2,8 +2,9 @@
     --toastify-progress-bar-height: 4px;
 
     width: auto;
-    padding: 0 0 var(--toastify-progress-bar-height)
-        var(--toastify-toast-padding); // TODO wahrscheinlich kaputt durch neue toast styles
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: var(--toastify-progress-bar-height);
     overflow: hidden;
 
     min-height: fit-content;
