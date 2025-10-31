@@ -1,0 +1,68 @@
+.sharingHeader {
+    margin: var(--space-40) 0 var(--space-16);
+    display: flex;
+    justify-content: space-between;
+}
+
+.uploadButtons {
+    display: flex;
+    gap: var(--space-8);
+}
+
+.informationTopRight {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.remoteToken {
+    color: var(--accent);
+}
+
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    thead {
+        background-color: var(--secondary-70);
+
+        th {
+            padding: var(--space-8) var(--space-16);
+            text-align: left;
+            font-weight: var(--font-weight-medium);
+
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+
+            &:first-child {
+                width: 100%;
+                border-top-left-radius: var(--space-16);
+                border-bottom-left-radius: var(--space-16);
+                border-left: 1px solid var(--border);
+            }
+
+            &:last-child {
+                border-top-right-radius: var(--space-16);
+                border-bottom-right-radius: var(--space-16);
+                border-right: 1px solid var(--border);
+            }
+        }
+    }
+
+    tbody {
+        tr {
+            font-weight: var(--font-weight-regular);
+
+            &:hover {
+                background-color: var(--secondary-20);
+                font-weight: var(--font-weight-medium);
+            }
+
+            td {
+                padding: var(--space-8) var(--space-16);
+                text-wrap: nowrap;
+            }
+        }
+    }
+}
