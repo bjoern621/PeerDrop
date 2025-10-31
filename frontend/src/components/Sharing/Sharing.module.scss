@@ -9,6 +9,69 @@
     gap: var(--space-8);
 }
 
+.fileButton {
+    .fileIconContainer {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .fileIcon1,
+    .fileIcon2,
+    .fileIcon3 {
+        position: absolute;
+        transition: all 0.3s ease;
+    }
+
+    .fileIcon1 {
+        transform: translate(0, 0) rotate(0deg);
+        z-index: 3;
+    }
+
+    .fileIcon2 {
+        transform: translate(0, 0) rotate(0deg);
+        z-index: 2;
+    }
+
+    .fileIcon3 {
+        transform: translate(0, 0) rotate(0deg);
+        z-index: 1;
+    }
+
+    &:hover {
+        .fileIcon1 {
+            transform: translate(-8px, 2px) rotate(-10deg);
+        }
+
+        .fileIcon2 {
+            transform: translate(0, 0) rotate(0deg);
+        }
+
+        .fileIcon3 {
+            transform: translate(8px, 2px) rotate(10deg);
+        }
+    }
+}
+
+.folderButton {
+    .folderOpenIcon {
+        display: none;
+    }
+
+    &:hover {
+        .folderIcon {
+            display: none;
+        }
+
+        .folderOpenIcon {
+            display: block;
+        }
+    }
+}
+
 .informationTopRight {
     display: flex;
     flex-direction: column;
@@ -52,16 +115,32 @@
 
     tbody {
         tr {
+            color: var(--text-muted);
             font-weight: var(--font-weight-regular);
 
             &:hover {
                 background-color: var(--secondary-20);
                 font-weight: var(--font-weight-medium);
+                color: var(--text);
             }
 
             td {
                 padding: var(--space-8) var(--space-16);
                 text-wrap: nowrap;
+
+                border-bottom: 1px solid var(--border);
+            }
+
+            &:last-child {
+                td {
+                    &:first-child {
+                        border-bottom-left-radius: var(--space-16);
+                    }
+
+                    &:last-child {
+                        border-bottom-right-radius: var(--space-16);
+                    }
+                }
             }
         }
     }

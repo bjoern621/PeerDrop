@@ -1,7 +1,10 @@
 import Button from "../Button/Button";
 import css from "./Sharing.module.scss";
-import FileIcon from "../../assets/icons8-file.svg?react";
+import CodeFileIcon from "../../assets/icons8-code-file.svg?react";
+import ImageFileIcon from "../../assets/icons8-image-file.svg?react";
+import ZipFileIcon from "../../assets/icons8-zip.svg?react";
 import FolderIcon from "../../assets/icons8-folder.svg?react";
+import FolderOpenIcon from "../../assets/icons8-folder-2.svg?react";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import StableText from "../StableText/StableText";
 
@@ -28,16 +31,23 @@ export default function Sharing() {
                         variant="outline"
                         color_scheme="primary"
                         alignment="vertical"
+                        className={css.fileButton}
                     >
-                        <FileIcon />
+                        <div className={css.fileIconContainer}>
+                            <CodeFileIcon className={css.fileIcon1} />
+                            <ImageFileIcon className={css.fileIcon2} />
+                            <ZipFileIcon className={css.fileIcon3} />
+                        </div>
                         Datei teilen
                     </Button>
                     <Button
                         variant="outline"
                         color_scheme="primary"
                         alignment="vertical"
+                        className={css.folderButton}
                     >
-                        <FolderIcon />
+                        <FolderIcon className={css.folderIcon} />
+                        <FolderOpenIcon className={css.folderOpenIcon} />
                         Ordner teilen
                     </Button>
                 </div>
