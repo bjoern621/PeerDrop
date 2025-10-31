@@ -59,17 +59,55 @@
 }
 
 .folderButton {
-    .folderOpenIcon {
-        display: none;
+    .folderIconContainer {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 100px;
+    }
+
+    .folderClosed,
+    .folderOpen {
+        position: absolute;
+        max-width: 24px;
+        max-height: 24px;
+        color: var(--primary);
+    }
+
+    .folderClosed {
+        opacity: 1;
+        transform: translateY(0) rotateX(0deg);
+        transition:
+            opacity 0.2s ease,
+            transform 0.3s ease;
+    }
+
+    .folderOpen {
+        opacity: 0;
+        transform: translateY(-3px) rotateX(-15deg);
+        transition:
+            opacity 0.2s ease 0.1s,
+            transform 0.3s ease;
     }
 
     &:hover {
-        .folderIcon {
-            display: none;
+        .folderClosed {
+            opacity: 0;
+            transform: translateY(3px) rotateX(15deg);
+            transition:
+                opacity 0.2s ease,
+                transform 0.3s ease;
         }
 
-        .folderOpenIcon {
-            display: block;
+        .folderOpen {
+            opacity: 1;
+            transform: translateY(0) rotateX(0deg);
+            transition:
+                opacity 0.2s ease 0.1s,
+                transform 0.3s ease;
         }
     }
 }

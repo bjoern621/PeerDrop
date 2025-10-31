@@ -46,8 +46,10 @@ export default function Sharing() {
                         alignment="vertical"
                         className={css.folderButton}
                     >
-                        <FolderIcon className={css.folderIcon} />
-                        <FolderOpenIcon className={css.folderOpenIcon} />
+                        <div className={css.folderIconContainer}>
+                            <FolderIcon className={css.folderClosed} />
+                            <FolderOpenIcon className={css.folderOpen} />
+                        </div>
                         Ordner teilen
                     </Button>
                 </div>
