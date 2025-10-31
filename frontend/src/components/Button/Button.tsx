@@ -14,6 +14,9 @@ export const buttonVariants = cva(css.button, {
             filled: css.filled,
             outline: css.outline,
         },
+        alignment: {
+            vertical: css.vertical,
+        },
     },
     defaultVariants: {
         color_scheme: "primary",
@@ -31,6 +34,7 @@ export default function Button({
     className,
     color_scheme,
     variant,
+    alignment,
     children,
     ...props
 }: ButtonProps) {
@@ -39,6 +43,7 @@ export default function Button({
             className={buttonVariants({
                 color_scheme,
                 variant,
+                alignment,
                 className,
             })}
             {...props}
