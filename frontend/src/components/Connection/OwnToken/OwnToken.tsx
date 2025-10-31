@@ -95,6 +95,7 @@ export default function OwnToken() {
                 <Button
                     variant={"outline"}
                     color_scheme={"neutral"}
+                    disabled={!clientToken}
                     className={css.openGroupRoomButton}
                     onClick={() => openGroupRoom()}
                 >
