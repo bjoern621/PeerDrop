@@ -3,6 +3,7 @@ import css from "./Sharing.module.scss";
 import FileIcon from "../../assets/icons8-file.svg?react";
 import FolderIcon from "../../assets/icons8-folder.svg?react";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
+import StableText from "../StableText/StableText";
 
 export default function Sharing() {
     const peerConnectionManager = usePeerConnectionManager();
@@ -65,16 +66,56 @@ export default function Sharing() {
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Beispiel-Datei.txt</td>
-                        <td>75%</td>
-                        <td>1.2 MB</td>
-                        <td>12:34 PM</td>
+                        <td>
+                            <StableText
+                                text="Beispiel-Datei.txt"
+                                fontWeight="var(--font-weight-medium)"
+                            />
+                        </td>
+                        <td>
+                            <StableText
+                                text="75%"
+                                fontWeight="var(--font-weight-medium)"
+                            />
+                        </td>
+                        <td>
+                            <StableText
+                                text="1.2 MB"
+                                fontWeight="var(--font-weight-medium)"
+                            />
+                        </td>
+                        <td>
+                            <StableText
+                                text="12:34 PM"
+                                fontWeight="var(--font-weight-medium)"
+                            />
+                        </td>
                     </tr>
                     <tr>
-                        <td>Urlaubsfotos.zip</td>
-                        <td>100%</td>
-                        <td>250 MB</td>
-                        <td>11:20 AM</td>
+                        <td>
+                            <StableText
+                                text="Urlaubsfotos.zip"
+                                fontWeight="var(--font-weight-medium)"
+                            />
+                        </td>
+                        <td>
+                            <StableText
+                                text="100%"
+                                fontWeight="var(--font-weight-medium)"
+                            />
+                        </td>
+                        <td>
+                            <StableText
+                                text="250 MB"
+                                fontWeight="var(--font-weight-medium)"
+                            />
+                        </td>
+                        <td>
+                            <StableText
+                                text="11:20 AM"
+                                fontWeight="var(--font-weight-medium)"
+                            />
+                        </td>
                     </tr>
                 </tbody>
             </table>

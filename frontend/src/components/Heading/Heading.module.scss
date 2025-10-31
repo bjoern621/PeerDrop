@@ -44,10 +44,6 @@
     gap: var(--space-24);
 
     a {
-        display: inline-flex;
-        align-items: center;
-        flex-direction: column;
-
         font-weight: var(--font-weight-regular);
         color: var(--text-muted);
 
@@ -61,15 +57,6 @@
             font-weight: var(--font-weight-medium);
             color: var(--text);
         }
-    }
-
-    a::before {
-        content: attr(data-text);
-        font-weight: 500;
-        pointer-events: none;
-        height: 0;
-        overflow: hidden;
-        visibility: hidden;
     }
 
     @media (max-width: $header-breakpoint) {

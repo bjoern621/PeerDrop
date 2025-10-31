@@ -1,6 +1,7 @@
 import { Link, NavLink } from "react-router";
 import Logo from "../Logo/Logo";
 import css from "./Heading.module.scss";
+import StableText from "../StableText/StableText";
 
 export default function Heading() {
     return (
@@ -10,11 +11,17 @@ export default function Heading() {
                     <Logo aria-hidden />
                 </Link>
                 <nav className={css.navigation} aria-label="Hauptnavigation">
-                    <NavLink data-text="So funktioniert's" to="/">
-                        So funktioniert's
+                    <NavLink to="/">
+                        <StableText
+                            text="So funktioniert's"
+                            fontWeight={"var(--font-weight-medium)"}
+                        />
                     </NavLink>
-                    <NavLink data-text="Dateien teilen" to="/connect">
-                        Dateien teilen
+                    <NavLink to="/connect">
+                        <StableText
+                            text="Dateien teilen"
+                            fontWeight={"var(--font-weight-medium)"}
+                        />
                     </NavLink>
                 </nav>
             </div>
