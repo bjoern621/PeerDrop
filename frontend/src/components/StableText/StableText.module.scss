@@ -1,0 +1,20 @@
+.stableText {
+    display: inline-block;
+    position: relative;
+
+    &::before {
+        content: attr(data-text);
+        font-weight: var(--font-weight);
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    &::after {
+        content: attr(data-text);
+        font-weight: inherit;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
