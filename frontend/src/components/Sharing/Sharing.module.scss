@@ -24,6 +24,7 @@
     .fileIcon3 {
         position: absolute;
         transition: all 0.3s ease;
+        background-color: var(--background);
     }
 
     .fileIcon1 {
@@ -43,7 +44,7 @@
 
     &:hover {
         .fileIcon1 {
-            transform: translate(-8px, 2px) rotate(-10deg);
+            transform: translate(-20px, 2px) rotate(-10deg);
         }
 
         .fileIcon2 {
@@ -51,7 +52,7 @@
         }
 
         .fileIcon3 {
-            transform: translate(8px, 2px) rotate(10deg);
+            transform: translate(20px, 2px) rotate(10deg);
         }
     }
 }
