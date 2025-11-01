@@ -136,9 +136,9 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
                         <button
                             className={`tooltip-on-hover ${css.retryDownload}`}
                         >
-                            DOWNLOAD
+                            SPEICHERN
                             <div className="tooltip top">
-                                Klicken, um erneut herunterzuladen
+                                Klicken, um erneut zu speichern
                             </div>
                         </button>
                     </>
