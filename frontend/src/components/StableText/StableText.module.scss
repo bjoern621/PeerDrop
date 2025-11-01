@@ -3,6 +3,8 @@
     align-items: center;
     justify-content: center;
     position: relative;
+
+    text-decoration: inherit;
 }
 
 .hidden {
@@ -14,4 +16,6 @@
 .visible {
     font-weight: inherit;
     position: absolute;
+
+    text-decoration: inherit;
 }
