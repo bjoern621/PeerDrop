@@ -173,7 +173,7 @@ export default function Sharing() {
             [
                 "17",
                 {
-                    name: "yet_another_subfolder 17",
+                    name: "yet_another_subfolder 17 extremly long name to test overflow handling it goes on and on and on",
                     direction: FileDirection.UP,
                     size: 0,
                     time: new Date(),

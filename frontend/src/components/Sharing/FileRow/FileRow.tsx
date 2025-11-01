@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StableText from "../../StableText/StableText";
 import css from "./FileRow.module.scss";
 import { FileDirection, FileDisplay } from "../types";
@@ -37,6 +37,17 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
     const peerConnectionManager = usePeerConnectionManager();
     const [progress, setProgress] = useState(0);
     const [, setNow] = useState(Date.now());
+    const [isOverflowing, setIsOverflowing] = useState(false);
+    const nameRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        // Check if the content overflows
+        if (nameRef.current) {
+            const isOverflow =
+                nameRef.current.scrollWidth > nameRef.current.clientWidth;
+            setIsOverflowing(isOverflow);
+        }
+    }, []);
 
     useEffect(() => {
         const onFileProgressUpdate = (data: {
@@ -102,10 +113,15 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
     return (
         <tr className={css.fileRow}>
             <td>
-                <StableText
-                    text={file.name}
-                    fontWeight="var(--font-weight-medium)"
-                />
+                <div
+                    ref={nameRef}
+                    title={isOverflowing ? file.name : undefined}
+                >
+                    <StableText
+                        text={file.name}
+                        fontWeight="var(--font-weight-medium)"
+                    />
+                </div>
             </td>
             <td className={css.progressCell}>
                 {file.direction === FileDirection.UP ? (

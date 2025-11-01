@@ -14,6 +14,10 @@
     td {
         padding: var(--space-8) var(--space-16);
         text-wrap: nowrap;
+
+        &:first-child {
+            overflow: hidden;
+        }
     }
 
     &:last-child {
