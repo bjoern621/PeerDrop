@@ -10,7 +10,7 @@ interface StableTextProps {
 
 /**
  * A text component that maintains consistent width regardless of font weight changes.
- * Uses an invisible pseudo-element to reserve space for the heaviest font weight,
+ * Uses an invisible element to reserve space for the heaviest font weight,
  * preventing layout shift when the font weight changes (e.g., on hover or active state).
  */
 export default function StableText({
@@ -23,7 +23,11 @@ export default function StableText({
         <span
             className={`${css.stableText} ${className}`}
             style={{ "--font-weight": fontWeight, ...style } as CSSProperties}
-            data-text={text}
-        />
+        >
+            <span className={css.hidden} aria-hidden="true">
+                {text}
+            </span>
+            <span className={css.visible}>{text}</span>
+        </span>
     );
 }

@@ -3,17 +3,15 @@
     align-items: center;
     justify-content: center;
     position: relative;
+}
 
-    &::before {
-        content: attr(data-text);
-        font-weight: var(--font-weight);
-        pointer-events: none;
-        visibility: hidden;
-    }
+.hidden {
+    font-weight: var(--font-weight);
+    pointer-events: none;
+    visibility: hidden;
+}
 
-    &::after {
-        content: attr(data-text);
-        font-weight: inherit;
-        position: absolute;
-    }
+.visible {
+    font-weight: inherit;
+    position: absolute;
 }
