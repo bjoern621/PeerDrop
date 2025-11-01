@@ -4,8 +4,10 @@ import css from "./FileRow.module.scss";
 import { FileDirection, FileDisplay } from "../types";
 import DownloadIcon from "../../../assets/icons8-download.svg?react";
 import UploadIcon from "../../../assets/icons8-upload.svg?react";
+import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 
 interface FileRowProps {
+    fileUUID: string;
     file: FileDisplay;
 }
 
@@ -31,23 +33,46 @@ const getTimeInHumanReadableFormat = (date: Date): string => {
     );
 };
 
-export default function FileRow({ file }: FileRowProps) {
+export default function FileRow({ fileUUID, file }: FileRowProps) {
+    const peerConnectionManager = usePeerConnectionManager();
+    const [progress, setProgress] = useState(0);
     const [, setNow] = useState(Date.now());
+
+    useEffect(() => {
+        const onFileProgressUpdate = (data: {
+            uuid: string;
+            progress: number;
+        }) => {
+            if (data.uuid !== fileUUID) {
+                return;
+            }
+
+            setProgress(data.progress);
+        };
+
+        peerConnectionManager.subscribeToFileProgress(onFileProgressUpdate);
+
+        return () => {
+            peerConnectionManager.unsubscribeFromFileProgress(
+                onFileProgressUpdate
+            );
+        };
+    }, []);
 
     // Update every second to refresh the remaining time display
     useEffect(() => {
-        if (file.progress >= 1) return; // Don't update if transfer is complete
+        if (progress >= 1) return; // Don't update if transfer is complete
 
         const interval = setInterval(() => {
             setNow(Date.now());
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [file.progress]);
+    }, [progress]);
 
     const getRemainingTime = (): string => {
         const totalSize = file.size;
-        const transferredSize = totalSize * file.progress;
+        const transferredSize = totalSize * progress;
         const timeElapsed = Date.now() - file.time.getTime(); // in milliseconds
 
         // Prevent division by zero
@@ -89,7 +114,7 @@ export default function FileRow({ file }: FileRowProps) {
                     <DownloadIcon className={css.downloadIcon} />
                 )}
 
-                {file.progress >= 1 ? (
+                {progress >= 1 ? (
                     <>
                         <div className={css.progressComplete}>Fertig!</div>
                         <button
@@ -104,14 +129,14 @@ export default function FileRow({ file }: FileRowProps) {
                 ) : (
                     <div className={css.progressContainer}>
                         <div className={css.progressInfo}>
-                            <span>{file.progress * 100} %</span>
+                            <span>{progress * 100} %</span>
 
                             <span>{getRemainingTime()}</span>
                         </div>
 
                         <progress
                             className={css.progressBar}
-                            value={file.progress}
+                            value={progress}
                             max={1}
                         />
                     </div>

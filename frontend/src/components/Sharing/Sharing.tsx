@@ -8,13 +8,17 @@ import FolderOpenIcon from "../../assets/icons8-folder-2.svg?react";
 import DragDropIcon from "../../assets/drag_and_drop.svg?react";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import RemoteTokenDisplay from "../RemoteTokenDisplay/RemoteTokenDisplay";
 import FileRow from "./FileRow/FileRow";
 import { FileDirection, FileDisplay } from "./types";
+import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 
 export default function Sharing() {
     useDeviceHeartbeat({ status: DeviceStatus.BUSY });
+    const peerConnectionManager = usePeerConnectionManager();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const folderInputRef = useRef<HTMLInputElement>(null);
 
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
 
@@ -26,7 +30,6 @@ export default function Sharing() {
                 {
                     name: "example_image.png",
                     direction: FileDirection.UP,
-                    progress: 0.75,
                     size: 2048000,
                     time: new Date(),
                 },
@@ -36,7 +39,6 @@ export default function Sharing() {
                 {
                     name: "document.pdf",
                     direction: FileDirection.DOWN,
-                    progress: 0.5,
                     size: 512000,
                     time: new Date(),
                 },
@@ -46,8 +48,61 @@ export default function Sharing() {
                 {
                     name: "archive.zip",
                     direction: FileDirection.UP,
-                    progress: 1.0,
                     size: 10485760,
+                    time: new Date(),
+                },
+            ],
+            [
+                "4",
+                {
+                    name: "folder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "5",
+                {
+                    name: "subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "6",
+                {
+                    name: "another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "7",
+                {
+                    name: "yet_another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "8",
+                {
+                    name: "yet_another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "9",
+                {
+                    name: "yet_another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
                     time: new Date(),
                 },
             ],
@@ -55,15 +110,80 @@ export default function Sharing() {
         setFiles(dummyFiles);
     }, []);
 
+    useEffect(() => {
+        const handleTabClose = () => {
+            // Close the peer connection when the tab is closed
+            peerConnectionManager.closePeerConnection();
+            window.removeEventListener("beforeunload", handleTabClose);
+        };
+
+        window.addEventListener("beforeunload", handleTabClose);
+    }, []);
+
+    useEffect(() => {
+        peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
+    }, []);
+
+    const addFilesForUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const filesList = event.target.files;
+        if (!filesList) return;
+
+        for (const file of filesList) {
+            const uuid = crypto.randomUUID();
+            const fileDisplay: FileDisplay = {
+                name: file.name,
+                direction: FileDirection.UP,
+                size: file.size,
+                time: new Date(),
+            };
+
+            setFiles(prevFiles => new Map(prevFiles.set(uuid, fileDisplay)));
+
+            peerConnectionManager.sendFile(file, uuid);
+        }
+
+        // Reset input to allow re-adding the same file
+        if (event.target) {
+            event.target.value = "";
+        }
+    };
+
+    const onReceivedFile = (name: string, size: number, uuid: string) => {
+        setFiles(
+            prevFiles =>
+                new Map(
+                    prevFiles.set(uuid, {
+                        name: name,
+                        direction: FileDirection.DOWN,
+                        size: size,
+                        time: new Date(),
+                    })
+                )
+        );
+    };
+
+    const closeConnection = () => {
+        peerConnectionManager.closePeerConnection();
+    };
+
     return (
         <div className={css.sharingContainer}>
             <div className={css.sharingHeader}>
                 <div className={css.uploadButtons}>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        multiple
+                        onChange={addFilesForUpload}
+                        hidden={true}
+                        style={{ display: "none" }}
+                    />
                     <Button
                         variant="outline"
                         color_scheme="primary"
                         alignment="vertical"
                         className={css.fileButton}
+                        onClick={() => fileInputRef.current?.click()}
                     >
                         <div className={css.fileIconContainer}>
                             <CodeFileIcon className={css.fileIcon1} />
@@ -72,11 +192,23 @@ export default function Sharing() {
                         </div>
                         Datei teilen
                     </Button>
+                    <input
+                        type="file"
+                        ref={folderInputRef}
+                        // @ts-expect-error - webkitdirectory is not in the types but is widely supported
+                        webkitdirectory=""
+                        directory=""
+                        multiple
+                        onChange={addFilesForUpload}
+                        hidden={true}
+                        style={{ display: "none" }}
+                    />
                     <Button
                         variant="outline"
                         color_scheme="primary"
                         alignment="vertical"
                         className={css.folderButton}
+                        onClick={() => folderInputRef.current?.click()}
                     >
                         <div className={css.folderIconContainer}>
                             <FolderIcon className={css.folderClosed} />
@@ -93,7 +225,11 @@ export default function Sharing() {
                             <RemoteTokenDisplay />
                         </span>
                     </p>
-                    <Button color_scheme={"neutral"} variant={"outline"}>
+                    <Button
+                        color_scheme={"neutral"}
+                        variant={"outline"}
+                        onClick={closeConnection}
+                    >
                         Verbindung trennen
                     </Button>
                 </div>
@@ -117,7 +253,7 @@ export default function Sharing() {
                 </thead>
                 <tbody>
                     {Array.from(files.entries()).map(([uuid, file]) => (
-                        <FileRow key={uuid} file={file} />
+                        <FileRow key={uuid} fileUUID={uuid} file={file} />
                     ))}
                 </tbody>
             </table>
