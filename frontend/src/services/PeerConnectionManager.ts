@@ -54,7 +54,10 @@ export class PeerConnectionManager {
         size: number,
         uuid: string
     ) => void;
-    private onFileProgressCallback?: (uuid: string, progress: number) => void;
+    private readonly onFileProgressObservable: IObservable<{
+        uuid: string;
+        progress: number;
+    }> = new Observable();
 
     public constructor(private readonly signaling: WebSocketService) {
         this.logger.setEnabled(false);
@@ -379,10 +382,10 @@ export class PeerConnectionManager {
                 progress
             );
             assert(
-                this.onFileProgressCallback,
-                "onFileProgressCallback is not set."
+                this.onFileProgressObservable,
+                "onFileProgressObservable is not set."
             );
-            this.onFileProgressCallback(uuid, progress);
+            this.onFileProgressObservable.notify({ uuid, progress });
         });
     }
 
@@ -420,13 +423,23 @@ export class PeerConnectionManager {
         );
     }
 
-    public setOnFileProgressCallback(
-        cb: (uuid: string, progress: number) => void
+    public subscribeToFileProgress(
+        cb: (data: { uuid: string; progress: number }) => void
     ) {
-        this.onFileProgressCallback = cb;
+        this.onFileProgressObservable.subscribe(cb);
         this.log(
-            "PEERCONNECTIONMANAGER ::: Set OnFileProgressCallback to:",
-            this.onFileProgressCallback
+            "PEERCONNECTIONMANAGER ::: Added subscriber to onFileProgressObservable:",
+            this.onFileProgressObservable
+        );
+    }
+
+    public unsubscribeFromFileProgress(
+        cb: (data: { uuid: string; progress: number }) => void
+    ) {
+        this.onFileProgressObservable.unsubscribe(cb);
+        this.log(
+            "PEERCONNECTIONMANAGER ::: Removed subscriber from onFileProgressObservable:",
+            this.onFileProgressObservable
         );
     }
 

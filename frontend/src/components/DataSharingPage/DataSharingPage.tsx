@@ -107,7 +107,7 @@ export function DataSharingPage() {
 
         // set up callback functions
         peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
-        peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
+        // peerConnectionManager.subscribeToFileProgress(onFileProgressUpdate);
 
         sendHeartbeatIfPossible();
 
@@ -189,19 +189,19 @@ export function DataSharingPage() {
         peerConnectionManager.closePeerConnection();
     };
 
-    const onFileProgressUpdate = (uuid: string, progress: number) => {
-        setFiles(prevFiles => {
-            const newFiles = new Map(prevFiles);
-            const file = newFiles.get(uuid);
+    // const onFileProgressUpdate = (uuid: string, progress: number) => {
+    //     setFiles(prevFiles => {
+    //         const newFiles = new Map(prevFiles);
+    //         const file = newFiles.get(uuid);
 
-            if (file) {
-                file.progress = progress;
-                newFiles.set(uuid, file);
-            }
+    //         if (file) {
+    //             file.progress = progress;
+    //             newFiles.set(uuid, file);
+    //         }
 
-            return newFiles;
-        });
-    };
+    //         return newFiles;
+    //     });
+    // };
 
     const onToggleDetailedProgress = () => {
         setProgressDisplay(prev => {
