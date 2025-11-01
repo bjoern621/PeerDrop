@@ -106,6 +106,106 @@ export default function Sharing() {
                     time: new Date(),
                 },
             ],
+            [
+                "10",
+                {
+                    name: "yet_another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "11",
+                {
+                    name: "yet_another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "12",
+                {
+                    name: "yet_another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "13",
+                {
+                    name: "yet_another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "14",
+                {
+                    name: "yet_another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "15",
+                {
+                    name: "yet_another_subfolder",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+
+            [
+                "16",
+                {
+                    name: "yet_another_subfolder 16",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "17",
+                {
+                    name: "yet_another_subfolder 17",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "18",
+                {
+                    name: "yet_another_subfolder 18",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "19",
+                {
+                    name: "yet_another_subfolder 19",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
+            [
+                "20",
+                {
+                    name: "yet_another_subfolder 20",
+                    direction: FileDirection.UP,
+                    size: 0,
+                    time: new Date(),
+                },
+            ],
         ]);
         setFiles(dummyFiles);
     }, []);
