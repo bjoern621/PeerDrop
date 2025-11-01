@@ -5,25 +5,13 @@ import ImageFileIcon from "../../assets/icons8-image-file.svg?react";
 import ZipFileIcon from "../../assets/icons8-zip.svg?react";
 import FolderIcon from "../../assets/icons8-folder.svg?react";
 import FolderOpenIcon from "../../assets/icons8-folder-2.svg?react";
-import StableText from "../StableText/StableText";
 import DragDropIcon from "../../assets/drag_and_drop.svg?react";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { useEffect, useState } from "react";
 import RemoteTokenDisplay from "../RemoteTokenDisplay/RemoteTokenDisplay";
-
-enum FileDirection {
-    UP = "up",
-    DOWN = "down",
-}
-
-interface FileDisplay {
-    name: string;
-    direction: FileDirection;
-    progress: number;
-    size: number;
-    time: Date;
-}
+import FileRow from "./FileRow";
+import { FileDirection, FileDisplay } from "./types";
 
 export default function Sharing() {
     useDeviceHeartbeat({ status: DeviceStatus.BUSY });
@@ -66,28 +54,6 @@ export default function Sharing() {
         ]);
         setFiles(dummyFiles);
     }, []);
-
-    function getSizeInHumanReadableFormat(size: number): string {
-        const units = ["B", "KB", "MB", "GB", "TB"];
-        let unitIndex = 0;
-
-        while (size >= 1024 && unitIndex < units.length - 1) {
-            size /= 1024;
-            unitIndex++;
-        }
-
-        return `${size.toFixed(0)} ${units[unitIndex]}`;
-    }
-
-    function getTimeInHumanReadableFormat(date: Date): string {
-        return (
-            ("0" + date.getHours()).slice(-2) +
-            ":" +
-            ("0" + date.getMinutes()).slice(-2) +
-            ":" +
-            ("0" + date.getSeconds()).slice(-2)
-        );
-    }
 
     return (
         <div className={css.sharingContainer}>
@@ -151,36 +117,7 @@ export default function Sharing() {
                 </thead>
                 <tbody>
                     {Array.from(files.entries()).map(([uuid, file]) => (
-                        <tr key={uuid}>
-                            <td>
-                                <StableText
-                                    text={file.name}
-                                    fontWeight="var(--font-weight-medium)"
-                                />
-                            </td>
-                            <td>
-                                <StableText
-                                    text={`${file.progress * 100}%`}
-                                    fontWeight="var(--font-weight-medium)"
-                                />
-                            </td>
-                            <td>
-                                <StableText
-                                    text={getSizeInHumanReadableFormat(
-                                        file.size
-                                    )}
-                                    fontWeight="var(--font-weight-medium)"
-                                />
-                            </td>
-                            <td>
-                                <StableText
-                                    text={getTimeInHumanReadableFormat(
-                                        file.time
-                                    )}
-                                    fontWeight="var(--font-weight-medium)"
-                                />
-                            </td>
-                        </tr>
+                        <FileRow key={uuid} file={file} />
                     ))}
                 </tbody>
             </table>

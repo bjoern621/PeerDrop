@@ -157,38 +157,6 @@
             }
         }
     }
-
-    tbody {
-        tr {
-            color: var(--text-muted);
-            font-weight: var(--font-weight-regular);
-
-            &:hover {
-                background-color: var(--secondary-20);
-                font-weight: var(--font-weight-medium);
-                color: var(--text);
-            }
-
-            td {
-                padding: var(--space-8) var(--space-16);
-                text-wrap: nowrap;
-
-                border-bottom: 1px solid var(--border);
-            }
-
-            &:last-child {
-                td {
-                    &:first-child {
-                        border-bottom-left-radius: var(--space-16);
-                    }
-
-                    &:last-child {
-                        border-bottom-right-radius: var(--space-16);
-                    }
-                }
-            }
-        }
-    }
 }
 
 .dropArea {
