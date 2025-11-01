@@ -7,9 +7,13 @@ import FolderIcon from "../../assets/icons8-folder.svg?react";
 import FolderOpenIcon from "../../assets/icons8-folder-2.svg?react";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import StableText from "../StableText/StableText";
+import DragDropIcon from "../../assets/drag_and_drop.svg?react";
+import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
+import { DeviceStatus } from "../../types/device/DeviceStatus";
 
 export default function Sharing() {
     const peerConnectionManager = usePeerConnectionManager();
+    useDeviceHeartbeat({ status: DeviceStatus.BUSY });
 
     const getRemoteTokenIfAvailable = () => {
         if (
@@ -24,7 +28,7 @@ export default function Sharing() {
     };
 
     return (
-        <>
+        <div className={css.sharingContainer}>
             <div className={css.sharingHeader}>
                 <div className={css.uploadButtons}>
                     <Button
@@ -64,6 +68,13 @@ export default function Sharing() {
                     <Button color_scheme={"neutral"} variant={"outline"}>
                         Verbindung trennen
                     </Button>
+                </div>
+            </div>
+
+            <div className={css.dropArea}>
+                <div>
+                    <DragDropIcon className={css.dragDropIcon} />
+                    <p className={css.dropAreaMessage}>Drag and Drop</p>
                 </div>
             </div>
 
@@ -131,6 +142,6 @@ export default function Sharing() {
                     </tr>
                 </tbody>
             </table>
-        </>
+        </div>
     );
 }
