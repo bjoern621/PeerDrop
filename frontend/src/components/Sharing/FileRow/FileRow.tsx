@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import StableText from "../../StableText/StableText";
 import css from "./FileRow.module.scss";
 import { FileDirection, FileDisplay } from "../types";
@@ -31,6 +32,48 @@ const getTimeInHumanReadableFormat = (date: Date): string => {
 };
 
 export default function FileRow({ file }: FileRowProps) {
+    const [, setNow] = useState(Date.now());
+
+    // Update every second to refresh the remaining time display
+    useEffect(() => {
+        if (file.progress >= 1) return; // Don't update if transfer is complete
+
+        const interval = setInterval(() => {
+            setNow(Date.now());
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [file.progress]);
+
+    const getRemainingTime = (): string => {
+        const totalSize = file.size;
+        const transferredSize = totalSize * file.progress;
+        const timeElapsed = Date.now() - file.time.getTime(); // in milliseconds
+
+        // Prevent division by zero
+        if (transferredSize === 0) {
+            return "Berechne...";
+        }
+
+        const averageSpeed = transferredSize / (timeElapsed / 1000); // in bytes per second
+        const remainingSize = totalSize - transferredSize;
+        const estimatedTimeRemaining = remainingSize / averageSpeed; // in seconds
+
+        if (estimatedTimeRemaining > 3600) {
+            const hours = Math.floor(estimatedTimeRemaining / 3600);
+            const minutes = Math.floor((estimatedTimeRemaining % 3600) / 60);
+            return `${hours}h ${minutes}m`;
+        } else if (estimatedTimeRemaining > 60) {
+            const minutes = Math.floor(estimatedTimeRemaining / 60);
+            const seconds = Math.ceil(estimatedTimeRemaining % 60);
+            return `${minutes}m ${seconds}s`;
+        } else if (estimatedTimeRemaining === 1) {
+            return `1 Sekunde`;
+        } else {
+            return `${Math.ceil(estimatedTimeRemaining)} Sekunden`;
+        }
+    };
+
     return (
         <tr className={css.fileRow}>
             <td>
@@ -63,7 +106,7 @@ export default function FileRow({ file }: FileRowProps) {
                         <div className={css.progressInfo}>
                             <span>{file.progress * 100} %</span>
 
-                            <span>12 Sekunden</span>
+                            <span>{getRemainingTime()}</span>
                         </div>
 
                         <progress
