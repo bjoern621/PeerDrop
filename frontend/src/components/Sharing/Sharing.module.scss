@@ -162,7 +162,8 @@
         max-height: calc(
             100vh - 78px - 305px - 122px - 40px - 2px
         ); // Header, Footer, SharingHeader, TableHeader, ?Margins/Border?
-        overflow-y: scroll;
+        overflow-y: auto;
+        scrollbar-gutter: stable;
 
         tr {
             display: grid;
