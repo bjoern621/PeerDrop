@@ -1,6 +1,6 @@
-import StableText from "../StableText/StableText";
+import StableText from "../../StableText/StableText";
 import css from "./FileRow.module.scss";
-import { FileDisplay } from "./types";
+import { FileDisplay } from "../types";
 
 interface FileRowProps {
     file: FileDisplay;

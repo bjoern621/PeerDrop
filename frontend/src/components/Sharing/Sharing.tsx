@@ -10,7 +10,7 @@ import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { useEffect, useState } from "react";
 import RemoteTokenDisplay from "../RemoteTokenDisplay/RemoteTokenDisplay";
-import FileRow from "./FileRow";
+import FileRow from "./FileRow/FileRow";
 import { FileDirection, FileDisplay } from "./types";
 
 export default function Sharing() {
