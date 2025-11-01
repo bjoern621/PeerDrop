@@ -11,13 +11,16 @@ export default function Heading() {
                     <Logo aria-hidden />
                 </Link>
                 <nav className={css.navigation} aria-label="Hauptnavigation">
-                    <NavLink to="/">
+                    <NavLink to="/" aria-label="Zur Hauptseite navigieren">
                         <StableText
                             text="So funktioniert's"
                             fontWeight={"var(--font-weight-medium)"}
                         />
                     </NavLink>
-                    <NavLink to="/connect">
+                    <NavLink
+                        to="/connect"
+                        aria-label="Zur Dateifreigabe navigieren"
+                    >
                         <StableText
                             text="Dateien teilen"
                             fontWeight={"var(--font-weight-medium)"}
