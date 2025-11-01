@@ -25,6 +25,9 @@ export default function Sharing() {
     const folderInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
 
+    const [isDragging, setIsDragging] = useState(false);
+    const dragCounterRef = useRef(0); // Counter for drag depth to handle nested element enter/leave events
+
     useEffect(() => {
         const handleTabClose = () => {
             // Close the peer connection when the tab is closed
@@ -43,6 +46,15 @@ export default function Sharing() {
         const filesList = event.target.files;
         if (!filesList) return;
 
+        uploadFiles(filesList);
+
+        // Reset input to allow re-adding the same file
+        if (event.target) {
+            event.target.value = "";
+        }
+    };
+
+    const uploadFiles = (filesList: FileList) => {
         for (const file of filesList) {
             const uuid = crypto.randomUUID();
             const fileDisplay: FileDisplay = {
@@ -55,11 +67,6 @@ export default function Sharing() {
             setFiles(prevFiles => new Map(prevFiles.set(uuid, fileDisplay)));
 
             peerConnectionManager.sendFile(file, uuid);
-        }
-
-        // Reset input to allow re-adding the same file
-        if (event.target) {
-            event.target.value = "";
         }
     };
 
@@ -83,8 +90,52 @@ export default function Sharing() {
         toast.info("Verbindung erfolgreich getrennt.");
     };
 
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterRef.current++;
+        if (dragCounterRef.current >= 1) {
+            setIsDragging(true);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterRef.current--;
+        if (dragCounterRef.current <= 0) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterRef.current = 0;
+        setIsDragging(false);
+
+        const droppedFiles = e.dataTransfer.files;
+
+        if (!droppedFiles || droppedFiles.length === 0) {
+            return;
+        }
+
+        uploadFiles(droppedFiles);
+    };
+
     return (
-        <div className={css.sharingContainer}>
+        <div
+            className={css.sharingContainer}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
             <div className={css.sharingHeader}>
                 <div className={css.uploadButtons}>
                     <input
@@ -145,17 +196,10 @@ export default function Sharing() {
                     <Button
                         color_scheme={"neutral"}
                         variant={"outline"}
-                        onClick={closeConnection}
+                        onClick={() => void closeConnection()}
                     >
                         Verbindung trennen
                     </Button>
-                </div>
-            </div>
-
-            <div className={css.dropArea}>
-                <div>
-                    <DragDropIcon className={css.dragDropIcon} />
-                    <p className={css.dropAreaMessage}>Drag and Drop</p>
                 </div>
             </div>
 
@@ -174,6 +218,15 @@ export default function Sharing() {
                     ))}
                 </tbody>
             </table>
+
+            <div
+                className={`${css.dropArea} ${isDragging ? css.dropAreaActive : ""}`}
+            >
+                <div>
+                    <DragDropIcon className={css.dragDropIcon} />
+                    <p className={css.dropAreaMessage}>Drag and Drop</p>
+                </div>
+            </div>
         </div>
     );
 }
