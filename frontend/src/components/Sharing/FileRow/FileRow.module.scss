@@ -1,6 +1,7 @@
 .fileRow {
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
+    backdrop-filter: blur(4px);
 
     &:hover {
         background-color: var(--secondary-20);
