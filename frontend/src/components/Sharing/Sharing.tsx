@@ -13,13 +13,16 @@ import RemoteTokenDisplay from "../RemoteTokenDisplay/RemoteTokenDisplay";
 import FileRow from "./FileRow/FileRow";
 import { FileDirection, FileDisplay } from "./types";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
+import { useNavigate } from "react-router";
+import { toast } from "react-toastify/unstyled";
 
 export default function Sharing() {
     useDeviceHeartbeat({ status: DeviceStatus.BUSY });
     const peerConnectionManager = usePeerConnectionManager();
+    const navigate = useNavigate();
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
-
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
 
     useEffect(() => {
@@ -262,8 +265,10 @@ export default function Sharing() {
         );
     };
 
-    const closeConnection = () => {
+    const closeConnection = async () => {
         peerConnectionManager.closePeerConnection();
+        await navigate("/connect");
+        toast.info("Verbindung erfolgreich getrennt.");
     };
 
     return (
