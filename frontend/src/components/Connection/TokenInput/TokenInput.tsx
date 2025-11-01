@@ -40,6 +40,7 @@ export default function TokenInput({
                 </>
             )}
             autoComplete="off"
+            aria-label="Token eingeben"
         ></OTPInput>
     );
 }
