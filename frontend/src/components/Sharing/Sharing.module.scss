@@ -7,11 +7,15 @@
     margin: var(--space-40) 0 var(--space-16);
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
+
+    --gap: var(--space-8);
+    gap: var(--gap);
 }
 
 .uploadButtons {
     display: flex;
-    gap: var(--space-8);
+    gap: var(--gap);
 }
 
 .fileButton {
@@ -148,6 +152,14 @@
                 border-top-left-radius: var(--space-16);
                 border-bottom-left-radius: var(--space-16);
                 border-left: 1px solid var(--border);
+            }
+
+            &:nth-child(2) {
+                min-width: 250px;
+            }
+
+            &:nth-child(3) {
+                min-width: calc(7ch + var(--space-16) * 2);
             }
 
             &:last-child {
