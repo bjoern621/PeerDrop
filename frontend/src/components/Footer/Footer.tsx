@@ -25,6 +25,7 @@ export default function Footer() {
                         </li>
                         <li>Preise</li>
                         <li>Entstehung</li>
+                        <li>FAQ</li>
                     </ul>
                 </nav>
             </div>
