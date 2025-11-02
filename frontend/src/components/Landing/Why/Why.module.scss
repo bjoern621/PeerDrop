@@ -26,7 +26,7 @@
     &::before {
         background: radial-gradient(
             850px circle at var(--mouse-x) var(--mouse-y),
-            var(--primary-10),
+            var(--background-effect-color),
             transparent 40%
         );
 
