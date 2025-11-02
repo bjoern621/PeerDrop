@@ -1,0 +1,88 @@
+.tooltipTrigger {
+    display: inline-block;
+}
+
+.tooltip {
+    pointer-events: none;
+    background-color: var(--background);
+    background-image: linear-gradient(var(--text-muted-10));
+    padding: var(--space-4) var(--space-12);
+    border-radius: var(--space-4);
+    border: 1px solid var(--border);
+    z-index: 999;
+    text-wrap: nowrap;
+
+    position: fixed;
+    position-anchor: --tooltip-anchor;
+
+    opacity: 0;
+    scale: 0.9;
+
+    transition:
+        opacity 0.1s,
+        scale 0.1s;
+
+    &.visible {
+        opacity: 1;
+        scale: 1;
+    }
+
+    &.top {
+        bottom: anchor(top);
+        left: anchor(center);
+        translate: -50% -8px;
+    }
+
+    &.bottom {
+        top: anchor(bottom);
+        left: anchor(center);
+        translate: -50% 8px;
+    }
+
+    &.left {
+        right: anchor(left);
+        top: anchor(center);
+        translate: -8px -50%;
+    }
+
+    &.right {
+        left: anchor(right);
+        top: anchor(center);
+        translate: 8px -50%;
+    }
+
+    &.withArrow::after {
+        content: " ";
+        position: absolute;
+        border-width: 5px;
+        border-style: solid;
+    }
+
+    &.top.withArrow::after {
+        border-color: var(--background) transparent transparent transparent;
+        left: 50%;
+        top: 100%;
+        translate: -50% 0;
+    }
+
+    &.bottom.withArrow::after {
+        border-color: transparent transparent var(--background) transparent;
+        left: 50%;
+        bottom: 100%;
+        translate: -50% 0;
+    }
+
+    &.right.withArrow::after {
+        border-color: transparent var(--background) transparent transparent;
+        top: 50%;
+        right: 100%;
+        translate: 0 -50%;
+    }
+
+    &.left.withArrow::after {
+        border-color: transparent transparent transparent var(--background);
+        top: 50%;
+        left: 100%;
+        translate: 0 -50%;
+    }
+}
