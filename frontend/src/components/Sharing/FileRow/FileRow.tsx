@@ -137,14 +137,20 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
                         <Badge color_scheme="success" size={"m"}>
                             Fertig!
                         </Badge>
-                        <Tooltip
-                            content="Klicken, um erneut zu speichern"
-                            position="top"
-                        >
-                            <Badge size="s" color_scheme="neutral" clickable>
-                                SPEICHERN
-                            </Badge>
-                        </Tooltip>
+                        {file.direction === FileDirection.DOWN && (
+                            <Tooltip
+                                content="Klicken, um erneut zu speichern"
+                                position="top"
+                            >
+                                <Badge
+                                    size="s"
+                                    color_scheme="neutral"
+                                    clickable
+                                >
+                                    SPEICHERN
+                                </Badge>
+                            </Tooltip>
+                        )}
                     </>
                 ) : (
                     <div className={css.progressContainer}>
