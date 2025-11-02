@@ -59,7 +59,9 @@ export default function ConnectToPeer() {
 
             <div className={css.tokenInputContainer}>
                 {waitingForResponse && (
-                    <p className={`${css.mutedText} ${css.fadeInScale}`}>
+                    <p
+                        className={`${css.mutedText} ${css.fadeInScale} ${css.waitingText}`}
+                    >
                         Warte auf Bestätigung von:
                     </p>
                 )}
