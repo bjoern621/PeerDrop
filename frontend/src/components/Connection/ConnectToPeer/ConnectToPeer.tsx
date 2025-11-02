@@ -2,7 +2,7 @@ import Button from "../../Button/Button";
 import TokenInput from "../TokenInput/TokenInput";
 import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import { toast } from "react-toastify/unstyled";
 
@@ -14,7 +14,7 @@ export default function ConnectToPeer() {
         useState<boolean>(false);
     const [connectionRequestTimestamp, setConnectionRequestTimestamp] =
         useState<number>(0);
-    const [delayTimeoutId, setDelayTimeoutId] = useState<number | null>(null);
+    const delayTimeoutIdRef = useRef<number | null>(null);
 
     useEffect(() => {
         /**
@@ -26,9 +26,11 @@ export default function ConnectToPeer() {
             const remainingDelay = Math.max(0, 1000 - elapsedTime);
 
             if (remainingDelay > 0) {
-                await new Promise(resolve => {
-                    const timeoutId = setTimeout(resolve, remainingDelay);
-                    setDelayTimeoutId(timeoutId);
+                await new Promise<void>(resolve => {
+                    delayTimeoutIdRef.current = setTimeout(
+                        resolve,
+                        remainingDelay
+                    );
                 });
             }
         };
@@ -38,7 +40,7 @@ export default function ConnectToPeer() {
                 void (async () => {
                     await waitForMinimumDelay();
 
-                    setDelayTimeoutId(null);
+                    delayTimeoutIdRef.current = null;
                     setWaitingForResponse(false);
 
                     if (accepted) {
@@ -53,14 +55,18 @@ export default function ConnectToPeer() {
                 })();
             }
         );
+
+        return () => {
+            if (delayTimeoutIdRef.current !== null) {
+                clearTimeout(delayTimeoutIdRef.current);
+            }
+        };
     }, [peerConnectionManager, connectionRequestTimestamp]);
 
     const interruptWaiting = () => {
-        console.log("Interrupting connection request...");
-
-        if (delayTimeoutId !== null) {
-            clearTimeout(delayTimeoutId);
-            setDelayTimeoutId(null);
+        if (delayTimeoutIdRef.current !== null) {
+            clearTimeout(delayTimeoutIdRef.current);
+            delayTimeoutIdRef.current = null;
         }
 
         setWaitingForResponse(false);
@@ -104,13 +110,7 @@ export default function ConnectToPeer() {
             </div>
 
             <Button
-                onClick={() => {
-                    if (waitingForResponse) {
-                        interruptWaiting();
-                    } else {
-                        connectToPeer();
-                    }
-                }}
+                onClick={waitingForResponse ? interruptWaiting : connectToPeer}
                 variant={waitingForResponse ? "outline" : "filled"}
             >
                 {waitingForResponse ? "Abbrechen" : "Verbinden"}
