@@ -3,7 +3,7 @@
 .connectToPeerContainer {
     @include connection.container;
 
-    border-color: var(--primary);
+    background-color: var(--primary-5);
 
     > .heading {
         color: var(--primary);

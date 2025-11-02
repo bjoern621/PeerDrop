@@ -10,10 +10,33 @@
     justify-content: center;
 
     padding-top: var(--space-24);
+
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        --size: 1100px;
+        width: var(--size);
+        height: var(--size);
+
+        background: radial-gradient(
+            circle,
+            var(--background-effect-color) 20%,
+            transparent 70%
+        );
+
+        z-index: -1;
+        pointer-events: none;
+    }
 }
 
 @mixin containerBorder {
-    border: 3px solid var(--secondary);
+    border: 1px solid var(--border);
+
     border-radius: var(--space-16);
     padding: var(--space-16);
 }

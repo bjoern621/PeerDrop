@@ -3,7 +3,7 @@
 .ownTokenContainer {
     @include connection.container;
 
-    border-color: var(--secondary);
+    background-color: var(--secondary-5);
 
     > .heading {
         color: var(--secondary);
@@ -12,7 +12,9 @@
 }
 
 .tokenBox {
-    @include connection.containerBorder;
+    border: 3px solid var(--secondary);
+    border-radius: var(--space-16);
+    padding: var(--space-16);
 
     text-align: center;
 

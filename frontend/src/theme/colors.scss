@@ -40,7 +40,8 @@
     --accent: oklch(55.096% 0.22192 26.644);
     --border: rgba(0, 0, 0, var(--a-5));
     --highlight: rgba(255, 255, 255, var(--a-20));
-    --shadow: rgba(0, 0, 0, var(--a-5));
+    --shadow: rgba(0, 0, 0, var(--a-10));
+    --background-effect-color: var(--secondary-20);
 
     --info-text: oklch(57.586% 0.11907 242.306);
     --success-text: oklch(50.114% 0.13772 145.411);
@@ -58,6 +59,7 @@
     --border: rgba(255, 255, 255, var(--a-5));
     --highlight: rgba(255, 255, 255, var(--a-5));
     --shadow: rgba(0, 0, 0, var(--a-20));
+    --background-effect-color: var(--primary-10);
 
     --info-text: var(--info);
     --success-text: var(--success);
