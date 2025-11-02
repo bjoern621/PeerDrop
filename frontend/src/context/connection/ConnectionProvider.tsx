@@ -25,7 +25,7 @@ export function ConnectionProvider({
             void navigate("/share");
         });
         pcmRef.current.setOnDisconnectedCallback(() => {
-            void navigate("/");
+            void navigate("/connect");
         });
     }
 
