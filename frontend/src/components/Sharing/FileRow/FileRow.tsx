@@ -146,6 +146,11 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
                                     size="s"
                                     color_scheme="neutral"
                                     clickable
+                                    onClick={() => {
+                                        peerConnectionManager.redownloadFile(
+                                            fileUUID
+                                        );
+                                    }}
                                 >
                                     SPEICHERN
                                 </Badge>

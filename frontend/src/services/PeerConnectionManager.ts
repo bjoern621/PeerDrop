@@ -464,4 +464,17 @@ export class PeerConnectionManager {
         assert(this.webrtcConnection, "No active connection to send file.");
         this.webrtcConnection.sendFileOverDataChannel(file, uuid);
     }
+
+    /**
+     * Re-downloads a previously received file by UUID.
+     * @param uuid The UUID of the file to re-download.
+     * @returns true if the file was found and download was triggered, false otherwise.
+     */
+    public redownloadFile(uuid: string): boolean {
+        if (!this.webrtcConnection) {
+            this.log("No active connection to re-download file.");
+            return false;
+        }
+        return this.webrtcConnection.redownloadFile(uuid);
+    }
 }

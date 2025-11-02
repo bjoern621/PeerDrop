@@ -45,6 +45,12 @@ export class WebRTCConnection {
     private readonly eventHandlers: Map<string, Observable<unknown>> =
         new Map();
 
+    // Store completed downloads for re-download capability
+    private readonly completedDownloads: Map<
+        string, // File UUID
+        { blob: Blob; filename: string }
+    > = new Map();
+
     // Perfect Negotiation Pattern variables
     private makingOffer: boolean = false;
     private ignoreOffer: boolean = false;
@@ -239,23 +245,18 @@ export class WebRTCConnection {
 
                 if (typeof event.data === "string" && event.data === "EOF") {
                     const blob = new Blob(receivedChunks);
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = fileMeta?.name ?? "received-file";
-                    document.body.appendChild(a);
+                    const filename = fileMeta?.name ?? "received-file";
 
-                    // Download in die Queue legen:
-                    downloadQueue.push(() => {
-                        a.click();
-                        setTimeout(() => {
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
-                            downloadActive = false;
-                            processDownloadQueue(); // Nächsten Download starten
-                        }, 200); // 200ms warten, damit der Download sicher startet
-                    });
-                    processDownloadQueue();
+                    // Store the blob for potential re-download
+                    if (fileMeta?.uuid) {
+                        this.completedDownloads.set(fileMeta.uuid, {
+                            blob,
+                            filename,
+                        });
+                    }
+
+                    // Trigger initial download
+                    this.triggerDownload(blob, filename);
 
                     this.log(
                         "File downloaded with TransferID:",
@@ -446,6 +447,47 @@ export class WebRTCConnection {
         };
     }
 
+    /**
+     * Triggers a download for a specific blob with the given filename.
+     * Uses a queue system to prevent multiple simultaneous downloads.
+     */
+    private triggerDownload(blob: Blob, filename: string) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+
+        // Download in die Queue legen:
+        downloadQueue.push(() => {
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                downloadActive = false;
+                processDownloadQueue(); // Nächsten Download starten
+            }, 200); // 200ms warten, damit der Download sicher startet
+        });
+        processDownloadQueue();
+    }
+
+    /**
+     * Re-downloads a previously received file by UUID.
+     * @param uuid The UUID of the file to re-download.
+     * @returns true if the file was found and download was triggered, false otherwise.
+     */
+    public redownloadFile(uuid: string): boolean {
+        const fileData = this.completedDownloads.get(uuid);
+        if (!fileData) {
+            this.log("File not found for re-download:", uuid);
+            return false;
+        }
+
+        this.log("Re-downloading file:", fileData.filename);
+        this.triggerDownload(fileData.blob, fileData.filename);
+        return true;
+    }
+
     public closePeerConnection() {
         this.peerConnection.close();
 
@@ -477,6 +519,8 @@ export class WebRTCConnection {
         this.emitEvent("connectionstatechange", "closed");
 
         this.unsubscribeAllHandlers();
+
+        this.completedDownloads.clear();
     }
 
     /**
