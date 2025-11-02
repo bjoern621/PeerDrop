@@ -5,6 +5,8 @@ import { FileDirection, FileDisplay } from "../types";
 import DownloadIcon from "../../../assets/icons8-download.svg?react";
 import UploadIcon from "../../../assets/icons8-upload.svg?react";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
+import Tooltip from "../../Tooltip";
+import Badge from "../../Badge/Badge";
 
 interface FileRowProps {
     fileUUID: string;
@@ -132,15 +134,17 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
 
                 {progress >= 1 ? (
                     <>
-                        <div className={css.progressComplete}>Fertig!</div>
-                        <button
-                            className={`tooltip-on-hover ${css.retryDownload}`}
+                        <Badge color_scheme="success" size={"m"}>
+                            Fertig!
+                        </Badge>
+                        <Tooltip
+                            content="Klicken, um erneut zu speichern"
+                            position="top"
                         >
-                            SPEICHERN
-                            <div className="tooltip top">
-                                Klicken, um erneut zu speichern
-                            </div>
-                        </button>
+                            <Badge size="s" color_scheme="neutral" clickable>
+                                SPEICHERN
+                            </Badge>
+                        </Tooltip>
                     </>
                 ) : (
                     <div className={css.progressContainer}>
