@@ -12,13 +12,33 @@ export default function ConnectToPeer() {
     const [remoteToken, setRemoteToken] = useState<string>("");
     const [waitingForResponse, setWaitingForResponse] =
         useState<boolean>(false);
+    const [connectionRequestTimestamp, setConnectionRequestTimestamp] =
+        useState<number>(0);
+    const [delayTimeoutId, setDelayTimeoutId] = useState<number | null>(null);
 
     useEffect(() => {
+        /**
+         * Wait for the minimum delay before processing the connection response.
+         * This prevents instant rejections from feeling abrupt.
+         */
+        const waitForMinimumDelay = async () => {
+            const elapsedTime = Date.now() - connectionRequestTimestamp;
+            const remainingDelay = Math.max(0, 1000 - elapsedTime);
+
+            if (remainingDelay > 0) {
+                await new Promise(resolve => {
+                    const timeoutId = setTimeout(resolve, remainingDelay);
+                    setDelayTimeoutId(timeoutId);
+                });
+            }
+        };
+
         peerConnectionManager.setOnConnectionResponseReceivedCallback(
             (accepted: boolean) => {
                 void (async () => {
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Prevent spamming toasts
+                    await waitForMinimumDelay();
 
+                    setDelayTimeoutId(null);
                     setWaitingForResponse(false);
 
                     if (accepted) {
@@ -33,12 +53,18 @@ export default function ConnectToPeer() {
                 })();
             }
         );
-    }, [peerConnectionManager]);
+    }, [peerConnectionManager, connectionRequestTimestamp]);
 
     const interruptWaiting = () => {
-        if (peerConnectionManager.cancelConnectionRequest(remoteToken)) {
-            setWaitingForResponse(false);
+        console.log("Interrupting connection request...");
+
+        if (delayTimeoutId !== null) {
+            clearTimeout(delayTimeoutId);
+            setDelayTimeoutId(null);
         }
+
+        setWaitingForResponse(false);
+        peerConnectionManager.cancelConnectionRequest(remoteToken);
     };
 
     const connectToPeer = () => {
@@ -46,6 +72,7 @@ export default function ConnectToPeer() {
             peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
 
         if (successfullySent) {
+            setConnectionRequestTimestamp(Date.now());
             setWaitingForResponse(true);
         }
     };
