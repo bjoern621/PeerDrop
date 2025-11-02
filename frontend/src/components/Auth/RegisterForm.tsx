@@ -24,7 +24,7 @@ export default function RegisterForm({
         formState: { errors, dirtyFields, touchedFields, isSubmitted },
     } = useForm<RegisterFormFields>({
         resolver: zodResolver(registerSchema),
-        mode: "onBlur",
+        mode: "onChange",
     });
 
     const onSubmitForm = (data: RegisterFormFields) => {
