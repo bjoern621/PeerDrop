@@ -50,3 +50,13 @@ p {
     text-wrap: pretty;
     max-width: 65ch;
 }
+
+:modal {
+    inset: unset;
+    color: unset;
+}
+
+input {
+    font: inherit;
+    color: inherit;
+}
