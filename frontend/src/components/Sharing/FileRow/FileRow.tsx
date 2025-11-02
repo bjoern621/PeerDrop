@@ -5,8 +5,8 @@ import { FileDirection, FileDisplay } from "../types";
 import DownloadIcon from "../../../assets/icons8-download.svg?react";
 import UploadIcon from "../../../assets/icons8-upload.svg?react";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
-import Tooltip from "../../Tooltip";
 import Badge from "../../Badge/Badge";
+import Tooltip from "../../Tooltip/Tooltip";
 
 interface FileRowProps {
     fileUUID: string;
