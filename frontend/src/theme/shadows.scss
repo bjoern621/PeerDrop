@@ -1,0 +1,9 @@
+@mixin elevated-shadow {
+    box-shadow:
+        0 4px 10px 2px var(--shadow),
+        inset 0 4px 4px var(--highlight);
+}
+
+@mixin elevated-shadow-no-highlight {
+    box-shadow: 0 4px 10px 2px var(--shadow);
+}
