@@ -1,0 +1,19 @@
+@use "../../theme/shadows.scss" as *;
+
+.dialog {
+    position: fixed;
+    top: 78px;
+    right: 0;
+
+    background-color: var(--background);
+    @include elevated-shadow;
+    border: 1px solid var(--border);
+    padding: var(--space-24);
+    border-bottom-left-radius: var(--space-16);
+
+    &::backdrop {
+        background-color: transparent;
+    }
+
+    width: 400px;
+}
