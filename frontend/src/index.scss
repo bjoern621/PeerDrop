@@ -3,6 +3,7 @@
 @use "theme/spacing.scss";
 @use "theme/typography.scss";
 @use "theme/tooltip.scss";
+@use "theme/shadows.scss";
 @use "react-toastify/dist/ReactToastify.css";
 @use "theme/toastify-styles.scss";
 
@@ -28,4 +29,9 @@ html,
 body,
 #root {
     height: 100%;
+}
+
+*:focus-visible {
+    outline: 4px solid var(--light-blue);
+    outline-offset: 2px;
 }
