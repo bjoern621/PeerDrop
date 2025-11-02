@@ -51,8 +51,11 @@ p {
     max-width: 65ch;
 }
 
-:modal {
+dialog {
     inset: unset;
+}
+
+:modal {
     color: unset;
 }
 
