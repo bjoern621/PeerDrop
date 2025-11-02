@@ -66,6 +66,11 @@ export default function Sharing() {
 
             setFiles(prevFiles => new Map(prevFiles.set(uuid, fileDisplay)));
 
+            // Useful for development/testing without connection
+            if (!peerConnectionManager.getConnection()) {
+                continue;
+            }
+
             peerConnectionManager.sendFile(file, uuid);
         }
     };
