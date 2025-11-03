@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Button from "../Button/Button";
 import css from "./AuthForms.module.scss";
 import ArrowIcon from "../../assets/icons8-arrow-2.svg?react";
@@ -41,6 +41,17 @@ export default function LoginForm({
             password: initialPassword,
         },
     });
+
+    const lastUsernameError = useRef<string>("");
+    const lastPasswordError = useRef<string>("");
+
+    // Update cached error messages when there's a new error
+    if (errors.username?.message) {
+        lastUsernameError.current = errors.username.message;
+    }
+    if (errors.password?.message) {
+        lastPasswordError.current = errors.password.message;
+    }
 
     const onSubmitForm = (data: LoginFormFields) => {
         onSubmit(data.username, data.password);
@@ -100,9 +111,11 @@ export default function LoginForm({
                         shouldShowError("username") ? "true" : "false"
                     }
                 />
-                {shouldShowError("username") && (
-                    <div className={css.error}>{errors.username!.message}</div>
-                )}
+                <div
+                    className={`${css.errorWrapper} ${!shouldShowError("username") ? css.hidden : ""}`}
+                >
+                    <div className={css.error}>{lastUsernameError.current}</div>
+                </div>
             </div>
 
             <div>
@@ -119,9 +132,11 @@ export default function LoginForm({
                         shouldShowError("password") ? "true" : "false"
                     }
                 />
-                {shouldShowError("password") && (
-                    <div className={css.error}>{errors.password!.message}</div>
-                )}
+                <div
+                    className={`${css.errorWrapper} ${!shouldShowError("password") ? css.hidden : ""}`}
+                >
+                    <div className={css.error}>{lastPasswordError.current}</div>
+                </div>
             </div>
 
             <div className={css.buttonContainer}>

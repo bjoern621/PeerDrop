@@ -40,6 +40,16 @@
     color: var(--error-text);
 }
 
+.errorWrapper {
+    height: auto;
+    overflow: hidden;
+    transition: height 0.4s;
+
+    &.hidden {
+        height: 0;
+    }
+}
+
 .buttonContainer {
     display: flex;
     gap: var(--space-16);
