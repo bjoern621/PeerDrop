@@ -81,7 +81,8 @@ export default function AuthButton() {
             return;
         }
 
-        window.location.reload();
+        setLoggedIn(false);
+        toast.success("Erfolgreich ausgeloggt");
     };
 
     if (isLoading) {
