@@ -3,10 +3,8 @@ import { flushSync } from "react-dom";
 import css from "./AuthDialog.module.scss";
 import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
-import errorAsValue from "../../util/ErrorAsValue";
-import { UserLoginDto } from "../../util/dtos/UserLoginDto";
-import { toast } from "react-toastify/unstyled";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
+import { AuthService } from "../../services/AuthService";
 
 type AuthForm = "login" | "register";
 
@@ -59,39 +57,13 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
     }, [ref]);
 
     const handleLogin = async (username: string, password: string) => {
-        const userData: UserLoginDto = {
-            username: username,
-            password: password,
-        };
+        const success = await AuthService.login(username, password);
 
-        const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/login`, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(userData),
-            })
-        );
-
-        if (err) {
-            toast.error(
-                "Fehler beim Einloggen. Bitte versuche es später erneut."
-            );
-            console.error("Fehler beim Einloggen:", err);
-            return;
+        if (success) {
+            resetWebsocketConnection();
+            ref.current.close();
+            onLoginSuccess();
         }
-
-        if (!response.ok) {
-            toast.error("Ungültiger Benutzername oder Passwort.");
-            return;
-        }
-
-        resetWebsocketConnection();
-        ref.current?.close();
-        toast.success("Erfolgreich eingeloggt!");
-        onLoginSuccess();
     };
 
     const handleRegister = async (
@@ -100,44 +72,13 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _confirmPassword: string
     ) => {
-        const userData: UserLoginDto = {
-            username: username,
-            password: password,
-        };
+        const success = await AuthService.register(username, password);
 
-        const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(userData),
-            })
-        );
-
-        if (err) {
-            toast.error(
-                "Fehler beim Registrieren. Bitte versuche es später erneut."
-            );
-            console.error("Fehler beim Registrieren:", err);
-            return;
+        if (success) {
+            resetWebsocketConnection();
+            ref.current.close();
+            onLoginSuccess();
         }
-
-        if (response.status === 409) {
-            toast.error("Benutzername bereits vergeben.");
-            return;
-        }
-
-        if (!response.ok) {
-            toast.error("Ungültiger Benutzername oder Passwort.");
-            return;
-        }
-
-        resetWebsocketConnection();
-        ref.current?.close();
-        toast.success("Erfolgreich registriert!");
-        onLoginSuccess();
     };
 
     return (
