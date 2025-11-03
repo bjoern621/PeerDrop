@@ -42,6 +42,16 @@ export default function LoginForm({
         }
     };
 
+    /**
+     * Determines if an error message should be shown for a given field
+     */
+    const shouldShowError = (field: keyof LoginFormFields) => {
+        return (
+            errors[field] &&
+            ((touchedFields[field] && dirtyFields[field]) || isSubmitted)
+        );
+    };
+
     return (
         <form
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -62,20 +72,12 @@ export default function LoginForm({
                     className={css.input}
                     autoComplete="username"
                     aria-invalid={
-                        errors.username &&
-                        ((touchedFields.username && dirtyFields.username) ||
-                            isSubmitted)
-                            ? "true"
-                            : "false"
+                        shouldShowError("username") ? "true" : "false"
                     }
                 />
-                {errors.username &&
-                    ((touchedFields.username && dirtyFields.username) ||
-                        isSubmitted) && (
-                        <div className={css.error}>
-                            {errors.username.message}
-                        </div>
-                    )}
+                {shouldShowError("username") && (
+                    <div className={css.error}>{errors.username!.message}</div>
+                )}
             </div>
 
             <div>
@@ -89,20 +91,12 @@ export default function LoginForm({
                     className={css.input}
                     autoComplete="current-password"
                     aria-invalid={
-                        errors.password &&
-                        ((touchedFields.password && dirtyFields.password) ||
-                            isSubmitted)
-                            ? "true"
-                            : "false"
+                        shouldShowError("password") ? "true" : "false"
                     }
                 />
-                {errors.password &&
-                    ((touchedFields.password && dirtyFields.password) ||
-                        isSubmitted) && (
-                        <div className={css.error}>
-                            {errors.password.message}
-                        </div>
-                    )}
+                {shouldShowError("password") && (
+                    <div className={css.error}>{errors.password!.message}</div>
+                )}
             </div>
 
             <div className={css.buttonContainer}>
