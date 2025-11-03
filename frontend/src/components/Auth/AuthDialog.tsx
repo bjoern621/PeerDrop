@@ -1,4 +1,4 @@
-import { useEffect, useState, RefObject } from "react";
+import { useState, RefObject } from "react";
 import { flushSync } from "react-dom";
 import css from "./AuthDialog.module.scss";
 import RegisterForm from "./RegisterForm";
@@ -35,28 +35,6 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
             setMode(newMode);
         }
     };
-
-    useEffect(() => {
-        const dialog = ref.current;
-
-        const handleBackdropClick = (e: MouseEvent) => {
-            const rect = dialog.getBoundingClientRect();
-            if (
-                e.clientX < rect.left ||
-                e.clientX > rect.right ||
-                e.clientY < rect.top ||
-                e.clientY > rect.bottom
-            ) {
-                dialog.close();
-            }
-        };
-
-        dialog.addEventListener("click", handleBackdropClick);
-
-        return () => {
-            dialog.removeEventListener("click", handleBackdropClick);
-        };
-    }, [ref]);
 
     const handleLogin = async (username: string, password: string) => {
         const success = await AuthService.login(username, password);
