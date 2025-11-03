@@ -31,7 +31,7 @@ img {
 
 @media (prefers-reduced-motion: no-preference) {
     html {
-        interpolate-size: allow-keywords;
+        interpolate-size: allow-keywords; // Allows smooth transitions between size keywords like auto and 100px
     }
 }
 
@@ -47,7 +47,7 @@ h6 {
 }
 
 p {
-    text-wrap: pretty;
+    text-wrap: pretty; // Like wrap, but better for reading (e.g., avoids widows/orphans)
     max-width: 65ch;
 }
 
