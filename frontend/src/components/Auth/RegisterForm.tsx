@@ -32,6 +32,7 @@ export default function RegisterForm({
         register,
         handleSubmit,
         watch,
+        trigger,
         formState: { errors, dirtyFields, touchedFields, isSubmitted },
     } = useForm<RegisterFormFields>({
         resolver: zodResolver(registerSchema),
@@ -68,9 +69,16 @@ export default function RegisterForm({
     }, [username, onUsernameChange]);
 
     const password = watch("password");
+    const passwordRetype = watch("passwordRetype");
     useEffect(() => {
         onPasswordChange(password);
-    }, [password, onPasswordChange]);
+
+        // Trigger validation of passwordRetype when password changes
+        // This ensures the "passwords don't match" error is updated
+        if (passwordRetype) {
+            void trigger("passwordRetype");
+        }
+    }, [password, onPasswordChange, passwordRetype, trigger]);
 
     /**
      * Prevents dialog from closing on Enter key press in input fields
