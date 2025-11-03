@@ -109,7 +109,10 @@ export default function AuthButton() {
                 </Button>
             )}
 
-            <AuthDialog ref={dialogRef} />
+            <AuthDialog
+                ref={dialogRef}
+                onLoginSuccess={() => setLoggedIn(true)}
+            />
         </>
     );
 }

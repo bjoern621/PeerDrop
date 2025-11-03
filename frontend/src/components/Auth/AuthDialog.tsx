@@ -12,9 +12,10 @@ type AuthForm = "login" | "register";
 
 interface AuthDialogProps {
     ref: RefObject<HTMLDialogElement>;
+    onLoginSuccess: () => void;
 }
 
-export default function AuthDialog({ ref }: AuthDialogProps) {
+export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
     const [mode, setMode] = useState<AuthForm>("login");
     const [sharedUsername, setSharedUsername] = useState<string>("");
     const [sharedPassword, setSharedPassword] = useState<string>("");
@@ -90,6 +91,7 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
         resetWebsocketConnection();
         ref.current?.close();
         toast.success("Erfolgreich eingeloggt!");
+        onLoginSuccess();
     };
 
     const handleRegister = async (
@@ -135,6 +137,7 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
         resetWebsocketConnection();
         ref.current?.close();
         toast.success("Erfolgreich registriert!");
+        onLoginSuccess();
     };
 
     return (
