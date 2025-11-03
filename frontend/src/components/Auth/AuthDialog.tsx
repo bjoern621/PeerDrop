@@ -66,7 +66,7 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
             <Button
                 className={css.closeButton}
                 onClick={() => ref.current.close()}
-                color_scheme={"neutral"}
+                color_scheme={"error"}
             >
                 <ExitIcon />
             </Button>
