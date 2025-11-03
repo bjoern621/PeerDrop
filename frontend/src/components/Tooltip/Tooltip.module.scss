@@ -13,7 +13,7 @@
     text-wrap: nowrap;
 
     position: fixed;
-    position-anchor: --tooltip-anchor;
+    position-anchor: --tooltip-anchor; // Will be replaced dynamically
 
     opacity: 0;
     scale: 0.9;
