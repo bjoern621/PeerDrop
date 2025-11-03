@@ -488,7 +488,7 @@ export class WebRTCConnection {
         return true;
     }
 
-    public closePeerConnection() {
+    public closeConnection() {
         this.peerConnection.close();
 
         const iceHandlers = this.signalingChannel.getHandlers(

@@ -46,16 +46,14 @@ export default function ConnectToPeer() {
                     delayTimeoutIdRef.current = null;
                     setWaitingForResponse(false);
 
-                    if (accepted) {
-                        toast.success("Verbindung hergestellt!");
-                        // showLoadingDialog();
-                        // dismissAllToasts();
-                    } else {
+                    if (!accepted) {
                         toast.error("Verbindungsanfrage wurde abgelehnt!", {
                             toastId: "connection-rejected-toast",
                             updateId: "connection-rejected-toast",
                         });
                     }
+
+                    // Navigation is handled in ConnectionProvider
                 })();
             }
         );

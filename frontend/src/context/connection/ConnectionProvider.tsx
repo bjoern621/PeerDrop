@@ -24,9 +24,6 @@ export function ConnectionProvider({
         pcmRef.current.setOnConnectedCallback(() => {
             void navigate("/share");
         });
-        pcmRef.current.setOnDisconnectedCallback(() => {
-            void navigate("/connect");
-        });
     }
 
     const [, forceUpdate] = useState(0);

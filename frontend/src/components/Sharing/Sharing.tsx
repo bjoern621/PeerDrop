@@ -13,13 +13,19 @@ import RemoteTokenDisplay from "../RemoteTokenDisplay/RemoteTokenDisplay";
 import FileRow from "./FileRow/FileRow";
 import { FileDirection, FileDisplay } from "./types";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
-import { useNavigate } from "react-router";
+import { useNavigate, useBeforeUnload, useBlocker } from "react-router";
 import { toast } from "react-toastify/unstyled";
+import { CloseInitiator } from "../../services/PeerConnectionManager";
 
 export default function Sharing() {
     useDeviceHeartbeat({ status: DeviceStatus.BUSY });
     const peerConnectionManager = usePeerConnectionManager();
     const navigate = useNavigate();
+
+    const shouldBlock = () => {
+        return peerConnectionManager.getConnection() !== undefined;
+    };
+    const blocker = useBlocker(shouldBlock);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
@@ -28,20 +34,51 @@ export default function Sharing() {
     const [isDragging, setIsDragging] = useState(false);
     const dragCounterRef = useRef(0); // Counter for drag depth to handle nested element enter/leave events
 
+    // Redirect to /connect on page load if there's no active connection
     useEffect(() => {
         if (!peerConnectionManager.getConnection()) {
             void navigate("/connect");
         }
     }, []);
 
+    // Block all navigation attempts
     useEffect(() => {
-        const handleTabClose = () => {
-            // Close the peer connection when the tab is closed
-            peerConnectionManager.closePeerConnection();
-            window.removeEventListener("beforeunload", handleTabClose);
+        if (blocker.state === "blocked") {
+            toast.warning(
+                "Navigation ist blockiert. Bitte trenne zuerst die Verbindung.",
+                {
+                    toastId: "navigation-blocked-toast",
+                    updateId: "navigation-blocked-toast",
+                }
+            );
+            blocker.reset();
+        }
+    }, [blocker]);
+
+    // Close the peer connection when the tab is closed / refreshed
+    useBeforeUnload(() => {
+        peerConnectionManager.closePeerConnection();
+    });
+
+    // Navigate to /connect when the peer connection is closed
+    useEffect(() => {
+        const onConnectionClosed = (initiator: CloseInitiator) => {
+            if (initiator === "local") {
+                toast.success("Verbindung erfolgreich getrennt.");
+            } else {
+                toast.info("Die Verbindung wurde vom Peer getrennt.");
+            }
+
+            void navigate("/connect");
         };
 
-        window.addEventListener("beforeunload", handleTabClose);
+        peerConnectionManager.subscribeToConnectionClosed(onConnectionClosed);
+
+        return () => {
+            peerConnectionManager.unsubscribeFromConnectionClosed(
+                onConnectionClosed
+            );
+        };
     }, []);
 
     useEffect(() => {
@@ -95,10 +132,9 @@ export default function Sharing() {
         );
     };
 
-    const closeConnection = async () => {
+    const closeConnection = () => {
         peerConnectionManager.closePeerConnection();
-        await navigate("/connect");
-        toast.info("Verbindung erfolgreich getrennt.");
+        // Will not navigate here, as the navigation is handled in the useEffect listening for connection closed events
     };
 
     const handleDragEnter = (e: React.DragEvent) => {

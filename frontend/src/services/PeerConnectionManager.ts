@@ -15,6 +15,11 @@ import { EstablishConnectionMessage } from "../types/connection//EstablishConnec
 import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
 import { toast } from "react-toastify/unstyled";
 
+/**
+ * Indicates who initiated the closing of the peer connection.
+ */
+export type CloseInitiator = "local" | "remote";
+
 export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
     private readonly log = (...args: unknown[]) => this.logger.log(...args);
@@ -47,8 +52,22 @@ export class PeerConnectionManager {
         this.onConnectionRequestCancelledReceivedObservable.subscribe(callback);
     }
 
+    private readonly onConnectionClosedObservable: IObservable<CloseInitiator> =
+        new Observable<CloseInitiator>();
+
+    public subscribeToConnectionClosed(
+        callback: (initiator: CloseInitiator) => void
+    ) {
+        this.onConnectionClosedObservable.subscribe(callback);
+    }
+
+    public unsubscribeFromConnectionClosed(
+        callback: (initiator: CloseInitiator) => void
+    ) {
+        this.onConnectionClosedObservable.unsubscribe(callback);
+    }
+
     private onConnectedCallback?: () => void;
-    private onDisconnectedCallback?: () => void;
     private onReceivedFileCallback?: (
         name: string,
         size: number,
@@ -259,7 +278,17 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Closes the current WebRTC connection and cleans up all related resources.
+     * Clears the current WebRTC connection.
+     */
+    private clearWebRTCConnection() {
+        this.webrtcConnection?.closeConnection();
+
+        this.webrtcConnection = undefined;
+        this.expectedRemoteToken = undefined;
+    }
+
+    /**
+     * Closes the current WebRTC connection, cleans up all related resources, and notifies observers about the connection closure.
      * The connection may already be closed, in which case this method does nothing because all related resources are already cleaned up.
      */
     public closePeerConnection() {
@@ -267,48 +296,37 @@ export class PeerConnectionManager {
             return;
         }
 
-        this.log("Closing peer connection");
-
-        this.webrtcConnection.closePeerConnection();
+        const expectedRemoteToken = this.expectedRemoteToken!;
 
         const closeConnectionMessage = new CloseConnectionMessage({
-            remoteToken: this.expectedRemoteToken!,
+            remoteToken: expectedRemoteToken,
         });
 
         this.signaling.sendMessage(closeConnectionMessage);
-        this.log("Sent close connection message to signaling server");
 
-        this.expectedRemoteToken = undefined;
-        this.webrtcConnection = undefined;
+        this.clearWebRTCConnection();
+
+        this.onConnectionClosedObservable.notify("local");
     }
 
     /**
      * Waits for a close connection request from the remote peer via a message of type `CLOSE_CONNECTION_MESSAGE_TYPE`.
      *
      * This method subscribes to messages of the specified type and, upon receiving a close connection request,
-     * closes the current WebRTC connection by calling `closePeerConnection()`, resets the `remoteToken` and `connection`
-     * properties, and starts waiting for a new remote client token by invoking `waitForRemoteClientToken()`.
+     * closes the current connection and notifies observers about the connection closure.
+     *
      * The subscription to the message type remains active to handle future close requests.
      */
     private waitForCloseConnectionRequest() {
-        const handleCloseConnectionRequest = (
-            message: CloseConnectionMessage
-        ) => {
-            this.log(
-                "Received close connection request:",
-                message.msg.remoteToken
+        const handleCloseConnectionRequest = () => {
+            assert(
+                this.webrtcConnection,
+                "No active connection to close. The server sent a CLOSE_CONNECTION message unexpectedly."
             );
 
-            assert(this.webrtcConnection, "No active connection to close.");
+            this.clearWebRTCConnection();
 
-            this.log("Closing peer connection");
-
-            this.webrtcConnection.closePeerConnection();
-
-            this.expectedRemoteToken = undefined;
-            this.webrtcConnection = undefined;
-
-            toast.info("Der Peer hat die Verbindung geschlossen.");
+            this.onConnectionClosedObservable.notify("remote");
         };
 
         this.signaling.subscribeMessage(
@@ -334,17 +352,7 @@ export class PeerConnectionManager {
                 );
                 this.onConnectedCallback();
             } else if (state === "closed" || state === "disconnected") {
-                this.log(
-                    "PEERCONNECTIONMANAGER ::: state:",
-                    state,
-                    " and onDisconnectedCallback is:",
-                    this.onDisconnectedCallback
-                );
-                assert(
-                    this.onDisconnectedCallback,
-                    "onDisconnectedCallback is not set."
-                );
-                this.onDisconnectedCallback();
+                this.log("PEERCONNECTIONMANAGER ::: state:", state);
             }
         });
 
@@ -402,14 +410,6 @@ export class PeerConnectionManager {
         this.log(
             "PEERCONNECTIONMANAGER ::: Set OnConnectedCallback to:",
             this.onConnectedCallback
-        );
-    }
-
-    public setOnDisconnectedCallback(cb: () => void) {
-        this.onDisconnectedCallback = cb;
-        this.log(
-            "PEERCONNECTIONMANAGER ::: Set OnDisconnectedCallback to:",
-            this.onDisconnectedCallback
         );
     }
 
