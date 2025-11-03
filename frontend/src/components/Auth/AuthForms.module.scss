@@ -44,11 +44,13 @@
         flex: 1;
     }
 
-    > :first-child {
-        view-transition-name: left-button;
-    }
+    @media (prefers-reduced-motion: no-preference) {
+        > :first-child {
+            view-transition-name: left-button;
+        }
 
-    > :last-child {
-        view-transition-name: right-button;
+        > :last-child {
+            view-transition-name: right-button;
+        }
     }
 }

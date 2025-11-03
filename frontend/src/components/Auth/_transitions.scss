@@ -25,15 +25,11 @@
 }
 
 @mixin fade-in-anim {
-    @media (prefers-reduced-motion: no-preference) {
-        animation: fadeIn 0.3s ease-in-out;
-    }
+    animation: fadeIn 0.3s ease-in-out;
 }
 
 @mixin fade-out-anim {
-    @media (prefers-reduced-motion: no-preference) {
-        animation: fadeOut 0.3s ease-in-out;
-    }
+    animation: fadeOut 0.3s ease-in-out;
 }
 
 @keyframes slideInFromRight {
