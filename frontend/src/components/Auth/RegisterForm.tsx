@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useEffect } from "react";
 import Button from "../Button/Button";
 import css from "./AuthForms.module.scss";
 import registerCss from "./RegisterForm.module.scss";
@@ -13,24 +14,48 @@ type RegisterFormFields = z.infer<typeof registerSchema>;
 interface RegisterFormProps {
     onSubmit: (email: string, password: string, passwordRetype: string) => void;
     onSwitchToLogin: () => void;
+    initialUsername: string;
+    onUsernameChange: (username: string) => void;
+    initialPassword: string;
+    onPasswordChange: (password: string) => void;
 }
 
 export default function RegisterForm({
     onSubmit,
     onSwitchToLogin,
+    initialUsername,
+    onUsernameChange,
+    initialPassword,
+    onPasswordChange,
 }: RegisterFormProps) {
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors, dirtyFields, touchedFields, isSubmitted },
     } = useForm<RegisterFormFields>({
         resolver: zodResolver(registerSchema),
         mode: "onChange",
+        defaultValues: {
+            username: initialUsername,
+            password: initialPassword,
+        },
     });
 
     const onSubmitForm = (data: RegisterFormFields) => {
         onSubmit(data.username, data.password, data.passwordRetype);
     };
+
+    // Watch fields and sync it with parent component
+    const username = watch("username");
+    useEffect(() => {
+        onUsernameChange(username);
+    }, [username, onUsernameChange]);
+
+    const password = watch("password");
+    useEffect(() => {
+        onPasswordChange(password);
+    }, [password, onPasswordChange]);
 
     /**
      * Prevents dialog from closing on Enter key press in input fields

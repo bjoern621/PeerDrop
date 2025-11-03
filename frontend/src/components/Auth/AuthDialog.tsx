@@ -12,6 +12,8 @@ interface AuthDialogProps {
 
 export default function AuthDialog({ ref }: AuthDialogProps) {
     const [mode, setMode] = useState<AuthForm>("login");
+    const [sharedUsername, setSharedUsername] = useState<string>("");
+    const [sharedPassword, setSharedPassword] = useState<string>("");
 
     const switchMode = (newMode: AuthForm) => {
         if (document.startViewTransition) {
@@ -77,11 +79,19 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
                 <LoginForm
                     onSubmit={handleLogin}
                     onSwitchToRegister={() => switchMode("register")}
+                    initialUsername={sharedUsername}
+                    onUsernameChange={setSharedUsername}
+                    initialPassword={sharedPassword}
+                    onPasswordChange={setSharedPassword}
                 />
             ) : (
                 <RegisterForm
                     onSubmit={handleRegister}
                     onSwitchToLogin={() => switchMode("login")}
+                    initialUsername={sharedUsername}
+                    onUsernameChange={setSharedUsername}
+                    initialPassword={sharedPassword}
+                    onPasswordChange={setSharedPassword}
                 />
             )}
         </dialog>
