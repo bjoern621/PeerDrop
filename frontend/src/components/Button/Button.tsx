@@ -9,6 +9,7 @@ export const buttonVariants = cva(css.button, {
             primary: css.primary,
             secondary: css.secondary,
             neutral: css.neutral,
+            error: css.error,
         },
         variant: {
             filled: css.filled,

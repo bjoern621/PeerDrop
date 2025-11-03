@@ -50,6 +50,17 @@
     --filled-pressed-bg-color: var(--text-muted-20);
 }
 
+.error {
+    --outline-text-color: var(--error-text);
+    --outline-hover-bg-color: var(--error-10);
+    --outline-pressed-bg-color: var(--error-20);
+
+    --filled-text-color: var(--error-text);
+    --filled-bg-color: var(--error-20);
+    --filled-hover-bg-color: var(--error-30);
+    --filled-pressed-bg-color: var(--error-40);
+}
+
 .filled {
     background-color: var(--filled-bg-color);
     color: var(--filled-text-color);
