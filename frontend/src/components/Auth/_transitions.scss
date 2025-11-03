@@ -1,0 +1,77 @@
+// Shared view transition animations for auth forms
+
+@mixin slide-in-from-right-anim {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: slideInFromRight 0.3s ease-in-out;
+    }
+}
+
+@mixin slide-out-to-right-anim {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: slideOutToRight 0.3s ease-in-out forwards;
+    }
+}
+
+@mixin slide-in-from-left-anim {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: slideInFromLeft 0.3s ease-in-out;
+    }
+}
+
+@mixin slide-out-to-left-anim {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: slideOutToLeft 0.3s ease-in-out forwards;
+    }
+}
+
+@mixin fade-in-anim {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+}
+
+@mixin fade-out-anim {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: fadeOut 0.3s ease-in-out;
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+}
+
+@keyframes slideOutToRight {
+    to {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+}
+
+@keyframes slideOutToLeft {
+    to {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+    }
+}

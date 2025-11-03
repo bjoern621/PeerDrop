@@ -6,6 +6,7 @@ import css from "./AuthForms.module.scss";
 import ArrowIcon from "../../assets/icons8-arrow-2.svg?react";
 import SwitchIcon from "../../assets/icons8-reload.svg?react";
 import { loginSchema } from "./types";
+import loginCss from "./LoginForm.module.scss";
 
 type LoginFormFields = z.infer<typeof loginSchema>;
 
@@ -48,7 +49,7 @@ export default function LoginForm({
             onKeyDown={handleKeyDown}
             className={css.form}
         >
-            <h2 className={css.title}>Anmelden</h2>
+            <h2 className={`${css.title} ${loginCss.title}`}>Anmelden</h2>
 
             <div>
                 <label htmlFor="login-username" className={css.label}>

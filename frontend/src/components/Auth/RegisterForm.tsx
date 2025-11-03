@@ -49,7 +49,9 @@ export default function RegisterForm({
             onKeyDown={handleKeyDown}
             className={`${css.form} ${registerCss.registerForm}`}
         >
-            <h2 className={css.title}>Registrieren</h2>
+            <h2 className={`${css.title} ${registerCss.title}`}>
+                Registrieren
+            </h2>
 
             <div>
                 <label htmlFor="login-username" className={css.label}>

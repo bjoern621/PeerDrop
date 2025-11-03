@@ -1,39 +1,25 @@
+@use "./transitions" as *;
+
 .confirmPasswordField {
     view-transition-name: confirm-password-field;
 }
 
 ::view-transition-old(confirm-password-field) {
-    animation: slideOutToRight 0.3s ease-in-out;
+    @include slide-out-to-right-anim;
 }
 
 ::view-transition-new(confirm-password-field) {
-    animation: slideInFromRight 0.3s ease-in-out;
+    @include slide-in-from-right-anim;
 }
 
-@keyframes slideOutToLeft {
-    to {
-        transform: translateX(-30px);
-        opacity: 0;
-    }
+.title {
+    view-transition-name: auth-register-title;
 }
 
-@keyframes slideOutToRight {
-    to {
-        transform: translateX(30px);
-        opacity: 0;
-    }
+::view-transition-old(auth-register-title) {
+    @include slide-out-to-right-anim;
 }
 
-@keyframes slideInFromLeft {
-    from {
-        transform: translateX(-30px);
-        opacity: 0;
-    }
-}
-
-@keyframes slideInFromRight {
-    from {
-        transform: translateX(30px);
-        opacity: 0;
-    }
+::view-transition-new(auth-register-title) {
+    @include slide-in-from-right-anim;
 }

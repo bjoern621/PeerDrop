@@ -1,0 +1,13 @@
+@use "transitions" as *;
+
+.title {
+    view-transition-name: auth-login-title;
+}
+
+::view-transition-old(auth-login-title) {
+    @include slide-out-to-left-anim;
+}
+
+::view-transition-new(auth-login-title) {
+    @include slide-in-from-left-anim;
+}
