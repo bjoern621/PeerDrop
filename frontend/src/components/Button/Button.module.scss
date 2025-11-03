@@ -18,41 +18,64 @@
 }
 
 .primary {
-    --color: var(--primary);
-    --hover-color: var(--primary-10);
-    --pressed-color: var(--primary-20);
+    --outline-text-color: var(--primary);
+    --outline-hover-bg-color: var(--primary-10);
+    --outline-pressed-bg-color: var(--primary-20);
+
+    --filled-text-color: var(--background);
+    --filled-bg-color: var(--primary);
+    --filled-hover-bg-color: var(--primary);
+    --filled-pressed-bg-color: var(--primary);
 }
 
 .secondary {
-    --color: var(--secondary);
-    --hover-color: var(--secondary-10);
-    --hover-color: var(--secondary-20);
+    --outline-text-color: var(--secondary);
+    --outline-hover-bg-color: var(--secondary-10);
+    --outline-hover-bg-color: var(--secondary-20);
+
+    --filled-text-color: var(--background);
+    --filled-bg-color: var(--secondary);
+    --filled-hover-bg-color: var(--secondary);
+    --filled-pressed-bg-color: var(--secondary);
 }
 
 .neutral {
-    --color: var(--text);
-    --hover-color: var(--text-muted-10);
-    --pressed-color: var(--text-muted-20);
+    --outline-text-color: var(--text);
+    --outline-hover-bg-color: var(--text-muted-10);
+    --outline-pressed-bg-color: var(--text-muted-20);
+
+    --filled-text-color: var(--text);
+    --filled-bg-color: var(--text-muted-5);
+    --filled-hover-bg-color: var(--text-muted-10);
+    --filled-pressed-bg-color: var(--text-muted-20);
 }
 
 .filled {
-    background-color: var(--color);
-    color: var(--background);
-    fill: var(--background);
+    background-color: var(--filled-bg-color);
+    color: var(--filled-text-color);
+    fill: var(--filled-text-color);
+
+    &:hover:not(:disabled) {
+        background-color: var(--filled-hover-bg-color);
+    }
+
+    &:active:not(:disabled) {
+        background-color: var(--filled-pressed-bg-color);
+    }
 }
 
 .outline {
     background-color: transparent;
-    border: 1px solid var(--color);
-    color: var(--color);
-    fill: var(--color);
+    border: 1px solid var(--outline-text-color);
+    color: var(--outline-text-color);
+    fill: var(--outline-text-color);
 
     &:hover:not(:disabled) {
-        background-color: var(--hover-color);
+        background-color: var(--outline-hover-bg-color);
     }
 
     &:active:not(:disabled) {
-        background-color: var(--pressed-color);
+        background-color: var(--outline-pressed-bg-color);
     }
 
     &:disabled {

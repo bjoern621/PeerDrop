@@ -40,3 +40,12 @@
         }
     }
 }
+
+.closeButton {
+    position: absolute;
+    top: var(--space-24);
+    right: var(--space-24);
+    z-index: 1;
+
+    padding: var(--space-8);
+}

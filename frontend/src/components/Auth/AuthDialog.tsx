@@ -5,6 +5,8 @@ import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
 import { AuthService } from "../../services/AuthService";
+import ExitIcon from "../../assets/icons8-close-2.svg?react";
+import Button from "../Button/Button";
 
 type AuthForm = "login" | "register";
 
@@ -83,6 +85,14 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
 
     return (
         <dialog ref={ref} className={css.dialog}>
+            <Button
+                className={css.closeButton}
+                onClick={() => ref.current.close()}
+                color_scheme={"neutral"}
+            >
+                <ExitIcon />
+            </Button>
+
             {mode === "login" ? (
                 <LoginForm
                     onSubmit={(username, password) => {
