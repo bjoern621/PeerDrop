@@ -54,14 +54,13 @@ p {
 }
 
 dialog {
-    inset: unset;
+    inset: unset; // Remove default positioning
 }
 
 :modal {
-    color: unset;
+    color: unset; // Remove default positioning
 }
 
 input {
-    font: inherit;
     color: inherit;
 }
