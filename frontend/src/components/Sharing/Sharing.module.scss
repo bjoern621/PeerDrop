@@ -1,3 +1,5 @@
+@use "../../theme/shadows.scss" as *;
+
 .sharingContainer {
     position: relative;
     height: 100%;
@@ -145,6 +147,8 @@
         background-color: var(--secondary-70);
         border-radius: var(--space-16);
         border: 1px solid var(--border);
+
+        @include elevated-shadow;
 
         tr {
             display: grid;
