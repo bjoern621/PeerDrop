@@ -13,6 +13,10 @@
     display: inline-block;
     font-weight: var(--font-weight-regular);
     color: var(--text-muted);
+
+    &:has(+ .input:focus-visible) {
+        color: var(--text);
+    }
 }
 
 .input {
