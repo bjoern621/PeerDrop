@@ -50,7 +50,7 @@ export default function LoginForm({
         >
             <h2 className={css.title}>Anmelden</h2>
 
-            <div className={css.formGroup}>
+            <div>
                 <label htmlFor="login-username" className={css.label}>
                     Benutzername
                 </label>
@@ -77,7 +77,7 @@ export default function LoginForm({
                     )}
             </div>
 
-            <div className={css.formGroup}>
+            <div>
                 <label htmlFor="login-password" className={css.label}>
                     Passwort
                 </label>

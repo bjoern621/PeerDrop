@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Button from "../Button/Button";
 import css from "./AuthForms.module.scss";
+import registerCss from "./RegisterForm.module.scss";
 import ArrowIcon from "../../assets/icons8-arrow-2.svg?react";
 import SwitchIcon from "../../assets/icons8-reload.svg?react";
 import { registerSchema } from "./types";
@@ -46,11 +47,11 @@ export default function RegisterForm({
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onSubmit={handleSubmit(onSubmitForm)}
             onKeyDown={handleKeyDown}
-            className={css.form}
+            className={`${css.form} ${registerCss.registerForm}`}
         >
             <h2 className={css.title}>Registrieren</h2>
 
-            <div className={css.formGroup}>
+            <div>
                 <label htmlFor="login-username" className={css.label}>
                     Benutzername
                 </label>
@@ -77,7 +78,7 @@ export default function RegisterForm({
                     )}
             </div>
 
-            <div className={css.formGroup}>
+            <div>
                 <label htmlFor="login-password" className={css.label}>
                     Passwort
                 </label>
@@ -104,7 +105,7 @@ export default function RegisterForm({
                     )}
             </div>
 
-            <div className={css.formGroup}>
+            <div className={registerCss.confirmPasswordField}>
                 <label htmlFor="login-passwordRetype" className={css.label}>
                     Passwort wiederholen
                 </label>

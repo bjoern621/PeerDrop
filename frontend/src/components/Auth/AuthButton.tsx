@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import Button from "../Button/Button";
 import css from "./AuthButton.module.scss";
 import RegisterForm from "./RegisterForm";
@@ -10,6 +11,20 @@ export default function AuthButton() {
     const dialogRef = useRef<HTMLDialogElement>(null);
 
     const [mode, setMode] = useState<AuthForm>("login");
+
+    const switchMode = (newMode: AuthForm) => {
+        if (document.startViewTransition) {
+            document.startViewTransition(() => {
+                // Ensure React updates synchronously during the transition callback
+                flushSync(() => {
+                    setMode(newMode);
+                });
+            });
+        } else {
+            // Fallback for browsers without View Transitions
+            setMode(newMode);
+        }
+    };
 
     useEffect(() => {
         const dialog = dialogRef.current;
@@ -68,12 +83,12 @@ export default function AuthButton() {
                 {mode === "login" ? (
                     <LoginForm
                         onSubmit={handleLogin}
-                        onSwitchToRegister={() => setMode("register")}
+                        onSwitchToRegister={() => switchMode("register")}
                     />
                 ) : (
                     <RegisterForm
                         onSubmit={handleRegister}
-                        onSwitchToLogin={() => setMode("login")}
+                        onSwitchToLogin={() => switchMode("login")}
                     />
                 )}
             </dialog>

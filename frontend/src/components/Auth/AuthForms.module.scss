@@ -6,6 +6,7 @@
 
 .title {
     font-size: var(--font-size-l);
+    view-transition-name: auth-title;
 }
 
 .label {
@@ -41,5 +42,13 @@
 
     > .primaryButton {
         flex: 1;
+    }
+
+    > :first-child {
+        view-transition-name: left-button;
+    }
+
+    > :last-child {
+        view-transition-name: right-button;
     }
 }

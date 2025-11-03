@@ -1,0 +1,39 @@
+.confirmPasswordField {
+    view-transition-name: confirm-password-field;
+}
+
+::view-transition-old(confirm-password-field) {
+    animation: slideOutToRight 0.3s ease-in-out;
+}
+
+::view-transition-new(confirm-password-field) {
+    animation: slideInFromRight 0.3s ease-in-out;
+}
+
+@keyframes slideOutToLeft {
+    to {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+}
+
+@keyframes slideOutToRight {
+    to {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+}
