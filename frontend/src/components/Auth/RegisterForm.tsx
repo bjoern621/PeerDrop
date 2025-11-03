@@ -54,15 +54,15 @@ export default function RegisterForm({
             </h2>
 
             <div>
-                <label htmlFor="login-username" className={css.label}>
+                <label htmlFor="register-username" className={css.label}>
                     Benutzername
                 </label>
                 <input
-                    id="login-username"
+                    id="register-username"
                     type="text"
                     {...register("username")}
                     className={css.input}
-                    autoComplete="off"
+                    autoComplete="username"
                     aria-invalid={
                         errors.username &&
                         ((touchedFields.username && dirtyFields.username) ||
@@ -81,15 +81,15 @@ export default function RegisterForm({
             </div>
 
             <div>
-                <label htmlFor="login-password" className={css.label}>
+                <label htmlFor="register-password" className={css.label}>
                     Passwort
                 </label>
                 <input
-                    id="login-password"
+                    id="register-password"
                     type="password"
                     {...register("password")}
                     className={css.input}
-                    autoComplete="off"
+                    autoComplete="new-password"
                     aria-invalid={
                         errors.password &&
                         ((touchedFields.password && dirtyFields.password) ||
@@ -108,15 +108,15 @@ export default function RegisterForm({
             </div>
 
             <div className={registerCss.confirmPasswordField}>
-                <label htmlFor="login-passwordRetype" className={css.label}>
+                <label htmlFor="register-passwordRetype" className={css.label}>
                     Passwort wiederholen
                 </label>
                 <input
-                    id="login-passwordRetype"
+                    id="register-passwordRetype"
                     type="password"
                     {...register("passwordRetype")}
                     className={css.input}
-                    autoComplete="off"
+                    autoComplete="new-password"
                     aria-invalid={
                         errors.passwordRetype &&
                         ((touchedFields.passwordRetype &&
