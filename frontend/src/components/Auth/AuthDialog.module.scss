@@ -1,8 +1,9 @@
 @use "../../theme/shadows.scss" as *;
 
 .dialog {
+    position-anchor: --heading;
     position: fixed;
-    top: 78px;
+    top: anchor(bottom);
     right: 0;
 
     background-color: var(--background);
