@@ -39,6 +39,7 @@ export default function ConnectToPeer() {
             (accepted: boolean) => {
                 void (async () => {
                     if (!accepted) {
+                        // If remote peer accepted, we can skip the delay
                         await waitForMinimumDelay();
                     }
 
