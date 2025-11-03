@@ -15,10 +15,19 @@ interface AuthDialogProps {
     onLoginSuccess: () => void;
 }
 
+const initialFormMode: AuthForm = "login";
+const initialSharedUsername = "";
+const initialSharedPassword = "";
+
 export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
-    const [mode, setMode] = useState<AuthForm>("login");
-    const [sharedUsername, setSharedUsername] = useState<string>("");
-    const [sharedPassword, setSharedPassword] = useState<string>("");
+    const [mode, setMode] = useState<AuthForm>(initialFormMode);
+    const [sharedUsername, setSharedUsername] = useState<string>(
+        initialSharedUsername
+    );
+    const [sharedPassword, setSharedPassword] = useState<string>(
+        initialSharedPassword
+    );
+    const [formKey, setFormKey] = useState(0);
 
     const resetWebsocketConnection = useResetWebsocket();
 
@@ -41,6 +50,7 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
 
         if (success) {
             resetWebsocketConnection();
+            resetForm();
             ref.current.close();
             onLoginSuccess();
         }
@@ -56,9 +66,17 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
 
         if (success) {
             resetWebsocketConnection();
+            resetForm();
             ref.current.close();
             onLoginSuccess();
         }
+    };
+
+    const resetForm = () => {
+        setMode(initialFormMode);
+        setSharedUsername(initialSharedUsername);
+        setSharedPassword(initialSharedPassword);
+        setFormKey(prev => prev + 1); // Force remount of form components to clear internal state
     };
 
     return (
@@ -73,6 +91,7 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
 
             {mode === "login" ? (
                 <LoginForm
+                    key={formKey}
                     onSubmit={(username, password) => {
                         void handleLogin(username, password);
                     }}
@@ -84,6 +103,7 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
                 />
             ) : (
                 <RegisterForm
+                    key={formKey}
                     onSubmit={(username, password, confirmPassword) => {
                         void handleRegister(
                             username,
