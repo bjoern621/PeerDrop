@@ -38,12 +38,15 @@ export default function ConnectToPeer() {
         peerConnectionManager.setOnConnectionResponseReceivedCallback(
             (accepted: boolean) => {
                 void (async () => {
-                    await waitForMinimumDelay();
+                    if (!accepted) {
+                        await waitForMinimumDelay();
+                    }
 
                     delayTimeoutIdRef.current = null;
                     setWaitingForResponse(false);
 
                     if (accepted) {
+                        toast.success("Verbindung hergestellt!");
                         // showLoadingDialog();
                         // dismissAllToasts();
                     } else {
