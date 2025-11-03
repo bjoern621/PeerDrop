@@ -6,7 +6,7 @@
     right: 0;
 
     background-color: var(--background);
-    @include elevated-shadow;
+    @include elevated-shadow-no-highlight;
     border: 1px solid var(--border);
     padding: var(--space-24);
     border-bottom-left-radius: var(--space-16);
@@ -19,21 +19,23 @@
 
     // Animation
 
-    transition-property: opacity, scale, display, overlay;
-    transition-duration: 0.1s;
-    transition-behavior: allow-discrete;
+    @media (prefers-reduced-motion: no-preference) {
+        transition-property: opacity, scale, display, overlay;
+        transition-duration: 0.1s;
+        transition-behavior: allow-discrete;
 
-    opacity: 0;
-    scale: 0.9;
-    transform-origin: top;
+        opacity: 0;
+        scale: 0.9;
+        transform-origin: top;
 
-    &[open] {
-        opacity: 1;
-        scale: 1;
+        &[open] {
+            opacity: 1;
+            scale: 1;
 
-        @starting-style {
-            opacity: 0;
-            scale: 0.9;
+            @starting-style {
+                opacity: 0;
+                scale: 0.9;
+            }
         }
     }
 }
