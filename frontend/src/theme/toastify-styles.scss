@@ -1,10 +1,10 @@
 :root {
     --toastify-font-family: "Jost";
 
-    --toastify-color-info: var(--info-30);
-    --toastify-color-success: var(--success-30);
-    --toastify-color-warning: var(--warning-30);
-    --toastify-color-error: var(--error-30);
+    --toastify-color-info: var(--info-20);
+    --toastify-color-success: var(--success-20);
+    --toastify-color-warning: var(--warning-20);
+    --toastify-color-error: var(--error-20);
 
     --toastify-text-color-info: var(--info-text);
     --toastify-text-color-success: var(--success-text);
@@ -39,22 +39,34 @@
 }
 
 .Toastify__toast-theme--colored.Toastify__toast--warning {
-    background-image: linear-gradient(var(--warning-20), var(--warning-20));
+    background-image: linear-gradient(
+        var(--toastify-color-warning),
+        var(--toastify-color-warning)
+    );
     background-color: var(--background);
 }
 
 .Toastify__toast-theme--colored.Toastify__toast--success {
-    background-image: linear-gradient(var(--success-20), var(--success-20));
+    background-image: linear-gradient(
+        var(--toastify-color-success),
+        var(--toastify-color-success)
+    );
     background-color: var(--background);
 }
 
 .Toastify__toast-theme--colored.Toastify__toast--info {
-    background-image: linear-gradient(var(--info-20), var(--info-20));
+    background-image: linear-gradient(
+        var(--toastify-color-info),
+        var(--toastify-color-info)
+    );
     background-color: var(--background);
 }
 
 .Toastify__toast-theme--colored.Toastify__toast--error {
-    background-image: linear-gradient(var(--error-20), var(--error-20));
+    background-image: linear-gradient(
+        var(--toastify-color-error),
+        var(--toastify-color-error)
+    );
     background-color: var(--background);
 }
 
