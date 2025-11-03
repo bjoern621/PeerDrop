@@ -9,50 +9,6 @@
     view-transition-name: auth-title;
 }
 
-.label {
-    display: inline-block;
-    font-weight: var(--font-weight-regular);
-    color: var(--text-muted);
-
-    &:has(+ .input:focus-visible) {
-        color: var(--text);
-    }
-}
-
-.input {
-    width: 100%;
-    padding: var(--space-8);
-    border-radius: var(--space-4);
-    background-color: var(--text-muted-5);
-    border: none;
-    border-bottom: 1px solid var(--text-muted);
-
-    &[aria-invalid="true"] {
-        border-bottom-color: var(--error-text);
-    }
-
-    &[type="password"] {
-        letter-spacing: 0.1em;
-    }
-}
-
-.error {
-    color: var(--error-text);
-}
-
-.errorWrapper {
-    height: auto;
-    overflow: hidden;
-
-    @media (prefers-reduced-motion: no-preference) {
-        transition: height 0.4s;
-    }
-
-    &.hidden {
-        height: 0;
-    }
-}
-
 .buttonContainer {
     display: flex;
     gap: var(--space-16);

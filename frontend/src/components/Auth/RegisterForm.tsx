@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useRef } from "react";
 import Button from "../Button/Button";
+import FormField from "../FormField/FormField";
 import css from "./AuthForms.module.scss";
 import registerCss from "./RegisterForm.module.scss";
 import ArrowIcon from "../../assets/icons8-arrow-2.svg?react";
@@ -111,69 +112,33 @@ export default function RegisterForm({
                 Registrieren
             </h2>
 
-            <div>
-                <label htmlFor="register-username" className={css.label}>
-                    Benutzername
-                </label>
-                <input
-                    id="register-username"
-                    type="text"
-                    {...register("username")}
-                    className={css.input}
-                    autoComplete="username"
-                    aria-invalid={
-                        shouldShowError("username") ? "true" : "false"
-                    }
-                />
-                <div
-                    className={`${css.errorWrapper} ${!shouldShowError("username") ? css.hidden : ""}`}
-                >
-                    <div className={css.error}>{lastUsernameError.current}</div>
-                </div>
-            </div>
+            <FormField
+                type="text"
+                label="Benutzername"
+                autoComplete="username"
+                error={lastUsernameError.current}
+                showError={shouldShowError("username")}
+                {...register("username")}
+            />
 
-            <div>
-                <label htmlFor="register-password" className={css.label}>
-                    Passwort
-                </label>
-                <input
-                    id="register-password"
-                    type="password"
-                    {...register("password")}
-                    className={css.input}
-                    autoComplete="new-password"
-                    aria-invalid={
-                        shouldShowError("password") ? "true" : "false"
-                    }
-                />
-                <div
-                    className={`${css.errorWrapper} ${!shouldShowError("password") ? css.hidden : ""}`}
-                >
-                    <div className={css.error}>{lastPasswordError.current}</div>
-                </div>
-            </div>
+            <FormField
+                type="password"
+                label="Passwort"
+                autoComplete="new-password"
+                error={lastPasswordError.current}
+                showError={shouldShowError("password")}
+                {...register("password")}
+            />
 
             <div className={registerCss.confirmPasswordField}>
-                <label htmlFor="register-passwordRetype" className={css.label}>
-                    Passwort wiederholen
-                </label>
-                <input
-                    id="register-passwordRetype"
+                <FormField
                     type="password"
-                    {...register("passwordRetype")}
-                    className={css.input}
+                    label="Passwort wiederholen"
                     autoComplete="new-password"
-                    aria-invalid={
-                        shouldShowError("passwordRetype") ? "true" : "false"
-                    }
+                    error={lastPasswordRetypeError.current}
+                    showError={shouldShowError("passwordRetype")}
+                    {...register("passwordRetype")}
                 />
-                <div
-                    className={`${css.errorWrapper} ${!shouldShowError("passwordRetype") ? css.hidden : ""}`}
-                >
-                    <div className={css.error}>
-                        {lastPasswordRetypeError.current}
-                    </div>
-                </div>
             </div>
 
             <div className={css.buttonContainer}>

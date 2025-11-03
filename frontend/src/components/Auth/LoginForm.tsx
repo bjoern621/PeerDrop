@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useRef } from "react";
 import Button from "../Button/Button";
+import FormField from "../FormField/FormField";
 import css from "./AuthForms.module.scss";
 import ArrowIcon from "../../assets/icons8-arrow-2.svg?react";
 import SwitchIcon from "../../assets/icons8-reload.svg?react";
@@ -97,47 +98,23 @@ export default function LoginForm({
         >
             <h2 className={`${css.title} ${loginCss.title}`}>Anmelden</h2>
 
-            <div>
-                <label htmlFor="login-username" className={css.label}>
-                    Benutzername
-                </label>
-                <input
-                    id="login-username"
-                    type="text"
-                    {...register("username")}
-                    className={css.input}
-                    autoComplete="username"
-                    aria-invalid={
-                        shouldShowError("username") ? "true" : "false"
-                    }
-                />
-                <div
-                    className={`${css.errorWrapper} ${!shouldShowError("username") ? css.hidden : ""}`}
-                >
-                    <div className={css.error}>{lastUsernameError.current}</div>
-                </div>
-            </div>
+            <FormField
+                type="text"
+                label="Benutzername"
+                autoComplete="username"
+                error={lastUsernameError.current}
+                showError={shouldShowError("username")}
+                {...register("username")}
+            />
 
-            <div>
-                <label htmlFor="login-password" className={css.label}>
-                    Passwort
-                </label>
-                <input
-                    id="login-password"
-                    type="password"
-                    {...register("password")}
-                    className={css.input}
-                    autoComplete="current-password"
-                    aria-invalid={
-                        shouldShowError("password") ? "true" : "false"
-                    }
-                />
-                <div
-                    className={`${css.errorWrapper} ${!shouldShowError("password") ? css.hidden : ""}`}
-                >
-                    <div className={css.error}>{lastPasswordError.current}</div>
-                </div>
-            </div>
+            <FormField
+                type="password"
+                label="Passwort"
+                autoComplete="current-password"
+                error={lastPasswordError.current}
+                showError={shouldShowError("password")}
+                {...register("password")}
+            />
 
             <div className={css.buttonContainer}>
                 <Button type="submit" className={css.primaryButton}>
