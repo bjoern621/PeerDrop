@@ -29,6 +29,12 @@ export default function Sharing() {
     const dragCounterRef = useRef(0); // Counter for drag depth to handle nested element enter/leave events
 
     useEffect(() => {
+        if (!peerConnectionManager.getConnection()) {
+            void navigate("/connect");
+        }
+    }, []);
+
+    useEffect(() => {
         const handleTabClose = () => {
             // Close the peer connection when the tab is closed
             peerConnectionManager.closePeerConnection();
