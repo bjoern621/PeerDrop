@@ -3,6 +3,10 @@ import { flushSync } from "react-dom";
 import css from "./AuthDialog.module.scss";
 import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
+import errorAsValue from "../../util/ErrorAsValue";
+import { UserLoginDto } from "../../util/dtos/UserLoginDto";
+import { toast } from "react-toastify/unstyled";
+import { useResetWebsocket } from "../../context/connection/ResetContext";
 
 type AuthForm = "login" | "register";
 
@@ -14,6 +18,8 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
     const [mode, setMode] = useState<AuthForm>("login");
     const [sharedUsername, setSharedUsername] = useState<string>("");
     const [sharedPassword, setSharedPassword] = useState<string>("");
+
+    const resetWebsocketConnection = useResetWebsocket();
 
     const switchMode = (newMode: AuthForm) => {
         if (document.startViewTransition) {
@@ -51,33 +57,93 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
         };
     }, [ref]);
 
-    const handleLogin = (username: string, password: string) => {
-        console.log("Login:", { username, password });
-        // TODO: Implement default login logic
+    const handleLogin = async (username: string, password: string) => {
+        const userData: UserLoginDto = {
+            username: username,
+            password: password,
+        };
 
-        ref.current.close();
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/login`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(userData),
+            })
+        );
+
+        if (err) {
+            toast.error(
+                "Fehler beim Einloggen. Bitte versuche es später erneut."
+            );
+            console.error("Fehler beim Einloggen:", err);
+            return;
+        }
+
+        if (!response.ok) {
+            toast.error("Ungültiger Benutzername oder Passwort.");
+            return;
+        }
+
+        resetWebsocketConnection();
+        ref.current?.close();
+        toast.success("Erfolgreich eingeloggt!");
     };
 
-    const handleRegister = (
+    const handleRegister = async (
         username: string,
         password: string,
-        confirmPassword: string
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _confirmPassword: string
     ) => {
-        console.log("Register:", {
-            username,
-            password,
-            confirmPassword,
-        });
-        // TODO: Implement default registration logic
+        const userData: UserLoginDto = {
+            username: username,
+            password: password,
+        };
 
-        ref.current.close();
+        const [response, err] = await errorAsValue(
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/accounts`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(userData),
+            })
+        );
+
+        if (err) {
+            toast.error(
+                "Fehler beim Registrieren. Bitte versuche es später erneut."
+            );
+            console.error("Fehler beim Registrieren:", err);
+            return;
+        }
+
+        if (response.status === 409) {
+            toast.error("Benutzername bereits vergeben.");
+            return;
+        }
+
+        if (!response.ok) {
+            toast.error("Ungültiger Benutzername oder Passwort.");
+            return;
+        }
+
+        resetWebsocketConnection();
+        ref.current?.close();
+        toast.success("Erfolgreich registriert!");
     };
 
     return (
         <dialog ref={ref} className={css.dialog}>
             {mode === "login" ? (
                 <LoginForm
-                    onSubmit={handleLogin}
+                    onSubmit={(username, password) => {
+                        void handleLogin(username, password);
+                    }}
                     onSwitchToRegister={() => switchMode("register")}
                     initialUsername={sharedUsername}
                     onUsernameChange={setSharedUsername}
@@ -86,7 +152,13 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
                 />
             ) : (
                 <RegisterForm
-                    onSubmit={handleRegister}
+                    onSubmit={(username, password, confirmPassword) => {
+                        void handleRegister(
+                            username,
+                            password,
+                            confirmPassword
+                        );
+                    }}
                     onSwitchToLogin={() => switchMode("login")}
                     initialUsername={sharedUsername}
                     onUsernameChange={setSharedUsername}
