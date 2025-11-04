@@ -89,7 +89,7 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
         const timeElapsed = Date.now() - file.time.getTime(); // in milliseconds
 
         // Prevent division by zero
-        if (transferredSize === 0) {
+        if (transferredSize === 0 || timeElapsed === 0) {
             return "Berechne...";
         }
 
