@@ -31,7 +31,7 @@
         // z-index: -1; // optional, sometimes useful, sometimes not, should be set if needed by the user
         pointer-events: none;
 
-        max-width: 100vw;
+        max-width: calc(100vw - 10px); // 10px is size of scrollbar
         max-height: 100vh;
     }
 }
