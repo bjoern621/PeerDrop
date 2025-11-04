@@ -5,7 +5,6 @@ import ImageFileIcon from "../../assets/icons8-image-file.svg?react";
 import ZipFileIcon from "../../assets/icons8-zip.svg?react";
 import FolderIcon from "../../assets/icons8-folder.svg?react";
 import FolderOpenIcon from "../../assets/icons8-folder-2.svg?react";
-import DragDropIcon from "../../assets/drag_and_drop.svg?react";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { useEffect, useRef, useState } from "react";
@@ -16,6 +15,7 @@ import { usePeerConnectionManager } from "../../context/connection/PeerConnectio
 import { useNavigate, useBeforeUnload, useBlocker } from "react-router";
 import { toast } from "react-toastify/unstyled";
 import { CloseInitiator } from "../../services/PeerConnectionManager";
+import DragDropOverlay from "./DragDropOverlay/DragDropOverlay";
 
 export default function Sharing() {
     useDeviceHeartbeat({ status: DeviceStatus.BUSY });
@@ -31,15 +31,12 @@ export default function Sharing() {
     const folderInputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
 
-    const [isDragging, setIsDragging] = useState(false);
-    const dragCounterRef = useRef(0); // Counter for drag depth to handle nested element enter/leave events
-
-    // Redirect to /connect on page load if there's no active connection
-    useEffect(() => {
-        if (!peerConnectionManager.getConnection()) {
-            void navigate("/connect");
-        }
-    }, []);
+    // Redirect to /connect on page load if there's no active connection (disabled for debug)
+    // useEffect(() => {
+    //     if (!peerConnectionManager.getConnection()) {
+    //         void navigate("/connect");
+    //     }
+    // }, []);
 
     // Block all navigation attempts
     useEffect(() => {
@@ -137,143 +134,92 @@ export default function Sharing() {
         // Will not navigate here, as the navigation is handled in the useEffect listening for connection closed events
     };
 
-    const handleDragEnter = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dragCounterRef.current++;
-        if (dragCounterRef.current >= 1) {
-            setIsDragging(true);
-        }
-    };
-
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
-    const handleDragLeave = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dragCounterRef.current--;
-        if (dragCounterRef.current <= 0) {
-            setIsDragging(false);
-        }
-    };
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dragCounterRef.current = 0;
-        setIsDragging(false);
-
-        const droppedFiles = e.dataTransfer.files;
-
-        if (!droppedFiles || droppedFiles.length === 0) {
-            return;
-        }
-
-        uploadFiles(droppedFiles);
-    };
-
     return (
-        <div
-            className={css.sharingContainer}
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-        >
-            <div className={css.sharingHeader}>
-                <div className={css.uploadButtons}>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        multiple
-                        onChange={addFilesForUpload}
-                        hidden={true}
-                        style={{ display: "none" }}
-                    />
-                    <Button
-                        variant="outline"
-                        color_scheme="primary"
-                        alignment="vertical"
-                        className={css.fileButton}
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <div className={css.fileIconContainer}>
-                            <CodeFileIcon className={css.fileIcon1} />
-                            <ImageFileIcon className={css.fileIcon2} />
-                            <ZipFileIcon className={css.fileIcon3} />
-                        </div>
-                        Datei teilen
-                    </Button>
-                    <input
-                        type="file"
-                        ref={folderInputRef}
-                        // @ts-expect-error - webkitdirectory is not in the types but is widely supported
-                        webkitdirectory=""
-                        directory=""
-                        multiple
-                        onChange={addFilesForUpload}
-                        hidden={true}
-                        style={{ display: "none" }}
-                    />
-                    <Button
-                        variant="outline"
-                        color_scheme="primary"
-                        alignment="vertical"
-                        className={css.folderButton}
-                        onClick={() => folderInputRef.current?.click()}
-                    >
-                        <div className={css.folderIconContainer}>
-                            <FolderIcon className={css.folderClosed} />
-                            <FolderOpenIcon className={css.folderOpen} />
-                        </div>
-                        Ordner teilen
-                    </Button>
+        <DragDropOverlay onFilesDropped={uploadFiles}>
+            <div className={css.sharingContainer}>
+                <div className={css.sharingHeader}>
+                    <div className={css.uploadButtons}>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            multiple
+                            onChange={addFilesForUpload}
+                            hidden={true}
+                            style={{ display: "none" }}
+                        />
+                        <Button
+                            variant="outline"
+                            color_scheme="primary"
+                            alignment="vertical"
+                            className={css.fileButton}
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <div className={css.fileIconContainer}>
+                                <CodeFileIcon className={css.fileIcon1} />
+                                <ImageFileIcon className={css.fileIcon2} />
+                                <ZipFileIcon className={css.fileIcon3} />
+                            </div>
+                            Datei teilen
+                        </Button>
+                        <input
+                            type="file"
+                            ref={folderInputRef}
+                            // @ts-expect-error - webkitdirectory is not in the types but is widely supported
+                            webkitdirectory=""
+                            directory=""
+                            multiple
+                            onChange={addFilesForUpload}
+                            hidden={true}
+                            style={{ display: "none" }}
+                        />
+                        <Button
+                            variant="outline"
+                            color_scheme="primary"
+                            alignment="vertical"
+                            className={css.folderButton}
+                            onClick={() => folderInputRef.current?.click()}
+                        >
+                            <div className={css.folderIconContainer}>
+                                <FolderIcon className={css.folderClosed} />
+                                <FolderOpenIcon className={css.folderOpen} />
+                            </div>
+                            Ordner teilen
+                        </Button>
+                    </div>
+
+                    <div className={css.informationTopRight}>
+                        <p>
+                            Aktuell verbunden mit:{" "}
+                            <span className={css.remoteToken}>
+                                <RemoteTokenDisplay />
+                            </span>
+                        </p>
+                        <Button
+                            color_scheme={"neutral"}
+                            variant={"outline"}
+                            onClick={() => void closeConnection()}
+                        >
+                            Verbindung trennen
+                        </Button>
+                    </div>
                 </div>
 
-                <div className={css.informationTopRight}>
-                    <p>
-                        Aktuell verbunden mit:{" "}
-                        <span className={css.remoteToken}>
-                            <RemoteTokenDisplay />
-                        </span>
-                    </p>
-                    <Button
-                        color_scheme={"neutral"}
-                        variant={"outline"}
-                        onClick={() => void closeConnection()}
-                    >
-                        Verbindung trennen
-                    </Button>
-                </div>
+                <table className={css.table}>
+                    <thead>
+                        <tr>
+                            <th>Dateiname</th>
+                            <th>Fortschritt</th>
+                            <th>Größe</th>
+                            <th>Zeitstempel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Array.from(files.entries()).map(([uuid, file]) => (
+                            <FileRow key={uuid} fileUUID={uuid} file={file} />
+                        ))}
+                    </tbody>
+                </table>
             </div>
-
-            <table className={css.table}>
-                <thead>
-                    <tr>
-                        <th>Dateiname</th>
-                        <th>Fortschritt</th>
-                        <th>Größe</th>
-                        <th>Zeitstempel</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {Array.from(files.entries()).map(([uuid, file]) => (
-                        <FileRow key={uuid} fileUUID={uuid} file={file} />
-                    ))}
-                </tbody>
-            </table>
-
-            <div
-                className={`${css.dropArea} ${isDragging ? css.dropAreaActive : ""}`}
-            >
-                <div>
-                    <DragDropIcon className={css.dragDropIcon} />
-                    <p className={css.dropAreaMessage}>Drag and Drop</p>
-                </div>
-            </div>
-        </div>
+        </DragDropOverlay>
     );
 }
