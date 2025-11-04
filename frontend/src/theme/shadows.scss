@@ -7,3 +7,31 @@
 @mixin elevated-shadow-no-highlight {
     box-shadow: 0 4px 10px 2px var(--shadow);
 }
+
+@mixin background-effect {
+    --background-effect-size: 600px;
+
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: var(--background-effect-size);
+        height: var(--background-effect-size);
+
+        background: radial-gradient(
+            circle,
+            var(--background-effect-color) 20%,
+            transparent 70%
+        );
+
+        z-index: -1;
+        pointer-events: none;
+
+        max-width: 100vw;
+        max-height: 100vh;
+    }
+}

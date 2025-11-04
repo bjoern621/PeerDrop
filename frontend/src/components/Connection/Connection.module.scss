@@ -13,27 +13,8 @@
 
     padding-top: var(--space-24);
 
-    position: relative;
-
-    &::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        --size: 1100px;
-        width: var(--size);
-        height: var(--size);
-
-        background: radial-gradient(
-            circle,
-            var(--background-effect-color) 20%,
-            transparent 70%
-        );
-
-        z-index: -1;
-        pointer-events: none;
-    }
+    @include background-effect;
+    --background-effect-size: 1100px;
 }
 
 @mixin containerBorder {

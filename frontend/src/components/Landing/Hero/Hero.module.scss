@@ -1,3 +1,5 @@
+@use "../../../theme/shadows.scss" as *;
+
 .container {
     margin-top: var(--space-96);
 
@@ -20,27 +22,8 @@
         max-width: 380px;
     }
 
-    position: relative;
-
-    &::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        --size: 900px;
-        width: var(--size);
-        height: var(--size);
-
-        background: radial-gradient(
-            circle,
-            var(--background-effect-color) 20%,
-            transparent 70%
-        );
-
-        z-index: -1;
-        pointer-events: none;
-    }
+    @include background-effect;
+    --background-effect-size: 900px;
 }
 
 .actions {
