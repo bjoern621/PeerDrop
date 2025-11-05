@@ -85,4 +85,6 @@ export function useDeviceHeartbeat({
             clearInterval(timer);
         };
     }, [enabled, intervalMs, sendHeartbeat]);
+
+    return { sendHeartbeat };
 }

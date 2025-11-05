@@ -9,6 +9,7 @@ import OwnToken from "./OwnToken/OwnToken";
 import ConnectToPeer from "./ConnectToPeer/ConnectToPeer";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
+import Devices from "./Devices/Devices";
 
 export default function Connection() {
     useDeviceHeartbeat({ status: DeviceStatus.ONLINE });
@@ -85,9 +86,13 @@ export default function Connection() {
 
     return (
         <div className={css.container}>
-            <OwnToken />
+            <Devices />
 
-            <ConnectToPeer />
+            <div className={css.containerWrapper}>
+                <OwnToken />
+
+                <ConnectToPeer />
+            </div>
 
             <AwaitConnectionDialog ref={awaitConnectionDialog} />
         </div>

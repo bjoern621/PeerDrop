@@ -1,0 +1,38 @@
+.deviceDisplay {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+
+    padding: var(--space-8) var(--space-8) var(--space-8) var(--space-12);
+    background-color: var(--secondary-10);
+    color: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--space-16);
+
+    &[aria-disabled="true"] {
+        cursor: not-allowed !important;
+    }
+}
+
+.statusIndicator {
+    height: var(--space-16);
+    aspect-ratio: 1;
+    border-radius: 50%;
+}
+
+.deviceOnline {
+    background-color: var(--success);
+}
+
+.deviceOffline {
+    background-color: var(--error);
+}
+
+.deviceBusy {
+    background-color: var(--warning);
+}
+
+.deleteButton {
+    padding: var(--space-4);
+    border-radius: var(--space-8);
+}

@@ -2,16 +2,25 @@
 
 .container {
     display: flex;
-    gap: var(--space-24);
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
     height: calc(100vh - 78px - 305px); // full height minus header and footer
+
+    padding-top: var(--space-24);
+}
+
+.containerWrapper {
+    display: flex;
+    gap: var(--space-24);
+    flex-wrap: wrap;
 
     align-items: flex-start;
     align-content: center;
     justify-content: center;
 
-    padding-top: var(--space-24);
+    width: 100%;
 
     @include background-effect;
     --background-effect-size: 1100px;
