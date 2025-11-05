@@ -7,15 +7,15 @@ import FolderIcon from "../../assets/icons8-folder.svg?react";
 import FolderOpenIcon from "../../assets/icons8-folder-2.svg?react";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import RemoteTokenDisplay from "../RemoteTokenDisplay/RemoteTokenDisplay";
 import FileRow from "./FileRow/FileRow";
-import { FileDirection, FileDisplay } from "./types";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import { useNavigate, useBeforeUnload, useBlocker } from "react-router";
 import { toast } from "react-toastify/unstyled";
 import { CloseInitiator } from "../../services/PeerConnectionManager";
 import DragDropOverlay from "./DragDropOverlay/DragDropOverlay";
+import useFileTransfer from "../../hooks/useFileTransfer";
 
 export default function Sharing() {
     useDeviceHeartbeat({ status: DeviceStatus.BUSY });
@@ -29,7 +29,8 @@ export default function Sharing() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
-    const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
+
+    const { files, handleFileInputChange, sendFiles } = useFileTransfer();
 
     // Redirect to /connect on page load if there's no active connection (disabled for debug)
     useEffect(() => {
@@ -83,57 +84,6 @@ export default function Sharing() {
         };
     }, []);
 
-    useEffect(() => {
-        peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
-    }, []);
-
-    const addFilesForUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const filesList = event.target.files;
-        if (!filesList) return;
-
-        uploadFiles(filesList);
-
-        // Reset input to allow re-adding the same file
-        if (event.target) {
-            event.target.value = "";
-        }
-    };
-
-    const uploadFiles = (filesList: FileList) => {
-        for (const file of filesList) {
-            const uuid = crypto.randomUUID();
-            const fileDisplay: FileDisplay = {
-                name: file.name,
-                direction: FileDirection.UP,
-                size: file.size,
-                time: new Date(),
-            };
-
-            setFiles(prevFiles => new Map(prevFiles.set(uuid, fileDisplay)));
-
-            // Useful for development/testing without connection
-            if (!peerConnectionManager.getConnection()) {
-                continue;
-            }
-
-            peerConnectionManager.sendFile(file, uuid);
-        }
-    };
-
-    const onReceivedFile = (name: string, size: number, uuid: string) => {
-        setFiles(
-            prevFiles =>
-                new Map(
-                    prevFiles.set(uuid, {
-                        name: name,
-                        direction: FileDirection.DOWN,
-                        size: size,
-                        time: new Date(),
-                    })
-                )
-        );
-    };
-
     const closeConnection = () => {
         peerConnectionManager.closePeerConnection();
         // Will not navigate here, as the navigation is handled in the useEffect listening for connection closed events
@@ -147,7 +97,7 @@ export default function Sharing() {
                         type="file"
                         ref={fileInputRef}
                         multiple
-                        onChange={addFilesForUpload}
+                        onChange={handleFileInputChange}
                         hidden={true}
                         style={{ display: "none" }}
                     />
@@ -172,7 +122,7 @@ export default function Sharing() {
                         webkitdirectory=""
                         directory=""
                         multiple
-                        onChange={addFilesForUpload}
+                        onChange={handleFileInputChange}
                         hidden={true}
                         style={{ display: "none" }}
                     />
@@ -209,7 +159,7 @@ export default function Sharing() {
             </div>
 
             <DragDropOverlay
-                onFilesDropped={uploadFiles}
+                onFilesDropped={sendFiles}
                 className={css.dragDropOverlay}
             >
                 <table className={css.table}>
