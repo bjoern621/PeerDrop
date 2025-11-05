@@ -3,10 +3,12 @@
 .sharingContainer {
     position: relative;
     height: 100%;
+    height: calc(100vh - 78px - 305px); // full height minus header and footer
+    padding-top: var(--space-40);
 }
 
 .sharingHeader {
-    margin: var(--space-40) 0 var(--space-16);
+    margin-bottom: var(--space-16);
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
