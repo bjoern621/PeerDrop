@@ -203,7 +203,10 @@ export default function Sharing() {
                 </div>
             </div>
 
-            <DragDropOverlay onFilesDropped={uploadFiles}>
+            <DragDropOverlay
+                onFilesDropped={uploadFiles}
+                className={css.dragDropOverlay}
+            >
                 <table className={css.table}>
                     <thead>
                         <tr>

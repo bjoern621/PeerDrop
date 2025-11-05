@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import DragDropIcon from "../../../assets/drag_and_drop.svg?react";
 import css from "./DragDropOverlay.module.scss";
 
-interface DragDropOverlayProps {
+interface DragDropOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
     onFilesDropped: (files: FileList) => void;
     children: React.ReactNode;
 }
@@ -10,6 +10,7 @@ interface DragDropOverlayProps {
 export default function DragDropOverlay({
     onFilesDropped,
     children,
+    className,
 }: DragDropOverlayProps) {
     const [isDragging, setIsDragging] = useState(false);
     const dragCounterRef = useRef(0); // Counter for drag depth to handle nested element enter/leave events
@@ -58,7 +59,7 @@ export default function DragDropOverlay({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={css.dropAreaContainer}
+            className={`${css.dropAreaContainer} ${className || ""}`}
         >
             {children}
 
