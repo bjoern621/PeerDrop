@@ -32,11 +32,16 @@ export default function Sharing() {
     const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
 
     // Redirect to /connect on page load if there's no active connection (disabled for debug)
-    // useEffect(() => {
-    //     if (!peerConnectionManager.getConnection()) {
-    //         void navigate("/connect");
-    //     }
-    // }, []);
+    useEffect(() => {
+        if (import.meta.env.DEV) {
+            // In development mode, skip the redirect
+            return;
+        }
+
+        if (!peerConnectionManager.getConnection()) {
+            void navigate("/connect");
+        }
+    }, []);
 
     // Block all navigation attempts
     useEffect(() => {
