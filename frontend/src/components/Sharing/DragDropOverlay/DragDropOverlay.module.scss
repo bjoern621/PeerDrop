@@ -14,15 +14,17 @@
 
     pointer-events: none;
 
+    border: 3px dashed transparent;
+    border-radius: var(--space-16);
+
     transition: all 0.3s ease;
 
     &.dropAreaActive {
         z-index: 5; // above other elements, like the file icons (z-index: 1-3)
         pointer-events: all;
         background-color: rgba(var(--primary-rgb), 0.05);
-        border: 3px dashed var(--primary);
-        border-radius: var(--space-16);
         backdrop-filter: blur(2px);
+        border-color: var(--primary);
 
         .dragDropIcon {
             fill: var(--primary);
