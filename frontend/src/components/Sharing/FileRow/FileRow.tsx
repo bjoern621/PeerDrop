@@ -160,7 +160,7 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
                 ) : (
                     <div className={css.progressContainer}>
                         <div className={css.progressInfo}>
-                            <span>{progress * 100} %</span>
+                            <span>{(progress * 100).toFixed(2)} %</span>
 
                             <span>{getRemainingTime()}</span>
                         </div>
