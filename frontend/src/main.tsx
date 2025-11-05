@@ -12,6 +12,7 @@ import LandingPageOld from "./components/LandingPageOld/LandingPageOld.tsx";
 import { ConnectionProvider } from "./context/connection/ConnectionProvider.tsx";
 import Landing from "./components/Landing/Landing.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
+import { AuthProvider } from "./context/AuthContext.tsx";
 import Layout from "./components/Layout/Layout.tsx";
 import Sharing from "./components/Sharing/Sharing.tsx";
 import Connection from "./components/Connection/Connection.tsx";
@@ -38,7 +39,9 @@ const router = createBrowserRouter(
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <ThemeProvider>
-            <RouterProvider router={router} />
+            <AuthProvider>
+                <RouterProvider router={router} />
+            </AuthProvider>
         </ThemeProvider>
     </StrictMode>
 );

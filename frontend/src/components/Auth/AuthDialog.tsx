@@ -4,7 +4,7 @@ import css from "./AuthDialog.module.scss";
 import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
-import { AuthService } from "../../services/AuthService";
+import { useAuth } from "../../context/AuthContext";
 import ExitIcon from "../../assets/icons8-close-2.svg?react";
 import Button from "../Button/Button";
 
@@ -12,14 +12,13 @@ type AuthForm = "login" | "register";
 
 interface AuthDialogProps {
     ref: RefObject<HTMLDialogElement>;
-    onLoginSuccess: () => void;
 }
 
 const initialFormMode: AuthForm = "login";
 const initialSharedUsername = "";
 const initialSharedPassword = "";
 
-export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
+export default function AuthDialog({ ref }: AuthDialogProps) {
     const [mode, setMode] = useState<AuthForm>(initialFormMode);
     const [sharedUsername, setSharedUsername] = useState<string>(
         initialSharedUsername
@@ -29,6 +28,7 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
     );
     const [formKey, setFormKey] = useState(0);
 
+    const { login, register } = useAuth();
     const resetWebsocketConnection = useResetWebsocket();
 
     const switchMode = (newMode: AuthForm) => {
@@ -46,13 +46,12 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
     };
 
     const handleLogin = async (username: string, password: string) => {
-        const success = await AuthService.login(username, password);
+        const success = await login(username, password);
 
         if (success) {
             resetWebsocketConnection();
             resetForm();
             ref.current.close();
-            onLoginSuccess();
         }
     };
 
@@ -62,13 +61,12 @@ export default function AuthDialog({ ref, onLoginSuccess }: AuthDialogProps) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _confirmPassword: string
     ) => {
-        const success = await AuthService.register(username, password);
+        const success = await register(username, password);
 
         if (success) {
             resetWebsocketConnection();
             resetForm();
             ref.current.close();
-            onLoginSuccess();
         }
     };
 

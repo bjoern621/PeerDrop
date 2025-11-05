@@ -1,26 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import Button from "../Button/Button";
 import AuthDialog from "./AuthDialog";
-import { AuthService } from "../../services/AuthService";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AuthButton() {
     const dialogRef = useRef<HTMLDialogElement>(null!);
-    const [loggedIn, setLoggedIn] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        void AuthService.getLoggedInStatus().then(status => {
-            setLoggedIn(status);
-            setIsLoading(false);
-        });
-    }, []);
-
-    const logout = async () => {
-        const success = await AuthService.logout();
-        if (success) {
-            setLoggedIn(false);
-        }
-    };
+    const { isLoggedIn, isLoading, logout } = useAuth();
 
     if (isLoading) {
         return null;
@@ -28,7 +13,7 @@ export default function AuthButton() {
 
     return (
         <>
-            {loggedIn ? (
+            {isLoggedIn ? (
                 <Button
                     variant={"outline"}
                     color_scheme={"neutral"}
@@ -46,10 +31,7 @@ export default function AuthButton() {
                 </Button>
             )}
 
-            <AuthDialog
-                ref={dialogRef}
-                onLoginSuccess={() => setLoggedIn(true)}
-            />
+            <AuthDialog ref={dialogRef} />
         </>
     );
 }
