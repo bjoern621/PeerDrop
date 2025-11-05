@@ -7,87 +7,21 @@ import FolderIcon from "../../assets/icons8-folder.svg?react";
 import FolderOpenIcon from "../../assets/icons8-folder-2.svg?react";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import RemoteTokenDisplay from "../RemoteTokenDisplay/RemoteTokenDisplay";
 import FileRow from "./FileRow/FileRow";
-import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
-import { useNavigate, useBeforeUnload, useBlocker } from "react-router";
-import { toast } from "react-toastify/unstyled";
-import { CloseInitiator } from "../../services/PeerConnectionManager";
 import DragDropOverlay from "./DragDropOverlay/DragDropOverlay";
 import useFileTransfer from "../../hooks/useFileTransfer";
+import useConnectionLifecycle from "../../hooks/useConnectionLifecycle";
 
 export default function Sharing() {
     useDeviceHeartbeat({ status: DeviceStatus.BUSY });
-    const peerConnectionManager = usePeerConnectionManager();
-    const navigate = useNavigate();
-
-    const shouldBlock = () => {
-        return peerConnectionManager.getConnection() !== undefined;
-    };
-    const blocker = useBlocker(shouldBlock);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
 
     const { files, handleFileInputChange, sendFiles } = useFileTransfer();
-
-    // Redirect to /connect on page load if there's no active connection (disabled for debug)
-    useEffect(() => {
-        if (import.meta.env.DEV) {
-            // In development mode, skip the redirect
-            return;
-        }
-
-        if (!peerConnectionManager.getConnection()) {
-            void navigate("/connect");
-        }
-    }, []);
-
-    // Block all navigation attempts
-    useEffect(() => {
-        if (blocker.state === "blocked") {
-            toast.warning(
-                "Navigation ist blockiert. Bitte trenne zuerst die Verbindung.",
-                {
-                    toastId: "navigation-blocked-toast",
-                    updateId: "navigation-blocked-toast",
-                }
-            );
-            blocker.reset();
-        }
-    }, [blocker]);
-
-    // Close the peer connection when the tab is closed / refreshed
-    useBeforeUnload(() => {
-        peerConnectionManager.closePeerConnection();
-    });
-
-    // Navigate to /connect when the peer connection is closed
-    useEffect(() => {
-        const onConnectionClosed = (initiator: CloseInitiator) => {
-            if (initiator === "local") {
-                toast.success("Verbindung erfolgreich getrennt.");
-            } else {
-                toast.info("Die Verbindung wurde vom Peer getrennt.");
-            }
-
-            void navigate("/connect");
-        };
-
-        peerConnectionManager.subscribeToConnectionClosed(onConnectionClosed);
-
-        return () => {
-            peerConnectionManager.unsubscribeFromConnectionClosed(
-                onConnectionClosed
-            );
-        };
-    }, []);
-
-    const closeConnection = () => {
-        peerConnectionManager.closePeerConnection();
-        // Will not navigate here, as the navigation is handled in the useEffect listening for connection closed events
-    };
+    const { closeConnection } = useConnectionLifecycle();
 
     return (
         <div className={css.sharingContainer}>
