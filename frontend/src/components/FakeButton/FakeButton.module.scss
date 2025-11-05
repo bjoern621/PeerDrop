@@ -1,0 +1,8 @@
+.fakeButton {
+    cursor: pointer;
+    user-select: none;
+
+    &[aria-disabled="true"] {
+        cursor: default;
+    }
+}

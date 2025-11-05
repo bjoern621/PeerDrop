@@ -4,6 +4,7 @@ import {
     KeyboardEvent,
     MouseEvent,
 } from "react";
+import styles from "./FakeButton.module.scss";
 
 interface FakeButtonProps
     extends Omit<ComponentPropsWithoutRef<"div">, "role"> {
@@ -44,7 +45,7 @@ export default function FakeButton({
             aria-disabled={disabled || undefined}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
-            className={className}
+            className={`${styles.fakeButton} ${className || ""}`}
             {...props}
         >
             {children}
