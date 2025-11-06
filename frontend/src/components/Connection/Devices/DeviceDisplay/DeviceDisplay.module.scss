@@ -9,6 +9,8 @@
     border: 1px solid var(--border);
     border-radius: var(--space-16);
 
+    text-wrap: nowrap;
+
     &[aria-disabled="true"] {
         cursor: not-allowed !important;
     }
