@@ -70,7 +70,7 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
                 onFileProgressUpdate
             );
         };
-    }, []);
+    }, [fileUUID, peerConnectionManager]); // TODO: use Exhaustive Deps Exclude
 
     // Update every second to refresh the remaining time display
     useEffect(() => {

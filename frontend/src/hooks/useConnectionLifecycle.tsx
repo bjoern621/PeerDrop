@@ -36,7 +36,7 @@ export default function useConnectionLifecycle() {
         if (!peerConnectionManager.getConnection()) {
             void navigate("/connect");
         }
-    }, []);
+    }, [navigate, peerConnectionManager]); // TODO: use Exhaustive Deps Exclude
 
     // Block all navigation attempts
     useEffect(() => {
@@ -76,7 +76,7 @@ export default function useConnectionLifecycle() {
                 onConnectionClosed
             );
         };
-    }, []);
+    }, [navigate, peerConnectionManager]); // TODO: use Exhaustive Deps Exclude
 
     /**
      * Manually closes the peer connection.

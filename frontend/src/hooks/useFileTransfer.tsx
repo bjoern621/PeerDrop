@@ -16,7 +16,7 @@ export default function useFileTransfer() {
 
     useEffect(() => {
         peerConnectionManager.setOnReceivedFileCallback(handleReceivedFile);
-    }, []);
+    }, [peerConnectionManager]); // TODO: use Exhaustive Deps Exclude
 
     /**
      * Handles file input change events (e.g., from file picker dialogs).
