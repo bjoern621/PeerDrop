@@ -199,4 +199,26 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
 
         return string.Empty;
     }
+
+    public void SendDeviceChangedMessage(int userId, string action, Guid deviceUuid, string displayName, string status)
+    {
+        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId);
+
+        foreach (var token in activeClientTokensForUserId)
+        {
+            logger.LogDebug($"Sending device-changed message (action: {action}) for device {deviceUuid} to client {token}");
+            var deviceChangedMessage = new DeviceChangedMessage
+            {
+                Action = action,
+                Device = new DeviceInfo
+                {
+                    Uuid = deviceUuid,
+                    DisplayName = displayName,
+                    Status = status
+                }
+            };
+
+            _webSocketHandler.SendMessage(token, deviceChangedMessage);
+        }
+    }
 }

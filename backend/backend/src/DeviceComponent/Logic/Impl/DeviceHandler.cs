@@ -55,6 +55,8 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             Domain = frontendDomain,
         });
 
+        _deviceService.SendDeviceChangedMessage(accountId, "added", deviceUuid, displayName, "offline");
+
         // Return the UUID in the response so that it can be stored in the frontend cookie
         return Results.Ok(new DeviceRegisterDto { uuid = deviceUuid });
     }
@@ -235,9 +237,14 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             return Results.Unauthorized();
         }
 
+        var deviceDisplayName = device.GetDisplayName(); // TODO
+
         // Proceed with deleting the device
         await repo.DeleteDeviceAsync(parsedAccountId, deviceGuid);
         _deviceService.HandleDeviceDelete(deviceGuid, parsedAccountId, "offline");
+
+        _deviceService.SendDeviceChangedMessage(parsedAccountId, "removed", deviceGuid, deviceDisplayName, "offline");
+
         return Results.Ok("Device deleted successfully.");
     }
 }

@@ -4,6 +4,7 @@ import { Device } from "../types/device/Device";
 import { DeviceResponse } from "../util/dtos/DeviceResponse";
 import { DeviceStatus } from "../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../types/device/DeviceHeartbeatMessage";
+import { DeviceChangedMessage } from "../types/device/DeviceChangedMessage";
 import { MessageHandler } from "../services/WebSocketService";
 import { useWebSocketService } from "../context/connection/WebSocketContext";
 import { MessageType } from "../types/MessageType";
@@ -117,11 +118,8 @@ export const useDevices = () => {
             return;
         }
 
-        // Refresh device list after successful registration
-        await fetchDevices();
-
         sendHeartbeat();
-    }, [fetchDevices, sendHeartbeat]);
+    }, [sendHeartbeat]);
 
     /**
      * Deletes a device by sending its UUID to the server.
@@ -151,10 +149,6 @@ export const useDevices = () => {
             console.error("Error deleting device:", response.statusText);
             return;
         }
-
-        setDevices(prevDevices =>
-            prevDevices.filter(d => d.uuid !== device.uuid)
-        );
     }, []);
 
     /**
@@ -200,12 +194,68 @@ export const useDevices = () => {
             MessageType.DEVICE_HEARTBEAT,
             onHeartbeatReceived as MessageHandler
         );
+
+        return () => {
+            websocketService.unsubscribeMessage(
+                MessageType.DEVICE_HEARTBEAT,
+                onHeartbeatReceived as MessageHandler
+            );
+        };
+    }, [websocketService]);
+
+    /**
+     * Handles incoming device-changed messages to add/remove devices from local state
+     */
+    const handleDeviceChangedMessage = useCallback(() => {
+        const onDeviceChanged = (message: DeviceChangedMessage) => {
+            const { action, device } = message.msg;
+
+            if (action === "added") {
+                const currentDeviceUuid = getDeviceUuidFromCookie();
+                const newDevice: Device = {
+                    name: device.displayName,
+                    current: device.uuid === currentDeviceUuid,
+                    status: device.status,
+                    uuid: device.uuid,
+                };
+
+                setDevices(prevDevices => {
+                    // Check if device already exists, shouldn't happen, but defensive
+                    if (prevDevices.some(d => d.uuid === device.uuid)) {
+                        return prevDevices;
+                    }
+                    return [...prevDevices, newDevice];
+                });
+            } else if (action === "removed") {
+                setDevices(prevDevices =>
+                    prevDevices.filter(d => d.uuid !== device.uuid)
+                );
+            }
+        };
+
+        websocketService.subscribeMessage(
+            MessageType.DEVICE_CHANGED,
+            onDeviceChanged as MessageHandler
+        );
+
+        return () => {
+            websocketService.unsubscribeMessage(
+                MessageType.DEVICE_CHANGED,
+                onDeviceChanged as MessageHandler
+            );
+        };
     }, [websocketService]);
 
     useEffect(() => {
         void fetchDevices();
-        handleHeartbeatMessage();
-    }, [fetchDevices, handleHeartbeatMessage]);
+        const cleanupHeartbeat = handleHeartbeatMessage();
+        const cleanupDeviceChanged = handleDeviceChangedMessage();
+
+        return () => {
+            cleanupHeartbeat();
+            cleanupDeviceChanged();
+        };
+    }, [fetchDevices, handleHeartbeatMessage, handleDeviceChangedMessage]);
 
     return {
         devices,
