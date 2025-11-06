@@ -23,9 +23,13 @@ export default function Footer() {
                                 Inside PeerDrop
                             </Anchor>
                         </li>
-                        <li>Preise</li>
-                        <li>Entstehung</li>
-                        <li>FAQ</li>
+                        {/* <li>Preise</li> */} {/* TODO */}
+                        {/* <li>Entstehung</li> */}
+                        <li>
+                            <Anchor to="/faq" underline="none">
+                                FAQ
+                            </Anchor>
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -36,10 +40,11 @@ export default function Footer() {
                         <li>
                             <ThemeToggle />
                         </li>
-                        <li>Impressum</li>
+                        {/* <li>Impressum</li>
                         <li>Datenschutz</li>
                         <li>Cookies verwalten</li>
-                        <li>Nutzungsbedingungen</li>
+                        <li>Nutzungsbedingungen</li> */}
+                        {/* TODO */}
                     </ul>
                 </nav>
             </div>
