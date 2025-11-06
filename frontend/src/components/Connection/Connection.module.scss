@@ -6,7 +6,9 @@
     align-items: center;
     justify-content: center;
 
-    height: calc(100vh - 78px - 305px); // full height minus header and footer
+    min-height: calc(
+        100vh - 78px - 305px
+    ); // full height minus header and footer
 
     padding-top: var(--space-24);
 }

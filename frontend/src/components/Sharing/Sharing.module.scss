@@ -3,7 +3,9 @@
 .sharingContainer {
     position: relative;
     height: 100%;
-    height: calc(100vh - 78px - 305px); // full height minus header and footer
+    min-height: calc(
+        100vh - 78px - 305px
+    ); // full height minus header and footer
     padding-top: var(--space-40);
 
     display: flex;
@@ -147,7 +149,13 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    display: block;
+
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 
     thead {
         display: block;
@@ -173,9 +181,6 @@
 
     tbody {
         display: block;
-        max-height: calc(
-            100vh - 78px - 305px - 122px - 40px - 2px
-        ); // Header, Footer, SharingHeader, TableHeader, ?Margins/Border?
         overflow-y: auto;
         scrollbar-gutter: stable;
 
@@ -183,5 +188,7 @@
             display: grid;
             grid-template-columns: 1fr 250px 100px 125px;
         }
+
+        flex: 1;
     }
 }
