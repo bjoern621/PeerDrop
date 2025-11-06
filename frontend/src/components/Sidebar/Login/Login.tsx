@@ -3,6 +3,7 @@ import { useState } from "react";
 import { UserLoginDto } from "../../../util/dtos/UserLoginDto";
 import css from "./Login.module.scss";
 import { toast } from "react-toastify/unstyled";
+import { getRuntimeEnvVars } from "../../../util/RuntimeEnvVars";
 
 interface LoginProps {
     onSwitchToRegister: () => void;
@@ -60,7 +61,7 @@ export const Login = ({ onSwitchToRegister, onLogin }: LoginProps) => {
 
     async function loginUser(userData: UserLoginDto) {
         const [response, err1] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/login`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/login`, {
                 method: "POST",
                 credentials: "include",
                 headers: {

@@ -16,6 +16,7 @@ import { AuthProvider } from "./context/AuthContext.tsx";
 import Layout from "./components/Layout/Layout.tsx";
 import Sharing from "./components/Sharing/Sharing.tsx";
 import Connection from "./components/Connection/Connection.tsx";
+import { loadRuntimeEnvVars } from "./util/RuntimeEnvVars.ts";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -36,12 +37,14 @@ const router = createBrowserRouter(
     )
 );
 
-createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-        <ThemeProvider>
-            <AuthProvider>
-                <RouterProvider router={router} />
-            </AuthProvider>
-        </ThemeProvider>
-    </StrictMode>
-);
+void loadRuntimeEnvVars().then(() => {
+    createRoot(document.getElementById("root")!).render(
+        <StrictMode>
+            <ThemeProvider>
+                <AuthProvider>
+                    <RouterProvider router={router} />
+                </AuthProvider>
+            </ThemeProvider>
+        </StrictMode>
+    );
+});

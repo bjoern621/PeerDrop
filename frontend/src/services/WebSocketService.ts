@@ -3,6 +3,7 @@ import { MessageType } from "../types/MessageType";
 import { Logger } from "../util/Logger";
 import { ITypedMessage } from "../types/ITypedMessage";
 import { ClientTokenMessage } from "../types/token/ClientTokenMessage";
+import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
 
 export type MessageHandler = (typedMessage: ITypedMessage) => unknown;
 
@@ -43,7 +44,7 @@ export class WebSocketService {
 
     private connectToServer() {
         this.socket = new WebSocket(
-            `${import.meta.env.VITE_WS_BACKEND_URL}/connect`
+            `${getRuntimeEnvVars().wsBackendUrl}/connect`
         );
 
         this.listenToMessages();
