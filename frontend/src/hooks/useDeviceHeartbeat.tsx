@@ -3,11 +3,13 @@ import { useWebSocketService } from "../context/connection/WebSocketContext";
 import { DeviceHeartbeatMessage } from "../types/device/DeviceHeartbeatMessage";
 import { DeviceStatus } from "../types/device/DeviceStatus";
 import { HEARTBEAT_INTERVAL_MS } from "../util/Constants";
+import { useBeforeUnload } from "react-router";
 
 interface UseDeviceHeartbeatOptions {
     status: DeviceStatus;
     enabled?: boolean;
     intervalMs?: number;
+    onExit?: () => void;
 }
 
 /**
@@ -35,6 +37,7 @@ export function useDeviceHeartbeat({
     status,
     enabled = true,
     intervalMs = HEARTBEAT_INTERVAL_MS,
+    onExit,
 }: UseDeviceHeartbeatOptions) {
     const websocketService = useWebSocketService();
 
@@ -52,20 +55,23 @@ export function useDeviceHeartbeat({
     /**
      * Sends a heartbeat message if the device UUID is available.
      */
-    const sendHeartbeat = useCallback(() => {
-        const deviceUuid = getDeviceUuid();
+    const sendHeartbeat = useCallback(
+        (deviceStatus: DeviceStatus) => {
+            const deviceUuid = getDeviceUuid();
 
-        if (!deviceUuid) {
-            return; // The user might not have registered the device
-        }
+            if (!deviceUuid) {
+                return; // The user might not have registered the device
+            }
 
-        const heartbeat = new DeviceHeartbeatMessage({
-            uuid: deviceUuid,
-            status: status,
-        });
+            const heartbeat = new DeviceHeartbeatMessage({
+                uuid: deviceUuid,
+                status: deviceStatus,
+            });
 
-        websocketService.sendMessage(heartbeat);
-    }, [getDeviceUuid, status, websocketService]);
+            websocketService.sendMessage(heartbeat);
+        },
+        [getDeviceUuid, websocketService]
+    );
 
     useEffect(() => {
         if (!enabled) {
@@ -73,18 +79,32 @@ export function useDeviceHeartbeat({
         }
 
         // Send initial heartbeat
-        sendHeartbeat();
+        sendHeartbeat(status);
 
         // Set up interval for continuous heartbeats
         const timer = setInterval(() => {
-            sendHeartbeat();
+            sendHeartbeat(status);
         }, intervalMs);
 
         // Cleanup on unmount
         return () => {
             clearInterval(timer);
         };
-    }, [enabled, intervalMs, sendHeartbeat]);
+    }, [enabled, intervalMs, sendHeartbeat, status]);
+
+    useBeforeUnload(() => {
+        console.log("Sending OFFLINE heartbeat before unload");
+        if (!enabled) {
+            return;
+        }
+
+        if (onExit) {
+            onExit();
+            return;
+        }
+
+        sendHeartbeat(DeviceStatus.OFFLINE);
+    });
 
     return { sendHeartbeat };
 }
