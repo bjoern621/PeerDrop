@@ -52,10 +52,7 @@ export function useDeviceHeartbeat({
             ?.split("=")[1];
     }, []);
 
-    /**
-     * Sends a heartbeat message if the device UUID is available.
-     */
-    const sendHeartbeat = useCallback(
+    const sendHeartbeatInternal = useCallback(
         (deviceStatus: DeviceStatus) => {
             const deviceUuid = getDeviceUuid();
 
@@ -73,17 +70,24 @@ export function useDeviceHeartbeat({
         [getDeviceUuid, websocketService]
     );
 
+    /**
+     * Sends a heartbeat message if the device UUID is available.
+     */
+    const sendHeartbeat = useCallback(() => {
+        sendHeartbeatInternal(status);
+    }, [sendHeartbeatInternal, status]);
+
     useEffect(() => {
         if (!enabled) {
             return;
         }
 
         // Send initial heartbeat
-        sendHeartbeat(status);
+        sendHeartbeat();
 
         // Set up interval for continuous heartbeats
         const timer = setInterval(() => {
-            sendHeartbeat(status);
+            sendHeartbeat();
         }, intervalMs);
 
         // Cleanup on unmount
@@ -103,7 +107,7 @@ export function useDeviceHeartbeat({
             return;
         }
 
-        sendHeartbeat(DeviceStatus.OFFLINE);
+        sendHeartbeatInternal(DeviceStatus.OFFLINE);
     });
 
     return { sendHeartbeat };
