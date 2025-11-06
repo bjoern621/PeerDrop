@@ -13,8 +13,6 @@ export default function DeviceList() {
         deleteDevice,
     } = useDevices();
 
-    console.log(currentDeviceRegistered, devices);
-
     return (
         <div className={css.deviceList}>
             {!currentDeviceRegistered && (
