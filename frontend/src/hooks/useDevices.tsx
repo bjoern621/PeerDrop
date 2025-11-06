@@ -12,6 +12,7 @@ import { QuickConnectMessage } from "../types/connection/QuickConnectMessage";
 import errorAsValue from "../util/ErrorAsValue";
 import { assert } from "../util/Assert";
 import { useDeviceHeartbeat } from "./useDeviceHeartbeat";
+import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
 
 /**
  * Gets the device UUID from the browser cookie.
@@ -44,7 +45,7 @@ export const useDevices = () => {
      */
     const fetchDevices = useCallback(async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/devices`, {
                 method: "GET",
                 credentials: "include",
             })
@@ -94,7 +95,7 @@ export const useDevices = () => {
      */
     const registerCurrentDevice = useCallback(async () => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/device/register`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/device/register`, {
                 method: "POST",
                 credentials: "include",
                 headers: {
@@ -126,7 +127,7 @@ export const useDevices = () => {
      */
     const deleteDevice = useCallback(async (device: Device) => {
         const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/device`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/device`, {
                 method: "DELETE",
                 credentials: "include",
                 body: JSON.stringify(device.uuid),

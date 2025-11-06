@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
 import { useWebSocketService } from "../../../context/connection/WebSocketContext";
 import Button from "../../Button/Button";
+import { getRuntimeEnvVars } from "../../../util/RuntimeEnvVars";
 
 export default function OwnToken() {
     const websocket = useWebSocketService();
@@ -63,7 +64,7 @@ export default function OwnToken() {
 
         const [, err] = await errorAsValue(
             navigator.clipboard.writeText(
-                `${import.meta.env.VITE_FRONTEND_DOMAIN}/connect/${clientToken}`
+                `${getRuntimeEnvVars().frontendDomain}/connect/${clientToken}`
             )
         );
 

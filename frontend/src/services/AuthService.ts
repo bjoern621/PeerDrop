@@ -3,11 +3,9 @@ import errorAsValue from "../util/ErrorAsValue";
 import { UserLoginDto } from "../util/dtos/UserLoginDto";
 import { StatusResponse } from "../util/dtos/StatusResponse";
 import { assert } from "../util/Assert";
+import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
 
 export class AuthService {
-    private static readonly backendUrl = import.meta.env
-        .VITE_BACKEND_URL as string;
-
     public static async login(
         username: string,
         password: string
@@ -18,7 +16,7 @@ export class AuthService {
         };
 
         const [response, err] = await errorAsValue(
-            fetch(`${AuthService.backendUrl}/login`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/login`, {
                 method: "POST",
                 credentials: "include",
                 headers: {
@@ -55,7 +53,7 @@ export class AuthService {
         };
 
         const [response, err] = await errorAsValue(
-            fetch(`${AuthService.backendUrl}/accounts`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/accounts`, {
                 method: "POST",
                 credentials: "include",
                 headers: {
@@ -89,7 +87,7 @@ export class AuthService {
 
     public static async logout(): Promise<boolean> {
         const [response, err] = await errorAsValue(
-            fetch(`${AuthService.backendUrl}/logout`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/logout`, {
                 method: "POST",
                 credentials: "include",
             })
@@ -117,7 +115,7 @@ export class AuthService {
 
     public static async getLoggedInStatus(): Promise<boolean> {
         const [response, err] = await errorAsValue(
-            fetch(`${AuthService.backendUrl}/me/status`, {
+            fetch(`${getRuntimeEnvVars().backendUrl}/me/status`, {
                 method: "GET",
                 credentials: "include",
             })

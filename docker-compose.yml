@@ -36,6 +36,7 @@ services:
             - DB_DATABASE_NAME=peerdrop
             - DB_USERNAME=postgres
             - DB_PASSWORD=passwort
+            - FRONTEND_DOMAIN=localhost:80
         ports:
             - "8080:8080"
         restart: unless-stopped
@@ -57,6 +58,7 @@ services:
             - BACKEND_HOST=localhost
             - BACKEND_PORT=8080
             - WS_SCHEME=ws
+            - FRONTEND_DOMAIN=localhost:80
 
 volumes:
     postgres_data:
