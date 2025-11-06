@@ -1,5 +1,4 @@
 using backend.ConnectionComponent.Common.Api.DTOs;
-using backend.ConnectionComponent.Dataaccess.Api;
 using backend.ConnectionComponent.Logic.Api;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
@@ -7,28 +6,13 @@ using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.ConnectionComponent.Logic.Impl;
 
-public class QuickConnectService : IQuickConnectService
+public class QuickConnectService(
+    IWebSocketHandler _webSocketHandler,
+    IServiceScopeFactory _scopeFactory,
+    IDeviceService _deviceService,
+    IConnectionInitiationService _connectionInitiationService
+) : IQuickConnectService
 {
-    private readonly IWebSocketHandler _webSocketHandler;
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IDeviceService _deviceService;
-    private readonly IConnectionInitiationService _connectionInitiationService;
-    private readonly IOpenConnectionRequestRepository _openConnectionRequestRepository;
-
-    public QuickConnectService(
-        IWebSocketHandler webSocketHandler,
-        IServiceScopeFactory scopeFactory,
-        IDeviceService deviceService,
-        IConnectionInitiationService connectionInitiationService,
-        IOpenConnectionRequestRepository openConnectionRequestRepository)
-    {
-        _webSocketHandler = webSocketHandler;
-        _scopeFactory = scopeFactory;
-        _deviceService = deviceService;
-        _connectionInitiationService = connectionInitiationService;
-        _openConnectionRequestRepository = openConnectionRequestRepository;
-    }
-
     public async Task HandleQuickConnectMessage(string clientToken, QuickConnectMessage message)
     {
         var deviceUuid = message.DeviceUuid;
