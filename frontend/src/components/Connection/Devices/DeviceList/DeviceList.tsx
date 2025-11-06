@@ -20,10 +20,7 @@ export default function DeviceList() {
                     color_scheme={"neutral"}
                     variant={"outline"}
                     className={css.registerButton}
-                    onClick={() => {
-                        console.log("register");
-                        void registerCurrentDevice();
-                    }}
+                    onClick={() => void registerCurrentDevice()}
                 >
                     <PlusIcon />
                     Gerät registrieren
