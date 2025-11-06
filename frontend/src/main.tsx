@@ -8,6 +8,7 @@ import {
     RouterProvider,
 } from "react-router";
 import { PageNotFound } from "./components/PageNotFound/PageNotFound.tsx";
+import { WorkInProgress } from "./components/WorkInProgress/WorkInProgress.tsx";
 import LandingPageOld from "./components/LandingPageOld/LandingPageOld.tsx";
 import { ConnectionProvider } from "./context/connection/ConnectionProvider.tsx";
 import Landing from "./components/Landing/Landing.tsx";
@@ -33,6 +34,8 @@ const router = createBrowserRouter(
             <Route path="share" element={<Sharing />} />
             <Route path="old" element={<LandingPageOld />} />
             <Route path="connect" element={<Connection />} />
+            <Route path="faq" element={<WorkInProgress />} />
+            <Route path="inside" element={<WorkInProgress />} />
         </Route>
     )
 );
