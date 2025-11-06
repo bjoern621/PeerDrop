@@ -6,8 +6,11 @@ public interface IDeviceService
 {
     Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message);
 
-    Task HandleDeviceRegister(Guid uuid, int userId, string deviceStatus);
-    Task HandleDeviceDelete(Guid uuid, int userId, string deviceStatus);
+    /// <summary>
+    /// Deletes the device from the active devices list when it is deleted.
+    /// This means that the device is now offline.
+    /// </summary>
+    void HandleDeviceDelete(Guid uuid, int userId, string deviceStatus);
 
     /// <summary>
     /// Gets the status of a device by its UUID.

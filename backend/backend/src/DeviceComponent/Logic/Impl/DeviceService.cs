@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
@@ -97,22 +96,6 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
         }
     }
 
-    /// <summary>
-    /// Sends a heartbeat message to all active client tokens of the user.
-    /// This is used to inform all clients of the user's devices about the current device status.
-    /// </summary>
-    private async Task SendChangedDeviceToAllActiveClientTokens(int userId, Guid uuid, string deviceStatus)
-    {
-        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId);
-
-        foreach (var token in activeClientTokensForUserId)
-        {
-            logger.LogDebug($"Sending device change for device {uuid} to client {token}");
-            var forwardedChangedDeviceMessage = new DeviceChangedMessage { };
-            await _webSocketHandler.SendMessage(token, forwardedChangedDeviceMessage);
-        }
-    }
-
     public async Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message)
     {
         logger.LogDebug($"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}");
@@ -169,12 +152,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
         SendHeartbeatToAllActiveClientTokens(realUserId.Value, message.Uuid, message.DeviceStatus);
     }
 
-    public async Task HandleDeviceRegister(Guid uuid, int userId, string deviceStatus)
-    {
-        await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
-    }
-
-    public async Task HandleDeviceDelete(Guid uuid, int userId, string deviceStatus)
+    public void HandleDeviceDelete(Guid uuid, int userId, string deviceStatus)
     {
         // Delete from the _activeDevices list
         foreach (var kvp in _activeDevices.ToArray())
@@ -185,8 +163,6 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
                 logger.LogDebug($"Removed deleted device {kvp.Value.DeviceGuid} for client {kvp.Key}");
             }
         }
-
-        await SendChangedDeviceToAllActiveClientTokens(userId, uuid, deviceStatus);
     }
 
     public string GetDeviceStatus(Guid deviceUuid)
