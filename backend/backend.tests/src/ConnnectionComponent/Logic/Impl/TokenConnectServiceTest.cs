@@ -129,6 +129,7 @@ public class TokenConnectServiceTest
         _mockOpenConnectionRequestRepository
             .Setup(r => r.Add(peerA, peerB))
             .Callback<string, string>((requester, target) => storedTarget = target);
+#pragma warning disable CS8601 // Possible null reference assignment.
         _mockOpenConnectionRequestRepository
             .Setup(r => r.TryRemove(peerA, out It.Ref<string>.IsAny))
             .Returns(
@@ -140,6 +141,7 @@ public class TokenConnectServiceTest
                     return result;
                 }
             );
+#pragma warning restore CS8601 // Possible null reference assignment.
 
         await _service.HandleConnectionRequest(
             peerA,
@@ -177,6 +179,7 @@ public class TokenConnectServiceTest
         _mockOpenConnectionRequestRepository
             .Setup(r => r.Add(requester, responder))
             .Callback<string, string>((req, target) => storedTarget = target);
+#pragma warning disable CS8601 // Possible null reference assignment.
         _mockOpenConnectionRequestRepository
             .Setup(r => r.TryRemove(requester, out It.Ref<string>.IsAny))
             .Returns(
@@ -188,6 +191,7 @@ public class TokenConnectServiceTest
                     return result;
                 }
             );
+#pragma warning restore CS8601 // Possible null reference assignment.
 
         await _service.HandleConnectionRequest(
             requester,
