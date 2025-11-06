@@ -124,41 +124,11 @@ export const useDevices = () => {
     }, [fetchDevices, sendHeartbeat]);
 
     /**
-     * Asks the server to delete the current device.
+     * Deletes a device by sending its UUID to the server.
      */
-    const deleteCurrentDevice = useCallback(async () => {
+    const deleteDevice = useCallback(async (device: Device) => {
         const [response, err] = await errorAsValue(
             fetch(`${import.meta.env.VITE_BACKEND_URL}/device`, {
-                method: "DELETE",
-                credentials: "include",
-            })
-        );
-
-        if (err) {
-            toast.error(
-                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
-            );
-            console.error("Error unregistering device:", err);
-            return;
-        } else if (!response.ok) {
-            toast.error(
-                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
-            );
-            console.error("Error unregistering device:", response.statusText);
-            return;
-        }
-
-        setDevices(prevDevices =>
-            prevDevices.filter(d => d.uuid !== getDeviceUuidFromCookie())
-        );
-    }, []);
-
-    /**
-     * Asks the server to delete another device (not the current one).
-     */
-    const deleteOtherDevice = useCallback(async (device: Device) => {
-        const [response, err] = await errorAsValue(
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/devices`, {
                 method: "DELETE",
                 credentials: "include",
                 body: JSON.stringify(device.uuid),
@@ -172,13 +142,13 @@ export const useDevices = () => {
             toast.error(
                 "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
             );
-            console.error("Error unregistering device:", err);
+            console.error("Error deleting device:", err);
             return;
         } else if (!response.ok) {
             toast.error(
                 "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
             );
-            console.error("Error unregistering device:", response.statusText);
+            console.error("Error deleting device:", response.statusText);
             return;
         }
 
@@ -186,20 +156,6 @@ export const useDevices = () => {
             prevDevices.filter(d => d.uuid !== device.uuid)
         );
     }, []);
-
-    /**
-     * Deletes a device.
-     */
-    const deleteDevice = useCallback(
-        async (device: Device) => {
-            if (device.current) {
-                await deleteCurrentDevice();
-            } else {
-                await deleteOtherDevice(device);
-            }
-        },
-        [deleteCurrentDevice, deleteOtherDevice]
-    );
 
     /**
      * Initiates a quick connect to another device.
