@@ -22,8 +22,16 @@
         }
     }
 
+    &:first-child {
+        border-radius: var(--space-16) var(--space-16) 0 0;
+    }
+
     &:last-child {
         border-radius: 0 0 var(--space-16) var(--space-16);
+    }
+
+    &:only-child {
+        border-radius: var(--space-16);
     }
 }
 
