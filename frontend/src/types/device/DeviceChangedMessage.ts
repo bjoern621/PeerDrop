@@ -12,12 +12,12 @@ export class DeviceChangedMessage implements ITypedMessage {
     public readonly type = MessageType.DEVICE_CHANGED;
     public msg: {
         action: "added" | "removed";
-        device: DeviceInfo;
+        deviceInfo: DeviceInfo;
     };
 
     public constructor(msg: {
         action: "added" | "removed";
-        device: DeviceInfo;
+        deviceInfo: DeviceInfo;
     }) {
         this.msg = msg;
     }

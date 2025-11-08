@@ -13,7 +13,7 @@ public class DeviceChangedMessage : ITypedMessage
     [JsonPropertyName("action")]
     public required string Action { get; set; } // "added" or "removed"
 
-    [JsonPropertyName("device")]
+    [JsonPropertyName("deviceInfo")]
     public required DeviceInfo Device { get; set; }
 }
 
@@ -24,7 +24,4 @@ public class DeviceInfo
 
     [JsonPropertyName("displayName")]
     public required string DisplayName { get; set; }
-
-    [JsonPropertyName("status")]
-    public required string Status { get; set; }
 }

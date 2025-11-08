@@ -119,6 +119,33 @@ export const useDevices = () => {
             return;
         }
 
+        // Fixes race condition between WebSocket DEVICE_CHANGED and response of /device/register
+        setDevices(prevDevices => {
+            const currentDeviceUuid = getDeviceUuidFromCookie()!;
+
+            if (prevDevices.some(device => device.uuid === currentDeviceUuid)) {
+                // Device already added by WebSocket DEVICE_CHANGED
+
+                // Only update 'current' flag, because Cookie is now set and wasn't before
+                return prevDevices.map(device =>
+                    device.uuid === currentDeviceUuid
+                        ? { ...device, current: true }
+                        : device
+                );
+            }
+
+            // Add a dummy device ourselves since WebSocket was slower or hasn't arrived yet
+            return [
+                ...prevDevices,
+                {
+                    name: "Dieses Gerät",
+                    current: true,
+                    status: DeviceStatus.ONLINE,
+                    uuid: currentDeviceUuid,
+                },
+            ];
+        });
+
         sendHeartbeat();
     }, [sendHeartbeat]);
 
@@ -209,27 +236,38 @@ export const useDevices = () => {
      */
     const handleDeviceChangedMessage = useCallback(() => {
         const onDeviceChanged = (message: DeviceChangedMessage) => {
-            const { action, device } = message.msg;
+            const { action, deviceInfo } = message.msg;
 
             if (action === "added") {
                 const currentDeviceUuid = getDeviceUuidFromCookie();
                 const newDevice: Device = {
-                    name: device.displayName,
-                    current: device.uuid === currentDeviceUuid,
-                    status: device.status,
-                    uuid: device.uuid,
+                    name: deviceInfo.displayName,
+                    current: deviceInfo.uuid === currentDeviceUuid,
+                    status: DeviceStatus.ONLINE,
+                    uuid: deviceInfo.uuid,
                 };
 
                 setDevices(prevDevices => {
-                    // Check if device already exists, shouldn't happen, but defensive
-                    if (prevDevices.some(d => d.uuid === device.uuid)) {
-                        return prevDevices;
+                    if (prevDevices.some(d => d.uuid === deviceInfo.uuid)) {
+                        // Race condition:
+                        // Dummy device already added by /device/register response
+                        // Only update name because other fields are already correct
+                        console.log(
+                            "Device already exists, updating name only."
+                        );
+                        return prevDevices.map(device =>
+                            device.uuid === currentDeviceUuid
+                                ? { ...device, name: deviceInfo.displayName }
+                                : device
+                        );
                     }
+
+                    // New device, add to list
                     return [...prevDevices, newDevice];
                 });
             } else if (action === "removed") {
                 setDevices(prevDevices =>
-                    prevDevices.filter(d => d.uuid !== device.uuid)
+                    prevDevices.filter(d => d.uuid !== deviceInfo.uuid)
                 );
             }
         };
