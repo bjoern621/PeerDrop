@@ -36,7 +36,7 @@ services:
             - DB_DATABASE_NAME=peerdrop
             - DB_USERNAME=postgres
             - DB_PASSWORD=passwort
-            - FRONTEND_DOMAIN=localhost:80
+            - COOKIE_DOMAIN=localhost
         ports:
             - "8080:8080"
         restart: unless-stopped

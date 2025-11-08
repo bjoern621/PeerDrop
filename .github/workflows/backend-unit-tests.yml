@@ -10,10 +10,9 @@ on:
 
 jobs:
     build:
-
         env:
-            FRONTEND_DOMAIN: testdomain
-        
+            COOKIE_DOMAIN: testdomain
+
         runs-on: ubuntu-latest
         name: Run Backend Unit Tests
 

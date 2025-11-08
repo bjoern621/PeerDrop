@@ -4,8 +4,19 @@ using backend.AccountComponent.Facade.Api;
 using backend.AccountComponent.Facade.Impl;
 using backend.AccountComponent.Logic.Api;
 using backend.AccountComponent.Logic.Impl;
-using Microsoft.AspNetCore.WebSockets;
 using backend.CommonComponent;
+using backend.ConnectionComponent.Dataaccess.Api;
+using backend.ConnectionComponent.Dataaccess.Impl;
+using backend.ConnectionComponent.Facade.Api;
+using backend.ConnectionComponent.Facade.Impl;
+using backend.ConnectionComponent.Logic.Api;
+using backend.ConnectionComponent.Logic.Impl;
+using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Dataaccess.Impl;
+using backend.DeviceComponent.Facade.Api;
+using backend.DeviceComponent.Facade.Impl;
+using backend.DeviceComponent.Logic.Api;
+using backend.DeviceComponent.Logic.Impl;
 using backend.SignalingComponent.Facade.Api;
 using backend.SignalingComponent.Facade.Impl;
 using backend.SignalingComponent.Logic.Api;
@@ -14,18 +25,7 @@ using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Impl;
-using backend.DeviceComponent.Facade.Api;
-using backend.DeviceComponent.Facade.Impl;
-using backend.DeviceComponent.Logic.Api;
-using backend.DeviceComponent.Dataaccess.Api.Repo;
-using backend.DeviceComponent.Dataaccess.Impl;
-using backend.DeviceComponent.Logic.Impl;
-using backend.ConnectionComponent.Logic.Api;
-using backend.ConnectionComponent.Facade.Api;
-using backend.ConnectionComponent.Logic.Impl;
-using backend.ConnectionComponent.Facade.Impl;
-using backend.ConnectionComponent.Dataaccess.Api;
-using backend.ConnectionComponent.Dataaccess.Impl;
+using Microsoft.AspNetCore.WebSockets;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
@@ -36,27 +36,39 @@ builder.Logging.AddConsole();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-var frontendOrigin = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN") ??
-                     throw new ApplicationException("FRONTEND_ORIGIN not set");
+var _cookieDomain =
+    Environment.GetEnvironmentVariable("COOKIE_DOMAIN")
+    ?? throw new ApplicationException("COOKIE_DOMAIN not set");
 
-builder.Services.AddCors(options => options.AddPolicy(
-    corsAllowFrontendOrigin,
-    policyBuilder =>
-        policyBuilder.WithOrigins(frontendOrigin)
-                     .WithHeaders("Content-Type", "User-Agent", "Authorization")
-                     .WithExposedHeaders("Location")
-                     .AllowCredentials() // Required to allow session cookies
-                     .WithMethods("GET", "POST", "DELETE")
-        ));
+var frontendOrigin =
+    Environment.GetEnvironmentVariable("FRONTEND_ORIGIN")
+    ?? throw new ApplicationException("FRONTEND_ORIGIN not set");
 
-var host = Environment.GetEnvironmentVariable("DB_HOST")
-               ?? throw new ApplicationException("DB_HOST not set");
-var user = Environment.GetEnvironmentVariable("DB_USERNAME")
-               ?? throw new ApplicationException("DB_USERNAME not set");
-var pass = Environment.GetEnvironmentVariable("DB_PASSWORD")
-               ?? throw new ApplicationException("DB_PASSWORD not set");
-var database = Environment.GetEnvironmentVariable("DB_DATABASE_NAME")
-               ?? throw new ApplicationException("DB_DATABASE_NAME not set");
+builder.Services.AddCors(options =>
+    options.AddPolicy(
+        corsAllowFrontendOrigin,
+        policyBuilder =>
+            policyBuilder
+                .WithOrigins(frontendOrigin)
+                .WithHeaders("Content-Type", "User-Agent", "Authorization")
+                .WithExposedHeaders("Location")
+                .AllowCredentials() // Required to allow session cookies
+                .WithMethods("GET", "POST", "DELETE")
+    )
+);
+
+var host =
+    Environment.GetEnvironmentVariable("DB_HOST")
+    ?? throw new ApplicationException("DB_HOST not set");
+var user =
+    Environment.GetEnvironmentVariable("DB_USERNAME")
+    ?? throw new ApplicationException("DB_USERNAME not set");
+var pass =
+    Environment.GetEnvironmentVariable("DB_PASSWORD")
+    ?? throw new ApplicationException("DB_PASSWORD not set");
+var database =
+    Environment.GetEnvironmentVariable("DB_DATABASE_NAME")
+    ?? throw new ApplicationException("DB_DATABASE_NAME not set");
 
 var connString = $"Host={host};Username={user};Password={pass};Database={database}";
 var dataSource = Npgsql.NpgsqlDataSource.Create(connString);
@@ -96,7 +108,8 @@ var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
+if (app.Environment.IsDevelopment())
+    app.MapOpenApi();
 
 app.UseCors(corsAllowFrontendOrigin);
 

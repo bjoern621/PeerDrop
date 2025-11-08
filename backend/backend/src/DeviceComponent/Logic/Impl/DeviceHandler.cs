@@ -1,22 +1,26 @@
+using System.Text.RegularExpressions;
+using backend.AccountComponent.Common.Api.DTOs;
+using backend.AccountComponent.Logic.Api;
 using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
-using backend.DeviceComponent.Logic.Api;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.DeviceComponent.Logic.Api;
 using Microsoft.AspNetCore.Http.HttpResults;
-using System.Text.RegularExpressions;
-using backend.AccountComponent.Logic.Api;
-using backend.AccountComponent.Common.Api.DTOs;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
-public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, IDeviceService _deviceService) : IDeviceHandler
+public class DeviceHandler(
+    IDeviceRepository repo,
+    IAccountLoginHandler login,
+    IDeviceService _deviceService
+) : IDeviceHandler
 {
-    readonly string frontendDomain = Environment.GetEnvironmentVariable("FRONTEND_DOMAIN") ??
-                    throw new ApplicationException("FRONTEND_DOMAIN not set");
+    readonly string cookieDomain =
+        Environment.GetEnvironmentVariable("COOKIE_DOMAIN")
+        ?? throw new ApplicationException("COOKIE_DOMAIN not set");
 
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
-
         if (!context.Request.Cookies.TryGetValue(".AspNetCore.Session", out var sessionToken))
         {
             return Results.Unauthorized();
@@ -46,16 +50,26 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         // Save the device to the repository (database)
         await repo.SaveDeviceAsync(device);
 
-        context.Response.Cookies.Append("deviceUuid", deviceUuid.ToString(), new CookieOptions
-        {
-            HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (you may validate the cookie on the server side by using the auth session token)
-            IsEssential = true,
-            SameSite = SameSiteMode.Lax,
-            Expires = DateTimeOffset.UtcNow.AddYears(5),
-            Domain = frontendDomain,
-        });
+        context.Response.Cookies.Append(
+            "deviceUuid",
+            deviceUuid.ToString(),
+            new CookieOptions
+            {
+                HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (you may validate the cookie on the server side by using the auth session token)
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddYears(5),
+                Domain = cookieDomain,
+            }
+        );
 
-        _deviceService.SendDeviceChangedMessage(accountId, "added", deviceUuid, displayName, "offline");
+        _deviceService.SendDeviceChangedMessage(
+            accountId,
+            "added",
+            deviceUuid,
+            displayName,
+            "offline"
+        );
 
         // Return the UUID in the response so that it can be stored in the frontend cookie
         return Results.Ok(new DeviceRegisterDto { uuid = deviceUuid });
@@ -167,15 +181,19 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
             if (!exists)
             {
                 // Cookie löschen, weil das Gerät nicht mehr existiert
-                context.Response.Cookies.Append("deviceUuid", "", new CookieOptions
-                {
-                    Expires = DateTimeOffset.UtcNow.AddDays(-1),
-                    HttpOnly = false,
-                    IsEssential = true,
-                    SameSite = SameSiteMode.Lax,
-                    Path = "/",
-                    Domain = frontendDomain
-                });
+                context.Response.Cookies.Append(
+                    "deviceUuid",
+                    "",
+                    new CookieOptions
+                    {
+                        Expires = DateTimeOffset.UtcNow.AddDays(-1),
+                        HttpOnly = false,
+                        IsEssential = true,
+                        SameSite = SameSiteMode.Lax,
+                        Path = "/",
+                        Domain = cookieDomain,
+                    }
+                );
             }
         }
         // Proceed with fetching the devices for the user
@@ -186,14 +204,17 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
 
         var deviceResponse = new DeviceResponseDTO
         {
-            Devices = [.. devices.Select(device => new DeviceLoginDto
+            Devices =
+            [
+                .. devices.Select(device => new DeviceLoginDto
                 {
                     Uuid = device.Uuid,
                     DisplayName = device.DisplayName,
-                    Status = _deviceService.GetDeviceStatus(device.Uuid)
-                })]
+                    Status = _deviceService.GetDeviceStatus(device.Uuid),
+                }),
+            ],
         };
-        return Results.Ok(deviceResponse);  // Return the devices or relevant data
+        return Results.Ok(deviceResponse); // Return the devices or relevant data
     }
 
     public async Task<IResult> DeleteDeviceAsync(HttpContext context)
@@ -243,7 +264,13 @@ public class DeviceHandler(IDeviceRepository repo, IAccountLoginHandler login, I
         await repo.DeleteDeviceAsync(parsedAccountId, deviceGuid);
         _deviceService.HandleDeviceDelete(deviceGuid, parsedAccountId, "offline");
 
-        _deviceService.SendDeviceChangedMessage(parsedAccountId, "removed", deviceGuid, deviceDisplayName, "offline");
+        _deviceService.SendDeviceChangedMessage(
+            parsedAccountId,
+            "removed",
+            deviceGuid,
+            deviceDisplayName,
+            "offline"
+        );
 
         return Results.Ok("Device deleted successfully.");
     }
