@@ -9,6 +9,7 @@
         "plugin/user-select-webkit": true,
         "selector-class-pattern": null,
         "rule-empty-line-before": null,
+        "alpha-value-notation": "number",
         "property-no-vendor-prefix": [
             true,
             {
