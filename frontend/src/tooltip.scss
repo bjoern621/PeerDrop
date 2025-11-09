@@ -7,14 +7,11 @@
             scale: 1;
         }
     }
-
-    .tooltip {
-        user-select: none;
-    }
 }
 
 .tooltip {
     pointer-events: none;
+    user-select: none;
 
     color: white;
     background-color: rgba(0, 0, 0, 0.75);
@@ -27,9 +24,7 @@
     opacity: 0;
     scale: 0.9;
 
-    transition:
-        opacity 0.1s,
-        scale 0.1s;
+    transition: opacity 0.1s, scale 0.1s;
 
     &.bottom {
         top: calc(100% + 5px);
