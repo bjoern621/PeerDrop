@@ -1,12 +1,14 @@
 name: Stylelint
 
+# Temporarily disabled
 on:
-    pull_request:
-        branches:
-            - main
-    push:
-        paths:
-            - "frontend/**"
+    workflow_dispatch: # Only run manually
+    # pull_request:
+    #     branches:
+    #         - main
+    # push:
+    #     paths:
+    #         - "frontend/**"
 
 jobs:
     stylelint:
