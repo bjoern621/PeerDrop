@@ -8,6 +8,7 @@
         "plugin/backdrop-filter-webkit": true,
         "plugin/user-select-webkit": true,
         "selector-class-pattern": null,
+        "rule-empty-line-before": null,
         "property-no-vendor-prefix": [
             true,
             {
