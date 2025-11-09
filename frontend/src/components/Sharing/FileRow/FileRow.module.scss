@@ -1,6 +1,7 @@
 .fileRow {
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 
     border-bottom: 1px solid var(--border);
