@@ -3,10 +3,10 @@ import Heading from "../Heading/Heading";
 import Footer from "../Footer/Footer";
 import "./Layout.scss";
 import { ToastContainer } from "react-toastify/unstyled";
-import WarningIcon from "../../assets/icons8-error-3.svg?react";
-import InfoIcon from "../../assets/icons8-info-3.svg?react";
-import SuccessIcon from "../../assets/icons8-check-mark-3.svg?react";
-import ErrorIcon from "../../assets/icons8-high-priority-3.svg?react";
+import WarningIcon from "../../assets/status/icons8-error-3.svg?react";
+import InfoIcon from "../../assets/status/icons8-info-3.svg?react";
+import SuccessIcon from "../../assets/status/icons8-check-mark-3.svg?react";
+import ErrorIcon from "../../assets/status/icons8-high-priority-3.svg?react";
 
 export default function Layout() {
     return (
