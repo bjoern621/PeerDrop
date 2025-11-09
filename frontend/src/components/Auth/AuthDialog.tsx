@@ -83,6 +83,7 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
                 className={css.closeButton}
                 onClick={() => ref.current.close()}
                 color_scheme={"error"}
+                aria-label="Anmeldedialog schließen"
             >
                 <ExitIcon />
             </Button>
