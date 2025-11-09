@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Button from "../Button/Button";
 import AuthDialog from "./AuthDialog";
 import { useAuth } from "../../context/AuthContext";
@@ -6,6 +6,16 @@ import { useAuth } from "../../context/AuthContext";
 export default function AuthButton() {
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const { isLoggedIn, isLoading, logout } = useAuth();
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const handleDialogClose = () => {
+        setIsDialogOpen(false);
+    };
+
+    const openDialog = () => {
+        setIsDialogOpen(true);
+        dialogRef.current.showModal();
+    };
 
     if (isLoading) {
         return null;
@@ -18,20 +28,22 @@ export default function AuthButton() {
                     variant={"outline"}
                     color_scheme={"neutral"}
                     onClick={() => void logout()}
+                    disabled={isDialogOpen}
                 >
                     Ausloggen
                 </Button>
             ) : (
                 <Button
-                    onClick={() => dialogRef.current.showModal()}
+                    onClick={() => openDialog()}
                     color_scheme={"neutral"}
                     variant={"outline"}
+                    disabled={isDialogOpen}
                 >
                     Anmelden / Registrieren
                 </Button>
             )}
 
-            <AuthDialog ref={dialogRef} />
+            <AuthDialog ref={dialogRef} onClose={handleDialogClose} />
         </>
     );
 }

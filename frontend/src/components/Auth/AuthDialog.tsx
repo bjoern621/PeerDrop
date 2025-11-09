@@ -12,13 +12,14 @@ type AuthForm = "login" | "register";
 
 interface AuthDialogProps {
     ref: RefObject<HTMLDialogElement>;
+    onClose?: () => void;
 }
 
 const initialFormMode: AuthForm = "login";
 const initialSharedUsername = "";
 const initialSharedPassword = "";
 
-export default function AuthDialog({ ref }: AuthDialogProps) {
+export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
     const [mode, setMode] = useState<AuthForm>(initialFormMode);
     const [sharedUsername, setSharedUsername] = useState<string>(
         initialSharedUsername
@@ -51,7 +52,7 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
         if (success) {
             resetWebsocketConnection();
             resetForm();
-            ref.current.close();
+            closeDialog();
         }
     };
 
@@ -61,8 +62,13 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
         if (success) {
             resetWebsocketConnection();
             resetForm();
-            ref.current.close();
+            closeDialog();
         }
+    };
+
+    const closeDialog = () => {
+        ref.current.close();
+        onClose?.();
     };
 
     const resetForm = () => {
@@ -76,7 +82,7 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
         <dialog ref={ref} className={css.dialog}>
             <Button
                 className={css.closeButton}
-                onClick={() => ref.current.close()}
+                onClick={() => closeDialog()}
                 color_scheme={"error"}
                 aria-label="Anmeldedialog schließen"
             >

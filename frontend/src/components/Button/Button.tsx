@@ -47,6 +47,7 @@ export default function Button({
                 alignment,
                 className,
             })}
+            type="button"
             {...props}
         >
             {children}
