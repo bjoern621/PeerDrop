@@ -1,10 +1,11 @@
-{
-    "extends": ["stylelint-config-standard-scss"],
-    "plugins": [
+/** @type {import("stylelint").Config} */
+export default {
+    extends: ["stylelint-config-standard-scss"],
+    plugins: [
         "./stylelint-rules/backdrop-filter-webkit.js",
-        "./stylelint-rules/user-select-webkit.js"
+        "./stylelint-rules/user-select-webkit.js",
     ],
-    "rules": {
+    rules: {
         "plugin/backdrop-filter-webkit": true,
         "plugin/user-select-webkit": true,
         "selector-class-pattern": null,
@@ -13,11 +14,11 @@
         "property-no-vendor-prefix": [
             true,
             {
-                "ignoreProperties": [
+                ignoreProperties: [
                     "-webkit-backdrop-filter",
-                    "-webkit-user-select"
-                ]
-            }
-        ]
-    }
-}
+                    "-webkit-user-select",
+                ],
+            },
+        ],
+    },
+};
