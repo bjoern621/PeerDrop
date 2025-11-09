@@ -1,4 +1,4 @@
-import BannerLogo from "../../assets/logo_banner.svg?react";
+import BannerLogo from "../../assets/logo/logo_banner.svg?react";
 import css from "./Logo.module.scss";
 import { ComponentPropsWithoutRef } from "react";
 
