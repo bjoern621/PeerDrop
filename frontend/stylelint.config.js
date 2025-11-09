@@ -9,8 +9,9 @@ export default {
         "plugin/backdrop-filter-webkit": true,
         "plugin/user-select-webkit": true,
         "selector-class-pattern": null,
-        "rule-empty-line-before": null,
+        "declaration-empty-line-before": null,
         "alpha-value-notation": "number",
+        "color-hex-length": "long",
         "property-no-vendor-prefix": [
             true,
             {
