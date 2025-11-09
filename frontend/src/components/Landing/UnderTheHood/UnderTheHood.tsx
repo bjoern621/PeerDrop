@@ -1,8 +1,8 @@
 import { useState } from "react";
 import css from "./UnderTheHood.module.scss";
-import Security from "../../../assets/security.svg?react";
-import Compress from "../../../assets/compression.svg?react";
-import Routes from "../../../assets/all_routes.svg?react";
+import Security from "../../../assets/illustrations/security.svg?react";
+import Compress from "../../../assets/illustrations/compression.svg?react";
+import Routes from "../../../assets/illustrations/all_routes.svg?react";
 import * as Accordion from "@radix-ui/react-accordion";
 import Anchor from "../../Anchor/Anchor";
 

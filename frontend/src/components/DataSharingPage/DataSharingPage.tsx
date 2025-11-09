@@ -1,6 +1,6 @@
 import css from "./DataSharingPage.module.scss";
 import { useCallback, useEffect, useRef, useState } from "react";
-import dragdropIcon from "../../assets/drag_and_drop.svg";
+import dragdropIcon from "../../assets/illustrations/drag_and_drop.svg";
 import percentIcon from "../../assets/percent.svg";
 import barChartIcon from "../../assets/bar_chart.svg";
 import { useNavigate } from "react-router";

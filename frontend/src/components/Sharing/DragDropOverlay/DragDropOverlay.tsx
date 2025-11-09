@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import DragDropIcon from "../../../assets/drag_and_drop.svg?react";
+import DragDropIcon from "../../../assets/illustrations/drag_and_drop.svg?react";
 import css from "./DragDropOverlay.module.scss";
 
 interface DragDropOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
