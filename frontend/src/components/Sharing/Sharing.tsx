@@ -1,10 +1,10 @@
 import Button from "../Button/Button";
 import css from "./Sharing.module.scss";
-import CodeFileIcon from "../../assets/icons8-code-file.svg?react";
-import ImageFileIcon from "../../assets/icons8-image-file.svg?react";
-import ZipFileIcon from "../../assets/icons8-zip.svg?react";
-import FolderIcon from "../../assets/icons8-folder.svg?react";
-import FolderOpenIcon from "../../assets/icons8-folder-2.svg?react";
+import CodeFileIcon from "../../assets/filesystem/icons8-code-file.svg?react";
+import ImageFileIcon from "../../assets/filesystem/icons8-image-file.svg?react";
+import ZipFileIcon from "../../assets/filesystem/icons8-zip.svg?react";
+import FolderIcon from "../../assets/filesystem/icons8-folder.svg?react";
+import FolderOpenIcon from "../../assets/filesystem/icons8-folder-2.svg?react";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { useRef } from "react";
