@@ -51,38 +51,45 @@
         translate: 8px -50%;
     }
 
-    &.withArrow::after {
-        content: " ";
+    .arrow {
         position: absolute;
-        border-width: 5px;
-        border-style: solid;
+        width: 8px;
+        height: 8px;
+        background-color: var(--background);
+        background-image: linear-gradient(var(--text-muted-10));
+        border: 1px solid var(--border);
+        transform: rotate(45deg);
     }
 
-    &.top.withArrow::after {
-        border-color: var(--background) transparent transparent transparent;
+    &.top .arrow {
         left: 50%;
-        top: 100%;
-        translate: -50% 0;
+        top: calc(100% + 0.75px);
+        translate: -50% -50%;
+        border-top: none;
+        border-left: none;
     }
 
-    &.bottom.withArrow::after {
-        border-color: transparent transparent var(--background) transparent;
+    &.bottom .arrow {
         left: 50%;
-        bottom: 100%;
-        translate: -50% 0;
+        bottom: calc(100% + 0.75px);
+        translate: -50% 50%;
+        border-bottom: none;
+        border-right: none;
     }
 
-    &.right.withArrow::after {
-        border-color: transparent var(--background) transparent transparent;
+    &.right .arrow {
+        right: calc(100% + 0.75px);
         top: 50%;
-        right: 100%;
-        translate: 0 -50%;
+        translate: 50% -50%;
+        border-right: none;
+        border-top: none;
     }
 
-    &.left.withArrow::after {
-        border-color: transparent transparent transparent var(--background);
+    &.left .arrow {
+        left: calc(100% + 0.75px);
         top: 50%;
-        left: 100%;
-        translate: 0 -50%;
+        translate: -50% -50%;
+        border-left: none;
+        border-bottom: none;
     }
 }

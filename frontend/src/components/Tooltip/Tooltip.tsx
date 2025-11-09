@@ -71,6 +71,7 @@ export default function Tooltip({
                     }
                     data-anchor-id={anchorId}
                 >
+                    {showArrow && <div className={css.arrow} />}
                     {content}
                 </div>,
                 document.body
