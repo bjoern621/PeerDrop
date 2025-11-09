@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { cva, VariantProps } from "class-variance-authority";
 import css from "./Button.module.scss";
-import { ComponentPropsWithoutRef, ReactNode } from "react";
+import { ComponentPropsWithRef, ReactNode } from "react";
 
 export const buttonVariants = cva(css.button, {
     variants: {
@@ -26,7 +26,7 @@ export const buttonVariants = cva(css.button, {
 });
 
 interface ButtonProps
-    extends ComponentPropsWithoutRef<"button">,
+    extends ComponentPropsWithRef<"button">,
         VariantProps<typeof buttonVariants> {
     children: ReactNode;
 }
@@ -37,6 +37,7 @@ export default function Button({
     variant,
     alignment,
     children,
+    ref,
     ...props
 }: ButtonProps) {
     return (
@@ -48,6 +49,7 @@ export default function Button({
                 className,
             })}
             type="button"
+            ref={ref}
             {...props}
         >
             {children}

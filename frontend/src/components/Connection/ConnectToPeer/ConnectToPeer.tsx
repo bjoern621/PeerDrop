@@ -16,6 +16,8 @@ export default function ConnectToPeer() {
         useState<number>(0);
     const delayTimeoutIdRef = useRef<number | null>(null);
 
+    const connectButtonRef = useRef<HTMLButtonElement | null>(null);
+
     useEffect(() => {
         /**
          * Wait for the minimum delay before processing the connection response.
@@ -83,6 +85,20 @@ export default function ConnectToPeer() {
             setConnectionRequestTimestamp(Date.now());
             setWaitingForResponse(true);
         }
+
+        return successfullySent;
+    };
+
+    const handleSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+
+        if (!waitingForResponse) {
+            const successfullySent = connectToPeer();
+
+            if (successfullySent) {
+                connectButtonRef.current!.focus();
+            }
+        }
     };
 
     return (
@@ -92,31 +108,40 @@ export default function ConnectToPeer() {
                 Mit Peer verbinden
             </h2>
 
-            <div className={css.tokenInputContainer}>
-                {waitingForResponse && (
-                    <p
-                        className={`${css.mutedText} ${css.fadeInScale} ${css.waitingText}`}
-                    >
-                        Warte auf Bestätigung von:
-                    </p>
-                )}
-                <TokenInput
-                    value={remoteToken}
-                    onChange={value => setRemoteToken(value.toUpperCase())}
-                />
-                {!waitingForResponse && (
-                    <p className={css.mutedText}>
-                        Fremden Token eingeben, um Verbindung aufzubauen
-                    </p>
-                )}
-            </div>
+            <form onSubmit={handleSubmit}>
+                <div className={css.tokenInputContainer}>
+                    {waitingForResponse && (
+                        <p
+                            className={`${css.mutedText} ${css.fadeInScale} ${css.waitingText}`}
+                        >
+                            Warte auf Bestätigung von:
+                        </p>
+                    )}
+                    <TokenInput
+                        value={remoteToken}
+                        onChange={value => setRemoteToken(value.toUpperCase())}
+                    />
+                    {!waitingForResponse && (
+                        <p className={css.mutedText}>
+                            Fremden Token eingeben, um Verbindung aufzubauen
+                        </p>
+                    )}
+                </div>
+            </form>
 
-            <Button
-                onClick={waitingForResponse ? interruptWaiting : connectToPeer}
-                variant={waitingForResponse ? "outline" : "filled"}
-            >
-                {waitingForResponse ? "Abbrechen" : "Verbinden"}
-            </Button>
+            {waitingForResponse ? (
+                <Button onClick={interruptWaiting} variant={"outline"}>
+                    Abbrechen
+                </Button>
+            ) : (
+                <Button
+                    onClick={connectToPeer}
+                    variant={"filled"}
+                    ref={connectButtonRef}
+                >
+                    Verbinden
+                </Button>
+            )}
         </div>
     );
 }
