@@ -1,6 +1,6 @@
 import css from "./Hero.module.scss";
 import Illustration from "../../../assets/illustrations/hero_illustration.svg?react";
-import Arrow from "../../../assets/icons8-arrow-2.svg?react";
+import Arrow from "../../../assets/actions/icons8-arrow-2.svg?react";
 import Link from "../../Button/Link";
 import { TUTORIAL_ID } from "../Tutorial/Tutorial";
 

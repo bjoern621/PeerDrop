@@ -1,5 +1,5 @@
 import Link from "../../Button/Link";
-import Arrow from "../../../assets/icons8-arrow-2.svg?react";
+import Arrow from "../../../assets/actions/icons8-arrow-2.svg?react";
 import css from "./CallToAction.module.scss";
 
 export default function CallToAction() {

@@ -6,8 +6,8 @@ import Button from "../Button/Button";
 import FormField from "../FormField/FormField";
 import css from "./AuthForms.module.scss";
 import registerCss from "./RegisterForm.module.scss";
-import ArrowIcon from "../../assets/icons8-arrow-2.svg?react";
-import SwitchIcon from "../../assets/icons8-reload.svg?react";
+import ArrowIcon from "../../assets/actions/icons8-arrow-2.svg?react";
+import SwitchIcon from "../../assets/actions/icons8-reload.svg?react";
 import { registerSchema } from "./types";
 
 type RegisterFormFields = z.infer<typeof registerSchema>;

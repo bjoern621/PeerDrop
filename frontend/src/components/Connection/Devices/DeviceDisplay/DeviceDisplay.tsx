@@ -1,7 +1,7 @@
 import { Device } from "../../../../types/device/Device";
 import { DeviceStatus } from "../../../../types/device/DeviceStatus";
 import css from "./DeviceDisplay.module.scss";
-import TrashIcon from "../../../../assets/icons8-trash.svg?react";
+import TrashIcon from "../../../../assets/actions/icons8-trash.svg?react";
 import Badge from "../../../Badge/Badge";
 import Button from "../../../Button/Button";
 import Tooltip from "../../../Tooltip/Tooltip";

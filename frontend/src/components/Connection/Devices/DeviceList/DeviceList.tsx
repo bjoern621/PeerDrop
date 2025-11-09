@@ -2,7 +2,7 @@ import { useDevices } from "../../../../hooks/useDevices";
 import Button from "../../../Button/Button";
 import DeviceDisplay from "../DeviceDisplay/DeviceDisplay";
 import css from "./DeviceList.module.scss";
-import PlusIcon from "../../../../assets/icons8-plus.svg?react";
+import PlusIcon from "../../../../assets/actions/icons8-plus.svg?react";
 
 export default function DeviceList() {
     const {
