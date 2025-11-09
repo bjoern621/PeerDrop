@@ -9,7 +9,7 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
             data-active={isActive || undefined}
         >
             {char}
-            {hasFakeCaret && <div className={css.otpSlotCaret} />}
+            {hasFakeCaret && "_"}
         </div>
     );
 };
