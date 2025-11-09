@@ -13,7 +13,7 @@ import { registerSchema } from "./types";
 type RegisterFormFields = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
-    onSubmit: (email: string, password: string, passwordRetype: string) => void;
+    onSubmit: (email: string, password: string) => void;
     onSwitchToLogin: () => void;
     initialUsername: string;
     onUsernameChange: (username: string) => void;
@@ -60,7 +60,7 @@ export default function RegisterForm({
     }
 
     const onSubmitForm = (data: RegisterFormFields) => {
-        onSubmit(data.username, data.password, data.passwordRetype);
+        onSubmit(data.username, data.password);
     };
 
     // Watch fields and sync it with parent component

@@ -55,12 +55,7 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
         }
     };
 
-    const handleRegister = async (
-        username: string,
-        password: string,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _confirmPassword: string
-    ) => {
+    const handleRegister = async (username: string, password: string) => {
         const success = await register(username, password);
 
         if (success) {
@@ -103,12 +98,8 @@ export default function AuthDialog({ ref }: AuthDialogProps) {
             ) : (
                 <RegisterForm
                     key={formKey}
-                    onSubmit={(username, password, confirmPassword) => {
-                        void handleRegister(
-                            username,
-                            password,
-                            confirmPassword
-                        );
+                    onSubmit={(username, password) => {
+                        void handleRegister(username, password);
                     }}
                     onSwitchToLogin={() => switchMode("login")}
                     initialUsername={sharedUsername}
