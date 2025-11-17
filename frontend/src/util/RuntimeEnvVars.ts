@@ -3,6 +3,7 @@ import errorAsValue from "./ErrorAsValue.ts";
 interface RuntimeEnvVars {
     backendUrl: string;
     wsBackendUrl: string;
+    frontendDomain: string;
 }
 
 declare global {

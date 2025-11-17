@@ -1,0 +1,48 @@
+:global(.Toastify__toast.confirm-connection-toast-style) {
+    width: auto;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: var(--toastify-progress-bar-height);
+    overflow: hidden;
+
+    min-height: fit-content;
+
+    pointer-events: all;
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: var(--space-16);
+}
+
+.message {
+    display: flex;
+    align-items: center;
+}
+
+.buttonContainer {
+    display: flex;
+    flex-direction: column;
+
+    > button {
+        text-align: center;
+        text-wrap: nowrap;
+        padding: var(--space-8) var(--space-16);
+
+        border-left: 2px solid var(--shadow);
+
+        &:not(:last-child) {
+            border-bottom: 2px solid var(--shadow);
+        }
+
+        &:hover {
+            background-color: var(--info-10);
+        }
+
+        &:active {
+            background-color: var(--info-20);
+        }
+    }
+}

@@ -1,0 +1,198 @@
+@use "../../theme/shadows.scss" as *;
+
+.sharingContainer {
+    position: relative;
+    height: 100%;
+    min-height: calc(
+        100vh - 78px - 305px
+    ); // full height minus header and footer
+    padding-top: var(--space-40);
+
+    display: flex;
+    flex-direction: column;
+}
+
+.sharingHeader {
+    margin-bottom: var(--space-16);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+
+    --gap: var(--space-8);
+    gap: var(--gap);
+}
+
+.uploadButtons {
+    display: flex;
+    gap: var(--gap);
+}
+
+.fileButton {
+    .fileIconContainer {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .fileIcon1,
+    .fileIcon2,
+    .fileIcon3 {
+        position: absolute;
+        transition: all 0.3s ease;
+        --fill-0: var(--background);
+        --fill-1: var(--primary);
+    }
+
+    .fileIcon1 {
+        transform: translate(0, 0) rotate(0deg);
+        z-index: 3;
+    }
+
+    .fileIcon2 {
+        transform: translate(0, 0) rotate(0deg);
+        z-index: 2;
+    }
+
+    .fileIcon3 {
+        transform: translate(0, 0) rotate(0deg);
+        z-index: 1;
+    }
+
+    &:hover {
+        .fileIcon1 {
+            transform: translate(-20px, 2px) rotate(-10deg);
+        }
+
+        .fileIcon2 {
+            transform: translate(0, 0) rotate(0deg);
+        }
+
+        .fileIcon3 {
+            transform: translate(20px, 2px) rotate(10deg);
+        }
+    }
+}
+
+.folderButton {
+    .folderIconContainer {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 100px;
+    }
+
+    .folderClosed,
+    .folderOpen {
+        position: absolute;
+        max-width: 24px;
+        max-height: 24px;
+        color: var(--primary);
+    }
+
+    .folderClosed {
+        opacity: 1;
+        transform: translateY(0) rotateX(0deg);
+        transition:
+            opacity 0.2s ease,
+            transform 0.3s ease;
+    }
+
+    .folderOpen {
+        opacity: 0;
+        transform: translateY(-3px) rotateX(-15deg);
+        transition:
+            opacity 0.2s ease 0.1s,
+            transform 0.3s ease;
+    }
+
+    &:hover {
+        .folderClosed {
+            opacity: 0;
+            transform: translateY(3px) rotateX(15deg);
+            transition:
+                opacity 0.2s ease,
+                transform 0.3s ease;
+        }
+
+        .folderOpen {
+            opacity: 1;
+            transform: translateY(0) rotateX(0deg);
+            transition:
+                opacity 0.2s ease 0.1s,
+                transform 0.3s ease;
+        }
+    }
+}
+
+.informationTopRight {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.remoteToken {
+    color: var(--accent);
+    font-family: "Roboto Mono";
+}
+
+.dragDropOverlay {
+    flex: 1;
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+
+    thead,
+    tbody {
+        display: block;
+        width: 100%;
+
+        tr {
+            display: grid;
+            grid-template-columns: minmax(200px, 1fr) 250px 100px 125px;
+            min-width: 675px;
+        }
+
+        th,
+        td {
+            padding: var(--space-8) var(--space-16);
+        }
+    }
+
+    thead {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: var(--background);
+        background-image: linear-gradient(var(--secondary-70));
+        border-radius: var(--space-16);
+        border: 1px solid var(--border);
+        min-width: fit-content;
+
+        @include elevated-shadow;
+
+        th {
+            text-align: left;
+            font-weight: var(--font-weight-medium);
+        }
+    }
+
+    tbody {
+        flex: 1;
+    }
+}

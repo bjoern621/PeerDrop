@@ -9,4 +9,19 @@ public class DeviceChangedMessage : ITypedMessage
 
     [JsonIgnore]
     public string InstanceTypeString => TypeString;
+
+    [JsonPropertyName("action")]
+    public required string Action { get; set; } // "added" or "removed"
+
+    [JsonPropertyName("deviceInfo")]
+    public required DeviceInfo Device { get; set; }
+}
+
+public class DeviceInfo
+{
+    [JsonPropertyName("uuid")]
+    public required Guid Uuid { get; set; }
+
+    [JsonPropertyName("displayName")]
+    public required string DisplayName { get; set; }
 }

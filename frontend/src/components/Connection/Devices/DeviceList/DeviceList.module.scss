@@ -1,0 +1,14 @@
+.deviceList {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    min-height: 50px;
+
+    overflow-x: auto;
+}
+
+.registerButton {
+    border-radius: var(--space-16);
+    padding: var(--space-8) var(--space-16);
+    border-color: var(--text-muted);
+}

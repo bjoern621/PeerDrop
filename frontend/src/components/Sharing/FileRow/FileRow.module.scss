@@ -1,0 +1,91 @@
+.fileRow {
+    color: var(--text-muted);
+    font-weight: var(--font-weight-regular);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+
+    border-bottom: 1px solid var(--border);
+
+    &:hover {
+        background-color: var(--secondary-20);
+        font-weight: var(--font-weight-medium);
+        color: var(--text);
+    }
+
+    td {
+        padding: var(--space-8) var(--space-16);
+        text-wrap: nowrap;
+        display: flex;
+        align-items: center;
+
+        &:first-child {
+            overflow: hidden;
+        }
+    }
+
+    &:first-child {
+        border-radius: var(--space-16) var(--space-16) 0 0;
+    }
+
+    &:last-child {
+        border-radius: 0 0 var(--space-16) var(--space-16);
+    }
+
+    &:only-child {
+        border-radius: var(--space-16);
+    }
+}
+
+@mixin iconStyles() {
+    height: calc(var(--font-size-s) * var(--line-height-s));
+    vertical-align: top;
+}
+
+.uploadIcon {
+    @include iconStyles();
+}
+
+.downloadIcon {
+    @include iconStyles();
+}
+
+.progressCell {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.progressContainer {
+    flex-grow: 1;
+}
+
+.progressInfo {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+    font-weight: var(--font-weight-regular);
+    margin-bottom: var(--space-2);
+}
+
+.progressBar {
+    width: 100%;
+    height: 10px;
+    appearance: none;
+    display: block;
+
+    &::-webkit-progress-bar {
+        background-color: var(--secondary);
+        border-radius: 100px;
+    }
+
+    &::-webkit-progress-value {
+        background-color: var(--primary);
+        border-radius: 100px;
+    }
+
+    &::-moz-progress-bar {
+        background-color: var(--primary);
+        border-radius: 100px;
+    }
+}

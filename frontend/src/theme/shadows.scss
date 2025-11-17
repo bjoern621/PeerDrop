@@ -1,0 +1,37 @@
+@mixin elevated-shadow {
+    box-shadow:
+        0 4px 10px 2px var(--shadow),
+        inset 0 4px 4px var(--highlight);
+}
+
+@mixin elevated-shadow-no-highlight {
+    box-shadow: 0 4px 10px 2px var(--shadow);
+}
+
+@mixin background-effect {
+    --background-effect-size: 600px;
+
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: var(--background-effect-size);
+        height: var(--background-effect-size);
+
+        background: radial-gradient(
+            circle,
+            var(--background-effect-color) 20%,
+            transparent 70%
+        );
+
+        // z-index: -1; // optional, sometimes useful, sometimes not, should be set if needed by the user
+        pointer-events: none;
+
+        max-width: calc(100vw - 10px); // 10px is size of scrollbar
+        max-height: 100vh;
+    }
+}

@@ -1,0 +1,102 @@
+.cardContainer {
+    margin-top: var(--space-40);
+
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-16);
+
+    @media (max-width: 800px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cardContainer:hover .cardBorder {
+    opacity: 1;
+}
+
+.card {
+    border-radius: var(--space-16);
+
+    background-color: var(--border);
+
+    // Hover effect
+
+    position: relative;
+
+    &::before {
+        background: radial-gradient(
+            850px circle at var(--mouse-x) var(--mouse-y),
+            var(--background-effect-color),
+            transparent 40%
+        );
+
+        z-index: 3;
+    }
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card::before,
+.cardBorder {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    border-radius: inherit;
+
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+}
+
+.cardBorder {
+    background: radial-gradient(
+        500px circle at var(--mouse-x) var(--mouse-y),
+        var(--primary-40),
+        transparent 40%
+    );
+
+    z-index: 1;
+}
+
+.cardContent {
+    height: calc(100% - 2px);
+    width: calc(100% - 2px);
+    border-radius: inherit;
+    background-color: var(--background);
+    margin: 1px;
+
+    padding: var(--space-40);
+
+    p {
+        margin-top: var(--space-24) !important;
+    }
+
+    h3 {
+        font-size: var(--font-size-l);
+        line-height: var(--line-height-l);
+        font-weight: var(--font-weight-medium);
+        text-align: center;
+
+        padding: 0 var(--space-16);
+
+        .noWrap {
+            white-space: nowrap;
+        }
+
+        svg {
+            height: calc(var(--font-size-l) * var(--line-height-l));
+            margin-left: var(--space-4);
+            fill: var(--accent);
+
+            vertical-align: top;
+        }
+    }
+
+    position: relative;
+    z-index: 2;
+}

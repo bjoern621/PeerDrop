@@ -17,7 +17,8 @@ check_env_var "BACKEND_PORT"
 cat <<EOF > /www/html/envvars.json
 {
     "backendUrl": "${HTTP_SCHEME}://${BACKEND_HOST}:${BACKEND_PORT}",
-    "wsBackendUrl": "${WS_SCHEME}://${BACKEND_HOST}:${BACKEND_PORT}"
+    "wsBackendUrl": "${WS_SCHEME}://${BACKEND_HOST}:${BACKEND_PORT}",
+    "frontendDomain": "${FRONTEND_DOMAIN}"
 }
 EOF
 

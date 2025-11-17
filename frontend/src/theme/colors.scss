@@ -1,0 +1,170 @@
+@mixin neutral {
+    --grey-0: #f8f9faff;
+    --grey-1: #e9ecefff;
+    --grey-2: #dee2e6ff;
+    --grey-3: #ced4daff;
+    --grey-4: #adb5bdff;
+    --grey-5: #6c757d;
+    --grey-6: #495057ff;
+    --grey-7: #343a40ff;
+    --grey-8: #212529ff;
+    --black: #101016;
+    --white: #fff9fb;
+
+    --info: oklch(65.31% 0.13477 242.711);
+    --success: oklch(74.67% 0.18174 147.88);
+    --warning: oklch(83.579% 0.1689 91.772);
+    --error: oklch(63.066% 0.194 29.425);
+
+    --light-blue: #74c0fc;
+}
+
+@mixin alpha {
+    --a-5: 0.05;
+    --a-10: 0.1;
+    --a-20: 0.2;
+    --a-30: 0.3;
+    --a-40: 0.4;
+    --a-50: 0.5;
+    --a-60: 0.6;
+    --a-70: 0.7;
+    --a-80: 0.8;
+    --a-90: 0.9;
+    --a-95: 0.95;
+}
+
+@mixin light {
+    --text: oklch(20.412% 0.02397 262.275);
+    --text-muted: oklch(40% 0.02397 262.275);
+    --background: oklch(95.88% 0.00869 248.206);
+    --primary: oklch(34.451% 0.06783 259.35);
+    --secondary: oklch(69.534% 0.08992 259.834);
+    --accent: oklch(55.096% 0.22192 26.644);
+    --border: rgba(0, 0, 0, var(--a-5));
+    --highlight: rgba(255, 255, 255, var(--a-20));
+    --shadow: rgba(0, 0, 0, var(--a-10));
+    --background-effect-color: var(--secondary-20);
+
+    --info-text: oklch(57.586% 0.11907 242.306);
+    --success-text: oklch(50.114% 0.13772 145.411);
+    --warning-text: oklch(76.251% 0.15706 82.014);
+    --error-text: oklch(54.333% 0.174 29.681);
+}
+
+@mixin dark {
+    --text: oklch(91.449% 0.01641 262.811);
+    --text-muted: oklch(70% 0.01641 262.811);
+    --background: oklch(15.612% 0.01356 248.081);
+    --primary: oklch(71.262% 0.1228 256.909);
+    --secondary: oklch(41.993% 0.10033 259.59);
+    --accent: oklch(63.237% 0.23507 23.024);
+    --border: rgba(255, 255, 255, var(--a-5));
+    --highlight: rgba(255, 255, 255, var(--a-5));
+    --shadow: rgba(0, 0, 0, var(--a-20));
+    --background-effect-color: var(--primary-10);
+
+    --info-text: var(--info);
+    --success-text: var(--success);
+    --warning-text: var(--warning);
+    --error-text: var(--error);
+}
+
+@mixin shades {
+    --primary-5: oklch(from var(--primary) l c h / var(--a-5));
+    --primary-10: oklch(from var(--primary) l c h / var(--a-10));
+    --primary-20: oklch(from var(--primary) l c h / var(--a-20));
+    --primary-30: oklch(from var(--primary) l c h / var(--a-30));
+    --primary-40: oklch(from var(--primary) l c h / var(--a-40));
+    --primary-50: oklch(from var(--primary) l c h / var(--a-50));
+    --primary-60: oklch(from var(--primary) l c h / var(--a-60));
+    --primary-70: oklch(from var(--primary) l c h / var(--a-70));
+    --primary-80: oklch(from var(--primary) l c h / var(--a-80));
+    --primary-90: oklch(from var(--primary) l c h / var(--a-90));
+    --primary-95: oklch(from var(--primary) l c h / var(--a-95));
+
+    --secondary-5: oklch(from var(--secondary) l c h / var(--a-5));
+    --secondary-10: oklch(from var(--secondary) l c h / var(--a-10));
+    --secondary-20: oklch(from var(--secondary) l c h / var(--a-20));
+    --secondary-30: oklch(from var(--secondary) l c h / var(--a-30));
+    --secondary-40: oklch(from var(--secondary) l c h / var(--a-40));
+    --secondary-50: oklch(from var(--secondary) l c h / var(--a-50));
+    --secondary-60: oklch(from var(--secondary) l c h / var(--a-60));
+    --secondary-70: oklch(from var(--secondary) l c h / var(--a-70));
+    --secondary-80: oklch(from var(--secondary) l c h / var(--a-80));
+    --secondary-90: oklch(from var(--secondary) l c h / var(--a-90));
+    --secondary-95: oklch(from var(--secondary) l c h / var(--a-95));
+
+    --text-muted-5: oklch(from var(--text-muted) l c h / var(--a-5));
+    --text-muted-10: oklch(from var(--text-muted) l c h / var(--a-10));
+    --text-muted-20: oklch(from var(--text-muted) l c h / var(--a-20));
+    --text-muted-30: oklch(from var(--text-muted) l c h / var(--a-30));
+    --text-muted-40: oklch(from var(--text-muted) l c h / var(--a-40));
+    --text-muted-50: oklch(from var(--text-muted) l c h / var(--a-50));
+    --text-muted-60: oklch(from var(--text-muted) l c h / var(--a-60));
+    --text-muted-70: oklch(from var(--text-muted) l c h / var(--a-70));
+    --text-muted-80: oklch(from var(--text-muted) l c h / var(--a-80));
+    --text-muted-90: oklch(from var(--text-muted) l c h / var(--a-90));
+    --text-muted-95: oklch(from var(--text-muted) l c h / var(--a-95));
+
+    --info-5: oklch(from var(--info) l c h / var(--a-5));
+    --info-10: oklch(from var(--info) l c h / var(--a-10));
+    --info-20: oklch(from var(--info) l c h / var(--a-20));
+    --info-30: oklch(from var(--info) l c h / var(--a-30));
+    --info-40: oklch(from var(--info) l c h / var(--a-40));
+    --info-50: oklch(from var(--info) l c h / var(--a-50));
+    --info-60: oklch(from var(--info) l c h / var(--a-60));
+    --info-70: oklch(from var(--info) l c h / var(--a-70));
+    --info-80: oklch(from var(--info) l c h / var(--a-80));
+    --info-90: oklch(from var(--info) l c h / var(--a-90));
+    --info-95: oklch(from var(--info) l c h / var(--a-95));
+
+    --success-5: oklch(from var(--success) l c h / var(--a-5));
+    --success-10: oklch(from var(--success) l c h / var(--a-10));
+    --success-20: oklch(from var(--success) l c h / var(--a-20));
+    --success-30: oklch(from var(--success) l c h / var(--a-30));
+    --success-40: oklch(from var(--success) l c h / var(--a-40));
+    --success-50: oklch(from var(--success) l c h / var(--a-50));
+    --success-60: oklch(from var(--success) l c h / var(--a-60));
+    --success-70: oklch(from var(--success) l c h / var(--a-70));
+    --success-80: oklch(from var(--success) l c h / var(--a-80));
+    --success-90: oklch(from var(--success) l c h / var(--a-90));
+    --success-95: oklch(from var(--success) l c h / var(--a-95));
+
+    --error-5: oklch(from var(--error) l c h / var(--a-5));
+    --error-10: oklch(from var(--error) l c h / var(--a-10));
+    --error-20: oklch(from var(--error) l c h / var(--a-20));
+    --error-30: oklch(from var(--error) l c h / var(--a-30));
+    --error-40: oklch(from var(--error) l c h / var(--a-40));
+    --error-50: oklch(from var(--error) l c h / var(--a-50));
+    --error-60: oklch(from var(--error) l c h / var(--a-60));
+    --error-70: oklch(from var(--error) l c h / var(--a-70));
+    --error-80: oklch(from var(--error) l c h / var(--a-80));
+    --error-90: oklch(from var(--error) l c h / var(--a-90));
+    --error-95: oklch(from var(--error) l c h / var(--a-95));
+
+    --warning-5: oklch(from var(--warning) l c h / var(--a-5));
+    --warning-10: oklch(from var(--warning) l c h / var(--a-10));
+    --warning-20: oklch(from var(--warning) l c h / var(--a-20));
+    --warning-30: oklch(from var(--warning) l c h / var(--a-30));
+    --warning-40: oklch(from var(--warning) l c h / var(--a-40));
+    --warning-50: oklch(from var(--warning) l c h / var(--a-50));
+    --warning-60: oklch(from var(--warning) l c h / var(--a-60));
+    --warning-70: oklch(from var(--warning) l c h / var(--a-70));
+    --warning-80: oklch(from var(--warning) l c h / var(--a-80));
+    --warning-90: oklch(from var(--warning) l c h / var(--a-90));
+    --warning-95: oklch(from var(--warning) l c h / var(--a-95));
+}
+
+html {
+    @include neutral();
+    @include alpha();
+    @include shades();
+}
+
+[data-theme="dark"] {
+    @include dark();
+}
+
+[data-theme="light"] {
+    @include light();
+}

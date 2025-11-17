@@ -194,7 +194,13 @@ public class DeviceHandlerTests
         var okResult = result as Ok<DeviceRegisterDto>;
         Assert.That(okResult?.Value, Has.Property("uuid"));
 
-        var result2 = await _deviceHandler.DeleteCurrentDeviceAsync(context);
+        // Set up the request body with device UUID for delete
+        var json = System.Text.Json.JsonSerializer.Serialize(deviceUuid);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        context.Request.Body = new MemoryStream(bytes);
+        context.Request.ContentType = "application/json";
+
+        var result2 = await _deviceHandler.DeleteDeviceAsync(context);
 
         Assert.That(result2, Is.TypeOf<Ok<string>>());
         var okResult2 = result2 as Ok<string>;
@@ -224,7 +230,7 @@ public class DeviceHandlerTests
             .ReturnsAsync(1);
 
         // Act
-        var result = await _deviceHandler.DeleteOtherDeviceAsync(context);
+        var result = await _deviceHandler.DeleteDeviceAsync(context);
 
         // Assert
         Assert.That(result, Is.TypeOf<Ok<string>>());

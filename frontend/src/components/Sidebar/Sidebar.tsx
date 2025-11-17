@@ -1,7 +1,7 @@
 import { Register } from "./Register/Register";
 import { Login } from "./Login/Login";
 import { useEffect, useState } from "react";
-import smallLogo from "../../assets/logo_small.png";
+import smallLogo from "../../assets/logo/logo_small.png";
 import leftArrowIcon from "../../assets/left_arrow.svg";
 import rightArrowIcon from "../../assets/right_arrow.svg";
 import css from "./Sidebar.module.scss";
@@ -9,7 +9,7 @@ import { UserProfile } from "./UserProfile/UserProfile";
 import errorAsValue from "../../util/ErrorAsValue";
 import { StatusResponse } from "../../util/dtos/StatusResponse";
 import { assert } from "../../util/Assert";
-import { useResetWebsocket } from "../../context/ResetContext";
+import { useResetWebsocket } from "../../context/connection/ResetContext";
 import { toast } from "react-toastify/unstyled";
 import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 

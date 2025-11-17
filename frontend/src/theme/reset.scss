@@ -1,0 +1,69 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    font: inherit;
+}
+
+a,
+button {
+    all: unset;
+    box-sizing: border-box;
+    outline: revert; /* Enables accessibility outline */
+    cursor: pointer;
+}
+
+button {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+a {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+img {
+    -webkit-user-select: none;
+    user-select: none;
+    pointer-events: none; /* Disables dragging */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        interpolate-size: allow-keywords; // Allows smooth transitions between size keywords like auto and 100px
+    }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+}
+
+p {
+    text-wrap: pretty; // Like wrap, but better for reading (e.g., avoids widows/orphans)
+    max-width: 65ch;
+}
+
+dialog {
+    inset: unset; // Remove default positioning
+}
+
+:modal {
+    color: unset; // Remove default positioning
+}
+
+input {
+    color: inherit;
+}

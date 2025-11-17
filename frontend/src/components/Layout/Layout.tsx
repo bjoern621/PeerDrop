@@ -1,15 +1,24 @@
 import { Outlet } from "react-router";
-import { Sidebar } from "../Sidebar/Sidebar";
-import css from "./Layout.module.scss";
+import Heading from "../Heading/Heading";
+import Footer from "../Footer/Footer";
+import "./Layout.scss";
 import { ToastContainer } from "react-toastify/unstyled";
+import WarningIcon from "../../assets/status/icons8-error-3.svg?react";
+import InfoIcon from "../../assets/status/icons8-info-3.svg?react";
+import SuccessIcon from "../../assets/status/icons8-check-mark-3.svg?react";
+import ErrorIcon from "../../assets/status/icons8-high-priority-3.svg?react";
 
-export const Layout = () => {
+export default function Layout() {
     return (
-        <div className={css.container}>
-            <Sidebar />
-            <main className={css.content}>
-                <Outlet /> {}
-            </main>
+        <>
+            <div className="layout-container">
+                <Heading />
+                <main>
+                    <Outlet />
+                </main>
+                <Footer />
+            </div>
+
             <ToastContainer
                 position="top-right"
                 autoClose={3000}
@@ -17,21 +26,18 @@ export const Layout = () => {
                 newestOnTop={false}
                 pauseOnFocusLoss
                 pauseOnHover
-                theme="light"
-                style={{
-                    font: "Source Sans 3",
-                    fontWeight: "bold",
-                    maxHeight: "calc(100vh - 40px)",
-                    scrollbarWidth: "thin",
-                    scrollbarGutter: "stable",
-
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                    width: "100vw",
-                    paddingRight: "16px",
-                    right: "0px",
+                theme="colored"
+                icon={({ type }) => {
+                    const icons = {
+                        warning: WarningIcon,
+                        info: InfoIcon,
+                        success: SuccessIcon,
+                        error: ErrorIcon,
+                    };
+                    const Icon = icons[type as keyof typeof icons];
+                    return Icon ? <Icon /> : undefined;
                 }}
             />
-        </div>
+        </>
     );
-};
+}

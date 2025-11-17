@@ -1,69 +1,36 @@
-@use "tooltip.scss";
-@import "react-toastify/dist/ReactToastify.css";
-@import "toast-styles.scss";
-
-@font-face {
-    font-family: "Source Sans 3";
-    src: url(assets/Fonts/Source_Sans_3/SourceSans3-VariableFont_wght.ttf);
-}
-
-@font-face {
-    font-family: "Roboto Mono";
-    src: url(assets/Fonts/Roboto_Mono/RobotoMono-VariableFont_wght.ttf);
-}
-
-* {
-    box-sizing: border-box;
-}
+@use "theme/reset.scss";
+@use "theme/colors.scss";
+@use "theme/spacing.scss";
+@use "theme/typography.scss";
+@use "theme/shadows.scss";
+@use "react-toastify/dist/ReactToastify.css";
+@use "theme/toastify-styles.scss";
 
 html {
-    height: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) var(--background);
+    scrollbar-gutter: stable;
+
+    scroll-behavior: smooth;
 }
 
 body {
-    margin: 0;
-    height: 100%;
+    background-color: var(--background);
+    color: var(--text);
+    fill: var(--text); // SVG fill color
 
-    --black: #444;
-    --white: #fff;
-    --light: #ebebeb;
-
-    background-color: var(--white);
-    color: var(--black);
-    --shadow-rgb: 39, 39, 42;
-    --shadow: rgba(var(--shadow-rgb), 0.1);
-
-    font-family: "Source Sans 3", sans-serif;
-
-    fill: var(--black); // SVG fill color
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+    font-weight: var(--font-weight-medium);
 }
 
+html,
+body,
 #root {
     height: 100%;
 }
 
-a,
-button {
-    all: unset;
-    box-sizing: border-box;
-    outline: revert; /* Enables accessibility outline */
-    cursor: pointer;
-}
-
-button {
-    user-select: none;
-
-    &:focus-visible {
-        outline: 4px solid var(--light-blue);
-        outline-offset: 1px;
-    }
-}
-
-a {
-    user-select: text;
-}
-
-img {
-    user-select: none;
-    pointer-events: none; /* Disables dragging */
+*:focus-visible {
+    outline: 4px solid var(--light-blue);
+    outline-offset: 2px;
 }

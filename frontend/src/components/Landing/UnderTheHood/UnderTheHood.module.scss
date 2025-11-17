@@ -1,0 +1,174 @@
+@use "../../../theme/shadows.scss" as *;
+
+$layout-breakpoint: 800px;
+
+.horizontalLayout {
+    display: flex;
+
+    margin-top: var(--space-40);
+}
+
+.illustrationContainer {
+    flex: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    @include background-effect;
+    --background-effect-size: 600px;
+
+    @media (max-width: $layout-breakpoint) {
+        display: none;
+    }
+}
+
+.illustration {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: fadeInScale 0.5s ease;
+    }
+
+    width: 100%;
+
+    --fill-0: var(--background);
+    --fill-1: var(--text);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.textBoxes {
+    // --text-boxes-height: 500px;
+    --text-boxes-gap: var(--space-8);
+    // --text-box-header-height: 60px;
+
+    flex: 2; // TODO make 1.618 (inside peer drop p wird zu sehr verschoben)
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--text-boxes-gap);
+
+    // height: var(--text-boxes-height);
+
+    overflow: hidden;
+}
+
+.textBox {
+    --header-border-radius: var(--space-16);
+
+    display: flex;
+    flex-direction: column;
+}
+
+.textBoxHeader {
+    display: inline-flex;
+    position: relative;
+    z-index: 1;
+
+    // height: var(--text-box-header-height);
+
+    > button {
+        flex: 1;
+
+        border-radius: var(--header-border-radius);
+        background-image: linear-gradient(var(--primary-10), var(--primary-10));
+        background-color: var(--background);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+
+        padding: var(--space-16) var(--space-24);
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-m);
+        line-height: var(--line-height-m);
+
+        &[data-state="open"] {
+            background-color: var(--primary);
+            color: var(--background);
+        }
+
+        &:hover {
+            background-image: linear-gradient(
+                var(--primary-20),
+                var(--primary-20)
+            );
+        }
+    }
+}
+
+.textBoxTextWrapper {
+    // Make Accordion content fill height:
+    // --radix-collapsible-content-height: calc(
+    //     var(--text-boxes-height) - var(--text-box-header-height) * 3 -
+    //         var(--text-boxes-gap) * 2 + var(--header-border-radius)
+    // ) !important;
+    --border-width: 1px;
+
+    background-color: var(--primary-10);
+    border-bottom-left-radius: var(--space-16);
+    border-bottom-right-radius: var(--space-16);
+
+    border: var(--border-width) solid var(--border);
+    border-top: 0;
+
+    z-index: 0;
+
+    overflow: hidden;
+
+    margin-top: calc(-1 * var(--header-border-radius));
+    padding-top: var(--header-border-radius);
+
+    // height: var(--radix-collapsible-content-height);
+
+    @media (prefers-reduced-motion: no-preference) {
+        &[data-state="open"] {
+            animation: slideDown 0.6s ease;
+        }
+        &[data-state="closed"] {
+            animation: slideUp 0.6s ease;
+        }
+    }
+}
+
+.textBoxText {
+    padding: var(--space-24);
+}
+
+.insidePeerDropLink {
+    margin-top: var(--space-40);
+    text-align: center;
+    font-weight: var(--font-weight-regular);
+
+    margin-left: auto;
+    margin-right: auto;
+    max-width: fit-content;
+}
+
+@keyframes slideDown {
+    from {
+        height: var(--header-border-radius);
+        border-bottom-width: 0;
+    }
+    to {
+        height: var(--radix-accordion-content-height);
+        border-bottom-width: var(--border-width);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        height: var(--radix-accordion-content-height);
+        border-bottom-width: var(--border-width);
+    }
+    to {
+        height: var(--header-border-radius);
+        border-bottom-width: 0;
+    }
+}

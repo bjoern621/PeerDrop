@@ -6,8 +6,11 @@ public interface IDeviceService
 {
     Task HandleDeviceHeartbeat(string clientToken, DeviceHeartbeatMessage message);
 
-    Task HandleDeviceRegister(Guid uuid, int userId, string deviceStatus);
-    Task HandleDeviceDelete(Guid uuid, int userId, string deviceStatus);
+    /// <summary>
+    /// Deletes the device from the active devices list when it is deleted.
+    /// This means that the device is now offline.
+    /// </summary>
+    void HandleDeviceDelete(Guid uuid, int userId, string deviceStatus);
 
     /// <summary>
     /// Gets the status of a device by its UUID.
@@ -22,4 +25,10 @@ public interface IDeviceService
     /// It is not guaranteed that the returned client token is still valid, as the client may have been disconnected / logged out. Use GetDeviceStatus() to check the actual status.
     /// </summary>
     string GetClientTokenByDeviceUuid(Guid deviceUuid);
+
+    /// <summary>
+    /// Sends a device-changed message to all active client tokens of the user.
+    /// This notifies all connected clients that a device was added or removed.
+    /// </summary>
+    void SendDeviceChangedMessage(int userId, string action, Guid deviceUuid, string displayName, string status);
 }

@@ -1,0 +1,83 @@
+@use "../../theme/shadows.scss" as *;
+@use "Variables.scss" as *;
+
+.header {
+    width: 100%;
+
+    position: sticky;
+    z-index: 100;
+    top: 0;
+
+    border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
+    background-color: var(--background);
+    @include elevated-shadow-no-highlight;
+
+    padding: var(--space-16) var(--space-24);
+
+    anchor-name: --heading;
+}
+
+.headerContent {
+    max-width: 1072px;
+    margin: auto;
+
+    position: relative;
+
+    > a {
+        display: inline-block;
+        vertical-align: top; // inline-block elements align to the baseline by default, which can add extra space below them
+    }
+
+    @media (max-width: $header-breakpoint) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+.authSection {
+    position: absolute;
+    right: var(--space-24);
+    top: 50%;
+    transform: translateY(-50%);
+
+    @media (max-width: $header-breakpoint) {
+        position: static;
+        transform: none;
+        display: flex;
+        justify-content: center;
+        margin-top: var(--space-8);
+    }
+}
+
+.navigation {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    display: flex;
+    gap: var(--space-24);
+
+    a {
+        font-weight: var(--font-weight-regular);
+        color: var(--text-muted);
+
+        text-underline-position: under;
+
+        &:hover:not(:global(.active)) {
+            text-decoration: underline;
+        }
+
+        &:global(.active) {
+            font-weight: var(--font-weight-medium);
+            color: var(--text);
+        }
+    }
+
+    @media (max-width: $header-breakpoint) {
+        position: static;
+        transform: none;
+        margin-top: var(--space-8);
+    }
+}

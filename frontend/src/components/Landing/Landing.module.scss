@@ -1,0 +1,27 @@
+.container {
+    :global {
+        .text-highlight {
+            color: var(--secondary);
+            text-decoration: underline;
+            text-decoration-color: var(--text);
+            text-underline-position: under;
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+            font-weight: var(--font-weight-regular);
+            text-align: center;
+            margin-top: var(--space-16);
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    h2 {
+        font-size: var(--font-size-l);
+        line-height: var(--line-height-l);
+        font-weight: var(--font-weight-medium);
+        text-align: center;
+        margin-top: var(--space-96);
+    }
+}

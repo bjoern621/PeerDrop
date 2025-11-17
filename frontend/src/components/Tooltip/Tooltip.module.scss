@@ -1,0 +1,95 @@
+.tooltipTrigger {
+    display: inline-flex;
+}
+
+.tooltip {
+    pointer-events: none;
+    background-color: var(--background);
+    background-image: linear-gradient(var(--text-muted-10));
+    padding: var(--space-4) var(--space-12);
+    border-radius: var(--space-4);
+    border: 1px solid var(--border);
+    z-index: 999;
+    text-wrap: nowrap;
+
+    position: fixed;
+    position-anchor: --tooltip-anchor; // Will be replaced dynamically
+
+    opacity: 0;
+    scale: 0.9;
+
+    transition:
+        opacity 0.1s,
+        scale 0.1s;
+
+    &.visible {
+        opacity: 1;
+        scale: 1;
+    }
+
+    &.top {
+        bottom: anchor(top);
+        left: anchor(center);
+        translate: -50% -8px;
+    }
+
+    &.bottom {
+        top: anchor(bottom);
+        left: anchor(center);
+        translate: -50% 8px;
+    }
+
+    &.left {
+        right: anchor(left);
+        top: anchor(center);
+        translate: -8px -50%;
+    }
+
+    &.right {
+        left: anchor(right);
+        top: anchor(center);
+        translate: 8px -50%;
+    }
+
+    .arrow {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background-color: var(--background);
+        background-image: linear-gradient(var(--text-muted-10));
+        border: 1px solid var(--border);
+        transform: rotate(45deg);
+    }
+
+    &.top .arrow {
+        left: 50%;
+        top: calc(100% + 0.75px);
+        translate: -50% -50%;
+        border-top: none;
+        border-left: none;
+    }
+
+    &.bottom .arrow {
+        left: 50%;
+        bottom: calc(100% + 0.75px);
+        translate: -50% 50%;
+        border-bottom: none;
+        border-right: none;
+    }
+
+    &.right .arrow {
+        right: calc(100% + 0.75px);
+        top: 50%;
+        translate: 50% -50%;
+        border-right: none;
+        border-top: none;
+    }
+
+    &.left .arrow {
+        left: calc(100% + 0.75px);
+        top: 50%;
+        translate: -50% -50%;
+        border-left: none;
+        border-bottom: none;
+    }
+}

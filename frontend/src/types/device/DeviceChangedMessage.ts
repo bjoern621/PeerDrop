@@ -2,14 +2,23 @@ import { ITypedMessage } from "../ITypedMessage";
 import { MessageType } from "../MessageType";
 import { DeviceStatus } from "./DeviceStatus";
 
+export interface DeviceInfo {
+    uuid: string;
+    displayName: string;
+    status: DeviceStatus;
+}
+
 export class DeviceChangedMessage implements ITypedMessage {
     public readonly type = MessageType.DEVICE_CHANGED;
     public msg: {
-        uuid: string; // The device UUID
-        status: DeviceStatus;
+        action: "added" | "removed";
+        deviceInfo: DeviceInfo;
     };
 
-    public constructor(msg: { uuid: string; status: DeviceStatus }) {
+    public constructor(msg: {
+        action: "added" | "removed";
+        deviceInfo: DeviceInfo;
+    }) {
         this.msg = msg;
     }
 }

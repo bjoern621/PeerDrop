@@ -1,14 +1,14 @@
 import css from "./DataSharingPage.module.scss";
 import { useCallback, useEffect, useRef, useState } from "react";
-import dragdropIcon from "../../assets/drag_and_drop.svg";
+import dragdropIcon from "../../assets/illustrations/drag_and_drop.svg";
 import percentIcon from "../../assets/percent.svg";
 import barChartIcon from "../../assets/bar_chart.svg";
 import { useNavigate } from "react-router";
-import { usePeerConnectionManager } from "../../context/PeerConnectionContext";
+import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import { assert } from "../../util/Assert";
 import { DeviceHeartbeatMessage } from "../../types/device/DeviceHeartbeatMessage";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
-import { useWebSocketService } from "../../context/WebSocketContext";
+import { useWebSocketService } from "../../context/connection/WebSocketContext";
 import { HEARTBEAT_INTERVAL_MS } from "../../util/Constants";
 
 enum FileDirection {
@@ -107,7 +107,7 @@ export function DataSharingPage() {
 
         // set up callback functions
         peerConnectionManager.setOnReceivedFileCallback(onReceivedFile);
-        peerConnectionManager.setOnFileProgressCallback(onFileProgressUpdate);
+        // peerConnectionManager.subscribeToFileProgress(onFileProgressUpdate);
 
         sendHeartbeatIfPossible();
 
@@ -189,19 +189,19 @@ export function DataSharingPage() {
         peerConnectionManager.closePeerConnection();
     };
 
-    const onFileProgressUpdate = (uuid: string, progress: number) => {
-        setFiles(prevFiles => {
-            const newFiles = new Map(prevFiles);
-            const file = newFiles.get(uuid);
+    // const onFileProgressUpdate = (uuid: string, progress: number) => {
+    //     setFiles(prevFiles => {
+    //         const newFiles = new Map(prevFiles);
+    //         const file = newFiles.get(uuid);
 
-            if (file) {
-                file.progress = progress;
-                newFiles.set(uuid, file);
-            }
+    //         if (file) {
+    //             file.progress = progress;
+    //             newFiles.set(uuid, file);
+    //         }
 
-            return newFiles;
-        });
-    };
+    //         return newFiles;
+    //     });
+    // };
 
     const onToggleDetailedProgress = () => {
         setProgressDisplay(prev => {

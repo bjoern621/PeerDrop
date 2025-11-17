@@ -1,0 +1,27 @@
+.anchor {
+    text-underline-position: under;
+}
+
+.noUnderline {
+    text-decoration: none;
+}
+
+.dashedUnderline {
+    text-decoration: dashed underline;
+}
+
+.solidUnderline {
+    text-decoration: underline;
+}
+
+.noHover:hover {
+    text-decoration: none;
+}
+
+.dashedHover:hover {
+    text-decoration: dashed underline;
+}
+
+.solidHover:hover {
+    text-decoration: underline;
+}

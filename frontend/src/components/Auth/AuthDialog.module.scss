@@ -1,0 +1,51 @@
+@use "../../theme/shadows.scss" as *;
+
+.dialog {
+    position-anchor: --heading;
+    position: fixed;
+    top: anchor(bottom);
+    right: 0;
+
+    background-color: var(--background);
+    @include elevated-shadow-no-highlight;
+    border: 1px solid var(--border);
+    padding: var(--space-24);
+    border-bottom-left-radius: var(--space-16);
+
+    &::backdrop {
+        background-color: transparent;
+    }
+
+    width: 400px;
+
+    // Animation
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition-property: opacity, scale, display, overlay;
+        transition-duration: 0.1s;
+        transition-behavior: allow-discrete;
+
+        opacity: 0;
+        scale: 0.9;
+        transform-origin: top;
+
+        &[open] {
+            opacity: 1;
+            scale: 1;
+
+            @starting-style {
+                opacity: 0;
+                scale: 0.9;
+            }
+        }
+    }
+}
+
+.closeButton {
+    position: absolute;
+    top: var(--space-24);
+    right: var(--space-24);
+    z-index: 1;
+
+    padding: var(--space-8);
+}

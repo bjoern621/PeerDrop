@@ -1,0 +1,47 @@
+@use "../Connection.module.scss" as connection;
+
+.ownTokenContainer {
+    @include connection.container;
+
+    background-color: var(--secondary-5);
+
+    > .heading {
+        color: var(--secondary);
+        fill: var(--secondary);
+    }
+}
+
+.tokenBox {
+    border: 3px solid var(--secondary);
+    border-radius: var(--space-16);
+    padding: var(--space-16);
+
+    text-align: center;
+
+    margin: var(--space-16) 0;
+}
+
+.token {
+    font-size: var(--font-size-4xl);
+    line-height: var(--line-height-4xl);
+    font-family: "Roboto Mono";
+    letter-spacing: 0.25em;
+    margin: ß var(--space-16);
+}
+
+.openGroupRoomButton {
+    width: 100%;
+}
+
+.copyButtons {
+    display: flex;
+    gap: var(--space-8);
+
+    margin-top: var(--space-8);
+
+    flex-wrap: wrap;
+
+    > * {
+        flex: 1;
+    }
+}

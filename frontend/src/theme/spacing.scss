@@ -1,0 +1,13 @@
+html {
+    --space-2: 2px; // avoid
+    --space-4: 4px;
+    --space-8: 8px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-24: 24px;
+    --space-40: 40px;
+    --space-64: 64px; // use cautiously on mobile
+    --space-96: 96px; // use cautiously on mobile
+    --space-160: 160px; // use cautiously on mobile
+    --space-240: 240px; // use cautiously on mobile
+}

@@ -1,0 +1,35 @@
+@use "../../../theme/shadows.scss" as *;
+
+.container {
+    margin-top: var(--space-96);
+
+    text-align: center;
+
+    > svg {
+        max-width: 650px;
+    }
+
+    > h1 {
+        font-size: var(--font-size-2xl);
+        line-height: var(--line-height-2xl);
+        font-weight: var(--font-weight-medium);
+        letter-spacing: -0.03em; // 3 %
+        margin-top: var(--space-40);
+    }
+
+    > p {
+        margin-top: var(--space-24) !important;
+        max-width: 380px;
+    }
+
+    @include background-effect;
+    --background-effect-size: 900px;
+}
+
+.actions {
+    margin-top: var(--space-40);
+    display: flex;
+    justify-content: center;
+    gap: var(--space-16);
+    flex-wrap: wrap;
+}

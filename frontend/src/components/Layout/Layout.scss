@@ -1,0 +1,13 @@
+.layout-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+    max-width: 1120px; // 1200 - 64 * 2 (general preferred width) + 24 * 2 (padding)
+    margin: 0 auto;
+    padding: 0 var(--space-24);
+    width: 100%;
+}

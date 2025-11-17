@@ -13,7 +13,7 @@ import { DeviceResponse } from "../../../util/dtos/DeviceResponse";
 import { DeviceStatus } from "../../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMessage";
 import { MessageHandler } from "../../../services/WebSocketService";
-import { useWebSocketService } from "../../../context/WebSocketContext";
+import { useWebSocketService } from "../../../context/connection/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
 import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
 import { toast } from "react-toastify/unstyled";
@@ -52,16 +52,16 @@ export const UserProfile = () => {
         );
     }, [websocketService]);
 
-    const handleDeviceChangedMessage = useCallback(() => {
-        const onDeviceChanged = async () => {
-            await fetchDevices();
-        };
+    // const handleDeviceChangedMessage = useCallback(() => {
+    //     const onDeviceChanged = async () => {
+    //         await fetchDevices();
+    //     };
 
-        websocketService.subscribeMessage(
-            MessageType.DEVICE_CHANGED,
-            onDeviceChanged as MessageHandler
-        );
-    }, [websocketService]);
+    //     websocketService.subscribeMessage(
+    //         MessageType.DEVICE_CHANGED,
+    //         onDeviceChanged as MessageHandler
+    //     );
+    // }, [websocketService]);
 
     /**
      * Sends a heartbeat message if the user has registered the device.
@@ -113,7 +113,7 @@ export const UserProfile = () => {
         void fetchUserName();
         void fetchDevices();
 
-        handleDeviceChangedMessage();
+        // handleDeviceChangedMessage();
 
         handleHeartbeatMessage();
 
@@ -121,7 +121,7 @@ export const UserProfile = () => {
 
         registerOfflineHeartbeatOnClose();
     }, [
-        handleDeviceChangedMessage,
+        // handleDeviceChangedMessage,
         handleHeartbeatMessage,
         sendHeartbeatIfPossible,
         registerOfflineHeartbeatOnClose,

@@ -1,0 +1,21 @@
+.stableText {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    text-decoration: inherit;
+}
+
+.hidden {
+    font-weight: var(--font-weight);
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.visible {
+    font-weight: inherit;
+    position: absolute;
+
+    text-decoration: inherit;
+}

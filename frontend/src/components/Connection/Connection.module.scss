@@ -1,0 +1,74 @@
+@use "../../theme/shadows.scss" as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: calc(
+        100vh - 78px - 305px
+    ); // full height minus header and footer
+
+    padding-top: var(--space-24);
+}
+
+.containerWrapper {
+    display: flex;
+    gap: var(--space-24);
+    flex-wrap: wrap;
+
+    align-items: flex-start;
+    align-content: center;
+    justify-content: center;
+
+    width: 100%;
+
+    @include background-effect;
+    --background-effect-size: 1100px;
+}
+
+@mixin containerBorder {
+    border: 1px solid var(--border);
+
+    border-radius: var(--space-16);
+    padding: var(--space-16);
+}
+
+@mixin container {
+    @include containerBorder;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 400px;
+    flex: 1;
+
+    // 550px >= 450px + horizontal padding / margin / border
+    @media (min-width: 550px) {
+        min-width: 450px;
+    }
+
+    max-width: 600px;
+
+    @include elevated-shadow;
+}
+
+.heading {
+    font-size: var(--font-size-l);
+    line-height: var(--line-height-l);
+    font-family: "Atma";
+    font-weight: var(--font-weight-semibold);
+
+    > svg {
+        height: calc(var(--font-size-l) * var(--line-height-l));
+        vertical-align: middle;
+        margin-right: var(--space-4);
+    }
+}
+
+.mutedText {
+    color: var(--text-muted);
+    margin-top: var(--space-8);
+    font-weight: var(--font-weight-regular);
+    text-align: center;
+}

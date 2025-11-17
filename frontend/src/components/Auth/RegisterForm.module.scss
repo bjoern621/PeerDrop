@@ -1,0 +1,25 @@
+@use "./transitions" as *;
+
+.confirmPasswordField {
+    view-transition-name: confirm-password-field;
+}
+
+::view-transition-old(confirm-password-field) {
+    @include slide-out-to-right-anim;
+}
+
+::view-transition-new(confirm-password-field) {
+    @include slide-in-from-right-anim;
+}
+
+.title {
+    view-transition-name: auth-register-title;
+}
+
+::view-transition-old(auth-register-title) {
+    @include slide-out-to-right-anim;
+}
+
+::view-transition-new(auth-register-title) {
+    @include slide-in-from-right-anim;
+}
