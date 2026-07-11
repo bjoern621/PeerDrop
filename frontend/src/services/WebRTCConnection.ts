@@ -6,6 +6,7 @@ import { Logger } from "../util/Logger";
 import { Observable } from "../util/observer/Observable";
 import { IceCandidateMessage } from "../types/rtc/IceCandidateMessage";
 import { SdpMessage } from "../types/rtc/SdpMessage";
+import { TransferStatsMonitor } from "./TransferStats";
 
 const serversConfig: RTCConfiguration = {
     iceServers: [
@@ -41,6 +42,7 @@ export class WebRTCConnection {
     private readonly remoteToken: ClientToken;
     private readonly signalingChannel: WebSocketService;
     private readonly peerConnection: RTCPeerConnection;
+    private transferStats: TransferStatsMonitor | undefined;
 
     private readonly eventHandlers: Map<string, Observable<unknown>> =
         new Map();
@@ -67,6 +69,7 @@ export class WebRTCConnection {
         this.polite =
             signalingChannel.getLocalClientToken()! < this.remoteToken;
         this.peerConnection = new RTCPeerConnection(serversConfig);
+        this.transferStats = new TransferStatsMonitor(this.peerConnection);
 
         this.setupEmittedWebRTCEvents();
 
@@ -82,10 +85,13 @@ export class WebRTCConnection {
     /**
      * Sends a file to the remote peer over a dedicated RTCDataChannel.
      *
-     * This method creates a new DataChannel for the given file and transmits the file in 16 KB chunks.
-     * Each chunk is read asynchronously using a FileReader and sent as an ArrayBuffer.
-     * After the entire file has been sent, an "EOF" message is transmitted to signal the end of the file,
-     * and the DataChannel is closed.
+     * The file is read in READ_SIZE slices via Blob.arrayBuffer() and sent in
+     * messages as large as the negotiated SCTP maximum message size allows,
+     * capped at 256 KB (16 KB fallback when the limit is unknown).
+     * Sending pauses when more than HIGH_WATER_MARK bytes are buffered and
+     * resumes once the buffer drains to LOW_WATER_MARK. After the entire file
+     * has been sent, an "EOF" message signals the end of the file and the
+     * DataChannel is closed.
      *
      * @param file The file to be sent to the remote peer.
      */
@@ -101,16 +107,102 @@ export class WebRTCConnection {
         const dataChannel = this.peerConnection.createDataChannel(uuid);
 
         dataChannel.binaryType = "arraybuffer";
-        const chunkSize = 16 * 1024; //16 KB
+
+        const READ_SIZE = 8 * 1024 * 1024;
+        const HIGH_WATER_MARK = 8 * 1024 * 1024;
+        const LOW_WATER_MARK = 2 * 1024 * 1024;
+        dataChannel.bufferedAmountLowThreshold = LOW_WATER_MARK;
+
+        // Bytes handed to the channel so far; the progress interval reads it.
         let offset = 0;
-
-        // Set a buffer threshold - if bufferedAmount exceeds this, wait before sending more
-        const bufferThreshold = 1024 * 1024 * 4; // 4MB buffer threshold
-        let waitingForBuffer = false;
-
         let progressInterval: ReturnType<typeof setInterval> | null = null;
 
+        // Resolves when the send buffer drains to LOW_WATER_MARK or the
+        // channel closes, whichever comes first.
+        const waitForBufferedAmountLow = () =>
+            new Promise<void>(resolve => {
+                const done = () => {
+                    dataChannel.removeEventListener("bufferedamountlow", done);
+                    dataChannel.removeEventListener("close", done);
+                    resolve();
+                };
+                dataChannel.addEventListener("bufferedamountlow", done);
+                dataChannel.addEventListener("close", done);
+            });
+
+        const pump = async () => {
+            // The SCTP maximum message size is negotiated per connection.
+            // Chrome and Safari advertise 256 KB, Firefox considerably more.
+            const maxMessageSize = this.peerConnection.sctp?.maxMessageSize;
+            const chunkSize = Math.min(
+                maxMessageSize && maxMessageSize > 0
+                    ? maxMessageSize
+                    : 16 * 1024,
+                256 * 1024
+            );
+
+            let readOffset = 0;
+            while (readOffset < file.size) {
+                const buffer = await file
+                    .slice(readOffset, readOffset + READ_SIZE)
+                    .arrayBuffer();
+
+                for (
+                    let chunkStart = 0;
+                    chunkStart < buffer.byteLength;
+                    chunkStart += chunkSize
+                ) {
+                    if (dataChannel.bufferedAmount > HIGH_WATER_MARK) {
+                        await waitForBufferedAmountLow();
+                    }
+                    if (dataChannel.readyState !== "open") {
+                        this.log("Data channel closed during transfer:", uuid);
+                        return;
+                    }
+
+                    const chunk = buffer.slice(
+                        chunkStart,
+                        Math.min(chunkStart + chunkSize, buffer.byteLength)
+                    );
+                    dataChannel.send(chunk);
+                    offset += chunk.byteLength;
+                }
+
+                readOffset += buffer.byteLength;
+            }
+
+            // Warten darauf, dass der Buffer leer ist, bevor EOF gesendet wird
+            while (dataChannel.bufferedAmount > 0) {
+                if (dataChannel.readyState !== "open") {
+                    this.log("Data channel closed during transfer:", uuid);
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+
+            if (progressInterval) clearInterval(progressInterval);
+            // 100% Progress-Event senden
+            this.emitEvent("fileProgress", {
+                uuid: uuid,
+                progress: 1.0, // 100% progress
+            });
+            dataChannel.send("EOF");
+            this.log(
+                "File sent for Transfer:",
+                uuid,
+                " EOF reached, closing data channel"
+            );
+            dataChannel.close();
+        };
+
+        dataChannel.onclose = () => {
+            if (progressInterval) clearInterval(progressInterval);
+            this.transferStats?.release();
+        };
+
         dataChannel.onopen = () => {
+            this.transferStats?.acquire();
+
             // Send first Metadata about the file
             const meta = JSON.stringify({
                 name: file.name,
@@ -118,72 +210,6 @@ export class WebRTCConnection {
                 uuid: uuid,
             });
             dataChannel.send(meta);
-
-            const reader = new FileReader();
-
-            reader.onload = e => {
-                if (e.target && e.target.result) {
-                    dataChannel.send(e.target.result as ArrayBuffer);
-                    offset += (e.target.result as ArrayBuffer).byteLength;
-                    sendNextChunk(); //reads the next chunk, which triggers again the onload event
-                }
-            };
-
-            const sendNextChunk = () => {
-                if (offset < file.size) {
-                    // Check if buffer is getting full before sending more data
-                    if (dataChannel.bufferedAmount > bufferThreshold) {
-                        waitingForBuffer = true;
-                        this.log(
-                            `Buffer full (${dataChannel.bufferedAmount} bytes), waiting...`
-                        );
-                        return; // Exit and wait for the bufferedamountlow event
-                    }
-
-                    const slice = file.slice(offset, offset + chunkSize);
-                    reader.readAsArrayBuffer(slice);
-                } else {
-                    // Warten darauf, dass der Buffer leer ist, bevor EOF gesendet wird
-                    const waitForBuffer = () => {
-                        if (dataChannel.bufferedAmount > 0) {
-                            setTimeout(waitForBuffer, 10);
-                        } else {
-                            if (progressInterval)
-                                clearInterval(progressInterval);
-                            // 100% Progress-Event senden
-                            this.emitEvent("fileProgress", {
-                                uuid: uuid,
-                                progress: 1.0, // 100% progress
-                            });
-                            dataChannel.send("EOF");
-                            this.log(
-                                "File sent for Transfer:",
-                                uuid,
-                                " EOF reached, closing data channel"
-                            );
-                            dataChannel.close();
-                        }
-                    };
-                    waitForBuffer();
-                }
-            };
-
-            // Set up bufferedamountlow event to continue when buffer decreases
-            dataChannel.bufferedAmountLowThreshold = 512; // 512 KB
-
-            dataChannel.onbufferedamountlow = () => {
-                if (waitingForBuffer) {
-                    waitingForBuffer = false;
-                    this.log(
-                        `Content in buffer decreased to ${dataChannel.bufferedAmount} bytes, continuing...`
-                    );
-                    sendNextChunk();
-                }
-            };
-
-            dataChannel.onclose = () => {
-                if (progressInterval) clearInterval(progressInterval);
-            };
 
             // Progress-Interval starten
             progressInterval = setInterval(() => {
@@ -199,7 +225,10 @@ export class WebRTCConnection {
                 });
             }, 100);
 
-            sendNextChunk(); // Start reading and sending first chunk
+            pump().catch((err: unknown) => {
+                this.log("Error during file transfer:", uuid, err);
+                if (progressInterval) clearInterval(progressInterval);
+            });
         };
     }
 
@@ -214,6 +243,7 @@ export class WebRTCConnection {
             let firstMessage = true;
             let receivedBytes = 0;
             let progressInterval: ReturnType<typeof setInterval> | null = null;
+            let statsAcquired = false;
 
             dataChannel.onmessage = event => {
                 if (firstMessage && typeof event.data === "string") {
@@ -223,6 +253,9 @@ export class WebRTCConnection {
                         uuid: string;
                     };
                     firstMessage = false;
+
+                    this.transferStats?.acquire();
+                    statsAcquired = true;
                     this.log("Received file metadata:", fileMeta);
                     this.emitEvent("fileMetaReceived", {
                         name: fileMeta.name,
@@ -295,6 +328,10 @@ export class WebRTCConnection {
             };
             dataChannel.onclose = () => {
                 if (progressInterval) clearInterval(progressInterval);
+                if (statsAcquired) {
+                    this.transferStats?.release();
+                    statsAcquired = false;
+                }
                 //this.log("Data channel is closed");
             };
             dataChannel.onerror = error => {
@@ -489,6 +526,9 @@ export class WebRTCConnection {
     }
 
     public closeConnection() {
+        this.transferStats?.stop();
+        this.transferStats = undefined;
+
         this.peerConnection.close();
 
         const iceHandlers = this.signalingChannel.getHandlers(
