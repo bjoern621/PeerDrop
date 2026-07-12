@@ -2,7 +2,8 @@ import Button from "../../Button/Button";
 import TokenInput from "../TokenInput/TokenInput";
 import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams } from "react-router";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import { toast } from "react-toastify/unstyled";
 import { ConnectWarningDialog } from "../../Popups/ConnectWarningDialog";
@@ -13,8 +14,11 @@ import {
 
 export default function ConnectToPeer() {
     const peerConnectionManager = usePeerConnectionManager();
+    const { token: urlToken } = useParams();
 
-    const [remoteToken, setRemoteToken] = useState<string>("");
+    const [remoteToken, setRemoteToken] = useState<string>(
+        urlToken?.toUpperCase() ?? ""
+    );
     const [showConnectWarning, setShowConnectWarning] =
         useState<boolean>(false);
     const [waitingForResponse, setWaitingForResponse] =
@@ -22,6 +26,7 @@ export default function ConnectToPeer() {
     const [connectionRequestTimestamp, setConnectionRequestTimestamp] =
         useState<number>(0);
     const delayTimeoutIdRef = useRef<number | null>(null);
+    const autoConnectAttemptedRef = useRef<boolean>(false);
 
     const connectButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -84,7 +89,7 @@ export default function ConnectToPeer() {
         peerConnectionManager.cancelConnectionRequest(remoteToken);
     };
 
-    const connectToPeer = () => {
+    const connectToPeer = useCallback(() => {
         const successfullySent =
             peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
 
@@ -95,9 +100,9 @@ export default function ConnectToPeer() {
         }
 
         return successfullySent;
-    };
+    }, [peerConnectionManager, remoteToken]);
 
-    const requestConnect = () => {
+    const requestConnect = useCallback(() => {
         // Incomplete tokens are rejected with a toast in connectToPeer,
         // so the warning is only shown for complete tokens.
         if (remoteToken.length !== 5 || isConnectWarningDismissed()) {
@@ -106,7 +111,18 @@ export default function ConnectToPeer() {
         }
 
         setShowConnectWarning(true);
-    };
+    }, [connectToPeer, remoteToken]);
+
+    // Tokens opened via /connect/<TOKEN> trigger the regular connect flow,
+    // including the warning dialog and token validation, once per page load.
+    useEffect(() => {
+        if (!urlToken || autoConnectAttemptedRef.current) {
+            return;
+        }
+
+        autoConnectAttemptedRef.current = true;
+        requestConnect();
+    }, [urlToken, requestConnect]);
 
     const confirmConnectWarning = (dontShowAgain: boolean) => {
         if (dontShowAgain) {
