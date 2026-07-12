@@ -1,6 +1,8 @@
 @use "../../theme/shadows.scss" as *;
 
 .gearButton {
+    padding-inline: var(--space-8);
+
     svg {
         transition: rotate 0.3s ease;
     }
