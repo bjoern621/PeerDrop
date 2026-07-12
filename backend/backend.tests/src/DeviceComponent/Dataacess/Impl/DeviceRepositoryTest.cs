@@ -7,7 +7,6 @@ using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Dataaccess.Impl;
 using backend.tests.TestUtils;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 
 namespace backend.tests.DeviceComponent.Dataacess.Impl;
 
@@ -69,7 +68,7 @@ public class DeviceRepositoryTest
     }
 
     [Test]
-    public async Task SaveAsync_With_Duplicate_Uuid_Throws_PostgresException()
+    public async Task SaveAsync_With_Duplicate_Uuid_And_Account_Is_Idempotent()
     {
         var account = new Account("testuser", "testpassword");
         var id = await _accountRepository.SaveAsync(account);
@@ -79,11 +78,33 @@ public class DeviceRepositoryTest
         var uuid = await _deviceRepository.SaveDeviceAsync(device);
         Assert.That(uuid, Is.EqualTo(guid));
         var device2 = new Device("testdevice", guid, 1);
-        var ex = Assert.ThrowsAsync<PostgresException>(async () =>
-        {
-            await _deviceRepository.SaveDeviceAsync(device2);
-        });
-        Assert.That(ex, Is.Not.Null);
+        var uuid2 = await _deviceRepository.SaveDeviceAsync(device2);
+        Assert.That(uuid2, Is.EqualTo(guid));
+        var devices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(1);
+        Assert.That(devices, Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public async Task SaveAsync_Allows_Same_Uuid_For_Multiple_Accounts()
+    {
+        var id = await _accountRepository.SaveAsync(new Account("testuser", "testpassword"));
+        Assert.That(id, Is.EqualTo(1));
+        var id2 = await _accountRepository.SaveAsync(new Account("testuser2", "testpassword"));
+        Assert.That(id2, Is.EqualTo(2));
+
+        Guid guid = Guid.NewGuid();
+        await _deviceRepository.SaveDeviceAsync(new Device("testdevice", guid, 1));
+        await _deviceRepository.SaveDeviceAsync(new Device("testdevice", guid, 2));
+
+        var accountIds = await _deviceRepository.GetAccountIdsByDeviceUuidAsync(guid);
+        Assert.That(accountIds, Is.EquivalentTo(new[] { 1, 2 }));
+    }
+
+    [Test]
+    public async Task GetAccountIdsByDeviceUuidAsync_Returns_EmptyList_For_Unknown_Uuid()
+    {
+        var accountIds = await _deviceRepository.GetAccountIdsByDeviceUuidAsync(Guid.NewGuid());
+        Assert.That(accountIds, Is.Empty);
     }
 
     [Test]
@@ -102,7 +123,7 @@ public class DeviceRepositoryTest
         var uuid2 = await _deviceRepository.SaveDeviceAsync(device2);
         Assert.That(uuid, Is.EqualTo(guid));
         Assert.That(uuid2, Is.EqualTo(guid2));
-        var deviceLoginDtos = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, Guid.Empty);
+        var deviceLoginDtos = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId);
         Assert.That(deviceLoginDtos, Is.Not.Null);
         Assert.Multiple(() =>
         {
@@ -119,7 +140,7 @@ public class DeviceRepositoryTest
         var account = new Account("testuser", "testpassword");
         var id = await _accountRepository.SaveAsync(account);
         Assert.That(id, Is.EqualTo(1));
-        var nonExistentDevices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, Guid.Empty);
+        var nonExistentDevices = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2);
         Assert.That(nonExistentDevices, Is.Empty);
 
         // add some device
@@ -129,7 +150,7 @@ public class DeviceRepositoryTest
         await _deviceRepository.SaveDeviceAsync(device);
 
         // get nonexistent account again
-        var nonExistentDevices2 = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2, Guid.Empty);
+        var nonExistentDevices2 = await _deviceRepository.GetAllDisplayNamesForAccountAsync(2);
         Assert.That(nonExistentDevices, Is.Empty);
     }
 
@@ -169,5 +190,26 @@ public class DeviceRepositoryTest
         Assert.That(result, Is.EqualTo(0));
         result = await _deviceRepository.DeleteDeviceAsync(accountId, guid);
         Assert.That(result, Is.EqualTo(0));
+    }
+
+    [Test]
+    public async Task DeleteAsync_Removes_Only_Link_Of_Acting_Account()
+    {
+        var id = await _accountRepository.SaveAsync(new Account("testuser", "testpassword"));
+        Assert.That(id, Is.EqualTo(1));
+        var id2 = await _accountRepository.SaveAsync(new Account("testuser2", "testpassword"));
+        Assert.That(id2, Is.EqualTo(2));
+
+        Guid guid = Guid.NewGuid();
+        await _deviceRepository.SaveDeviceAsync(new Device("testdevice", guid, 1));
+        await _deviceRepository.SaveDeviceAsync(new Device("testdevice", guid, 2));
+
+        var result = await _deviceRepository.DeleteDeviceAsync(1, guid);
+        Assert.That(result, Is.EqualTo(1));
+
+        var deviceForAccount1 = await _deviceRepository.GetDeviceByUuidAsync(guid, 1);
+        Assert.That(deviceForAccount1, Is.Null);
+        var deviceForAccount2 = await _deviceRepository.GetDeviceByUuidAsync(guid, 2);
+        Assert.That(deviceForAccount2, Is.Not.Null);
     }
 }

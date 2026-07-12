@@ -70,11 +70,14 @@ public class DeviceHandlerTests
     }
 
     [Test]
-    public async Task RegisterDeviceAsync_WhenDeviceAlreadyRegistered_ReturnsOkWithOverrittenUuid()
+    public async Task RegisterDeviceAsync_WhenCookiePresent_ReusesUuidFromCookie()
     {
         Guid guid = Guid.NewGuid();
         // Arrange
         var context = CreateValidContext("6", true, deviceUuid: guid);
+
+        _repoMock.Setup(r => r.SaveDeviceAsync(It.IsAny<Device>()))
+                 .ReturnsAsync(guid);
 
         // Act
         var result = await _deviceHandler.RegisterDeviceAsync(context);
@@ -83,7 +86,27 @@ public class DeviceHandlerTests
         Assert.That(result, Is.TypeOf<Ok<DeviceRegisterDto>>());
         var okResult = result as Ok<DeviceRegisterDto>;
         Assert.That(okResult?.Value, Has.Property("uuid"));
-        Assert.That(okResult?.Value!.uuid, !Is.EqualTo(guid));
+        Assert.That(okResult?.Value!.uuid, Is.EqualTo(guid));
+    }
+
+    [Test]
+    public async Task RegisterDeviceAsync_WhenDeviceAlreadyRegisteredForAccount_IsIdempotent()
+    {
+        Guid guid = Guid.NewGuid();
+        // Arrange
+        var context = CreateValidContext("6", true, deviceUuid: guid);
+
+        _repoMock.Setup(r => r.GetDeviceByUuidAsync(guid, 6))
+                 .ReturnsAsync(new Device("TestDevice", guid, 6));
+
+        // Act
+        var result = await _deviceHandler.RegisterDeviceAsync(context);
+
+        // Assert
+        Assert.That(result, Is.TypeOf<Ok<DeviceRegisterDto>>());
+        var okResult = result as Ok<DeviceRegisterDto>;
+        Assert.That(okResult?.Value!.uuid, Is.EqualTo(guid));
+        _repoMock.Verify(r => r.SaveDeviceAsync(It.IsAny<Device>()), Times.Never);
     }
 
     [Test]
@@ -111,7 +134,7 @@ public class DeviceHandlerTests
         // Arrange
         var context = CreateValidContext("1", true, deviceUuid: guid, userAgent: "Windows Mozilla");
 
-        _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, guid))
+        _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1))
                  .ReturnsAsync(new List<DeviceLoginDto>
                  {
                      new DeviceLoginDto { DisplayName = "Windows Mozilla",  Uuid = guid, Status = "online" },
@@ -135,7 +158,7 @@ public class DeviceHandlerTests
         // Arrange
         var context = CreateValidContext("1", true, userAgent: "Windows Mozilla");
 
-        _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1, It.IsAny<Guid>()))
+        _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1))
             .ReturnsAsync(new List<DeviceLoginDto>
             {
                 new() { DisplayName = "Windows Mozilla",  Uuid = Guid.Empty, Status = "online" },
@@ -184,7 +207,7 @@ public class DeviceHandlerTests
         var userIdString = context.Session.GetString("UserId") ?? "1";
         _repoMock.Setup(r => r.SaveDeviceAsync(It.IsAny<Device>()))
             .ReturnsAsync(deviceUuid);
-        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid))
+        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid, int.Parse(userIdString)))
             .ReturnsAsync(new Device("TestDevice", deviceUuid, int.Parse(userIdString)));
         _repoMock.Setup(r => r.DeleteDeviceAsync(int.Parse(userIdString), deviceUuid))
             .ReturnsAsync(1);
@@ -224,7 +247,7 @@ public class DeviceHandlerTests
             .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
 
         var userIdString = context.Session.GetString("UserId") ?? "1";
-        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid))
+        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid, int.Parse(userIdString)))
             .ReturnsAsync(new Device("TestDevice", deviceUuid, int.Parse(userIdString)));
         _repoMock.Setup(r => r.DeleteDeviceAsync(int.Parse(userIdString), deviceUuid))
             .ReturnsAsync(1);
@@ -236,5 +259,29 @@ public class DeviceHandlerTests
         Assert.That(result, Is.TypeOf<Ok<string>>());
         var okResult = result as Ok<string>;
         Assert.That(okResult?.Value, Is.EqualTo("Device deleted successfully."));
+    }
+
+    [Test]
+    public async Task DeleteDevice_WhenNotRegisteredForAccount_ReturnsUnauthorized()
+    {
+        // Arrange
+        var deviceUuid = Guid.NewGuid();
+        var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
+
+        var json = System.Text.Json.JsonSerializer.Serialize(deviceUuid);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        context.Request.Body = new MemoryStream(bytes);
+        context.Request.ContentType = "application/json";
+
+        // The device is not registered for account 1
+        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid, 1))
+            .ReturnsAsync((Device?)null);
+
+        // Act
+        var result = await _deviceHandler.DeleteDeviceAsync(context);
+
+        // Assert
+        Assert.That(result, Is.TypeOf<UnauthorizedHttpResult>());
+        _repoMock.Verify(r => r.DeleteDeviceAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
     }
 }
