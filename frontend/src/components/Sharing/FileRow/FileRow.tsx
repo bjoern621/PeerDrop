@@ -7,6 +7,7 @@ import { usePeerConnectionManager } from "../../../context/connection/PeerConnec
 import Badge from "../../Badge/Badge";
 import Tooltip from "../../Tooltip/Tooltip";
 import { TransferSnapshot } from "../../../services/TransferTracker";
+import useSettings from "../../../hooks/useSettings";
 
 interface FileRowProps {
     transfer: TransferSnapshot;
@@ -77,6 +78,7 @@ const getTransferInfo = (transfer: TransferSnapshot): string => {
 
 export default function FileRow({ transfer }: FileRowProps) {
     const peerConnectionManager = usePeerConnectionManager();
+    const { autoSaveDownloads } = useSettings();
     const [isOverflowing, setIsOverflowing] = useState(false);
     const nameRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +118,11 @@ export default function FileRow({ transfer }: FileRowProps) {
                         </Badge>
                         {transfer.direction === "down" && (
                             <Tooltip
-                                content="Klicken, um erneut zu speichern"
+                                content={
+                                    autoSaveDownloads
+                                        ? "Klicken, um erneut zu speichern"
+                                        : "Klicken, um die Datei zu speichern"
+                                }
                                 position="top"
                             >
                                 <Badge
