@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import StableText from "../../StableText/StableText";
+import { CSSProperties, memo, useEffect, useRef, useState } from "react";
 import css from "./FileRow.module.scss";
 import DownloadIcon from "../../../assets/icons8-download.svg?react";
 import UploadIcon from "../../../assets/icons8-upload.svg?react";
@@ -15,24 +14,14 @@ import {
 
 interface FileRowProps {
     transfer: TransferSnapshot;
-    /**
-     * Renders the row indented as part of an expanded folder, showing the
-     * path within the folder instead of the bare file name.
-     */
-    nested?: boolean;
+    /** Nesting level of the row, 0 for a file outside any folder. */
+    depth?: number;
 }
 
-export default function FileRow({ transfer, nested = false }: FileRowProps) {
+function FileRowComponent({ transfer, depth = 0 }: FileRowProps) {
     const peerConnectionManager = usePeerConnectionManager();
     const [isOverflowing, setIsOverflowing] = useState(false);
     const nameRef = useRef<HTMLDivElement>(null);
-
-    // Path within the folder, without the folder name shown on the group row.
-    const displayName =
-        nested && transfer.relativePath
-            ? transfer.relativePath.split("/").slice(1).join("/") ||
-              transfer.name
-            : transfer.name;
 
     useEffect(() => {
         // Check if the content overflows
@@ -48,13 +37,11 @@ export default function FileRow({ transfer, nested = false }: FileRowProps) {
             <td>
                 <div
                     ref={nameRef}
-                    className={nested ? css.nestedName : undefined}
-                    title={isOverflowing ? displayName : undefined}
+                    className={css.rowName}
+                    style={{ "--nesting-depth": depth } as CSSProperties}
+                    title={isOverflowing ? transfer.name : undefined}
                 >
-                    <StableText
-                        text={displayName}
-                        fontWeight="var(--font-weight-medium)"
-                    />
+                    {transfer.name}
                 </div>
             </td>
             <td className={css.progressCell}>
@@ -111,18 +98,12 @@ export default function FileRow({ transfer, nested = false }: FileRowProps) {
                     </div>
                 )}
             </td>
-            <td>
-                <StableText
-                    text={getSizeInHumanReadableFormat(transfer.size)}
-                    fontWeight="var(--font-weight-medium)"
-                />
-            </td>
-            <td>
-                <StableText
-                    text={getTimeInHumanReadableFormat(transfer.startedAt)}
-                    fontWeight="var(--font-weight-medium)"
-                />
-            </td>
+            <td>{getSizeInHumanReadableFormat(transfer.size)}</td>
+            <td>{getTimeInHumanReadableFormat(transfer.startedAt)}</td>
         </tr>
     );
 }
+
+/** Memoized so toggling a folder does not re-render unchanged sibling rows. */
+const FileRow = memo(FileRowComponent);
+export default FileRow;

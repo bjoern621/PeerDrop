@@ -1,5 +1,4 @@
-import { useState } from "react";
-import StableText from "../../StableText/StableText";
+import { CSSProperties, memo, useState } from "react";
 import rowCss from "../FileRow/FileRow.module.scss";
 import css from "./FolderRow.module.scss";
 import DownloadIcon from "../../../assets/icons8-download.svg?react";
@@ -10,7 +9,7 @@ import { usePeerConnectionManager } from "../../../context/connection/PeerConnec
 import Badge from "../../Badge/Badge";
 import Tooltip from "../../Tooltip/Tooltip";
 import FileRow from "../FileRow/FileRow";
-import { FolderTransferItem } from "../groupTransfers";
+import { FolderNode } from "../groupTransfers";
 import {
     getSizeInHumanReadableFormat,
     getTimeInHumanReadableFormat,
@@ -18,37 +17,45 @@ import {
 } from "../transferFormat";
 
 interface FolderRowProps {
-    folder: FolderTransferItem;
+    folder: FolderNode;
+    /**
+     * Identifier of the whole folder transfer. Only set on the top-level
+     * row, where it enables saving the received folder.
+     */
+    folderId?: string;
+    /** Nesting level of the row, 0 for a top-level folder. */
+    depth?: number;
 }
 
 /**
- * One folder transfer in the sharing table: a group row with aggregated
- * size, progress and status, expandable to the contained file rows.
+ * One folder level in the sharing table: a group row with aggregated size,
+ * progress and status of its subtree, expandable to the contained subfolder
+ * and file rows.
  */
-export default function FolderRow({ folder }: FolderRowProps) {
+function FolderRowComponent({ folder, folderId, depth = 0 }: FolderRowProps) {
     const peerConnectionManager = usePeerConnectionManager();
     const [expanded, setExpanded] = useState(false);
 
-    const files = folder.files;
-    const direction = files[0].direction;
+    const transfers = folder.transfers;
+    const direction = transfers[0].direction;
 
-    const totalSize = files.reduce((sum, file) => sum + file.size, 0);
-    const totalBytes = files.reduce(
+    const totalSize = transfers.reduce((sum, file) => sum + file.size, 0);
+    const totalBytes = transfers.reduce(
         (sum, file) => sum + file.bytesTransferred,
         0
     );
     const progress = totalSize > 0 ? Math.min(totalBytes / totalSize, 1) : 0;
-    const startedAt = files.reduce(
+    const startedAt = transfers.reduce(
         (earliest, file) =>
             file.startedAt < earliest ? file.startedAt : earliest,
-        files[0].startedAt
+        transfers[0].startedAt
     );
 
-    const allDone = files.every(file => file.status === "done");
-    const anyFailed = files.some(file => file.status === "failed");
-    const anyFinalizing = files.some(file => file.status === "finalizing");
+    const allDone = transfers.every(file => file.status === "done");
+    const anyFailed = transfers.some(file => file.status === "failed");
+    const anyFinalizing = transfers.some(file => file.status === "finalizing");
 
-    const speedBps = files.reduce<number | null>(
+    const speedBps = transfers.reduce<number | null>(
         (sum, file) =>
             file.speedBps !== null ? (sum ?? 0) + file.speedBps : sum,
         null
@@ -65,6 +72,7 @@ export default function FolderRow({ folder }: FolderRowProps) {
                     <button
                         type="button"
                         className={css.folderToggle}
+                        style={{ "--nesting-depth": depth } as CSSProperties}
                         onClick={() => setExpanded(value => !value)}
                         aria-expanded={expanded}
                     >
@@ -72,14 +80,11 @@ export default function FolderRow({ folder }: FolderRowProps) {
                             className={`${css.chevron} ${expanded ? css.chevronOpen : ""}`}
                         />
                         <FolderIcon className={css.folderIcon} />
-                        <StableText
-                            text={folder.name}
-                            fontWeight="var(--font-weight-medium)"
-                        />
+                        <span className={css.folderName}>{folder.name}</span>
                         <span className={css.fileCount}>
-                            {files.length === 1
+                            {transfers.length === 1
                                 ? "1 Datei"
-                                : `${files.length} Dateien`}
+                                : `${transfers.length} Dateien`}
                         </span>
                     </button>
                 </td>
@@ -95,7 +100,7 @@ export default function FolderRow({ folder }: FolderRowProps) {
                             <Badge color_scheme="success" size={"m"}>
                                 Fertig!
                             </Badge>
-                            {direction === "down" && (
+                            {direction === "down" && folderId && (
                                 <Tooltip
                                     content="Klicken, um den Ordner zu speichern"
                                     position="top"
@@ -106,7 +111,7 @@ export default function FolderRow({ folder }: FolderRowProps) {
                                         clickable
                                         onClick={() => {
                                             void peerConnectionManager.saveFolder(
-                                                folder.folderId
+                                                folderId
                                             );
                                         }}
                                     >
@@ -143,24 +148,32 @@ export default function FolderRow({ folder }: FolderRowProps) {
                         </div>
                     )}
                 </td>
-                <td>
-                    <StableText
-                        text={getSizeInHumanReadableFormat(totalSize)}
-                        fontWeight="var(--font-weight-medium)"
-                    />
-                </td>
-                <td>
-                    <StableText
-                        text={getTimeInHumanReadableFormat(startedAt)}
-                        fontWeight="var(--font-weight-medium)"
-                    />
-                </td>
+                <td>{getSizeInHumanReadableFormat(totalSize)}</td>
+                <td>{getTimeInHumanReadableFormat(startedAt)}</td>
             </tr>
 
-            {expanded &&
-                files.map(transfer => (
-                    <FileRow key={transfer.uuid} transfer={transfer} nested />
-                ))}
+            {expanded && (
+                <>
+                    {folder.subfolders.map(subfolder => (
+                        <FolderRow
+                            key={subfolder.id}
+                            folder={subfolder}
+                            depth={depth + 1}
+                        />
+                    ))}
+                    {folder.files.map(transfer => (
+                        <FileRow
+                            key={transfer.uuid}
+                            transfer={transfer}
+                            depth={depth + 1}
+                        />
+                    ))}
+                </>
+            )}
         </>
     );
 }
+
+/** Memoized so toggling a folder does not re-render unchanged sibling rows. */
+const FolderRow = memo(FolderRowComponent);
+export default FolderRow;

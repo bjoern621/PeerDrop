@@ -1,6 +1,6 @@
 .fileRow {
     color: var(--text-muted);
-    font-weight: var(--font-weight-regular);
+    font-weight: var(--font-weight-medium);
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 
@@ -8,8 +8,7 @@
 
     &:hover {
         background-color: var(--secondary-20);
-        font-weight: var(--font-weight-medium);
-        color: var(--text);
+        color: var(--primary);
     }
 
     td {
@@ -36,9 +35,9 @@
     }
 }
 
-// File of an expanded folder, indented below the folder row.
-.nestedName {
-    padding-left: var(--space-24);
+// Name cell content, indented by the folder nesting depth.
+.rowName {
+    padding-left: calc(var(--nesting-depth, 0) * var(--space-24));
     overflow: hidden;
     text-overflow: ellipsis;
 }

@@ -7,7 +7,7 @@ import FolderIcon from "../../assets/filesystem/icons8-folder.svg?react";
 import FolderOpenIcon from "../../assets/filesystem/icons8-folder-2.svg?react";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import RemoteTokenDisplay from "../RemoteTokenDisplay/RemoteTokenDisplay";
 import FileRow from "./FileRow/FileRow";
 import FolderRow from "./FolderRow/FolderRow";
@@ -26,7 +26,7 @@ export default function Sharing() {
         useFileTransfer();
     const { closeConnection } = useConnectionLifecycle();
 
-    const transferItems = groupTransfers(transfers);
+    const transferItems = useMemo(() => groupTransfers(transfers), [transfers]);
 
     return (
         <div className={css.sharingContainer}>
@@ -114,7 +114,11 @@ export default function Sharing() {
                     <tbody>
                         {transferItems.map(item =>
                             item.kind === "folder" ? (
-                                <FolderRow key={item.folderId} folder={item} />
+                                <FolderRow
+                                    key={item.folderId}
+                                    folder={item}
+                                    folderId={item.folderId}
+                                />
                             ) : (
                                 <FileRow
                                     key={item.transfer.uuid}
