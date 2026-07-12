@@ -20,6 +20,16 @@
         var(--space-16);
 }
 
+.Toastify__toast-container--top-right {
+    // Toasts start below the header, or below the auth dialog while it is
+    // open. --auth-dialog-bottom is maintained by AuthDialog and falls back
+    // to 0px when the dialog is closed, so max() picks the header bottom.
+    position-anchor: --heading;
+    top: calc(
+        max(anchor(bottom), var(--auth-dialog-bottom, 0px)) + var(--space-16)
+    );
+}
+
 .Toastify__toast-container {
     max-height: calc(100vh - 40px);
     scrollbar-width: thin;
