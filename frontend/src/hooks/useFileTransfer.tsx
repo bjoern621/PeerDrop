@@ -1,22 +1,21 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { usePeerConnectionManager } from "../context/connection/PeerConnectionContext";
-import { FileDirection, FileDisplay } from "../components/Sharing/types";
+import { TransferSnapshot } from "../services/TransferTracker";
 
 /**
  * Custom hook for managing file transfers between peers.
  *
- * Handles:
- * - Uploading files to the connected peer
- * - Receiving files from the connected peer
- * - Tracking all file transfers (sent and received)
+ * Exposes the transfer snapshots from the TransferTracker (the single source
+ * of truth for progress, speed and status) and functions to send files.
  */
 export default function useFileTransfer() {
     const peerConnectionManager = usePeerConnectionManager();
-    const [files, setFiles] = useState<Map<string, FileDisplay>>(new Map());
+    const transferTracker = peerConnectionManager.getTransferTracker();
 
-    useEffect(() => {
-        peerConnectionManager.setOnReceivedFileCallback(handleReceivedFile);
-    }, [peerConnectionManager]); // TODO: use Exhaustive Deps Exclude
+    const transfers: TransferSnapshot[] = useSyncExternalStore(
+        listener => transferTracker.subscribe(listener),
+        () => transferTracker.getSnapshot()
+    );
 
     /**
      * Handles file input change events (e.g., from file picker dialogs).
@@ -41,25 +40,22 @@ export default function useFileTransfer() {
 
     /**
      * Sends multiple files to the connected peer.
-     * Creates a unique UUID for each file and tracks it in the files map.
-     * If no connection exists, still adds files to the display (useful for development/testing).
+     * Creates a unique UUID for each file; the transfer tracker picks the
+     * transfer up as soon as sending starts.
      *
      * @param {FileList} filesList - The list of files to send
      */
     const sendFiles = (filesList: FileList) => {
         for (const file of filesList) {
             const uuid = crypto.randomUUID();
-            const fileDisplay: FileDisplay = {
-                name: file.name,
-                direction: FileDirection.UP,
-                size: file.size,
-                time: new Date(),
-            };
-
-            setFiles(prevFiles => new Map(prevFiles.set(uuid, fileDisplay)));
 
             // Useful for development/testing without connection
             if (!peerConnectionManager.getConnection()) {
+                transferTracker.start(uuid, {
+                    name: file.name,
+                    size: file.size,
+                    direction: "up",
+                });
                 continue;
             }
 
@@ -67,30 +63,8 @@ export default function useFileTransfer() {
         }
     };
 
-    /**
-     * Callback invoked when a file is received from the peer.
-     * Adds the received file to the files map for display.
-     *
-     * @param {string} name - The name of the received file
-     * @param {number} size - The size of the received file in bytes
-     * @param {string} uuid - The unique identifier for this file transfer
-     */
-    const handleReceivedFile = (name: string, size: number, uuid: string) => {
-        setFiles(
-            prevFiles =>
-                new Map(
-                    prevFiles.set(uuid, {
-                        name: name,
-                        direction: FileDirection.DOWN,
-                        size: size,
-                        time: new Date(),
-                    })
-                )
-        );
-    };
-
     return {
-        files,
+        transfers,
         handleFileInputChange,
         sendFiles,
     };
