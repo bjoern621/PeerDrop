@@ -19,6 +19,7 @@ jobs:
             DB_PASSWORD: passwort
             DB_DATABASE_NAME: peerdrop
             COOKIE_DOMAIN: testdomain
+            JWT_SECRET: test-secret-with-at-least-32-characters
 
         steps:
             - name: Checkout repository

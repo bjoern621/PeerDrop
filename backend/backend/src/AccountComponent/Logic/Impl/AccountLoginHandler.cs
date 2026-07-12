@@ -5,7 +5,11 @@ using backend.AccountComponent.Logic.Api;
 
 namespace backend.AccountComponent.Logic.Impl;
 
-public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher) : IAccountLoginHandler
+public class AccountLoginHandler(
+    IAccountRepository repo,
+    IPasswordHasher hasher,
+    IAuthTokenService tokenService
+) : IAccountLoginHandler
 {
     public async Task<IResult> HandleLogin(HttpContext context)
     {
@@ -39,32 +43,35 @@ public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher
         if (!valid)
             return Results.BadRequest("Invalid password");
 
-        // Store user ID (or other data) in session
-        context.Session.SetString("UserId", accountobj.Id.ToString());
+        await tokenService.IssueTokensAsync(context, accountobj.Id);
 
         return Results.Ok(new LoginResponse("Logged in successfully"));
     }
 
-    public IResult HandleLogout(HttpContext context)
+    public async Task<IResult> HandleLogout(HttpContext context)
     {
-        // Clear the session
-        context.Session.Clear();
-        // remove client-side cookie
-        context.Response.Cookies.Delete(".AspNetCore.Session");
+        await tokenService.RevokeTokensAsync(context);
         return Results.Ok(new LogoutResponse("Logged out successfully"));
     }
 
-    // retrieves the current user from the session if exists, otherwise returns 401
-    public async Task<IResult> HandleGetCurrentUser(HttpContext context)
+    // Issues a new token pair from the refresh token cookie, or returns 401
+    public async Task<IResult> HandleRefresh(HttpContext context)
     {
-        var userIdStr = context.Session.GetString("UserId");
-        if (userIdStr == null)
-            return Results.Unauthorized(); // No active session / not logged in
-
-        if (!int.TryParse(userIdStr, out int userId))
+        var accountId = await tokenService.RefreshTokensAsync(context);
+        if (accountId == null)
             return Results.Unauthorized();
 
-        var user = await repo.GetByIdAsync(userId);
+        return Results.Ok(new RefreshResponse("Tokens refreshed successfully"));
+    }
+
+    // retrieves the current user from the access token if valid, otherwise returns 401
+    public async Task<IResult> HandleGetCurrentUser(HttpContext context)
+    {
+        var accountId = await tokenService.GetAuthenticatedAccountIdAsync(context);
+        if (accountId == null)
+            return Results.Unauthorized(); // No valid access token / not logged in
+
+        var user = await repo.GetByIdAsync(accountId.Value);
         if (user == null)
             return Results.Unauthorized(); // User no longer exists
 
@@ -73,14 +80,11 @@ public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher
 
     public async Task<IResult> HandleGetLoggedInStatus(HttpContext context)
     {
-        var userIdStr = context.Session.GetString("UserId");
-        if (userIdStr == null)
+        var accountId = await tokenService.GetAuthenticatedAccountIdAsync(context);
+        if (accountId == null)
             return Results.Ok(new StatusResponse(false));
 
-        if (!int.TryParse(userIdStr, out int userId))
-            return Results.Ok(new StatusResponse(false));
-
-        var user = await repo.GetByIdAsync(userId);
+        var user = await repo.GetByIdAsync(accountId.Value);
         if (user == null)
             return Results.Ok(new StatusResponse(false));
 

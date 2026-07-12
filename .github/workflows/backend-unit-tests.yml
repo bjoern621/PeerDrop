@@ -12,6 +12,7 @@ jobs:
     build:
         env:
             COOKIE_DOMAIN: testdomain
+            JWT_SECRET: test-secret-with-at-least-32-characters
 
         runs-on: ubuntu-latest
         name: Run Backend Unit Tests

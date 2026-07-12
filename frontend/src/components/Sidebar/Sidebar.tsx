@@ -6,12 +6,8 @@ import leftArrowIcon from "../../assets/left_arrow.svg";
 import rightArrowIcon from "../../assets/right_arrow.svg";
 import css from "./Sidebar.module.scss";
 import { UserProfile } from "./UserProfile/UserProfile";
-import errorAsValue from "../../util/ErrorAsValue";
-import { StatusResponse } from "../../util/dtos/StatusResponse";
-import { assert } from "../../util/Assert";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
-import { toast } from "react-toastify/unstyled";
-import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
+import { AuthService } from "../../services/AuthService";
 
 export const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(true);
@@ -20,56 +16,23 @@ export const Sidebar = () => {
 
     const resetWebsocketConnection = useResetWebsocket();
 
-    const getLoggedInStatus = async () => {
-        const [response, err] = await errorAsValue(
-            fetch(`${getRuntimeEnvVars().backendUrl}/me/status`, {
-                method: "GET",
-                credentials: "include",
-            })
-        );
-
-        if (err) {
-            toast.error(
-                "Fehler beim Abrufen des Login-Status. Bitte versuche es später erneut."
-            );
-            return false;
-        }
-
-        if (!response.ok) {
-            toast.error(
-                "Fehler beim Abrufen des Login-Status. Bitte versuche es später erneut."
-            );
-            return false;
-        }
-
-        const [responseBody, parseError] = await errorAsValue(response.json());
-
-        if (parseError) {
-            toast.error(
-                "Fehler beim Abrufen des Login-Status. Bitte versuche es später erneut."
-            );
-            console.error("Fehler beim Parsen der Antwort:", parseError);
-            return false;
-        }
-
-        const statusData = responseBody as StatusResponse;
-        assert(
-            statusData && typeof statusData.status === "boolean",
-            "Invalid user status response"
-        );
-
-        return statusData.status;
-    };
-
     useEffect(() => {
-        void getLoggedInStatus().then(loggedIn => {
+        void AuthService.getLoggedInStatus().then(loggedIn => {
             setLoggedIn(loggedIn);
             if (loggedIn) {
                 // Has to be done like this, otherwise the sidebar
                 // automatically re-collapses if the user is not logged in
                 setIsCollapsed(false);
+
+                if (AuthService.hasRefreshedTokens()) {
+                    // The websocket connected before the tokens were refreshed;
+                    // reconnect so the server can associate it with the account
+                    resetWebsocketConnection();
+                }
             }
         });
+        // The status check must run exactly once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     function onCollapseSidebar() {

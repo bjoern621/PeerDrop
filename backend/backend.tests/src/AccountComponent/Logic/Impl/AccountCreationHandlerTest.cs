@@ -17,6 +17,7 @@ public class AccountCreationHandlerTests
 {
     private Mock<IAccountRepository> _repoMock;
     private Mock<IPasswordHasher> _hasherMock;
+    private Mock<IAuthTokenService> _tokenServiceMock;
     private AccountCreationHandler _handler;
 
     [SetUp]
@@ -24,7 +25,8 @@ public class AccountCreationHandlerTests
     {
         _repoMock = new Mock<IAccountRepository>();
         _hasherMock = new Mock<IPasswordHasher>();
-        _handler = new AccountCreationHandler(_repoMock.Object, _hasherMock.Object);
+        _tokenServiceMock = new Mock<IAuthTokenService>();
+        _handler = new AccountCreationHandler(_repoMock.Object, _hasherMock.Object, _tokenServiceMock.Object);
     }
 
     [Test]
@@ -40,7 +42,7 @@ public class AccountCreationHandlerTests
         var result = await _handler.HandleAccounts(context);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(context.Session.GetString("UserId"), Is.EqualTo("123"));
+        _tokenServiceMock.Verify(t => t.IssueTokensAsync(context, 123), Times.Once);
     }
 
     [Test]
@@ -62,7 +64,6 @@ public class AccountCreationHandlerTests
     {
         var invalidJson = "{ invalid json }";
         var context = new DefaultHttpContext();
-        context.Session = new SessionSetup();
         context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(invalidJson));
 
         var result = await _handler.HandleAccounts(context);
@@ -75,7 +76,6 @@ public class AccountCreationHandlerTests
     {
         var emptyJson = "null";
         var context = new DefaultHttpContext();
-        context.Session = new SessionSetup();
         context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(emptyJson));
 
         var result = await _handler.HandleAccounts(context);
