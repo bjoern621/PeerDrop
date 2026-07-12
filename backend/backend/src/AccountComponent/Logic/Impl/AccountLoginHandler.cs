@@ -38,13 +38,16 @@ public class AccountLoginHandler(
 
         if (accountobj == null)
         {
-            return Results.BadRequest("Invalid username");
+            // Hash anyway so response time does not reveal whether the username
+            // exists, and return the same generic error as a wrong password.
+            hasher.HashPassword(acc.Password);
+            return Results.BadRequest("Invalid username or password");
         }
 
         bool valid = hasher.VerifyPassword(acc.Password, accountobj.Password);
 
         if (!valid)
-            return Results.BadRequest("Invalid password");
+            return Results.BadRequest("Invalid username or password");
 
         await signIn.SignInAsync(context, accountobj.Id, accountobj.SecurityStamp);
 
