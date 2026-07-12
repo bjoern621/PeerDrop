@@ -20,7 +20,7 @@ export default function Sharing() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
 
-    const { files, handleFileInputChange, sendFiles } = useFileTransfer();
+    const { transfers, handleFileInputChange, sendFiles } = useFileTransfer();
     const { closeConnection } = useConnectionLifecycle();
 
     return (
@@ -107,8 +107,8 @@ export default function Sharing() {
                     </thead>
 
                     <tbody>
-                        {Array.from(files.entries()).map(([uuid, file]) => (
-                            <FileRow key={uuid} fileUUID={uuid} file={file} />
+                        {transfers.map(transfer => (
+                            <FileRow key={transfer.uuid} transfer={transfer} />
                         ))}
                     </tbody>
                 </table>

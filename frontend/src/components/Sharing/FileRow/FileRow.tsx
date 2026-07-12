@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import StableText from "../../StableText/StableText";
 import css from "./FileRow.module.scss";
-import { FileDirection, FileDisplay } from "../types";
 import DownloadIcon from "../../../assets/icons8-download.svg?react";
 import UploadIcon from "../../../assets/icons8-upload.svg?react";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import Badge from "../../Badge/Badge";
 import Tooltip from "../../Tooltip/Tooltip";
+import { TransferSnapshot } from "../../../services/TransferTracker";
 
 interface FileRowProps {
-    fileUUID: string;
-    file: FileDisplay;
+    transfer: TransferSnapshot;
 }
 
 const getSizeInHumanReadableFormat = (size: number): string => {
@@ -35,10 +34,49 @@ const getTimeInHumanReadableFormat = (date: Date): string => {
     );
 };
 
-export default function FileRow({ fileUUID, file }: FileRowProps) {
+const getSpeedInHumanReadableFormat = (bytesPerSecond: number): string => {
+    const units = ["B/s", "KB/s", "MB/s", "GB/s"];
+    let unitIndex = 0;
+    let speed = bytesPerSecond;
+
+    while (speed >= 1024 && unitIndex < units.length - 1) {
+        speed /= 1024;
+        unitIndex++;
+    }
+
+    return `${speed.toFixed(1)} ${units[unitIndex]}`;
+};
+
+const formatRemainingTime = (seconds: number): string => {
+    if (seconds > 3600) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        return `${hours}h ${minutes}m`;
+    } else if (seconds > 60) {
+        const minutes = Math.floor(seconds / 60);
+        const rest = Math.ceil(seconds % 60);
+        return `${minutes}m ${rest}s`;
+    }
+    return `${Math.ceil(seconds)}s`;
+};
+
+const getTransferInfo = (transfer: TransferSnapshot): string => {
+    if (transfer.status === "finalizing") {
+        return "Speichern...";
+    }
+    if (transfer.speedBps === null || transfer.speedBps <= 0) {
+        return "Berechne...";
+    }
+
+    const speedText = getSpeedInHumanReadableFormat(transfer.speedBps);
+    if (transfer.etaSeconds === null) {
+        return speedText;
+    }
+    return `${speedText} · ${formatRemainingTime(transfer.etaSeconds)}`;
+};
+
+export default function FileRow({ transfer }: FileRowProps) {
     const peerConnectionManager = usePeerConnectionManager();
-    const [progress, setProgress] = useState(0);
-    const [, setNow] = useState(Date.now());
     const [isOverflowing, setIsOverflowing] = useState(false);
     const nameRef = useRef<HTMLDivElement>(null);
 
@@ -51,93 +89,32 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
         }
     }, []);
 
-    useEffect(() => {
-        const onFileProgressUpdate = (data: {
-            uuid: string;
-            progress: number;
-        }) => {
-            if (data.uuid !== fileUUID) {
-                return;
-            }
-
-            setProgress(data.progress);
-        };
-
-        peerConnectionManager.subscribeToFileProgress(onFileProgressUpdate);
-
-        return () => {
-            peerConnectionManager.unsubscribeFromFileProgress(
-                onFileProgressUpdate
-            );
-        };
-    }, [fileUUID, peerConnectionManager]); // TODO: use Exhaustive Deps Exclude
-
-    // Update every second to refresh the remaining time display
-    useEffect(() => {
-        if (progress >= 1) return; // Don't update if transfer is complete
-
-        const interval = setInterval(() => {
-            setNow(Date.now());
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [progress]);
-
-    const getRemainingTime = (): string => {
-        const totalSize = file.size;
-        const transferredSize = totalSize * progress;
-        const timeElapsed = Date.now() - file.time.getTime(); // in milliseconds
-
-        // Prevent division by zero
-        if (transferredSize === 0 || timeElapsed === 0) {
-            return "Berechne...";
-        }
-
-        const averageSpeed = transferredSize / (timeElapsed / 1000); // in bytes per second
-        const remainingSize = totalSize - transferredSize;
-        const estimatedTimeRemaining = remainingSize / averageSpeed; // in seconds
-
-        if (estimatedTimeRemaining > 3600) {
-            const hours = Math.floor(estimatedTimeRemaining / 3600);
-            const minutes = Math.floor((estimatedTimeRemaining % 3600) / 60);
-            return `${hours}h ${minutes}m`;
-        } else if (estimatedTimeRemaining > 60) {
-            const minutes = Math.floor(estimatedTimeRemaining / 60);
-            const seconds = Math.ceil(estimatedTimeRemaining % 60);
-            return `${minutes}m ${seconds}s`;
-        } else if (estimatedTimeRemaining === 1) {
-            return `1 Sekunde`;
-        } else {
-            return `${Math.ceil(estimatedTimeRemaining)} Sekunden`;
-        }
-    };
-
     return (
         <tr className={css.fileRow}>
             <td>
                 <div
                     ref={nameRef}
-                    title={isOverflowing ? file.name : undefined}
+                    title={isOverflowing ? transfer.name : undefined}
                 >
                     <StableText
-                        text={file.name}
+                        text={transfer.name}
                         fontWeight="var(--font-weight-medium)"
                     />
                 </div>
             </td>
             <td className={css.progressCell}>
-                {file.direction === FileDirection.UP ? (
+                {transfer.direction === "up" ? (
                     <UploadIcon className={css.uploadIcon} />
                 ) : (
                     <DownloadIcon className={css.downloadIcon} />
                 )}
 
-                {progress >= 1 ? (
+                {transfer.status === "done" ? (
                     <>
                         <Badge color_scheme="success" size={"m"}>
                             Fertig!
                         </Badge>
-                        {file.direction === FileDirection.DOWN && (
+                        {transfer.direction === "down" && (
                             <Tooltip
                                 content="Klicken, um erneut zu speichern"
                                 position="top"
@@ -148,7 +125,7 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
                                     clickable
                                     onClick={() => {
                                         peerConnectionManager.redownloadFile(
-                                            fileUUID
+                                            transfer.uuid
                                         );
                                     }}
                                 >
@@ -157,17 +134,23 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
                             </Tooltip>
                         )}
                     </>
+                ) : transfer.status === "failed" ? (
+                    <Badge color_scheme="neutral" size={"m"}>
+                        Fehlgeschlagen
+                    </Badge>
                 ) : (
                     <div className={css.progressContainer}>
                         <div className={css.progressInfo}>
-                            <span>{(progress * 100).toFixed(2)} %</span>
+                            <span>
+                                {(transfer.progress * 100).toFixed(2)} %
+                            </span>
 
-                            <span>{getRemainingTime()}</span>
+                            <span>{getTransferInfo(transfer)}</span>
                         </div>
 
                         <progress
                             className={css.progressBar}
-                            value={progress}
+                            value={transfer.progress}
                             max={1}
                         />
                     </div>
@@ -175,13 +158,13 @@ export default function FileRow({ fileUUID, file }: FileRowProps) {
             </td>
             <td>
                 <StableText
-                    text={getSizeInHumanReadableFormat(file.size)}
+                    text={getSizeInHumanReadableFormat(transfer.size)}
                     fontWeight="var(--font-weight-medium)"
                 />
             </td>
             <td>
                 <StableText
-                    text={getTimeInHumanReadableFormat(file.time)}
+                    text={getTimeInHumanReadableFormat(transfer.startedAt)}
                     fontWeight="var(--font-weight-medium)"
                 />
             </td>
