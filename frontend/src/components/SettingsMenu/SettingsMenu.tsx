@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from "react";
 import css from "./SettingsMenu.module.scss";
 import SettingsIcon from "../../assets/actions/icons8-settings.svg?react";
+import Button from "../Button/Button";
 import { useThemeContext } from "../../context/ThemeContext";
 import useSettings from "../../hooks/useSettings";
 import { updateSettings } from "../../services/SettingsStore";
@@ -41,9 +42,10 @@ export default function SettingsMenu() {
 
     return (
         <>
-            <button
-                type="button"
+            <Button
                 className={css.gearButton}
+                color_scheme={"neutral"}
+                variant={"outline"}
                 aria-label="Einstellungen"
                 aria-haspopup="dialog"
                 aria-expanded={isOpen}
@@ -51,7 +53,7 @@ export default function SettingsMenu() {
                 onClick={() => openDialog()}
             >
                 <SettingsIcon aria-hidden />
-            </button>
+            </Button>
 
             <dialog
                 ref={dialogRef}

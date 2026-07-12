@@ -1,26 +1,14 @@
 @use "../../theme/shadows.scss" as *;
 
 .gearButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: var(--space-4);
-    border-radius: var(--space-4);
+    padding: var(--space-8);
 
     svg {
-        width: 24px;
-        height: 24px;
-        fill: var(--text);
         transition: rotate 0.3s ease;
     }
 
-    &:hover {
-        background-color: var(--text-muted-10);
-
-        svg {
-            rotate: 30deg;
-        }
+    &:hover:not(:disabled) svg {
+        rotate: 30deg;
     }
 }
 
