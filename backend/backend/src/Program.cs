@@ -27,6 +27,7 @@ using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Impl;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.WebSockets;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
@@ -99,12 +100,13 @@ builder.Services.AddScoped<ISecurityStampValidator, SecurityStampValidator>();
 builder.Services.AddScoped<IDeviceHandler, DeviceHandler>();
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 
-// Persisting the data protection key ring keeps auth cookies valid across restarts and deployments.
-// Without DATA_PROTECTION_KEYS_DIR the default profile location is used (local development).
-var dataProtectionBuilder = builder.Services.AddDataProtection().SetApplicationName("PeerDrop");
-var dataProtectionKeysDir = Environment.GetEnvironmentVariable("DATA_PROTECTION_KEYS_DIR");
-if (!string.IsNullOrEmpty(dataProtectionKeysDir))
-    dataProtectionBuilder.PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysDir));
+// The data protection key ring encrypts the auth cookies. It is stored in the
+// database so cookies stay valid across backend restarts and deployments and the
+// keys share the lifecycle of the account data they protect.
+builder.Services.AddDataProtection().SetApplicationName("PeerDrop");
+builder.Services.Configure<KeyManagementOptions>(options =>
+    options.XmlRepository = new PostgresXmlRepository(dataSource)
+);
 
 builder
     .Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
