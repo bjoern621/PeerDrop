@@ -5,11 +5,18 @@ import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
 import { useEffect, useRef, useState } from "react";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import { toast } from "react-toastify/unstyled";
+import { ConnectWarningDialog } from "../../Popups/ConnectWarningDialog";
+import {
+    dismissConnectWarning,
+    isConnectWarningDismissed,
+} from "../../../util/ConnectWarningPreference";
 
 export default function ConnectToPeer() {
     const peerConnectionManager = usePeerConnectionManager();
 
     const [remoteToken, setRemoteToken] = useState<string>("");
+    const [showConnectWarning, setShowConnectWarning] =
+        useState<boolean>(false);
     const [waitingForResponse, setWaitingForResponse] =
         useState<boolean>(false);
     const [connectionRequestTimestamp, setConnectionRequestTimestamp] =
@@ -84,20 +91,37 @@ export default function ConnectToPeer() {
         if (successfullySent) {
             setConnectionRequestTimestamp(Date.now());
             setWaitingForResponse(true);
+            connectButtonRef.current?.focus();
         }
 
         return successfullySent;
+    };
+
+    const requestConnect = () => {
+        // Incomplete tokens are rejected with a toast in connectToPeer,
+        // so the warning is only shown for complete tokens.
+        if (remoteToken.length !== 5 || isConnectWarningDismissed()) {
+            connectToPeer();
+            return;
+        }
+
+        setShowConnectWarning(true);
+    };
+
+    const confirmConnectWarning = (dontShowAgain: boolean) => {
+        if (dontShowAgain) {
+            dismissConnectWarning();
+        }
+
+        setShowConnectWarning(false);
+        connectToPeer();
     };
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
         if (!waitingForResponse) {
-            const successfullySent = connectToPeer();
-
-            if (successfullySent) {
-                connectButtonRef.current!.focus();
-            }
+            requestConnect();
         }
     };
 
@@ -135,12 +159,19 @@ export default function ConnectToPeer() {
                 </Button>
             ) : (
                 <Button
-                    onClick={connectToPeer}
+                    onClick={requestConnect}
                     variant={"filled"}
                     ref={connectButtonRef}
                 >
                     Verbinden
                 </Button>
+            )}
+
+            {showConnectWarning && (
+                <ConnectWarningDialog
+                    onConfirm={confirmConnectWarning}
+                    onCancel={() => setShowConnectWarning(false)}
+                />
             )}
         </div>
     );

@@ -1,0 +1,53 @@
+@use "../../theme/shadows.scss" as *;
+
+.dialog {
+    margin: auto;
+    max-width: 480px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+
+    padding: var(--space-24);
+    border: 1px solid var(--border);
+    border-radius: var(--space-16);
+
+    background-color: var(--background);
+    color: var(--text);
+
+    @include elevated-shadow;
+}
+
+.heading {
+    margin: 0;
+
+    font-family: Atma, sans-serif;
+    font-size: var(--font-size-l);
+    line-height: var(--line-height-l);
+    font-weight: var(--font-weight-semibold);
+}
+
+.text {
+    margin: 0;
+}
+
+.dontShowAgain {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+
+    color: var(--text-muted);
+
+    > input {
+        accent-color: var(--primary);
+    }
+}
+
+.buttonBar {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-8);
+    flex-wrap: wrap;
+}
