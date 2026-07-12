@@ -7,11 +7,7 @@ using backend.AccountComponent.Logic.Api;
 
 namespace backend.AccountComponent.Logic.Impl;
 
-public class AccountCreationHandler(
-    IAccountRepository repo,
-    IPasswordHasher hasher,
-    IAuthTokenService tokenService
-) : IAccountCreationHandler
+public class AccountCreationHandler(IAccountRepository repo, IPasswordHasher hasher) : IAccountCreationHandler
 {
     public async Task<IResult> HandleAccounts(HttpContext context)
     {
@@ -48,8 +44,8 @@ public class AccountCreationHandler(
 
             var newId = await repo.SaveAsync(account);
 
-            // Log the new account in right away
-            await tokenService.IssueTokensAsync(context, newId);
+            // Store user ID (or other data) in session
+            context.Session.SetString("UserId", newId.ToString());
 
             return Results.Created($"/users/{newId}", new { Id = newId });
         }

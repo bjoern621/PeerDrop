@@ -13,8 +13,7 @@
                 "DB_PASSWORD": "passwort",
                 "DB_DATABASE_NAME": "peerdrop",
                 "FRONTEND_ORIGIN": "http://localhost:5173",
-                "COOKIE_DOMAIN": "localhost",
-                "JWT_SECRET": "local-development-secret-do-not-use-in-production"
+                "COOKIE_DOMAIN": "localhost"
             }
         }
     }

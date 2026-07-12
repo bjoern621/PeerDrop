@@ -7,7 +7,6 @@
       <DB_PASSWORD>passwort</DB_PASSWORD>
       <DB_DATABASE_NAME>peerdrop</DB_DATABASE_NAME>
       <COOKIE_DOMAIN>testdomain</COOKIE_DOMAIN>
-      <JWT_SECRET>test-secret-with-at-least-32-characters</JWT_SECRET>
     </EnvironmentVariables>
   </RunConfiguration>
 </RunSettings>

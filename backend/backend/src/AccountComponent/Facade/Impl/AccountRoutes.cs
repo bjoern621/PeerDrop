@@ -13,8 +13,6 @@ public class AccountRoutes : IAccountRoutes
             loginHandler.HandleLogin(context));
         app.MapPost("/logout", (IAccountLoginHandler loginHandler, HttpContext context) =>
             loginHandler.HandleLogout(context));
-        app.MapPost("/refresh", (IAccountLoginHandler loginHandler, HttpContext context) =>
-            loginHandler.HandleRefresh(context));
         app.MapGet("/me", (IAccountLoginHandler loginHandler, HttpContext context) =>
             loginHandler.HandleGetCurrentUser(context));
         app.MapGet("/me/status", (IAccountLoginHandler loginHandler, HttpContext context) =>

@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using backend.AccountComponent.Logic.Api;
 using backend.WebSocketComponent.Common.Api.DTOs;
 using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Types;
@@ -12,7 +11,7 @@ namespace backend.WebSocketComponent.Logic.Impl;
 
 using MessageType = string;
 
-public class WebSocketHandler(ILogger<WebSocketHandler> logger, IAuthTokenService tokenService) : IWebSocketHandler
+public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHandler
 {
     private readonly ConcurrentDictionary<string, RuntimeClientInformation> ActiveConnections = new(); // String is the client token
     private readonly Random Random = new();
@@ -31,14 +30,18 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger, IAuthTokenServic
     /// <summary>
     /// Generates a unique client ID and adds the WebSocket connection to the active connections list. Returns the client ID.
     /// </summary>
-    private async Task<string> AddConnectionAsync(WebSocket webSocket, HttpContext context)
+    private string AddConnection(WebSocket webSocket, HttpContext context)
     {
-        int? userId = await tokenService.GetAuthenticatedAccountIdAsync(context);
+        int? userId = null;
+        if (context.Session.GetString("UserId") != null && int.TryParse(context.Session.GetString("UserId"), out int parsedUserId))
+        {
+            userId = parsedUserId;
+        }
 
         var runtimeInformation = new RuntimeClientInformation
         {
             WebSocket = webSocket,
-            UserId = userId // User ID from the access token cookie, may be null if not logged in
+            UserId = userId // User ID from session, may be null if not logged in
         };
 
         string clientToken;
@@ -98,7 +101,7 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger, IAuthTokenServic
         }
 
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-        var clientToken = await AddConnectionAsync(webSocket, context);
+        var clientToken = AddConnection(webSocket, context);
 
         await SendClientTokenAsync(clientToken);
 

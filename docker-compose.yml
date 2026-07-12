@@ -37,7 +37,6 @@ services:
             - DB_USERNAME=postgres
             - DB_PASSWORD=passwort
             - COOKIE_DOMAIN=localhost
-            - JWT_SECRET=stage-secret-change-me-1234567890abcdef
         ports:
             - "8080:8080"
         restart: unless-stopped

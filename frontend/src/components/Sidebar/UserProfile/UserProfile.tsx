@@ -18,7 +18,6 @@ import { MessageType } from "../../../types/MessageType";
 import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
 import { toast } from "react-toastify/unstyled";
 import { getRuntimeEnvVars } from "../../../util/RuntimeEnvVars";
-import { AuthService } from "../../../services/AuthService";
 
 interface DeviceDisplay {
     status: DeviceStatus;
@@ -130,13 +129,10 @@ export const UserProfile = () => {
 
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
-            AuthService.fetchWithRefresh(
-                `${getRuntimeEnvVars().backendUrl}/devices`,
-                {
-                    method: "GET",
-                    credentials: "include",
-                }
-            )
+            fetch(`${getRuntimeEnvVars().backendUrl}/devices`, {
+                method: "GET",
+                credentials: "include",
+            })
         );
 
         if (err) {
@@ -188,13 +184,10 @@ export const UserProfile = () => {
 
     const fetchUserName = async () => {
         const [response, err] = await errorAsValue(
-            AuthService.fetchWithRefresh(
-                `${getRuntimeEnvVars().backendUrl}/me`,
-                {
-                    method: "GET",
-                    credentials: "include",
-                }
-            )
+            fetch(`${getRuntimeEnvVars().backendUrl}/me`, {
+                method: "GET",
+                credentials: "include",
+            })
         );
 
         if (err) {
@@ -231,17 +224,14 @@ export const UserProfile = () => {
         setRegisterButtonDisabled(true);
 
         const [response, err] = await errorAsValue(
-            AuthService.fetchWithRefresh(
-                `${getRuntimeEnvVars().backendUrl}/device/register`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "User-Agent": navigator.userAgent,
-                    },
-                }
-            )
+            fetch(`${getRuntimeEnvVars().backendUrl}/device/register`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    "User-Agent": navigator.userAgent,
+                },
+            })
         );
 
         setRegisterButtonDisabled(false);
@@ -286,13 +276,10 @@ export const UserProfile = () => {
 
     const deleteCurrentDevice = async () => {
         const [response, err] = await errorAsValue(
-            AuthService.fetchWithRefresh(
-                `${getRuntimeEnvVars().backendUrl}/device`,
-                {
-                    method: "DELETE",
-                    credentials: "include",
-                }
-            )
+            fetch(`${getRuntimeEnvVars().backendUrl}/device`, {
+                method: "DELETE",
+                credentials: "include",
+            })
         );
 
         if (err) {
@@ -314,17 +301,14 @@ export const UserProfile = () => {
 
     const deleteOtherDevice = async (device: DeviceDisplay) => {
         const [response, err] = await errorAsValue(
-            AuthService.fetchWithRefresh(
-                `${getRuntimeEnvVars().backendUrl}/devices`,
-                {
-                    method: "DELETE",
-                    credentials: "include",
-                    body: JSON.stringify(device.uuid),
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            )
+            fetch(`${getRuntimeEnvVars().backendUrl}/devices`, {
+                method: "DELETE",
+                credentials: "include",
+                body: JSON.stringify(device.uuid),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
         );
         if (err) {
             toast.error(

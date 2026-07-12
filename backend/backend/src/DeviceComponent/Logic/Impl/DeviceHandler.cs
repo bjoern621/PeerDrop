@@ -1,15 +1,17 @@
 using System.Text.RegularExpressions;
+using backend.AccountComponent.Common.Api.DTOs;
 using backend.AccountComponent.Logic.Api;
 using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
 public class DeviceHandler(
     IDeviceRepository repo,
-    IAuthTokenService tokenService,
+    IAccountLoginHandler login,
     IDeviceService _deviceService
 ) : IDeviceHandler
 {
@@ -19,13 +21,22 @@ public class DeviceHandler(
 
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
-        var authenticatedAccountId = await tokenService.GetAuthenticatedAccountIdAsync(context);
-        if (authenticatedAccountId == null)
+        if (!context.Request.Cookies.TryGetValue(".AspNetCore.Session", out var sessionToken))
         {
             return Results.Unauthorized();
         }
 
-        var accountId = authenticatedAccountId.Value;
+        var result = await login.HandleGetCurrentUser(context);
+        if (result is not Ok<LoginResponse>)
+        {
+            return Results.Unauthorized();
+        }
+
+        var accountIdCon = context.Session.GetString("UserId");
+        if (!int.TryParse(accountIdCon, out var accountId))
+        {
+            return Results.BadRequest("Invalid account ID in session.");
+        }
 
         // Retrieve the display name from the User-Agent header (you can extract specific info if needed)
         string displayNameRaw = context.Request.Headers["User-Agent"].ToString();
@@ -44,7 +55,7 @@ public class DeviceHandler(
             deviceUuid.ToString(),
             new CookieOptions
             {
-                HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (the server has to validate the device against the authenticated account)
+                HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (you may validate the cookie on the server side by using the auth session token)
                 IsEssential = true,
                 SameSite = SameSiteMode.Lax,
                 Expires = DateTimeOffset.UtcNow.AddYears(5),
@@ -126,13 +137,30 @@ public class DeviceHandler(
 
     public async Task<IResult> GetDevicesByUserAsync(HttpContext context)
     {
-        var authenticatedAccountId = await tokenService.GetAuthenticatedAccountIdAsync(context);
-        if (authenticatedAccountId == null)
+        // Check for session cookie
+        if (!context.Request.Cookies.TryGetValue(".AspNetCore.Session", out var sessionToken))
         {
             return Results.Unauthorized();
         }
 
-        var parsedAccountId = authenticatedAccountId.Value;
+        var result = await login.HandleGetCurrentUser(context);
+        if (result is not Ok<LoginResponse>)
+        {
+            return Results.Unauthorized();
+        }
+
+        // Access the session using the sessionToken or from the session store
+        var accountId = context.Session.GetString("UserId");
+
+        if (string.IsNullOrEmpty(accountId))
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!int.TryParse(accountId, out var parsedAccountId))
+        {
+            return Results.BadRequest("Invalid account ID in session.");
+        }
 
         var deviceUuid = context.Request.Cookies["deviceUuid"];
         List<DeviceLoginDto>? devices;
@@ -191,13 +219,30 @@ public class DeviceHandler(
 
     public async Task<IResult> DeleteDeviceAsync(HttpContext context)
     {
-        var authenticatedAccountId = await tokenService.GetAuthenticatedAccountIdAsync(context);
-        if (authenticatedAccountId == null)
+        // Check for session cookie
+        if (!context.Request.Cookies.TryGetValue(".AspNetCore.Session", out var sessionToken))
         {
             return Results.Unauthorized();
         }
 
-        var parsedAccountId = authenticatedAccountId.Value;
+        var result = login.HandleGetCurrentUser(context).Result;
+        if (result is not Ok<LoginResponse>)
+        {
+            return Results.Unauthorized();
+        }
+
+        // Access the session using the sessionToken or from the session store
+        var accountId = context.Session.GetString("UserId");
+
+        if (string.IsNullOrEmpty(accountId))
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!int.TryParse(accountId, out var parsedAccountId))
+        {
+            return Results.BadRequest("Invalid account ID in session.");
+        }
 
         // Read device UUID from request body
         var deviceGuid = await context.Request.ReadFromJsonAsync<Guid>();

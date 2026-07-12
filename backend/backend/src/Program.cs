@@ -40,10 +40,6 @@ var _cookieDomain =
     Environment.GetEnvironmentVariable("COOKIE_DOMAIN")
     ?? throw new ApplicationException("COOKIE_DOMAIN not set");
 
-var _jwtSecret =
-    Environment.GetEnvironmentVariable("JWT_SECRET")
-    ?? throw new ApplicationException("JWT_SECRET not set");
-
 var frontendOrigin =
     Environment.GetEnvironmentVariable("FRONTEND_ORIGIN")
     ?? throw new ApplicationException("FRONTEND_ORIGIN not set");
@@ -56,7 +52,7 @@ builder.Services.AddCors(options =>
                 .WithOrigins(frontendOrigin)
                 .WithHeaders("Content-Type", "User-Agent", "Authorization")
                 .WithExposedHeaders("Location")
-                .AllowCredentials() // Required to allow auth cookies
+                .AllowCredentials() // Required to allow session cookies
                 .WithMethods("GET", "POST", "DELETE")
     )
 );
@@ -96,11 +92,16 @@ builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-// Singleton because the WebSocketHandler singleton authenticates connections with it
-builder.Services.AddSingleton<IAuthTokenService, AuthTokenService>();
-builder.Services.AddSingleton<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IDeviceHandler, DeviceHandler>();
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
+
+builder.Services.AddDistributedMemoryCache(); // For in-memory session storage (session gets deleted upon backend restart!!)
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.IdleTimeout = TimeSpan.FromDays(1); // Time for how long the (session-)cookie will be valid
+});
 
 var app = builder.Build();
 
@@ -111,6 +112,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
 app.UseCors(corsAllowFrontendOrigin);
+
+app.UseSession(); // Enables session handling on incoming requests
 
 app.UseWebSockets();
 

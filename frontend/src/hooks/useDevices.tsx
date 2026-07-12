@@ -13,7 +13,6 @@ import errorAsValue from "../util/ErrorAsValue";
 import { assert } from "../util/Assert";
 import { useDeviceHeartbeat } from "./useDeviceHeartbeat";
 import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
-import { AuthService } from "../services/AuthService";
 
 /**
  * Gets the device UUID from the browser cookie.
@@ -46,13 +45,10 @@ export const useDevices = () => {
      */
     const fetchDevices = useCallback(async () => {
         const [response, err] = await errorAsValue(
-            AuthService.fetchWithRefresh(
-                `${getRuntimeEnvVars().backendUrl}/devices`,
-                {
-                    method: "GET",
-                    credentials: "include",
-                }
-            )
+            fetch(`${getRuntimeEnvVars().backendUrl}/devices`, {
+                method: "GET",
+                credentials: "include",
+            })
         );
 
         if (err) {
@@ -99,17 +95,14 @@ export const useDevices = () => {
      */
     const registerCurrentDevice = useCallback(async () => {
         const [response, err] = await errorAsValue(
-            AuthService.fetchWithRefresh(
-                `${getRuntimeEnvVars().backendUrl}/device/register`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "User-Agent": navigator.userAgent,
-                    },
-                }
-            )
+            fetch(`${getRuntimeEnvVars().backendUrl}/device/register`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    "User-Agent": navigator.userAgent,
+                },
+            })
         );
 
         if (err) {
@@ -161,17 +154,14 @@ export const useDevices = () => {
      */
     const deleteDevice = useCallback(async (device: Device) => {
         const [response, err] = await errorAsValue(
-            AuthService.fetchWithRefresh(
-                `${getRuntimeEnvVars().backendUrl}/device`,
-                {
-                    method: "DELETE",
-                    credentials: "include",
-                    body: JSON.stringify(device.uuid),
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            )
+            fetch(`${getRuntimeEnvVars().backendUrl}/device`, {
+                method: "DELETE",
+                credentials: "include",
+                body: JSON.stringify(device.uuid),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
         );
 
         if (err) {
