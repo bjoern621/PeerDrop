@@ -52,7 +52,7 @@ export default function Sharing() {
                             <ImageFileIcon className={css.fileIcon2} />
                             <ZipFileIcon className={css.fileIcon3} />
                         </div>
-                        Dateien hinzufügen
+                        Datei teilen
                     </Button>
                     <input
                         type="file"
@@ -76,7 +76,7 @@ export default function Sharing() {
                             <FolderIcon className={css.folderClosed} />
                             <FolderOpenIcon className={css.folderOpen} />
                         </div>
-                        Ordner hinzufügen
+                        Ordner teilen
                     </Button>
                 </div>
 
