@@ -18,10 +18,18 @@ export default function Devices() {
                 <>
                     <div className={css.loggedIn}>
                         Deine registrierten Geräte{" "}
-                        <Tooltip content={"Zu FAQ wechseln: Geräteverwaltung"}>
-                            <Anchor to={"/faq#device-management"}>
-                                <QuestionIcon className={css.icon} />
-                            </Anchor>
+                        <Tooltip
+                            content={
+                                <>
+                                    Zu FAQ wechseln:{" "}
+                                    <Anchor to={"/faq#device-management"}>
+                                        Geräteverwaltung
+                                    </Anchor>
+                                </>
+                            }
+                            hoverable
+                        >
+                            <QuestionIcon className={css.icon} />
                         </Tooltip>
                     </div>
                     <DeviceList />
@@ -29,10 +37,18 @@ export default function Devices() {
             ) : (
                 <div className={css.notLoggedIn}>
                     Melde dich an, um Geräte zu registrieren
-                    <Tooltip content={"Zu FAQ wechseln: Geräteverwaltung"}>
-                        <Anchor to={"/faq#device-management"}>
-                            <QuestionIcon className={css.icon} />
-                        </Anchor>
+                    <Tooltip
+                        content={
+                            <>
+                                Zu FAQ wechseln:{" "}
+                                <Anchor to={"/faq#device-management"}>
+                                    Geräteverwaltung
+                                </Anchor>
+                            </>
+                        }
+                        hoverable
+                    >
+                        <QuestionIcon className={css.icon} />
                     </Tooltip>
                 </div>
             )}
