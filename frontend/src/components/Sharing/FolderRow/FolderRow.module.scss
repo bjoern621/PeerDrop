@@ -1,0 +1,37 @@
+// Expand/collapse toggle spanning folder icon and name.
+.folderToggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    overflow: hidden;
+
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.chevron {
+    height: calc(var(--font-size-s) * var(--line-height-s) * 0.6);
+    flex-shrink: 0;
+    fill: currentcolor;
+    transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+    transform: rotate(90deg);
+}
+
+.folderIcon {
+    height: calc(var(--font-size-s) * var(--line-height-s));
+    flex-shrink: 0;
+    fill: currentcolor;
+}
+
+.fileCount {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+}

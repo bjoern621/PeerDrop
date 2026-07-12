@@ -32,6 +32,19 @@ interface FileMeta {
     chunkCount: number;
     /** Payload bytes per full chunk; positions writes of unordered chunks. */
     chunkSize: number;
+    /**
+     * Path within a shared folder, including the folder name as first
+     * segment. Absent for single-file transfers.
+     */
+    relativePath?: string;
+    /** Groups files of the same folder transfer. Absent for single files. */
+    folderId?: string;
+}
+
+/** Folder membership of an outgoing file. */
+export interface FolderInfo {
+    folderId: string;
+    relativePath: string;
 }
 
 /** Reassembly state of one incoming file transfer. */
@@ -62,10 +75,15 @@ export class WebRTCConnection {
     // Reassembly state of incoming transfers, keyed by file UUID (= channel label).
     private readonly incomingTransfers: Map<string, ReceiveState> = new Map();
 
-    // Store completed downloads for re-download capability
+    // Store completed downloads for re-download and folder saving
     private readonly completedDownloads: Map<
         string, // File UUID
-        { blob: Blob; filename: string }
+        {
+            blob: Blob;
+            filename: string;
+            relativePath?: string;
+            folderId?: string;
+        }
     > = new Map();
 
     // Perfect Negotiation Pattern variables
@@ -124,8 +142,15 @@ export class WebRTCConnection {
      * once the buffer drains to LOW_WATER_MARK.
      *
      * @param file The file to be sent to the remote peer.
+     * @param folder Folder membership when the file is part of a folder
+     * transfer; carried in the metadata message so the receiver can rebuild
+     * the folder structure.
      */
-    public sendFileOverDataChannel(file: File, uuid: string) {
+    public sendFileOverDataChannel(
+        file: File,
+        uuid: string,
+        folder?: FolderInfo
+    ) {
         this.log(
             `File is ${[
                 file.name,
@@ -139,6 +164,8 @@ export class WebRTCConnection {
             name: file.name,
             size: file.size,
             direction: "up",
+            folderId: folder?.folderId,
+            relativePath: folder?.relativePath,
         });
 
         const dataChannel = this.peerConnection.createDataChannel(uuid, {
@@ -193,6 +220,8 @@ export class WebRTCConnection {
                     uuid: uuid,
                     chunkCount: chunkCount,
                     chunkSize: payloadSize,
+                    relativePath: folder?.relativePath,
+                    folderId: folder?.folderId,
                 })
             );
 
@@ -342,6 +371,8 @@ export class WebRTCConnection {
                     name: state.fileMeta.name,
                     size: state.fileMeta.size,
                     direction: "down",
+                    folderId: state.fileMeta.folderId,
+                    relativePath: state.fileMeta.relativePath,
                 });
 
                 state.earlyChunks.forEach(handleSequencedChunk);
@@ -430,13 +461,29 @@ export class WebRTCConnection {
 
         this.transferTracker.setStatus(uuid, "done");
 
-        // Store the blob for potential re-download
+        // Store the blob for potential re-download and folder saving
         if (state.fileMeta?.uuid) {
             this.completedDownloads.set(state.fileMeta.uuid, {
                 blob,
                 filename,
+                relativePath: state.fileMeta.relativePath,
+                folderId: state.fileMeta.folderId,
             });
             this.incomingTransfers.delete(state.fileMeta.uuid);
+        }
+
+        // Files of a folder transfer are saved together via saveFolder()
+        // when the browser has a directory picker; individual downloads
+        // would land flat in the download folder.
+        if (
+            state.fileMeta?.folderId &&
+            WebRTCConnection.isDirectoryPickerSupported()
+        ) {
+            this.log(
+                "File ready for folder save with TransferID:",
+                state.fileMeta.uuid
+            );
+            return;
         }
 
         // Yield to the event loop so the UI can render the completed state
@@ -601,6 +648,70 @@ export class WebRTCConnection {
         return true;
     }
 
+    /** True when the browser exposes the File System Access directory picker. */
+    public static isDirectoryPickerSupported(): boolean {
+        return (
+            typeof window !== "undefined" &&
+            typeof window.showDirectoryPicker === "function"
+        );
+    }
+
+    /**
+     * Saves all completed files of a folder transfer.
+     *
+     * With the File System Access API (Chromium) the user picks a target
+     * directory and the folder structure is recreated inside it. Without it
+     * each file is downloaded individually via the regular download queue.
+     *
+     * @param folderId The folder ID of the transfer to save.
+     * @returns true if saving was started, false when no completed files
+     * exist for the folder or the user dismissed the directory picker.
+     */
+    public async saveFolder(folderId: string): Promise<boolean> {
+        const entries = Array.from(this.completedDownloads.values()).filter(
+            entry => entry.folderId === folderId
+        );
+        if (entries.length === 0) {
+            this.log("No completed files for folder:", folderId);
+            return false;
+        }
+
+        if (!WebRTCConnection.isDirectoryPickerSupported()) {
+            entries.forEach(entry =>
+                this.triggerDownload(entry.blob, entry.filename)
+            );
+            return true;
+        }
+
+        const [directory, err] = await errorAsValue(
+            window.showDirectoryPicker!({ mode: "readwrite" })
+        );
+        if (err) {
+            // Usually the user closed the picker.
+            this.log("Directory picker dismissed:", err);
+            return false;
+        }
+
+        for (const entry of entries) {
+            const [, writeErr] = await errorAsValue(
+                writeFileToDirectory(
+                    directory,
+                    entry.relativePath ?? entry.filename,
+                    entry.blob
+                )
+            );
+            if (writeErr) {
+                console.error(
+                    "Failed to save file into directory:",
+                    entry.relativePath ?? entry.filename,
+                    writeErr
+                );
+                return false;
+            }
+        }
+        return true;
+    }
+
     public closeConnection() {
         this.incomingTransfers.forEach(state => {
             void state.opfsWriter?.abort();
@@ -674,6 +785,31 @@ export class WebRTCConnection {
             observable.unsubscribeAll();
         });
     }
+}
+
+/**
+ * Writes a blob at the given slash-separated path below a directory,
+ * creating intermediate subdirectories as needed.
+ */
+async function writeFileToDirectory(
+    root: FileSystemDirectoryHandle,
+    path: string,
+    blob: Blob
+): Promise<void> {
+    const segments = path.split("/").filter(segment => segment.length > 0);
+    const fileName = segments.pop()!;
+
+    let directory = root;
+    for (const segment of segments) {
+        directory = await directory.getDirectoryHandle(segment, {
+            create: true,
+        });
+    }
+
+    const handle = await directory.getFileHandle(fileName, { create: true });
+    const writable = await handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
 }
 
 const downloadQueue: (() => void)[] = [];

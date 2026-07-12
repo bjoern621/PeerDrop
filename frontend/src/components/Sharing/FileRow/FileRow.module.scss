@@ -36,6 +36,13 @@
     }
 }
 
+// File of an expanded folder, indented below the folder row.
+.nestedName {
+    padding-left: var(--space-24);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 @mixin iconStyles() {
     height: calc(var(--font-size-s) * var(--line-height-s));
     vertical-align: top;

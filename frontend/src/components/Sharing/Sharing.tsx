@@ -10,9 +10,11 @@ import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { useRef } from "react";
 import RemoteTokenDisplay from "../RemoteTokenDisplay/RemoteTokenDisplay";
 import FileRow from "./FileRow/FileRow";
+import FolderRow from "./FolderRow/FolderRow";
 import DragDropOverlay from "./DragDropOverlay/DragDropOverlay";
 import useFileTransfer from "../../hooks/useFileTransfer";
 import useConnectionLifecycle from "../../hooks/useConnectionLifecycle";
+import { groupTransfers } from "./groupTransfers";
 
 export default function Sharing() {
     useDeviceHeartbeat({ status: DeviceStatus.BUSY });
@@ -20,8 +22,11 @@ export default function Sharing() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
 
-    const { transfers, handleFileInputChange, sendFiles } = useFileTransfer();
+    const { transfers, handleFileInputChange, sendSelection } =
+        useFileTransfer();
     const { closeConnection } = useConnectionLifecycle();
+
+    const transferItems = groupTransfers(transfers);
 
     return (
         <div className={css.sharingContainer}>
@@ -47,7 +52,7 @@ export default function Sharing() {
                             <ImageFileIcon className={css.fileIcon2} />
                             <ZipFileIcon className={css.fileIcon3} />
                         </div>
-                        Datei teilen
+                        Dateien hinzufügen
                     </Button>
                     <input
                         type="file"
@@ -71,7 +76,7 @@ export default function Sharing() {
                             <FolderIcon className={css.folderClosed} />
                             <FolderOpenIcon className={css.folderOpen} />
                         </div>
-                        Ordner teilen
+                        Ordner hinzufügen
                     </Button>
                 </div>
 
@@ -93,7 +98,7 @@ export default function Sharing() {
             </div>
 
             <DragDropOverlay
-                onFilesDropped={sendFiles}
+                onItemsDropped={sendSelection}
                 className={css.dragDropOverlay}
             >
                 <table className={css.table}>
@@ -107,9 +112,16 @@ export default function Sharing() {
                     </thead>
 
                     <tbody>
-                        {transfers.map(transfer => (
-                            <FileRow key={transfer.uuid} transfer={transfer} />
-                        ))}
+                        {transferItems.map(item =>
+                            item.kind === "folder" ? (
+                                <FolderRow key={item.folderId} folder={item} />
+                            ) : (
+                                <FileRow
+                                    key={item.transfer.uuid}
+                                    transfer={item.transfer}
+                                />
+                            )
+                        )}
                     </tbody>
                 </table>
             </DragDropOverlay>
