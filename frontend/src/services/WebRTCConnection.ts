@@ -7,6 +7,7 @@ import { Observable } from "../util/observer/Observable";
 import { IceCandidateMessage } from "../types/rtc/IceCandidateMessage";
 import { SdpMessage } from "../types/rtc/SdpMessage";
 import { TransferStatsMonitor } from "./TransferStats";
+import { OpfsFileWriter } from "./OpfsFileWriter";
 
 /** Bytes of the little-endian chunk sequence number prefixing each binary message. */
 const SEQUENCE_HEADER_BYTES = 4;
@@ -27,13 +28,18 @@ interface FileMeta {
     name: string;
     size: number;
     uuid: string;
-    chunkCount?: number;
+    chunkCount: number;
+    /** Payload bytes per full chunk; positions writes of unordered chunks. */
+    chunkSize: number;
 }
 
 /** Reassembly state of one incoming file transfer. */
 interface ReceiveState {
     fileMeta: FileMeta | null;
-    receivedChunks: (ArrayBuffer | Blob)[];
+    /** In-memory chunks; only used when OPFS is unavailable. */
+    receivedChunks: ArrayBuffer[];
+    /** Disk-backed writer; null when falling back to in-memory buffering. */
+    opfsWriter: OpfsFileWriter | null;
     receivedBytes: number;
     receivedChunkCount: number;
     /** Chunks that arrived before the metadata message (the channel is unordered). */
@@ -96,6 +102,8 @@ export class WebRTCConnection {
         this.handleSDPPackage();
         this.handleRemoteICECandidates();
 
+        void OpfsFileWriter.cleanupStaleFiles();
+
         this.initializePeerConnection();
     }
 
@@ -106,7 +114,7 @@ export class WebRTCConnection {
      * blocking. Each binary message carries a 4-byte little-endian sequence
      * number followed by the payload; the receiver reassembles chunks by
      * sequence number and completes when all chunks announced in the metadata
-     * have arrived.
+     * have arrived. The channel is closed once the send buffer has drained.
      *
      * The file is read in READ_SIZE slices via Blob.arrayBuffer() and sent in
      * messages as large as the negotiated SCTP maximum message size allows,
@@ -170,6 +178,7 @@ export class WebRTCConnection {
                     size: file.size,
                     uuid: uuid,
                     chunkCount: chunkCount,
+                    chunkSize: payloadSize,
                 })
             );
 
@@ -212,7 +221,7 @@ export class WebRTCConnection {
                 readOffset += buffer.byteLength;
             }
 
-            // Warten darauf, dass der Buffer leer ist, bevor EOF gesendet wird
+            // Warten darauf, dass der Buffer leer ist, bevor der Channel geschlossen wird
             while (dataChannel.bufferedAmount > 0) {
                 if (dataChannel.readyState !== "open") {
                     this.log("Data channel closed during transfer:", uuid);
@@ -227,12 +236,7 @@ export class WebRTCConnection {
                 uuid: uuid,
                 progress: 1.0, // 100% progress
             });
-            dataChannel.send("EOF");
-            this.log(
-                "File sent for Transfer:",
-                uuid,
-                " EOF reached, closing data channel"
-            );
+            this.log("File sent for Transfer:", uuid, " closing data channel");
             dataChannel.close();
         };
 
@@ -284,7 +288,14 @@ export class WebRTCConnection {
         const handleSequencedChunk = (data: ArrayBuffer) => {
             const sequence = new DataView(data).getUint32(0, true);
             const payload = data.slice(SEQUENCE_HEADER_BYTES);
-            state.receivedChunks[sequence] = payload;
+            if (state.opfsWriter) {
+                state.opfsWriter.write(
+                    sequence * state.fileMeta!.chunkSize,
+                    payload
+                );
+            } else {
+                state.receivedChunks[sequence] = payload;
+            }
             state.receivedBytes += payload.byteLength;
             state.receivedChunkCount++;
 
@@ -292,7 +303,7 @@ export class WebRTCConnection {
                 !state.finished &&
                 state.receivedChunkCount === state.fileMeta?.chunkCount
             ) {
-                this.finishDownload(state);
+                void this.finishDownload(state);
             }
         };
 
@@ -300,14 +311,18 @@ export class WebRTCConnection {
             if (state.fileMeta === null && typeof event.data === "string") {
                 state.fileMeta = JSON.parse(event.data) as FileMeta;
 
-                if (state.fileMeta.chunkCount !== undefined) {
-                    // Chunks arrive unordered and are placed by sequence number.
-                    state.receivedChunks = new Array<ArrayBuffer | Blob>(
+                // Chunks arrive unordered and are placed by sequence number:
+                // written to disk at their absolute position when OPFS is
+                // available, buffered in memory otherwise.
+                if (OpfsFileWriter.isSupported()) {
+                    state.opfsWriter = new OpfsFileWriter(state.fileMeta.uuid);
+                } else {
+                    state.receivedChunks = new Array<ArrayBuffer>(
                         state.fileMeta.chunkCount
                     );
-                    state.earlyChunks.forEach(handleSequencedChunk);
-                    state.earlyChunks.length = 0;
                 }
+                state.earlyChunks.forEach(handleSequencedChunk);
+                state.earlyChunks.length = 0;
 
                 this.log("Received file metadata:", state.fileMeta);
                 this.emitEvent("fileMetaReceived", {
@@ -329,31 +344,12 @@ export class WebRTCConnection {
                 return;
             }
 
-            if (typeof event.data === "string" && event.data === "EOF") {
-                // Senders announcing a chunkCount complete via chunk
-                // counting; their EOF is only a legacy close signal.
-                if (
-                    state.fileMeta?.chunkCount === undefined &&
-                    !state.finished
-                ) {
-                    this.finishDownload(state);
+            if (event.data instanceof ArrayBuffer) {
+                if (state.fileMeta === null) {
+                    state.earlyChunks.push(event.data);
+                } else {
+                    handleSequencedChunk(event.data);
                 }
-            } else if (
-                state.fileMeta === null &&
-                event.data instanceof ArrayBuffer
-            ) {
-                state.earlyChunks.push(event.data);
-            } else if (
-                state.fileMeta?.chunkCount !== undefined &&
-                event.data instanceof ArrayBuffer
-            ) {
-                handleSequencedChunk(event.data);
-            } else if (event.data instanceof ArrayBuffer) {
-                state.receivedChunks.push(event.data);
-                state.receivedBytes += event.data.byteLength;
-            } else if (event.data instanceof Blob) {
-                state.receivedChunks.push(event.data);
-                state.receivedBytes += event.data.size;
             } else {
                 this.log("Unbekannter Nachrichtentyp:", event.data);
             }
@@ -384,6 +380,7 @@ export class WebRTCConnection {
             state = {
                 fileMeta: null,
                 receivedChunks: [],
+                opfsWriter: null,
                 receivedBytes: 0,
                 receivedChunkCount: 0,
                 earlyChunks: [],
@@ -398,12 +395,34 @@ export class WebRTCConnection {
     /**
      * Assembles the received file, stores it for re-download and triggers the
      * browser download. Called once all chunks have arrived.
+     *
+     * With OPFS the file is finalized on disk and downloaded as a disk-backed
+     * File; otherwise the buffered chunks are assembled into an in-memory Blob.
      */
-    private finishDownload(state: ReceiveState) {
+    private async finishDownload(state: ReceiveState) {
         state.finished = true;
 
-        const blob = new Blob(state.receivedChunks);
         const filename = state.fileMeta?.name ?? "received-file";
+
+        let blob: Blob;
+        if (state.opfsWriter) {
+            const [file, err] = await errorAsValue(state.opfsWriter.finish());
+            if (err) {
+                console.error(
+                    "Failed to finalize received file on disk:",
+                    filename,
+                    err
+                );
+                if (state.progressInterval) {
+                    clearInterval(state.progressInterval);
+                    state.progressInterval = null;
+                }
+                return;
+            }
+            blob = file;
+        } else {
+            blob = new Blob(state.receivedChunks);
+        }
 
         // Store the blob for potential re-download
         if (state.fileMeta?.uuid) {
@@ -584,6 +603,7 @@ export class WebRTCConnection {
     public closeConnection() {
         this.incomingTransfers.forEach(state => {
             if (state.progressInterval) clearInterval(state.progressInterval);
+            void state.opfsWriter?.abort();
         });
         this.incomingTransfers.clear();
 
