@@ -42,11 +42,24 @@ export function ConnectWarningDialog({
                 </h2>
 
                 <p className={css.text}>
-                    PeerDrop baut eine direkte Verbindung zum anderen Gerät auf.
-                    Übertragene Dateien stammen unmittelbar vom Gegenüber und
-                    werden nicht geprüft. Verbinde Dich nur mit Tokens von
-                    Personen, denen Du vertraust.
+                    Du bist dabei, eine direkte Verbindung zu einem anderen
+                    Gerät herzustellen. Bitte beachte:
                 </p>
+
+                <ul className={css.hints}>
+                    <li>
+                        Du verbindest dich direkt mit dem Besitzer des
+                        eingegebenen Tokens
+                    </li>
+                    <li>
+                        Deine Dateien werden verschlüsselt übertragen, aber
+                        nicht auf Viren gescannt
+                    </li>
+                    <li>
+                        Du solltest dich nur mit Personen verbinden, denen du
+                        vertraust
+                    </li>
+                </ul>
 
                 <label className={css.dontShowAgain} htmlFor={checkboxId}>
                     <input

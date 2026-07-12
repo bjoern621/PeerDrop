@@ -103,15 +103,19 @@ export default function ConnectToPeer() {
     }, [peerConnectionManager, remoteToken]);
 
     const requestConnect = useCallback(() => {
-        // Incomplete tokens are rejected with a toast in connectToPeer,
-        // so the warning is only shown for complete tokens.
-        if (remoteToken.length !== 5 || isConnectWarningDismissed()) {
+        // Token checks (length, own token) run first, so the warning is
+        // only shown for tokens that can actually be connected to.
+        if (!peerConnectionManager.validateRemoteToken(remoteToken)) {
+            return;
+        }
+
+        if (isConnectWarningDismissed()) {
             connectToPeer();
             return;
         }
 
         setShowConnectWarning(true);
-    }, [connectToPeer, remoteToken]);
+    }, [peerConnectionManager, connectToPeer, remoteToken]);
 
     // Tokens opened via /connect/<TOKEN> trigger the regular connect flow,
     // including the warning dialog and token validation, once per page load.

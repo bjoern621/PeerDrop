@@ -1,7 +1,13 @@
 @use "../../theme/shadows.scss" as *;
 
+// The global dialog reset removes the default positioning, so the dialog is
+// centered manually.
 .dialog {
-    margin: auto;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
     max-width: 480px;
 }
 
@@ -22,15 +28,21 @@
 
 .heading {
     margin: 0;
-
-    font-family: Atma, sans-serif;
     font-size: var(--font-size-l);
     line-height: var(--line-height-l);
-    font-weight: var(--font-weight-semibold);
 }
 
 .text {
     margin: 0;
+}
+
+.hints {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+
+    margin: 0;
+    padding-left: var(--space-24);
 }
 
 .dontShowAgain {
