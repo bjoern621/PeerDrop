@@ -1,9 +1,5 @@
 @use "../../theme/shadows.scss" as *;
 
-.settingsMenu {
-    position: relative;
-}
-
 .gearButton {
     display: flex;
     align-items: center;
@@ -28,24 +24,53 @@
     }
 }
 
-.panel {
-    position: absolute;
-    top: calc(100% + var(--space-8));
+// Mirrors the auth dialog: anchored below the header, same border, shadow
+// and open/close animation.
+.dialog {
+    position-anchor: --heading;
+    position: fixed;
+    top: anchor(bottom);
     right: 0;
-    z-index: 10;
 
+    background-color: var(--background);
+    @include elevated-shadow-no-highlight;
+    border: 1px solid var(--border);
+    padding: var(--space-24);
+    border-bottom-left-radius: var(--space-16);
+
+    &::backdrop {
+        background-color: transparent;
+    }
+
+    width: 320px;
+
+    // Animation
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition-property: opacity, scale, display, overlay;
+        transition-duration: 0.1s;
+        transition-behavior: allow-discrete;
+
+        opacity: 0;
+        scale: 0.9;
+        transform-origin: top;
+
+        &[open] {
+            opacity: 1;
+            scale: 1;
+
+            @starting-style {
+                opacity: 0;
+                scale: 0.9;
+            }
+        }
+    }
+}
+
+.panelContent {
     display: flex;
     flex-direction: column;
     gap: var(--space-16);
-
-    width: max-content;
-    max-width: 320px;
-    padding: var(--space-16);
-
-    border: 1px solid oklch(from var(--text) l c h / var(--a-10));
-    border-radius: var(--space-8);
-    background-color: var(--background);
-    @include elevated-shadow-no-highlight;
 }
 
 .panelTitle {

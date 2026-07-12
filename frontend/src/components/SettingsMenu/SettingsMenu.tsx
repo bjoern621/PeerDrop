@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import css from "./SettingsMenu.module.scss";
 import SettingsIcon from "../../assets/actions/icons8-settings.svg?react";
 import { useThemeContext } from "../../context/ThemeContext";
@@ -12,53 +12,55 @@ const THEME_OPTIONS = [
 ] as const;
 
 /**
- * Gear button in the header that opens a settings panel. The panel closes on
- * Escape and on clicks outside of the menu.
+ * Gear button in the header that opens a settings dialog. The dialog is
+ * anchored below the header like the auth dialog and closes on Escape and
+ * on clicks outside of it.
  */
 export default function SettingsMenu() {
+    const dialogRef = useRef<HTMLDialogElement>(null!);
     const [isOpen, setIsOpen] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
     const { themePreference, setThemePreference } = useThemeContext();
     const { autoSaveDownloads } = useSettings();
     const autoSaveId = useId();
 
-    useEffect(() => {
-        if (!isOpen) return;
+    const openDialog = () => {
+        setIsOpen(true);
+        dialogRef.current.showModal();
+    };
 
-        const handlePointerDown = (event: PointerEvent) => {
-            if (!containerRef.current?.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setIsOpen(false);
-            }
-        };
+    const closeDialog = () => {
+        dialogRef.current.close();
+    };
 
-        document.addEventListener("pointerdown", handlePointerDown);
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("pointerdown", handlePointerDown);
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [isOpen]);
+    const handleBackdropClick = (event: React.MouseEvent) => {
+        // Clicks on the backdrop target the dialog element itself.
+        if (event.target === dialogRef.current) {
+            closeDialog();
+        }
+    };
 
     return (
-        <div className={css.settingsMenu} ref={containerRef}>
+        <>
             <button
                 type="button"
                 className={css.gearButton}
                 aria-label="Einstellungen"
-                aria-haspopup="true"
+                aria-haspopup="dialog"
                 aria-expanded={isOpen}
-                onClick={() => setIsOpen(open => !open)}
+                disabled={isOpen}
+                onClick={() => openDialog()}
             >
                 <SettingsIcon aria-hidden />
             </button>
 
-            {isOpen && (
-                <div className={css.panel} aria-label="Einstellungen">
+            <dialog
+                ref={dialogRef}
+                className={css.dialog}
+                aria-label="Einstellungen"
+                onClose={() => setIsOpen(false)}
+                onClick={handleBackdropClick}
+            >
+                <div className={css.panelContent}>
                     <div className={css.panelTitle}>Einstellungen</div>
 
                     <div className={css.section}>
@@ -117,7 +119,7 @@ export default function SettingsMenu() {
                         </p>
                     </div>
                 </div>
-            )}
-        </div>
+            </dialog>
+        </>
     );
 }

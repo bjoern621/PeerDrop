@@ -32,8 +32,8 @@ export default function Heading() {
             </div>
 
             <div className={css.authSection}>
-                <AuthButton />
                 <SettingsMenu />
+                <AuthButton />
             </div>
         </header>
     );

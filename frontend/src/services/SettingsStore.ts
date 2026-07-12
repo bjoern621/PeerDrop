@@ -1,7 +1,5 @@
-import { getCookie, setCookie } from "../util/Cookies";
-
 /**
- * User-facing app settings, persisted in cookies (one cookie per setting).
+ * User-facing app settings, persisted in localStorage (one key per setting).
  * The module keeps a single mutable snapshot; React components subscribe via
  * useSettings, non-React code reads the current value with getSettings().
  */
@@ -13,22 +11,22 @@ export interface AppSettings {
     autoSaveDownloads: boolean;
 }
 
-const COOKIE_MAX_AGE_DAYS = 365;
+const AUTO_SAVE_STORAGE_KEY = "autoSaveDownloads";
 
 const DEFAULT_SETTINGS: AppSettings = {
     autoSaveDownloads: true,
 };
 
-function readBooleanCookie(name: string, defaultValue: boolean): boolean {
-    const raw = getCookie(name);
+function readBooleanSetting(key: string, defaultValue: boolean): boolean {
+    const raw = localStorage.getItem(key);
     if (raw === "true") return true;
     if (raw === "false") return false;
     return defaultValue;
 }
 
 let settings: AppSettings = {
-    autoSaveDownloads: readBooleanCookie(
-        "autoSaveDownloads",
+    autoSaveDownloads: readBooleanSetting(
+        AUTO_SAVE_STORAGE_KEY,
         DEFAULT_SETTINGS.autoSaveDownloads
     ),
 };
@@ -46,10 +44,9 @@ export function getSettings(): AppSettings {
 /** Applies and persists the given settings, then notifies subscribers. */
 export function updateSettings(update: Partial<AppSettings>) {
     settings = { ...settings, ...update };
-    setCookie(
-        "autoSaveDownloads",
-        String(settings.autoSaveDownloads),
-        COOKIE_MAX_AGE_DAYS
+    localStorage.setItem(
+        AUTO_SAVE_STORAGE_KEY,
+        String(settings.autoSaveDownloads)
     );
     listeners.forEach(listener => listener());
 }
