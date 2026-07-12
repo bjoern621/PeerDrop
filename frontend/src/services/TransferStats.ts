@@ -5,10 +5,13 @@
  * - Which network path carries the data (direct host/srflx or TURN relay)?
  * - What throughput, RTT and available bitrate does the connection reach?
  *
- * Results are logged to the browser console once per second while at least
- * one transfer is running. A TURN-relayed path is a strong hint for slow
- * transfers because relay servers add latency and are bandwidth-limited.
+ * Results are logged once per second while at least one transfer is running;
+ * logging is disabled by default and enabled via the Logger in the
+ * constructor. A TURN-relayed path is a strong hint for slow transfers
+ * because relay servers add latency and are bandwidth-limited.
  */
+
+import { Logger } from "../util/Logger";
 
 export interface TransferStatsSample {
     /** Candidate types of the selected pair, e.g. "host->host" or "relay->host". */
@@ -41,6 +44,7 @@ const SAMPLE_INTERVAL_MS = 1000;
 const BITS_PER_MBIT = 1_000_000;
 
 export class TransferStatsMonitor {
+    private readonly logger = new Logger("TransferStats");
     private readonly peerConnection: RTCPeerConnection;
     private activeTransfers = 0;
     private intervalId: ReturnType<typeof setInterval> | null = null;
@@ -53,6 +57,7 @@ export class TransferStatsMonitor {
         peerConnection: RTCPeerConnection,
         onSample?: (sample: TransferStatsSample) => void
     ) {
+        this.logger.setEnabled(false);
         this.peerConnection = peerConnection;
         this.onSample = onSample;
     }
@@ -217,8 +222,8 @@ export class TransferStatsMonitor {
             ? ` (TURN via ${sample.relayProtocol})`
             : "";
 
-        console.info(
-            `[TransferStats] path=${sample.path ?? "n/a"}/${sample.protocol ?? "n/a"}${relayInfo}` +
+        this.logger.log(
+            `path=${sample.path ?? "n/a"}/${sample.protocol ?? "n/a"}${relayInfo}` +
                 ` rtt=${format(sample.roundTripTimeMs, "ms")}` +
                 ` send=${format(sample.sendMbps, "Mbps")}` +
                 ` recv=${format(sample.receiveMbps, "Mbps")}` +

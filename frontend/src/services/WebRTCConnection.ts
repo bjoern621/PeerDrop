@@ -178,6 +178,12 @@ export class WebRTCConnection {
             // 4 bytes of each message hold the chunk sequence number.
             const payloadSize = messageSize - SEQUENCE_HEADER_BYTES;
             const chunkCount = Math.ceil(file.size / payloadSize);
+            // Read whole multiples of the payload size. Otherwise every read
+            // boundary would produce a short fragment chunk, breaking both
+            // the announced chunk count and the position-based reassembly.
+            const readSize =
+                Math.max(Math.floor(FILE_CHUNK_READ_SIZE / payloadSize), 1) *
+                payloadSize;
 
             // Send metadata first so the receiver can set up reassembly.
             dataChannel.send(
@@ -194,7 +200,7 @@ export class WebRTCConnection {
             let readOffset = 0;
             while (readOffset < file.size) {
                 const buffer = await file
-                    .slice(readOffset, readOffset + FILE_CHUNK_READ_SIZE)
+                    .slice(readOffset, readOffset + readSize)
                     .arrayBuffer();
 
                 for (
@@ -432,6 +438,10 @@ export class WebRTCConnection {
             });
             this.incomingTransfers.delete(state.fileMeta.uuid);
         }
+
+        // Yield to the event loop so the UI can render the completed state
+        // before the (possible) download prompt ("where do you want to save this file?") opens.
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         // Trigger initial download
         this.triggerDownload(blob, filename);
