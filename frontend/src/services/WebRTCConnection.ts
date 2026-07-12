@@ -8,33 +8,39 @@ import { IceCandidateMessage } from "../types/rtc/IceCandidateMessage";
 import { SdpMessage } from "../types/rtc/SdpMessage";
 import { TransferStatsMonitor } from "./TransferStats";
 
+/** Bytes of the little-endian chunk sequence number prefixing each binary message. */
+const SEQUENCE_HEADER_BYTES = 4;
+
+const FILE_CHUNK_READ_SIZE = 8 * 1024 * 1024; // 8 MB
+const HIGH_WATER_MARK = 8 * 1024 * 1024; // 8 MB
+const LOW_WATER_MARK = 2 * 1024 * 1024; // 2 MB
+
 const serversConfig: RTCConfiguration = {
     iceServers: [
         {
-            urls: "stun:stun.relay.metered.ca:80",
-        },
-        {
-            urls: "turn:global.relay.metered.ca:80",
-            username: "7cfed80f2da5f327b1e8a894",
-            credential: "Uvb5QuG/FHIpdQYA",
-        },
-        {
-            urls: "turn:global.relay.metered.ca:80?transport=tcp",
-            username: "7cfed80f2da5f327b1e8a894",
-            credential: "Uvb5QuG/FHIpdQYA",
-        },
-        {
-            urls: "turn:global.relay.metered.ca:443",
-            username: "7cfed80f2da5f327b1e8a894",
-            credential: "Uvb5QuG/FHIpdQYA",
-        },
-        {
-            urls: "turns:global.relay.metered.ca:443?transport=tcp",
-            username: "7cfed80f2da5f327b1e8a894",
-            credential: "Uvb5QuG/FHIpdQYA",
+            urls: "stun:stun.l.google.com:19302",
         },
     ],
 };
+
+interface FileMeta {
+    name: string;
+    size: number;
+    uuid: string;
+    chunkCount?: number;
+}
+
+/** Reassembly state of one incoming file transfer. */
+interface ReceiveState {
+    fileMeta: FileMeta | null;
+    receivedChunks: (ArrayBuffer | Blob)[];
+    receivedBytes: number;
+    receivedChunkCount: number;
+    /** Chunks that arrived before the metadata message (the channel is unordered). */
+    earlyChunks: ArrayBuffer[];
+    progressInterval: ReturnType<typeof setInterval> | null;
+    finished: boolean;
+}
 
 export class WebRTCConnection {
     private readonly logger = new Logger("WebRTCConnection");
@@ -42,10 +48,13 @@ export class WebRTCConnection {
     private readonly remoteToken: ClientToken;
     private readonly signalingChannel: WebSocketService;
     private readonly peerConnection: RTCPeerConnection;
-    private transferStats: TransferStatsMonitor | undefined;
+    private readonly transferStats: TransferStatsMonitor;
 
     private readonly eventHandlers: Map<string, Observable<unknown>> =
         new Map();
+
+    // Reassembly state of incoming transfers, keyed by file UUID (= channel label).
+    private readonly incomingTransfers: Map<string, ReceiveState> = new Map();
 
     // Store completed downloads for re-download capability
     private readonly completedDownloads: Map<
@@ -71,11 +80,19 @@ export class WebRTCConnection {
         this.peerConnection = new RTCPeerConnection(serversConfig);
         this.transferStats = new TransferStatsMonitor(this.peerConnection);
 
-        this.setupEmittedWebRTCEvents();
+        this.peerConnection.onconnectionstatechange = () => {
+            this.emitEvent(
+                "connectionstatechange",
+                this.peerConnection.connectionState
+            );
+        };
 
-        this.setupReceivingDataChannel();
-        this.handleIncomingICECandidates();
+        this.peerConnection.ondatachannel = event => {
+            this.handleIncomingDataChannel(event.channel);
+        };
+
         this.handleNegotiationNeeded();
+        this.handleIncomingICECandidates();
         this.handleSDPPackage();
         this.handleRemoteICECandidates();
 
@@ -85,13 +102,17 @@ export class WebRTCConnection {
     /**
      * Sends a file to the remote peer over a dedicated RTCDataChannel.
      *
+     * The channel is reliable but unordered, which avoids SCTP head-of-line
+     * blocking. Each binary message carries a 4-byte little-endian sequence
+     * number followed by the payload; the receiver reassembles chunks by
+     * sequence number and completes when all chunks announced in the metadata
+     * have arrived.
+     *
      * The file is read in READ_SIZE slices via Blob.arrayBuffer() and sent in
      * messages as large as the negotiated SCTP maximum message size allows,
-     * capped at 256 KB (16 KB fallback when the limit is unknown).
-     * Sending pauses when more than HIGH_WATER_MARK bytes are buffered and
-     * resumes once the buffer drains to LOW_WATER_MARK. After the entire file
-     * has been sent, an "EOF" message signals the end of the file and the
-     * DataChannel is closed.
+     * capped at 256 KB (16 KB fallback when the limit is unknown). Sending
+     * pauses when more than HIGH_WATER_MARK bytes are buffered and resumes
+     * once the buffer drains to LOW_WATER_MARK.
      *
      * @param file The file to be sent to the remote peer.
      */
@@ -104,13 +125,11 @@ export class WebRTCConnection {
                 file.lastModified,
             ].join(" ")}`
         );
-        const dataChannel = this.peerConnection.createDataChannel(uuid);
 
+        const dataChannel = this.peerConnection.createDataChannel(uuid, {
+            ordered: false,
+        });
         dataChannel.binaryType = "arraybuffer";
-
-        const READ_SIZE = 8 * 1024 * 1024;
-        const HIGH_WATER_MARK = 8 * 1024 * 1024;
-        const LOW_WATER_MARK = 2 * 1024 * 1024;
         dataChannel.bufferedAmountLowThreshold = LOW_WATER_MARK;
 
         // Bytes handed to the channel so far; the progress interval reads it.
@@ -134,23 +153,37 @@ export class WebRTCConnection {
             // The SCTP maximum message size is negotiated per connection.
             // Chrome and Safari advertise 256 KB, Firefox considerably more.
             const maxMessageSize = this.peerConnection.sctp?.maxMessageSize;
-            const chunkSize = Math.min(
+            const messageSize = Math.min(
                 maxMessageSize && maxMessageSize > 0
                     ? maxMessageSize
                     : 16 * 1024,
                 256 * 1024
             );
+            // 4 bytes of each message hold the chunk sequence number.
+            const payloadSize = messageSize - SEQUENCE_HEADER_BYTES;
+            const chunkCount = Math.ceil(file.size / payloadSize);
 
+            // Send metadata first so the receiver can set up reassembly.
+            dataChannel.send(
+                JSON.stringify({
+                    name: file.name,
+                    size: file.size,
+                    uuid: uuid,
+                    chunkCount: chunkCount,
+                })
+            );
+
+            let sequence = 0;
             let readOffset = 0;
             while (readOffset < file.size) {
                 const buffer = await file
-                    .slice(readOffset, readOffset + READ_SIZE)
+                    .slice(readOffset, readOffset + FILE_CHUNK_READ_SIZE)
                     .arrayBuffer();
 
                 for (
                     let chunkStart = 0;
                     chunkStart < buffer.byteLength;
-                    chunkStart += chunkSize
+                    chunkStart += payloadSize
                 ) {
                     if (dataChannel.bufferedAmount > HIGH_WATER_MARK) {
                         await waitForBufferedAmountLow();
@@ -160,12 +193,20 @@ export class WebRTCConnection {
                         return;
                     }
 
-                    const chunk = buffer.slice(
-                        chunkStart,
-                        Math.min(chunkStart + chunkSize, buffer.byteLength)
+                    const length = Math.min(
+                        payloadSize,
+                        buffer.byteLength - chunkStart
                     );
-                    dataChannel.send(chunk);
-                    offset += chunk.byteLength;
+                    const message = new ArrayBuffer(
+                        SEQUENCE_HEADER_BYTES + length
+                    );
+                    new DataView(message).setUint32(0, sequence, true);
+                    new Uint8Array(message, SEQUENCE_HEADER_BYTES).set(
+                        new Uint8Array(buffer, chunkStart, length)
+                    );
+                    dataChannel.send(message);
+                    sequence++;
+                    offset += length;
                 }
 
                 readOffset += buffer.byteLength;
@@ -197,23 +238,15 @@ export class WebRTCConnection {
 
         dataChannel.onclose = () => {
             if (progressInterval) clearInterval(progressInterval);
-            this.transferStats?.release();
+            this.transferStats.release();
         };
 
         dataChannel.onopen = () => {
-            this.transferStats?.acquire();
-
-            // Send first Metadata about the file
-            const meta = JSON.stringify({
-                name: file.name,
-                size: file.size,
-                uuid: uuid,
-            });
-            dataChannel.send(meta);
+            this.transferStats.acquire();
 
             // Progress-Interval starten
             progressInterval = setInterval(() => {
-                // Tatsächlich gesendete Bytes = offset - bufferedAmount
+                // Tatsächlich gesendete Bytes = offset - gepufferte Bytes
                 const sentBytes = Math.max(
                     offset - dataChannel.bufferedAmount,
                     0
@@ -232,113 +265,168 @@ export class WebRTCConnection {
         };
     }
 
-    private setupReceivingDataChannel() {
-        this.peerConnection.ondatachannel = event => {
-            this.log("Received data channel");
+    /**
+     * Handles a data channel opened by the remote peer. The reassembly state
+     * is keyed by the channel label (the file UUID). The "init" channel used
+     * to kick off negotiation is ignored.
+     */
+    private handleIncomingDataChannel(dataChannel: RTCDataChannel) {
+        if (dataChannel.label === "init") {
+            return;
+        }
 
-            const dataChannel = event.channel;
-            const receivedChunks: (ArrayBuffer | Blob)[] = [];
-            let fileMeta: { name: string; size: number; uuid: string } | null =
-                null;
-            let firstMessage = true;
-            let receivedBytes = 0;
-            let progressInterval: ReturnType<typeof setInterval> | null = null;
-            let statsAcquired = false;
+        this.log("Received data channel", dataChannel.label);
+        dataChannel.binaryType = "arraybuffer";
 
-            dataChannel.onmessage = event => {
-                if (firstMessage && typeof event.data === "string") {
-                    fileMeta = JSON.parse(event.data) as {
-                        name: string;
-                        size: number;
-                        uuid: string;
-                    };
-                    firstMessage = false;
+        const state = this.getOrCreateReceiveState(dataChannel.label);
+        let statsAcquired = false;
 
-                    this.transferStats?.acquire();
-                    statsAcquired = true;
-                    this.log("Received file metadata:", fileMeta);
-                    this.emitEvent("fileMetaReceived", {
-                        name: fileMeta.name,
-                        size: fileMeta.size,
-                        uuid: fileMeta.uuid,
-                    });
+        const handleSequencedChunk = (data: ArrayBuffer) => {
+            const sequence = new DataView(data).getUint32(0, true);
+            const payload = data.slice(SEQUENCE_HEADER_BYTES);
+            state.receivedChunks[sequence] = payload;
+            state.receivedBytes += payload.byteLength;
+            state.receivedChunkCount++;
 
-                    // Progress-Interval starten
-                    progressInterval = setInterval(() => {
-                        this.emitEvent("fileProgress", {
-                            uuid: fileMeta!.uuid,
-                            progress: Math.min(
-                                receivedBytes / fileMeta!.size,
-                                1
-                            ),
-                        });
-                    }, 100);
-                    return;
-                }
-
-                if (typeof event.data === "string" && event.data === "EOF") {
-                    const blob = new Blob(receivedChunks);
-                    const filename = fileMeta?.name ?? "received-file";
-
-                    // Store the blob for potential re-download
-                    if (fileMeta?.uuid) {
-                        this.completedDownloads.set(fileMeta.uuid, {
-                            blob,
-                            filename,
-                        });
-                    }
-
-                    // Trigger initial download
-                    this.triggerDownload(blob, filename);
-
-                    this.log(
-                        "File downloaded with TransferID:",
-                        fileMeta?.uuid
-                    );
-                    //this.log("clearing now interval");
-                    if (progressInterval) clearInterval(progressInterval);
-                    // 100% Progress-Event senden
-                    this.emitEvent("fileProgress", {
-                        uuid: fileMeta!.uuid,
-                        progress: 1.0, // 100% progress
-                    });
-                } else if (event.data instanceof ArrayBuffer) {
-                    receivedChunks.push(event.data);
-                    receivedBytes += event.data.byteLength;
-                    this.log(
-                        "Chunk empfangen, Größe:",
-                        event.data.byteLength,
-                        "Bytes (ArrayBuffer)"
-                    );
-                } else if (event.data instanceof Blob) {
-                    receivedChunks.push(event.data);
-                    receivedBytes += event.data.size;
-                    this.log(
-                        "Chunk empfangen, Größe:",
-                        event.data.size,
-                        "Bytes (Blob)"
-                    );
-                } else {
-                    this.log("Unbekannter Nachrichtentyp:", event.data);
-                }
-            };
-
-            dataChannel.onopen = () => {
-                //this.log("Data channel is open");
-            };
-            dataChannel.onclose = () => {
-                if (progressInterval) clearInterval(progressInterval);
-                if (statsAcquired) {
-                    this.transferStats?.release();
-                    statsAcquired = false;
-                }
-                //this.log("Data channel is closed");
-            };
-            dataChannel.onerror = error => {
-                if (progressInterval) clearInterval(progressInterval);
-                this.log("Data channel error: ", error);
-            };
+            if (
+                !state.finished &&
+                state.receivedChunkCount === state.fileMeta?.chunkCount
+            ) {
+                this.finishDownload(state);
+            }
         };
+
+        dataChannel.onmessage = event => {
+            if (state.fileMeta === null && typeof event.data === "string") {
+                state.fileMeta = JSON.parse(event.data) as FileMeta;
+
+                if (state.fileMeta.chunkCount !== undefined) {
+                    // Chunks arrive unordered and are placed by sequence number.
+                    state.receivedChunks = new Array<ArrayBuffer | Blob>(
+                        state.fileMeta.chunkCount
+                    );
+                    state.earlyChunks.forEach(handleSequencedChunk);
+                    state.earlyChunks.length = 0;
+                }
+
+                this.log("Received file metadata:", state.fileMeta);
+                this.emitEvent("fileMetaReceived", {
+                    name: state.fileMeta.name,
+                    size: state.fileMeta.size,
+                    uuid: state.fileMeta.uuid,
+                });
+
+                // Progress-Interval starten
+                state.progressInterval = setInterval(() => {
+                    this.emitEvent("fileProgress", {
+                        uuid: state.fileMeta!.uuid,
+                        progress: Math.min(
+                            state.receivedBytes / state.fileMeta!.size,
+                            1
+                        ),
+                    });
+                }, 100);
+                return;
+            }
+
+            if (typeof event.data === "string" && event.data === "EOF") {
+                // Senders announcing a chunkCount complete via chunk
+                // counting; their EOF is only a legacy close signal.
+                if (
+                    state.fileMeta?.chunkCount === undefined &&
+                    !state.finished
+                ) {
+                    this.finishDownload(state);
+                }
+            } else if (
+                state.fileMeta === null &&
+                event.data instanceof ArrayBuffer
+            ) {
+                state.earlyChunks.push(event.data);
+            } else if (
+                state.fileMeta?.chunkCount !== undefined &&
+                event.data instanceof ArrayBuffer
+            ) {
+                handleSequencedChunk(event.data);
+            } else if (event.data instanceof ArrayBuffer) {
+                state.receivedChunks.push(event.data);
+                state.receivedBytes += event.data.byteLength;
+            } else if (event.data instanceof Blob) {
+                state.receivedChunks.push(event.data);
+                state.receivedBytes += event.data.size;
+            } else {
+                this.log("Unbekannter Nachrichtentyp:", event.data);
+            }
+        };
+
+        dataChannel.onopen = () => {
+            this.transferStats.acquire();
+            statsAcquired = true;
+        };
+        dataChannel.onclose = () => {
+            if (statsAcquired) {
+                this.transferStats.release();
+                statsAcquired = false;
+            }
+            if (state.progressInterval && state.finished) {
+                clearInterval(state.progressInterval);
+                state.progressInterval = null;
+            }
+        };
+        dataChannel.onerror = error => {
+            this.log("Data channel error: ", error);
+        };
+    }
+
+    private getOrCreateReceiveState(uuid: string): ReceiveState {
+        let state = this.incomingTransfers.get(uuid);
+        if (!state) {
+            state = {
+                fileMeta: null,
+                receivedChunks: [],
+                receivedBytes: 0,
+                receivedChunkCount: 0,
+                earlyChunks: [],
+                progressInterval: null,
+                finished: false,
+            };
+            this.incomingTransfers.set(uuid, state);
+        }
+        return state;
+    }
+
+    /**
+     * Assembles the received file, stores it for re-download and triggers the
+     * browser download. Called once all chunks have arrived.
+     */
+    private finishDownload(state: ReceiveState) {
+        state.finished = true;
+
+        const blob = new Blob(state.receivedChunks);
+        const filename = state.fileMeta?.name ?? "received-file";
+
+        // Store the blob for potential re-download
+        if (state.fileMeta?.uuid) {
+            this.completedDownloads.set(state.fileMeta.uuid, {
+                blob,
+                filename,
+            });
+            this.incomingTransfers.delete(state.fileMeta.uuid);
+        }
+
+        // Trigger initial download
+        this.triggerDownload(blob, filename);
+
+        this.log("File downloaded with TransferID:", state.fileMeta?.uuid);
+        if (state.progressInterval) {
+            clearInterval(state.progressInterval);
+            state.progressInterval = null;
+        }
+        // 100% Progress-Event senden
+        this.emitEvent("fileProgress", {
+            uuid: state.fileMeta!.uuid,
+            progress: 1.0, // 100% progress
+        });
     }
 
     /**
@@ -355,32 +443,15 @@ export class WebRTCConnection {
         this.signalingChannel.subscribeMessage(
             MessageType.ICE_CANDIDATE,
             async message => {
-                this.log("Received REMOTE ICE candidate message");
-
                 const iceCandidateMessage = message as IceCandidateMessage;
                 const candidate = iceCandidateMessage.msg.iceCandidate;
-
-                this.log("Adding ICE candidate");
 
                 const [, err] = await errorAsValue(
                     this.peerConnection.addIceCandidate(candidate)
                 );
 
-                if (err) {
-                    if (!this.ignoreOffer) {
-                        new Error(
-                            "Failed to add ICE candidate (not ignoring them, because ignoreOffer is " +
-                                this.ignoreOffer +
-                                ")"
-                        );
-                        this.log("Error: ", err);
-                    } else {
-                        this.log(
-                            "Ignoring remote ICE candidate because ignoreOffer = " +
-                                this.ignoreOffer +
-                                " and the related SDP offer was rejected"
-                        );
-                    }
+                if (err && !this.ignoreOffer) {
+                    this.log("Failed to add ICE candidate:", err);
                 }
             }
         );
@@ -409,14 +480,11 @@ export class WebRTCConnection {
                     this.log(
                         "IGNORING offer, because this peer is impolite and offerCollision occurred"
                     );
-
                     return;
                 }
 
                 this.isSettingRemoteAnswerPending =
                     description.type === "answer";
-
-                this.log("Setting REMOTE DESCRIPTION");
 
                 const [,] = await errorAsValue(
                     this.peerConnection.setRemoteDescription(description)
@@ -424,18 +492,13 @@ export class WebRTCConnection {
                 this.isSettingRemoteAnswerPending = false;
 
                 if (description.type === "offer") {
-                    this.log("Creating ANSWER...");
-                    this.log("Setting LOCAL DESCRIPTION");
-
                     await this.peerConnection.setLocalDescription();
-                    const descriptionMessage = new SdpMessage({
-                        remoteToken: this.remoteToken,
-                        description: this.peerConnection.localDescription!,
-                    });
-
-                    this.log("Sending SDP answer...");
-
-                    this.signalingChannel.sendMessage(descriptionMessage);
+                    this.signalingChannel.sendMessage(
+                        new SdpMessage({
+                            remoteToken: this.remoteToken,
+                            description: this.peerConnection.localDescription!,
+                        })
+                    );
                 }
             }
         );
@@ -443,25 +506,19 @@ export class WebRTCConnection {
 
     private handleNegotiationNeeded() {
         this.peerConnection.onnegotiationneeded = async () => {
-            this.log("Making SDP offer...");
-
             this.makingOffer = true;
-
-            this.log("Setting local description");
 
             const [, err] = await errorAsValue(
                 this.peerConnection.setLocalDescription()
             );
 
             if (!err) {
-                const descriptionMessage = new SdpMessage({
-                    remoteToken: this.remoteToken,
-                    description: this.peerConnection.localDescription!,
-                });
-
-                this.log("Sending SDP offer...");
-
-                this.signalingChannel.sendMessage(descriptionMessage);
+                this.signalingChannel.sendMessage(
+                    new SdpMessage({
+                        remoteToken: this.remoteToken,
+                        description: this.peerConnection.localDescription!,
+                    })
+                );
             } else {
                 this.log("Error during setting local description: ", err);
             }
@@ -472,14 +529,13 @@ export class WebRTCConnection {
 
     private handleIncomingICECandidates() {
         this.peerConnection.onicecandidate = event => {
-            this.log("STUN Server ICE Candidate received, forwarding");
-
             if (event.candidate) {
-                const iceCandidateMessage = new IceCandidateMessage({
-                    remoteToken: this.remoteToken,
-                    iceCandidate: event.candidate,
-                });
-                this.signalingChannel.sendMessage(iceCandidateMessage);
+                this.signalingChannel.sendMessage(
+                    new IceCandidateMessage({
+                        remoteToken: this.remoteToken,
+                        iceCandidate: event.candidate,
+                    })
+                );
             }
         };
     }
@@ -526,9 +582,12 @@ export class WebRTCConnection {
     }
 
     public closeConnection() {
-        this.transferStats?.stop();
-        this.transferStats = undefined;
+        this.incomingTransfers.forEach(state => {
+            if (state.progressInterval) clearInterval(state.progressInterval);
+        });
+        this.incomingTransfers.clear();
 
+        this.transferStats.stop();
         this.peerConnection.close();
 
         const iceHandlers = this.signalingChannel.getHandlers(
@@ -561,19 +620,6 @@ export class WebRTCConnection {
         this.unsubscribeAllHandlers();
 
         this.completedDownloads.clear();
-    }
-
-    /**
-     * Sets up the event listeners for emitted WebRTC events from the peer connection.
-     */
-    private setupEmittedWebRTCEvents() {
-        this.peerConnection.onconnectionstatechange = ev => {
-            this.log("Event triggered", ev);
-            this.emitEvent(
-                "connectionstatechange",
-                this.peerConnection.connectionState
-            );
-        };
     }
 
     public getPeerConnection(): RTCPeerConnection {
