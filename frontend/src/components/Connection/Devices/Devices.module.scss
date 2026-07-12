@@ -4,15 +4,18 @@
 }
 
 .loggedIn {
+    display: flex;
+    align-items: center;
     margin-bottom: var(--space-16);
 }
 
 .notLoggedIn {
+    display: flex;
+    align-items: center;
     margin-left: var(--space-16);
 }
 
 .icon {
     height: calc(var(--font-size-s) * var(--line-height-s));
     margin-left: var(--space-4);
-    vertical-align: top;
 }
