@@ -4,7 +4,7 @@ public interface IAccountLoginHandler
 {
     public Task<IResult> HandleLogin(HttpContext context);
 
-    public IResult HandleLogout(HttpContext context);
+    public Task<IResult> HandleLogout(HttpContext context);
 
     public Task<IResult> HandleGetCurrentUser(HttpContext context);
 

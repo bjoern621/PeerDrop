@@ -1,41 +1,32 @@
+using System.Security.Claims;
 using System.Text.RegularExpressions;
-using backend.AccountComponent.Common.Api.DTOs;
-using backend.AccountComponent.Logic.Api;
 using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
-public class DeviceHandler(
-    IDeviceRepository repo,
-    IAccountLoginHandler login,
-    IDeviceService _deviceService
-) : IDeviceHandler
+public class DeviceHandler(IDeviceRepository repo, IDeviceService _deviceService) : IDeviceHandler
 {
     readonly string cookieDomain =
         Environment.GetEnvironmentVariable("COOKIE_DOMAIN")
         ?? throw new ApplicationException("COOKIE_DOMAIN not set");
 
+    /// <summary>
+    /// Reads the account id of the authenticated principal. Returns false for anonymous requests.
+    /// </summary>
+    private static bool TryGetAccountId(HttpContext context, out int accountId)
+    {
+        var idClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(idClaim, out accountId);
+    }
+
     public async Task<IResult> RegisterDeviceAsync(HttpContext context)
     {
-        if (!context.Request.Cookies.TryGetValue(".AspNetCore.Session", out var sessionToken))
+        if (!TryGetAccountId(context, out var accountId))
         {
             return Results.Unauthorized();
-        }
-
-        var result = await login.HandleGetCurrentUser(context);
-        if (result is not Ok<LoginResponse>)
-        {
-            return Results.Unauthorized();
-        }
-
-        var accountIdCon = context.Session.GetString("UserId");
-        if (!int.TryParse(accountIdCon, out var accountId))
-        {
-            return Results.BadRequest("Invalid account ID in session.");
         }
 
         // Retrieve the display name from the User-Agent header (you can extract specific info if needed)
@@ -137,29 +128,9 @@ public class DeviceHandler(
 
     public async Task<IResult> GetDevicesByUserAsync(HttpContext context)
     {
-        // Check for session cookie
-        if (!context.Request.Cookies.TryGetValue(".AspNetCore.Session", out var sessionToken))
+        if (!TryGetAccountId(context, out var parsedAccountId))
         {
             return Results.Unauthorized();
-        }
-
-        var result = await login.HandleGetCurrentUser(context);
-        if (result is not Ok<LoginResponse>)
-        {
-            return Results.Unauthorized();
-        }
-
-        // Access the session using the sessionToken or from the session store
-        var accountId = context.Session.GetString("UserId");
-
-        if (string.IsNullOrEmpty(accountId))
-        {
-            return Results.Unauthorized();
-        }
-
-        if (!int.TryParse(accountId, out var parsedAccountId))
-        {
-            return Results.BadRequest("Invalid account ID in session.");
         }
 
         var deviceUuid = context.Request.Cookies["deviceUuid"];
@@ -219,29 +190,9 @@ public class DeviceHandler(
 
     public async Task<IResult> DeleteDeviceAsync(HttpContext context)
     {
-        // Check for session cookie
-        if (!context.Request.Cookies.TryGetValue(".AspNetCore.Session", out var sessionToken))
+        if (!TryGetAccountId(context, out var parsedAccountId))
         {
             return Results.Unauthorized();
-        }
-
-        var result = login.HandleGetCurrentUser(context).Result;
-        if (result is not Ok<LoginResponse>)
-        {
-            return Results.Unauthorized();
-        }
-
-        // Access the session using the sessionToken or from the session store
-        var accountId = context.Session.GetString("UserId");
-
-        if (string.IsNullOrEmpty(accountId))
-        {
-            return Results.Unauthorized();
-        }
-
-        if (!int.TryParse(accountId, out var parsedAccountId))
-        {
-            return Results.BadRequest("Invalid account ID in session.");
         }
 
         // Read device UUID from request body

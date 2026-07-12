@@ -37,6 +37,9 @@ services:
             - DB_USERNAME=postgres
             - DB_PASSWORD=passwort
             - COOKIE_DOMAIN=localhost
+            - DATA_PROTECTION_KEYS_DIR=/var/lib/peerdrop/dataprotection-keys
+        volumes:
+            - data_protection_keys:/var/lib/peerdrop/dataprotection-keys
         ports:
             - "8080:8080"
         restart: unless-stopped
@@ -62,4 +65,6 @@ services:
 
 volumes:
     postgres_data:
+        driver: local
+    data_protection_keys:
         driver: local

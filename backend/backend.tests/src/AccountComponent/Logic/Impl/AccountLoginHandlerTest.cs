@@ -17,7 +17,7 @@ public class AccountLoginHandlerTest
     {
         IPasswordHasher hasher = new PasswordHasher();
         var repo = new Mock<IAccountRepository>();
-        var handler = new AccountLoginHandler(repo.Object, hasher);
+        var handler = new AccountLoginHandler(repo.Object, hasher, new AccountSignInService());
 
         var userId = 1;
         var plainPassword = "secret";
@@ -25,17 +25,18 @@ public class AccountLoginHandlerTest
         {
             Id = userId,
             DisplayName = "alice",
-            Password = hasher.HashPassword(plainPassword)
+            Password = hasher.HashPassword(plainPassword),
+            SecurityStamp = Guid.NewGuid()
         };
 
         // Setup repository for both login and user retrieval
         repo.Setup(r => r.GetByNameAsync("alice")).ReturnsAsync(accountInDb);
         repo.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(accountInDb);
 
-        // Build the request body for login 
+        // Build the request body for login
         var loginDto = new AccountCreateDto { DisplayName = "alice", Password = plainPassword };
 
-        // Create a shared context with a mock session
+        // Create a shared context with a fake authentication service that tracks the signed-in principal
         var context = HttpUtil.CreateMockHttpContext(loginDto);
 
         // Login
@@ -46,7 +47,7 @@ public class AccountLoginHandlerTest
         Assert.That(okkResult.Value, Is.Not.Null);
         Assert.That(okkResult.Value.Message, Is.EqualTo("Logged in successfully"));
         
-        // Get current user using same context (with preserved session)
+        // Get current user using same context (now carrying the authenticated principal)
         var userResult = await handler.HandleGetCurrentUser(context);
         var userResultS = userResult as Ok<LoginResponse>;
         

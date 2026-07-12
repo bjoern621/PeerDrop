@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Claims;
+using System.Text;
 using backend.AccountComponent.Common.Api.DTOs;
 using backend.AccountComponent.Common.Api.Exception;
 using backend.AccountComponent.Dataaccess.Api.Entity;
@@ -24,7 +25,11 @@ public class AccountCreationHandlerTests
     {
         _repoMock = new Mock<IAccountRepository>();
         _hasherMock = new Mock<IPasswordHasher>();
-        _handler = new AccountCreationHandler(_repoMock.Object, _hasherMock.Object);
+        _handler = new AccountCreationHandler(
+            _repoMock.Object,
+            _hasherMock.Object,
+            new AccountSignInService()
+        );
     }
 
     [Test]
@@ -36,11 +41,21 @@ public class AccountCreationHandlerTests
         _repoMock.Setup(r => r.GetByNameAsync("testuser")).ReturnsAsync((AccountRetrieveDto?)null);
         _hasherMock.Setup(h => h.HashPassword("secure123")).Returns("hashedpass");
         _repoMock.Setup(r => r.SaveAsync(It.IsAny<Account>())).ReturnsAsync(123);
+        _repoMock.Setup(r => r.GetByIdAsync(123)).ReturnsAsync(new AccountRetrieveDto
+        {
+            Id = 123,
+            DisplayName = "testuser",
+            Password = "hashedpass",
+            SecurityStamp = Guid.NewGuid()
+        });
 
         var result = await _handler.HandleAccounts(context);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(context.Session.GetString("UserId"), Is.EqualTo("123"));
+        Assert.That(
+            context.User.FindFirstValue(ClaimTypes.NameIdentifier),
+            Is.EqualTo("123")
+        );
     }
 
     [Test]
@@ -62,7 +77,6 @@ public class AccountCreationHandlerTests
     {
         var invalidJson = "{ invalid json }";
         var context = new DefaultHttpContext();
-        context.Session = new SessionSetup();
         context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(invalidJson));
 
         var result = await _handler.HandleAccounts(context);
@@ -75,7 +89,6 @@ public class AccountCreationHandlerTests
     {
         var emptyJson = "null";
         var context = new DefaultHttpContext();
-        context.Session = new SessionSetup();
         context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(emptyJson));
 
         var result = await _handler.HandleAccounts(context);

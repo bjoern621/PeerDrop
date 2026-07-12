@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.WebSockets;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using backend.WebSocketComponent.Common.Api.DTOs;
@@ -33,7 +34,8 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     private string AddConnection(WebSocket webSocket, HttpContext context)
     {
         int? userId = null;
-        if (context.Session.GetString("UserId") != null && int.TryParse(context.Session.GetString("UserId"), out int parsedUserId))
+        var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.TryParse(userIdClaim, out int parsedUserId))
         {
             userId = parsedUserId;
         }
@@ -41,7 +43,7 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         var runtimeInformation = new RuntimeClientInformation
         {
             WebSocket = webSocket,
-            UserId = userId // User ID from session, may be null if not logged in
+            UserId = userId // User ID from the auth cookie, may be null if not logged in
         };
 
         string clientToken;

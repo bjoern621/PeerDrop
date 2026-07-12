@@ -16,4 +16,8 @@ public class AccountRetrieveDto
     [Required]
     [JsonPropertyName("id")]
     public required int Id { get; set; }
+
+    // Internal revocation marker, never exposed to clients
+    [JsonIgnore]
+    public Guid SecurityStamp { get; set; }
 }
