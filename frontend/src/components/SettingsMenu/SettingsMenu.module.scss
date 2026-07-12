@@ -7,7 +7,8 @@
         transition: rotate 0.3s ease;
     }
 
-    &:hover:not(:disabled) svg {
+    &:hover:not(:disabled) svg,
+    &[aria-expanded="true"] svg {
         rotate: 30deg;
     }
 }
