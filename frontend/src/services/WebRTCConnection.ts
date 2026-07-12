@@ -8,6 +8,7 @@ import { IceCandidateMessage } from "../types/rtc/IceCandidateMessage";
 import { SdpMessage } from "../types/rtc/SdpMessage";
 import { TransferStatsMonitor } from "./TransferStats";
 import { OpfsFileWriter } from "./OpfsFileWriter";
+import { TransferTracker } from "./TransferTracker";
 
 /** Bytes of the little-endian chunk sequence number prefixing each binary message. */
 const SEQUENCE_HEADER_BYTES = 4;
@@ -44,7 +45,6 @@ interface ReceiveState {
     receivedChunkCount: number;
     /** Chunks that arrived before the metadata message (the channel is unordered). */
     earlyChunks: ArrayBuffer[];
-    progressInterval: ReturnType<typeof setInterval> | null;
     finished: boolean;
 }
 
@@ -76,7 +76,8 @@ export class WebRTCConnection {
 
     public constructor(
         signalingChannel: WebSocketService,
-        remoteToken: ClientToken
+        remoteToken: ClientToken,
+        private readonly transferTracker: TransferTracker
     ) {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
@@ -134,6 +135,12 @@ export class WebRTCConnection {
             ].join(" ")}`
         );
 
+        this.transferTracker.start(uuid, {
+            name: file.name,
+            size: file.size,
+            direction: "up",
+        });
+
         const dataChannel = this.peerConnection.createDataChannel(uuid, {
             ordered: false,
         });
@@ -143,6 +150,7 @@ export class WebRTCConnection {
         // Bytes handed to the channel so far; the progress interval reads it.
         let offset = 0;
         let progressInterval: ReturnType<typeof setInterval> | null = null;
+        let finished = false;
 
         // Resolves when the send buffer drains to LOW_WATER_MARK or the
         // channel closes, whichever comes first.
@@ -231,40 +239,37 @@ export class WebRTCConnection {
             }
 
             if (progressInterval) clearInterval(progressInterval);
-            // 100% Progress-Event senden
-            this.emitEvent("fileProgress", {
-                uuid: uuid,
-                progress: 1.0, // 100% progress
-            });
+            finished = true;
+            this.transferTracker.setStatus(uuid, "done");
             this.log("File sent for Transfer:", uuid, " closing data channel");
             dataChannel.close();
         };
 
         dataChannel.onclose = () => {
             if (progressInterval) clearInterval(progressInterval);
+            if (!finished) {
+                this.transferTracker.setStatus(uuid, "failed");
+            }
             this.transferStats.release();
         };
 
         dataChannel.onopen = () => {
             this.transferStats.acquire();
 
-            // Progress-Interval starten
+            // Samples the bytes actually sent (handed to the channel minus
+            // what is still buffered) for the transfer tracker.
             progressInterval = setInterval(() => {
-                // Tatsächlich gesendete Bytes = offset - gepufferte Bytes
                 const sentBytes = Math.max(
                     offset - dataChannel.bufferedAmount,
                     0
                 );
-                const progress = Math.min(sentBytes / file.size, 1);
-                this.emitEvent("fileProgress", {
-                    uuid: uuid,
-                    progress: progress,
-                });
+                this.transferTracker.updateBytes(uuid, sentBytes);
             }, 100);
 
             pump().catch((err: unknown) => {
                 this.log("Error during file transfer:", uuid, err);
                 if (progressInterval) clearInterval(progressInterval);
+                this.transferTracker.setStatus(uuid, "failed");
             });
         };
     }
@@ -298,6 +303,10 @@ export class WebRTCConnection {
             }
             state.receivedBytes += payload.byteLength;
             state.receivedChunkCount++;
+            this.transferTracker.updateBytes(
+                state.fileMeta!.uuid,
+                state.receivedBytes
+            );
 
             if (
                 !state.finished &&
@@ -321,26 +330,16 @@ export class WebRTCConnection {
                         state.fileMeta.chunkCount
                     );
                 }
-                state.earlyChunks.forEach(handleSequencedChunk);
-                state.earlyChunks.length = 0;
 
                 this.log("Received file metadata:", state.fileMeta);
-                this.emitEvent("fileMetaReceived", {
+                this.transferTracker.start(state.fileMeta.uuid, {
                     name: state.fileMeta.name,
                     size: state.fileMeta.size,
-                    uuid: state.fileMeta.uuid,
+                    direction: "down",
                 });
 
-                // Progress-Interval starten
-                state.progressInterval = setInterval(() => {
-                    this.emitEvent("fileProgress", {
-                        uuid: state.fileMeta!.uuid,
-                        progress: Math.min(
-                            state.receivedBytes / state.fileMeta!.size,
-                            1
-                        ),
-                    });
-                }, 100);
+                state.earlyChunks.forEach(handleSequencedChunk);
+                state.earlyChunks.length = 0;
                 return;
             }
 
@@ -364,9 +363,8 @@ export class WebRTCConnection {
                 this.transferStats.release();
                 statsAcquired = false;
             }
-            if (state.progressInterval && state.finished) {
-                clearInterval(state.progressInterval);
-                state.progressInterval = null;
+            if (state.fileMeta && !state.finished) {
+                this.transferTracker.setStatus(state.fileMeta.uuid, "failed");
             }
         };
         dataChannel.onerror = error => {
@@ -384,7 +382,6 @@ export class WebRTCConnection {
                 receivedBytes: 0,
                 receivedChunkCount: 0,
                 earlyChunks: [],
-                progressInterval: null,
                 finished: false,
             };
             this.incomingTransfers.set(uuid, state);
@@ -402,7 +399,11 @@ export class WebRTCConnection {
     private async finishDownload(state: ReceiveState) {
         state.finished = true;
 
+        const uuid = state.fileMeta!.uuid;
         const filename = state.fileMeta?.name ?? "received-file";
+
+        // All chunks have arrived; disk finalization may still take a moment.
+        this.transferTracker.setStatus(uuid, "finalizing");
 
         let blob: Blob;
         if (state.opfsWriter) {
@@ -413,16 +414,15 @@ export class WebRTCConnection {
                     filename,
                     err
                 );
-                if (state.progressInterval) {
-                    clearInterval(state.progressInterval);
-                    state.progressInterval = null;
-                }
+                this.transferTracker.setStatus(uuid, "failed");
                 return;
             }
             blob = file;
         } else {
             blob = new Blob(state.receivedChunks);
         }
+
+        this.transferTracker.setStatus(uuid, "done");
 
         // Store the blob for potential re-download
         if (state.fileMeta?.uuid) {
@@ -437,15 +437,6 @@ export class WebRTCConnection {
         this.triggerDownload(blob, filename);
 
         this.log("File downloaded with TransferID:", state.fileMeta?.uuid);
-        if (state.progressInterval) {
-            clearInterval(state.progressInterval);
-            state.progressInterval = null;
-        }
-        // 100% Progress-Event senden
-        this.emitEvent("fileProgress", {
-            uuid: state.fileMeta!.uuid,
-            progress: 1.0, // 100% progress
-        });
     }
 
     /**
@@ -602,7 +593,6 @@ export class WebRTCConnection {
 
     public closeConnection() {
         this.incomingTransfers.forEach(state => {
-            if (state.progressInterval) clearInterval(state.progressInterval);
             void state.opfsWriter?.abort();
         });
         this.incomingTransfers.clear();

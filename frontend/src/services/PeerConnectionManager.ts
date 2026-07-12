@@ -14,6 +14,7 @@ import { ConnectionResponseMessage } from "../types/connection//ConnectionRespon
 import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
 import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
 import { toast } from "react-toastify/unstyled";
+import { TransferTracker } from "./TransferTracker";
 
 /**
  * Indicates who initiated the closing of the peer connection.
@@ -68,15 +69,9 @@ export class PeerConnectionManager {
     }
 
     private onConnectedCallback?: () => void;
-    private onReceivedFileCallback?: (
-        name: string,
-        size: number,
-        uuid: string
-    ) => void;
-    private readonly onFileProgressObservable: IObservable<{
-        uuid: string;
-        progress: number;
-    }> = new Observable();
+
+    /** Single source of truth for transfer progress, speed and status. */
+    private readonly transferTracker = new TransferTracker();
 
     public constructor(private readonly signaling: WebSocketService) {
         this.logger.setEnabled(false);
@@ -229,9 +224,11 @@ export class PeerConnectionManager {
 
             this.expectedRemoteToken = message.msg.remoteToken;
 
+            this.transferTracker.clear();
             this.webrtcConnection = new WebRTCConnection(
                 this.signaling,
-                message.msg.remoteToken
+                message.msg.remoteToken,
+                this.transferTracker
             );
 
             this.setupListeners();
@@ -355,46 +352,6 @@ export class PeerConnectionManager {
                 this.log("PEERCONNECTIONMANAGER ::: state:", state);
             }
         });
-
-        this.webrtcConnection.subscribeTo(
-            "fileMetaReceived",
-            (data: unknown) => {
-                const { name, size, uuid } = data as {
-                    name: string;
-                    size: number;
-                    uuid: string;
-                };
-                this.log(
-                    "PEERCONNECTIONMANAGER ::: Received file:",
-                    name,
-                    "of size:",
-                    size
-                );
-                assert(
-                    this.onReceivedFileCallback,
-                    "onReceivedFileCallback is not set."
-                );
-                this.onReceivedFileCallback(name, size, uuid);
-            }
-        );
-
-        this.webrtcConnection.subscribeTo("fileProgress", (data: unknown) => {
-            const { uuid, progress } = data as {
-                uuid: string;
-                progress: number;
-            };
-            this.log(
-                "PEERCONNECTIONMANAGER ::: File progress:",
-                uuid,
-                "with new progress:",
-                progress
-            );
-            assert(
-                this.onFileProgressObservable,
-                "onFileProgressObservable is not set."
-            );
-            this.onFileProgressObservable.notify({ uuid, progress });
-        });
     }
 
     /**
@@ -413,34 +370,9 @@ export class PeerConnectionManager {
         );
     }
 
-    public setOnReceivedFileCallback(
-        cb: (name: string, size: number, uuid: string) => void
-    ) {
-        this.onReceivedFileCallback = cb;
-        this.log(
-            "PEERCONNECTIONMANAGER ::: Set OnReceivedFileCallback to:",
-            this.onReceivedFileCallback
-        );
-    }
-
-    public subscribeToFileProgress(
-        cb: (data: { uuid: string; progress: number }) => void
-    ) {
-        this.onFileProgressObservable.subscribe(cb);
-        this.log(
-            "PEERCONNECTIONMANAGER ::: Added subscriber to onFileProgressObservable:",
-            this.onFileProgressObservable
-        );
-    }
-
-    public unsubscribeFromFileProgress(
-        cb: (data: { uuid: string; progress: number }) => void
-    ) {
-        this.onFileProgressObservable.unsubscribe(cb);
-        this.log(
-            "PEERCONNECTIONMANAGER ::: Removed subscriber from onFileProgressObservable:",
-            this.onFileProgressObservable
-        );
+    /** Central transfer state consumed by the UI. */
+    public getTransferTracker(): TransferTracker {
+        return this.transferTracker;
     }
 
     public getConnection() {
