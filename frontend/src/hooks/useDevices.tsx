@@ -180,6 +180,48 @@ export const useDevices = () => {
     }, []);
 
     /**
+     * Renames a device by sending its UUID and the new name to the server.
+     */
+    const renameDevice = useCallback(
+        async (device: Device, newName: string) => {
+            const [response, err] = await errorAsValue(
+                fetch(`${getRuntimeEnvVars().backendUrl}/device`, {
+                    method: "PATCH",
+                    credentials: "include",
+                    body: JSON.stringify({
+                        uuid: device.uuid,
+                        displayName: newName,
+                    }),
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+            );
+
+            if (err) {
+                toast.error(
+                    "Fehler beim Umbenennen des Geräts. Bitte versuche es später erneut."
+                );
+                console.error("Error renaming device:", err);
+                return;
+            } else if (!response.ok) {
+                toast.error(
+                    "Fehler beim Umbenennen des Geräts. Bitte versuche es später erneut."
+                );
+                console.error("Error renaming device:", response.statusText);
+                return;
+            }
+
+            setDevices(prevDevices =>
+                prevDevices.map(d =>
+                    d.uuid === device.uuid ? { ...d, name: newName } : d
+                )
+            );
+        },
+        []
+    );
+
+    /**
      * Initiates a quick connect to another device.
      */
     const connectToDevice = useCallback(
@@ -269,6 +311,14 @@ export const useDevices = () => {
                 setDevices(prevDevices =>
                     prevDevices.filter(d => d.uuid !== deviceInfo.uuid)
                 );
+            } else if (action === "renamed") {
+                setDevices(prevDevices =>
+                    prevDevices.map(device =>
+                        device.uuid === deviceInfo.uuid
+                            ? { ...device, name: deviceInfo.displayName }
+                            : device
+                    )
+                );
             }
         };
 
@@ -301,6 +351,7 @@ export const useDevices = () => {
         currentDeviceRegistered,
         registerCurrentDevice,
         deleteDevice,
+        renameDevice,
         connectToDevice,
     };
 };

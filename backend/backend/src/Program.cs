@@ -53,7 +53,7 @@ builder.Services.AddCors(options =>
                 .WithHeaders("Content-Type", "User-Agent", "Authorization")
                 .WithExposedHeaders("Location")
                 .AllowCredentials() // Required to allow session cookies
-                .WithMethods("GET", "POST", "DELETE")
+                .WithMethods("GET", "POST", "DELETE", "PATCH")
     )
 );
 

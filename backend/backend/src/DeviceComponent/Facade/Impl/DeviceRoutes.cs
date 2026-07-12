@@ -16,6 +16,9 @@ public class DeviceRoutes : IDeviceRoutes
         app.MapDelete("/device", (IDeviceHandler handler, HttpContext context) =>
             handler.DeleteDeviceAsync(context));
 
+        app.MapPatch("/device", (IDeviceHandler handler, HttpContext context) =>
+            handler.RenameDeviceAsync(context));
+
         return Task.CompletedTask;
     }
 }

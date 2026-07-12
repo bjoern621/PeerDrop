@@ -28,7 +28,7 @@ public interface IDeviceService
 
     /// <summary>
     /// Sends a device-changed message to all active client tokens of the user.
-    /// This notifies all connected clients that a device was added or removed.
+    /// This notifies all connected clients that a device was added, removed or renamed.
     /// </summary>
     void SendDeviceChangedMessage(int userId, string action, Guid deviceUuid, string displayName, string status);
 }

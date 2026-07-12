@@ -11,7 +11,7 @@ public class DeviceChangedMessage : ITypedMessage
     public string InstanceTypeString => TypeString;
 
     [JsonPropertyName("action")]
-    public required string Action { get; set; } // "added" or "removed"
+    public required string Action { get; set; } // "added", "removed" or "renamed"
 
     [JsonPropertyName("deviceInfo")]
     public required DeviceInfo Device { get; set; }

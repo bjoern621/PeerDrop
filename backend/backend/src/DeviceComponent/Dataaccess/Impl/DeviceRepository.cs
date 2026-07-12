@@ -64,6 +64,18 @@ public class DeviceRepository(NpgsqlDataSource _dataSource) : IDeviceRepository
         return await cmd.ExecuteNonQueryAsync(); // returns number of affected rows
     }
 
+    public async Task<int> RenameDeviceAsync(int accountId, Guid uuid, string displayName)
+    {
+        await using var cmd = _dataSource.CreateCommand(
+            "UPDATE devices SET display_name = @name WHERE uuid = @uuid AND account_id = @accountId"
+        );
+        cmd.Parameters.AddWithValue("@name", displayName);
+        cmd.Parameters.AddWithValue("@uuid", uuid);
+        cmd.Parameters.AddWithValue("@accountId", accountId);
+
+        return await cmd.ExecuteNonQueryAsync(); // returns number of affected rows
+    }
+
     public Task<Device?> GetDeviceByUuidAsync(Guid uuid)
     {
         return Task.Run(async () =>
