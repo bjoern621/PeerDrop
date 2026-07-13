@@ -1,0 +1,56 @@
+.lanPeers {
+    width: 100%;
+    margin-bottom: var(--space-40);
+}
+
+.label {
+    margin-bottom: var(--space-16);
+}
+
+.icon {
+    height: calc(var(--font-size-s) * var(--line-height-s));
+    margin-left: var(--space-4);
+    vertical-align: top;
+}
+
+.peerList {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    width: 100%;
+    min-height: 50px;
+
+    // Room for the chip hover lift + shadow, otherwise overflow-x clips them.
+    padding-block: var(--space-16);
+    margin-block: calc(-1 * var(--space-16));
+
+    overflow-x: auto;
+}
+
+.searchState {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+
+    color: var(--text-muted);
+    text-wrap: nowrap;
+}
+
+@keyframes pulse {
+    from {
+        box-shadow: 0 0 0 0 var(--primary-40);
+    }
+
+    to {
+        box-shadow: 0 0 0 var(--space-12) transparent;
+    }
+}
+
+.pulse {
+    height: var(--space-12);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    margin-left: var(--space-8);
+    background-color: var(--primary);
+    animation: pulse 1.5s ease-out infinite;
+}

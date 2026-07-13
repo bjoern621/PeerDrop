@@ -110,6 +110,28 @@ public class TokenConnectService(
         _logger.LogDebug($"to {remoteToken}: Forwarded cancellation of request from {clientToken}");
     }
 
+    public async Task HandleClientDisconnected(string clientToken)
+    {
+        // Drop the disconnected client's own open request, if any.
+        _openConnectionRequestRepository.TryRemove(clientToken, out _);
+
+        // Requesters waiting for the disconnected client would otherwise wait
+        // forever. Reject their requests.
+        var waitingRequesters = _openConnectionRequestRepository.FindAndRemoveRequestersForTarget(clientToken);
+
+        var rejectionMessage = new ConnectionResponseMessage
+        {
+            Accepted = false,
+            RemoteToken = clientToken,
+        };
+
+        foreach (var requester in waitingRequesters)
+        {
+            await _webSocketHandler.SendMessage(requester, rejectionMessage);
+            _logger.LogDebug($"to {requester}: Connection Request Rejected: Target {clientToken} disconnected");
+        }
+    }
+
     public async Task HandleCloseConnection(string clientId, CloseConnectionMessage message)
     {
         _logger.LogDebug($"from {clientId}: Close Connection");

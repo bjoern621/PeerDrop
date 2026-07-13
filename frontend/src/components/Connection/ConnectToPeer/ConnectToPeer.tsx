@@ -4,6 +4,7 @@ import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
 import { useEffect, useRef, useState } from "react";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
+import { OutgoingRequestEvent } from "../../../services/PeerConnectionManager";
 import { toast } from "react-toastify/unstyled";
 
 export default function ConnectToPeer() {
@@ -17,6 +18,32 @@ export default function ConnectToPeer() {
     const delayTimeoutIdRef = useRef<number | null>(null);
 
     const connectButtonRef = useRef<HTMLButtonElement | null>(null);
+
+    // Mirror the shared outgoing-request state so requests initiated elsewhere
+    // (e.g. by clicking a LAN peer) show the same waiting UI and can be
+    // cancelled here. Responses are handled by the response callback below to
+    // preserve the minimum-delay behavior.
+    useEffect(() => {
+        const onOutgoingRequestChanged = (event: OutgoingRequestEvent) => {
+            if (event.state === "requested") {
+                setRemoteToken(event.remoteToken);
+                setConnectionRequestTimestamp(Date.now());
+                setWaitingForResponse(true);
+            } else if (event.state === "cancelled") {
+                setWaitingForResponse(false);
+            }
+        };
+
+        peerConnectionManager.subscribeToOutgoingRequestChanged(
+            onOutgoingRequestChanged
+        );
+
+        return () => {
+            peerConnectionManager.unsubscribeFromOutgoingRequestChanged(
+                onOutgoingRequestChanged
+            );
+        };
+    }, [peerConnectionManager]);
 
     useEffect(() => {
         /**
@@ -77,16 +104,9 @@ export default function ConnectToPeer() {
         peerConnectionManager.cancelConnectionRequest(remoteToken);
     };
 
+    // Waiting state is set by the outgoing-request subscription above.
     const connectToPeer = () => {
-        const successfullySent =
-            peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
-
-        if (successfullySent) {
-            setConnectionRequestTimestamp(Date.now());
-            setWaitingForResponse(true);
-        }
-
-        return successfullySent;
+        return peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
     };
 
     const handleSubmit = (event: React.FormEvent) => {

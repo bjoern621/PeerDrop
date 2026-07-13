@@ -1,10 +1,10 @@
-@use "theme/reset.scss";
-@use "theme/colors.scss";
-@use "theme/spacing.scss";
-@use "theme/typography.scss";
-@use "theme/shadows.scss";
+@use "theme/reset";
+@use "theme/colors";
+@use "theme/spacing";
+@use "theme/typography";
+@use "theme/shadows";
 @use "react-toastify/dist/ReactToastify.css";
-@use "theme/toastify-styles.scss";
+@use "theme/toastify-styles";
 
 html {
     scrollbar-width: thin;
