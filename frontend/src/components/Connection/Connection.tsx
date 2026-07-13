@@ -89,12 +89,12 @@ export default function Connection() {
         <div className={css.container}>
             <Devices />
 
+            <LanPeers />
+
             <div className={css.containerWrapper}>
                 <OwnToken />
 
                 <ConnectToPeer />
-
-                <LanPeers />
             </div>
 
             <AwaitConnectionDialog ref={awaitConnectionDialog} />

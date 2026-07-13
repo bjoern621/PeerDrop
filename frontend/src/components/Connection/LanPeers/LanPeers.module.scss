@@ -1,35 +1,42 @@
-@use "../Connection.module.scss" as connection;
+.lanPeers {
+    width: 100%;
+    margin-bottom: var(--space-40);
+}
 
-.lanPeersContainer {
-    @include connection.container;
+.label {
+    margin-bottom: var(--space-16);
+}
 
-    background-color: var(--primary-5);
-
-    > .heading {
-        color: var(--primary);
-        fill: var(--primary);
-    }
+.icon {
+    height: calc(var(--font-size-s) * var(--line-height-s));
+    margin-left: var(--space-4);
+    vertical-align: top;
 }
 
 .peerList {
     display: flex;
-    flex-direction: column;
     gap: var(--space-8);
+    width: 100%;
+    min-height: 50px;
 
-    flex: 1;
-    margin: var(--space-16) 0;
-    overflow-y: auto;
+    overflow-x: auto;
 }
 
 .searchState {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: var(--space-16);
+    gap: var(--space-12);
+    min-height: 50px;
 
-    flex: 1;
-    margin: var(--space-16) 0;
+    color: var(--text-muted);
+}
+
+.emptyText {
+    display: flex;
+    align-items: center;
+    min-height: 50px;
+
+    color: var(--text-muted);
 }
 
 @keyframes pulse {
@@ -38,14 +45,15 @@
     }
 
     to {
-        box-shadow: 0 0 0 var(--space-24) transparent;
+        box-shadow: 0 0 0 var(--space-12) transparent;
     }
 }
 
 .pulse {
-    height: var(--space-24);
+    height: var(--space-12);
     aspect-ratio: 1;
     border-radius: 50%;
+    margin-left: var(--space-8);
     background-color: var(--primary);
     animation: pulse 1.5s ease-out infinite;
 }

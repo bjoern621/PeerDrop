@@ -8,6 +8,8 @@
     color: var(--primary);
     border: 1px solid var(--border);
     border-radius: var(--space-16);
+
+    text-wrap: nowrap;
 }
 
 .statusIndicator {
@@ -22,7 +24,6 @@
 }
 
 .deviceInfo {
-    margin-left: auto;
     color: var(--text-muted);
     font-size: var(--font-size-s);
 }
