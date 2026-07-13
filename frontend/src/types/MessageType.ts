@@ -13,4 +13,6 @@ export const enum MessageType {
     DEVICE_HEARTBEAT = "device-heartbeat",
     DEVICE_CHANGED = "device-changed",
     QUICK_CONNECT = "quick-connect",
+    LAN_PEERS = "lan-peers",
+    LAN_PEERS_REQUEST = "lan-peers-request",
 }

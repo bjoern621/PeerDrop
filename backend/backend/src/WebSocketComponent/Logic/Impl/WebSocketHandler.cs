@@ -18,6 +18,9 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     private readonly Random Random = new();
     private readonly ConcurrentDictionary<MessageType, List<MessageHandlerDelegate>> MessageHandlers = new();
 
+    public event Func<ClientConnectedEvent, Task>? ClientConnected;
+    public event Func<string, Task>? ClientDisconnected;
+
     public bool RemoteTokenExists(string remoteToken)
     {
         return ActiveConnections.ContainsKey(remoteToken);
@@ -43,7 +46,9 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         var runtimeInformation = new RuntimeClientInformation
         {
             WebSocket = webSocket,
-            UserId = userId // User ID from the auth cookie, may be null if not logged in
+            UserId = userId, // User ID from session, may be null if not logged in
+            RemoteIpAddress = context.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = context.Request.Headers.UserAgent.ToString() is { Length: > 0 } ua ? ua : null
         };
 
         string clientToken;
@@ -107,9 +112,44 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
 
         await SendClientTokenAsync(clientToken);
 
+        await RaiseClientConnected(clientToken);
+
         await ListenForMessages(webSocket, clientToken);
 
         RemoveConnection(clientToken);
+
+        await RaiseClientDisconnected(clientToken);
+    }
+
+    private async Task RaiseClientConnected(string clientToken)
+    {
+        if (ClientConnected == null)
+            return;
+
+        ActiveConnections.TryGetValue(clientToken, out var runtimeInfo);
+
+        var payload = new ClientConnectedEvent
+        {
+            ClientToken = clientToken,
+            RemoteIpAddress = runtimeInfo?.RemoteIpAddress,
+            UserAgent = runtimeInfo?.UserAgent
+        };
+
+        foreach (var handler in ClientConnected.GetInvocationList().Cast<Func<ClientConnectedEvent, Task>>())
+        {
+            await handler(payload);
+        }
+    }
+
+    private async Task RaiseClientDisconnected(string clientToken)
+    {
+        if (ClientDisconnected == null)
+            return;
+
+        foreach (var handler in ClientDisconnected.GetInvocationList().Cast<Func<string, Task>>())
+        {
+            await handler(clientToken);
+        }
     }
     private async Task SendClientTokenAsync(string clientToken)
     {

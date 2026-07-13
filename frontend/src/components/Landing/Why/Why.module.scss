@@ -5,7 +5,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-16);
 
-    @media (max-width: 800px) {
+    @media (width <= 800px) {
         grid-template-columns: 1fr;
     }
 }

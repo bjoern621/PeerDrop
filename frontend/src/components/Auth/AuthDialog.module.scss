@@ -7,6 +7,7 @@
     right: 0;
 
     background-color: var(--background);
+
     @include elevated-shadow-no-highlight;
     border: 1px solid var(--border);
     padding: var(--space-24);
