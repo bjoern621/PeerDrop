@@ -12,12 +12,12 @@
     gap: var(--space-24);
 
     // 200 (basis) * 4 + 24 (gap) * 3 + 64 (padding) + 9 (scrollbar)
-    @media (max-width: 945px) {
+    @media (width <= 945px) {
         grid-template-columns: repeat(2, 1fr);
     }
 
     // 200 (basis) * 2 + 24 (gap) + 64 (padding) + 9 (scrollbar)
-    @media (max-width: 497px) {
+    @media (width <= 497px) {
         grid-template-columns: 1fr;
     }
 

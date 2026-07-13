@@ -10,6 +10,7 @@
 
     border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
     background-color: var(--background);
+
     @include elevated-shadow-no-highlight;
 
     padding: var(--space-16) var(--space-24);
