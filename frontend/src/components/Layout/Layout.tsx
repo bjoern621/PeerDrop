@@ -7,6 +7,7 @@ import WarningIcon from "../../assets/status/icons8-error-3.svg?react";
 import InfoIcon from "../../assets/status/icons8-info-3.svg?react";
 import SuccessIcon from "../../assets/status/icons8-check-mark-3.svg?react";
 import ErrorIcon from "../../assets/status/icons8-high-priority-3.svg?react";
+import ConnectionOverlay from "../ConnectionOverlay/ConnectionOverlay";
 
 export default function Layout() {
     return (
@@ -18,6 +19,8 @@ export default function Layout() {
                 </main>
                 <Footer />
             </div>
+
+            <ConnectionOverlay />
 
             <ToastContainer
                 position="top-right"
