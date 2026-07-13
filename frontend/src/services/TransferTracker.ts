@@ -26,6 +26,12 @@ export interface TransferSnapshot {
     name: string;
     size: number;
     direction: TransferDirection;
+    /** Groups files that belong to the same folder transfer. */
+    folderId?: string;
+    /** Folder display name, derived from the first segment of relativePath. */
+    folderName?: string;
+    /** Path within the shared folder, including the folder name. */
+    relativePath?: string;
     startedAt: Date;
     bytesTransferred: number;
     /** 0..1 */
@@ -42,6 +48,8 @@ interface TransferEntry {
     name: string;
     size: number;
     direction: TransferDirection;
+    folderId?: string;
+    relativePath?: string;
     startedAt: Date;
     bytesTransferred: number;
     status: TransferStatus;
@@ -65,13 +73,21 @@ export class TransferTracker {
 
     public start(
         uuid: string,
-        info: { name: string; size: number; direction: TransferDirection }
+        info: {
+            name: string;
+            size: number;
+            direction: TransferDirection;
+            folderId?: string;
+            relativePath?: string;
+        }
     ) {
         this.entries.set(uuid, {
             uuid,
             name: info.name,
             size: info.size,
             direction: info.direction,
+            folderId: info.folderId,
+            relativePath: info.relativePath,
             startedAt: new Date(),
             bytesTransferred: 0,
             status: "waiting",
@@ -157,6 +173,9 @@ export class TransferTracker {
             name: entry.name,
             size: entry.size,
             direction: entry.direction,
+            folderId: entry.folderId,
+            folderName: entry.relativePath?.split("/")[0],
+            relativePath: entry.relativePath,
             startedAt: entry.startedAt,
             bytesTransferred: entry.bytesTransferred,
             progress:

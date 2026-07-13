@@ -1,14 +1,109 @@
 import { useRef, useState } from "react";
 import DragDropIcon from "../../../assets/illustrations/drag_and_drop.svg?react";
 import css from "./DragDropOverlay.module.scss";
+import {
+    FolderFile,
+    ShareSelection,
+} from "../../../types/transfer/ShareSelection";
 
 interface DragDropOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
-    onFilesDropped: (files: FileList) => void;
+    onItemsDropped: (selection: ShareSelection) => void;
     children: React.ReactNode;
 }
 
+/** Reads all entries of a directory; readEntries returns batches (100 in Chromium) until an empty one marks the end. */
+const readAllEntries = async (
+    directory: FileSystemDirectoryEntry
+): Promise<FileSystemEntry[]> => {
+    const reader = directory.createReader();
+    const entries: FileSystemEntry[] = [];
+    for (;;) {
+        const batch = await new Promise<FileSystemEntry[]>(
+            (resolve, reject) => {
+                reader.readEntries(resolve, reject);
+            }
+        );
+        if (batch.length === 0) break;
+        entries.push(...batch);
+    }
+    return entries;
+};
+
+const entryToFile = (entry: FileSystemFileEntry): Promise<File> =>
+    new Promise((resolve, reject) => {
+        entry.file(resolve, reject);
+    });
+
+/** Collects all files below a directory entry; paths include the folder name. */
+async function collectFolderFiles(
+    directory: FileSystemDirectoryEntry,
+    path: string,
+    out: FolderFile[]
+): Promise<void> {
+    for (const entry of await readAllEntries(directory)) {
+        if (entry.isDirectory) {
+            await collectFolderFiles(
+                entry as FileSystemDirectoryEntry,
+                `${path}/${entry.name}`,
+                out
+            );
+        } else if (entry.isFile) {
+            out.push({
+                file: await entryToFile(entry as FileSystemFileEntry),
+                relativePath: `${path}/${entry.name}`,
+            });
+        }
+    }
+}
+
+/**
+ * Turns the DataTransfer of a drop event into a ShareSelection. Dropped
+ * directories are traversed recursively via their filesystem entries.
+ * Entry and file handles are taken synchronously before the first await
+ * because the DataTransfer is only valid during the drop event.
+ */
+async function collectSelection(
+    dataTransfer: DataTransfer
+): Promise<ShareSelection> {
+    const selection: ShareSelection = { files: [], folders: [] };
+
+    const pending = Array.from(dataTransfer.items)
+        .filter(item => item.kind === "file")
+        .map(item => ({
+            entry:
+                typeof item.webkitGetAsEntry === "function"
+                    ? item.webkitGetAsEntry()
+                    : null,
+            file: item.getAsFile(),
+        }));
+
+    if (pending.length === 0) {
+        // Browsers without DataTransferItem entries only expose flat files.
+        selection.files.push(...Array.from(dataTransfer.files));
+        return selection;
+    }
+
+    for (const { entry, file } of pending) {
+        if (entry?.isDirectory) {
+            const files: FolderFile[] = [];
+            await collectFolderFiles(
+                entry as FileSystemDirectoryEntry,
+                entry.name,
+                files
+            );
+            if (files.length > 0) {
+                selection.folders.push({ name: entry.name, files });
+            }
+        } else if (file) {
+            selection.files.push(file);
+        }
+    }
+
+    return selection;
+}
+
 export default function DragDropOverlay({
-    onFilesDropped,
+    onItemsDropped,
     children,
     className,
 }: DragDropOverlayProps) {
@@ -44,13 +139,19 @@ export default function DragDropOverlay({
         dragCounterRef.current = 0;
         setIsDragging(false);
 
-        const droppedFiles = e.dataTransfer.files;
-
-        if (!droppedFiles || droppedFiles.length === 0) {
-            return;
-        }
-
-        onFilesDropped(droppedFiles);
+        void collectSelection(e.dataTransfer)
+            .then(selection => {
+                if (
+                    selection.files.length === 0 &&
+                    selection.folders.length === 0
+                ) {
+                    return;
+                }
+                onItemsDropped(selection);
+            })
+            .catch((err: unknown) => {
+                console.error("Failed to read dropped items:", err);
+            });
     };
 
     return (

@@ -1,5 +1,5 @@
 import { assert } from "../util/Assert";
-import { WebRTCConnection } from "./WebRTCConnection";
+import { FolderInfo, WebRTCConnection } from "./WebRTCConnection";
 import {
     MessageHandler,
     WebSocketService,
@@ -484,10 +484,12 @@ export class PeerConnectionManager {
      * Sends a file to the remote peer using the underlying WebRTCConnection.
      * Throws if no active connection exists.
      * @param file The file to send.
+     * @param folder Folder membership when the file is part of a folder
+     * transfer.
      */
-    public sendFile(file: File, uuid: string) {
+    public sendFile(file: File, uuid: string, folder?: FolderInfo) {
         assert(this.webrtcConnection, "No active connection to send file.");
-        this.webrtcConnection.sendFileOverDataChannel(file, uuid);
+        this.webrtcConnection.sendFileOverDataChannel(file, uuid, folder);
     }
 
     /**
@@ -501,5 +503,19 @@ export class PeerConnectionManager {
             return false;
         }
         return this.webrtcConnection.redownloadFile(uuid);
+    }
+
+    /**
+     * Saves all completed files of a received folder transfer, either into a
+     * user-picked directory (Chromium) or as individual downloads.
+     * @param folderId The folder ID of the transfer to save.
+     * @returns true if saving was started, false otherwise.
+     */
+    public async saveFolder(folderId: string): Promise<boolean> {
+        if (!this.webrtcConnection) {
+            this.log("No active connection to save folder.");
+            return false;
+        }
+        return this.webrtcConnection.saveFolder(folderId);
     }
 }
