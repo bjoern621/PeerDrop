@@ -45,6 +45,7 @@
     .fileIcon3 {
         position: absolute;
         transition: all 0.3s ease;
+
         --fill-0: var(--background);
         --fill-1: var(--primary);
     }
@@ -141,7 +142,7 @@
 
 .remoteToken {
     color: var(--accent);
-    font-family: "Roboto Mono";
+    font-family: "Roboto Mono", monospace;
 }
 
 .dragDropOverlay {

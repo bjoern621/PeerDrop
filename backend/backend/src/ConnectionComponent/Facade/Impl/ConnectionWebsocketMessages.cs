@@ -18,5 +18,7 @@ public class ConnectionWebsocketMessages(IWebSocketHandler _webSocketHandler, IT
         _webSocketHandler.SubscribeToMessageType<ConnectionRequestCancelledMessage>(ConnectionRequestCancelledMessage.TypeString, _tokenConnectService.HandleConnectionRequestCancelled);
 
         _webSocketHandler.SubscribeToMessageType<QuickConnectMessage>(QuickConnectMessage.TypeString, _quickConnectService.HandleQuickConnectMessage);
+
+        _webSocketHandler.ClientDisconnected += _tokenConnectService.HandleClientDisconnected;
     }
 }

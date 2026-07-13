@@ -48,11 +48,11 @@
 }
 
 .uploadIcon {
-    @include iconStyles();
+    @include icon-styles;
 }
 
 .downloadIcon {
-    @include iconStyles();
+    @include icon-styles;
 }
 
 .progressCell {
