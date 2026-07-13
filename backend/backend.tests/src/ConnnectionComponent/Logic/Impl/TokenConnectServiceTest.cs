@@ -17,6 +17,7 @@ public class TokenConnectServiceTest
     private Mock<IDeviceService> _mockDeviceService;
     private Mock<IOpenConnectionRequestRepository> _mockOpenConnectionRequestRepository;
     private Mock<IConnectionInitiationService> _mockConnectionInitiationService;
+    private Mock<IConnectionStateService> _mockConnectionStateService;
     private ITokenConnectService _service;
 
     [SetUp]
@@ -27,11 +28,13 @@ public class TokenConnectServiceTest
         _mockDeviceService = new Mock<IDeviceService>();
         _mockOpenConnectionRequestRepository = new Mock<IOpenConnectionRequestRepository>();
         _mockConnectionInitiationService = new Mock<IConnectionInitiationService>();
+        _mockConnectionStateService = new Mock<IConnectionStateService>();
         _service = new TokenConnectService(
             _mockHandler.Object,
             NullLogger<TokenConnectService>.Instance,
             _mockOpenConnectionRequestRepository.Object,
-            _mockConnectionInitiationService.Object
+            _mockConnectionInitiationService.Object,
+            _mockConnectionStateService.Object
         );
     }
 

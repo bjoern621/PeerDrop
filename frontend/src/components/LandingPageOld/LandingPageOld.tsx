@@ -224,9 +224,8 @@ export default function LandingPageOld() {
     };
 
     const interruptWaiting = () => {
-        if (peerConnectionManager.cancelConnectionRequest(remoteToken)) {
-            waitingDialog.current!.close();
-        }
+        peerConnectionManager.cancelConnectionRequest(remoteToken);
+        waitingDialog.current!.close();
     };
 
     const onTokenHover = () => {

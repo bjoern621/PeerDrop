@@ -4,111 +4,100 @@ import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
 import { useEffect, useRef, useState } from "react";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
-import { OutgoingRequestEvent } from "../../../services/PeerConnectionManager";
+import { useConnectionRequestState } from "../../../hooks/useConnectionRequestState";
 import { toast } from "react-toastify/unstyled";
+
+/**
+ * Minimum time the waiting UI stays visible after a request was sent, so
+ * instant rejections do not feel abrupt.
+ */
+const MIN_WAITING_MS = 1000;
 
 export default function ConnectToPeer() {
     const peerConnectionManager = usePeerConnectionManager();
+    const requestState = useConnectionRequestState();
 
     const [remoteToken, setRemoteToken] = useState<string>("");
-    const [waitingForResponse, setWaitingForResponse] =
-        useState<boolean>(false);
-    const [connectionRequestTimestamp, setConnectionRequestTimestamp] =
-        useState<number>(0);
-    const delayTimeoutIdRef = useRef<number | null>(null);
-
     const connectButtonRef = useRef<HTMLButtonElement | null>(null);
 
-    // Mirror the shared outgoing-request state so requests initiated elsewhere
-    // (e.g. by clicking a LAN peer) show the same waiting UI and can be
-    // cancelled here. Responses are handled by the response callback below to
-    // preserve the minimum-delay behavior.
+    // The waiting UI is derived from the server-pushed snapshot: a pending
+    // outgoing request exists exactly while the server says so. The hold
+    // below only stretches the displayed state to MIN_WAITING_MS.
+    const serverWaiting = requestState.outgoingRequestTarget !== null;
+    const [holdingWait, setHoldingWait] = useState(false);
+    const requestStartRef = useRef<number>(0);
+
+    // Mirror the outgoing target into the token input so requests initiated
+    // elsewhere (e.g. by clicking a LAN peer) are visible and cancellable here.
     useEffect(() => {
-        const onOutgoingRequestChanged = (event: OutgoingRequestEvent) => {
-            if (event.state === "requested") {
-                setRemoteToken(event.remoteToken);
-                setConnectionRequestTimestamp(Date.now());
-                setWaitingForResponse(true);
-            } else if (event.state === "cancelled") {
-                setWaitingForResponse(false);
-            }
-        };
-
-        peerConnectionManager.subscribeToOutgoingRequestChanged(
-            onOutgoingRequestChanged
-        );
-
-        return () => {
-            peerConnectionManager.unsubscribeFromOutgoingRequestChanged(
-                onOutgoingRequestChanged
-            );
-        };
-    }, [peerConnectionManager]);
+        if (requestState.outgoingRequestTarget) {
+            setRemoteToken(requestState.outgoingRequestTarget);
+        }
+    }, [requestState.outgoingRequestTarget]);
 
     useEffect(() => {
-        /**
-         * Wait for the minimum delay before processing the connection response.
-         * This prevents instant rejections from feeling abrupt.
-         */
-        const waitForMinimumDelay = async () => {
-            const elapsedTime = Date.now() - connectionRequestTimestamp;
-            const remainingDelay = Math.max(0, 1000 - elapsedTime);
-
-            if (remainingDelay > 0) {
-                await new Promise<void>(resolve => {
-                    delayTimeoutIdRef.current = setTimeout(
-                        resolve,
-                        remainingDelay
-                    );
-                });
-            }
-        };
-
-        peerConnectionManager.setOnConnectionResponseReceivedCallback(
-            (accepted: boolean) => {
-                void (async () => {
-                    if (!accepted) {
-                        // If remote peer accepted, we can skip the delay
-                        await waitForMinimumDelay();
-                    }
-
-                    delayTimeoutIdRef.current = null;
-                    setWaitingForResponse(false);
-
-                    if (!accepted) {
-                        toast.error("Verbindungsanfrage wurde abgelehnt!", {
-                            toastId: "connection-rejected-toast",
-                            updateId: "connection-rejected-toast",
-                        });
-                    }
-
-                    // Navigation is handled in ConnectionProvider
-                })();
-            }
-        );
-
-        return () => {
-            if (delayTimeoutIdRef.current !== null) {
-                clearTimeout(delayTimeoutIdRef.current);
-            }
-        };
-    }, [peerConnectionManager, connectionRequestTimestamp]);
-
-    const interruptWaiting = () => {
-        if (delayTimeoutIdRef.current !== null) {
-            clearTimeout(delayTimeoutIdRef.current);
-            delayTimeoutIdRef.current = null;
+        if (serverWaiting) {
+            requestStartRef.current = Date.now();
+            setHoldingWait(true);
+            return;
         }
 
-        setWaitingForResponse(false);
+        const remaining =
+            MIN_WAITING_MS - (Date.now() - requestStartRef.current);
+
+        if (remaining <= 0) {
+            setHoldingWait(false);
+            return;
+        }
+
+        const timeoutId = setTimeout(() => setHoldingWait(false), remaining);
+        return () => clearTimeout(timeoutId);
+    }, [serverWaiting]);
+
+    const waitingForResponse = serverWaiting || holdingWait;
+
+    // Rejections are transient feedback, not state: the waiting UI itself
+    // clears via the snapshot. The toast is delayed to match the hold.
+    useEffect(() => {
+        peerConnectionManager.setOnConnectionResponseReceivedCallback(
+            (accepted: boolean) => {
+                if (accepted) {
+                    // Navigation is handled in ConnectionProvider.
+                    return;
+                }
+
+                const remaining = Math.max(
+                    0,
+                    MIN_WAITING_MS - (Date.now() - requestStartRef.current)
+                );
+
+                setTimeout(() => {
+                    toast.error("Verbindungsanfrage wurde abgelehnt!", {
+                        toastId: "connection-rejected-toast",
+                        updateId: "connection-rejected-toast",
+                    });
+                }, remaining);
+            }
+        );
+    }, [peerConnectionManager]);
+
+    const interruptWaiting = () => {
         peerConnectionManager.cancelConnectionRequest(remoteToken);
+        // A local cancel needs no minimum-wait hold.
+        requestStartRef.current = 0;
     };
 
-    // Waiting state is set by the outgoing-request subscription above.
     const connectToPeer = () => {
-        return peerConnectionManager.requestConnectionToRemotePeer(
-            remoteToken
-        );
+        const successfullySent =
+            peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
+
+        if (successfullySent) {
+            // Covers rejections that arrive before the first snapshot does
+            // (e.g. the entered token does not exist).
+            requestStartRef.current = Date.now();
+        }
+
+        return successfullySent;
     };
 
     const handleSubmit = (event: React.FormEvent) => {
