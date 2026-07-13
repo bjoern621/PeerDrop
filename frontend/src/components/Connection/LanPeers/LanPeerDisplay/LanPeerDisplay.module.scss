@@ -1,0 +1,28 @@
+.peerDisplay {
+    display: flex;
+    gap: var(--space-8);
+    align-items: center;
+
+    padding: var(--space-8) var(--space-12);
+    background-color: var(--primary-10);
+    color: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: var(--space-16);
+}
+
+.statusIndicator {
+    height: var(--space-16);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: var(--success);
+}
+
+.peerName {
+    font-weight: var(--font-weight-semibold);
+}
+
+.deviceInfo {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: var(--font-size-s);
+}
