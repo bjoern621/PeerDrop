@@ -106,9 +106,7 @@ export default function ConnectToPeer() {
 
     // Waiting state is set by the outgoing-request subscription above.
     const connectToPeer = () => {
-        return peerConnectionManager.requestConnectionToRemotePeer(
-            remoteToken
-        );
+        return peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
     };
 
     const handleSubmit = (event: React.FormEvent) => {
