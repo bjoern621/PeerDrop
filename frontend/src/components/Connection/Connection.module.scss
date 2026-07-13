@@ -25,7 +25,7 @@
     width: 100%;
 
     @include background-effect;
-    --background-effect-size: 1100px;
+    --background-effect-size: 200%;
 }
 
 @mixin containerBorder {

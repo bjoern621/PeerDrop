@@ -7,7 +7,7 @@ import LanPeerDisplay from "./LanPeerDisplay/LanPeerDisplay";
 import Tooltip from "../../Tooltip/Tooltip";
 
 export default function LanPeers() {
-    const { peers, isSearching } = useLanPeers();
+    const { peers } = useLanPeers();
 
     const connectToPeer = (peer: LanPeer) => {
         // TODO: Request a connection via PeerConnectionManager once LAN
@@ -34,26 +34,23 @@ export default function LanPeers() {
                 </Tooltip>
             </div>
 
-            {isSearching ? (
+            <div className={css.peerList}>
+                {peers.map(peer => (
+                    <LanPeerDisplay
+                        key={peer.token}
+                        peer={peer}
+                        onConnect={connectToPeer}
+                    />
+                ))}
+                {/* Stays mounted in both states so the pulse animation is not
+                    restarted when the text switches. */}
                 <div className={css.searchState}>
                     <div className={css.pulse} />
-                    Suche nach Geräten in deinem Netzwerk...
+                    {peers.length > 0
+                        ? "Suche weiter..."
+                        : "Suche nach Geräten in deinem Netzwerk..."}
                 </div>
-            ) : peers.length > 0 ? (
-                <div className={css.peerList}>
-                    {peers.map(peer => (
-                        <LanPeerDisplay
-                            key={peer.token}
-                            peer={peer}
-                            onConnect={connectToPeer}
-                        />
-                    ))}
-                </div>
-            ) : (
-                <div className={css.emptyText}>
-                    Keine Geräte in deinem Netzwerk gefunden
-                </div>
-            )}
+            </div>
         </div>
     );
 }

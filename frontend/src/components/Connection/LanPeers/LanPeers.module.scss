@@ -26,17 +26,9 @@
     display: flex;
     align-items: center;
     gap: var(--space-12);
-    min-height: 50px;
 
     color: var(--text-muted);
-}
-
-.emptyText {
-    display: flex;
-    align-items: center;
-    min-height: 50px;
-
-    color: var(--text-muted);
+    text-wrap: nowrap;
 }
 
 @keyframes pulse {

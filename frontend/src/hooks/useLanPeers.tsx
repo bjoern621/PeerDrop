@@ -25,21 +25,20 @@ const STUB_LAN_PEERS: LanPeer[] = [
 /**
  * Provides the list of peers discovered in the local network.
  *
- * Currently returns stub data after a short artificial delay so the UI
- * (including the searching state) can be developed against realistic behavior.
+ * Discovery runs continuously; the list grows and shrinks as peers appear
+ * and disappear. Currently returns stub data after a short artificial delay
+ * so the UI can be developed against realistic behavior.
  */
 export const useLanPeers = () => {
     const [peers, setPeers] = useState<LanPeer[]>([]);
-    const [isSearching, setIsSearching] = useState<boolean>(true);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             setPeers(STUB_LAN_PEERS);
-            setIsSearching(false);
         }, 1500);
 
         return () => clearTimeout(timeoutId);
     }, []);
 
-    return { peers, isSearching };
+    return { peers };
 };
