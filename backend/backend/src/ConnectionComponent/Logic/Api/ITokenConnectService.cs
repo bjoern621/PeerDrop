@@ -11,4 +11,10 @@ public interface ITokenConnectService
     Task HandleConnectionRequest(string clientId, ConnectionRequestMessage message);
     Task HandleConnectionResponse(string clientId, ConnectionResponseMessage message);
     Task HandleConnectionRequestCancelled(string clientToken, ConnectionRequestCancelledMessage messageData);
+    /// <summary>
+    /// Cleans up open connection requests when a client disconnects: the
+    /// client's own open request is dropped and all requesters waiting for the
+    /// client receive a rejection response.
+    /// </summary>
+    Task HandleClientDisconnected(string clientToken);
 }

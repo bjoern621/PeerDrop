@@ -10,6 +10,8 @@ public class ConnectionInitiationService : IConnectionInitiationService
     private readonly IWebSocketHandler _webSocketHandler;
     private readonly IOpenConnectionRequestRepository _openConnectionRequestRepository;
 
+    public event Func<string, string, Task>? ConnectionEstablished;
+
     public ConnectionInitiationService(IWebSocketHandler webSocketHandler, IOpenConnectionRequestRepository openConnectionRequestRepository)
     {
         _webSocketHandler = webSocketHandler;
@@ -45,5 +47,13 @@ public class ConnectionInitiationService : IConnectionInitiationService
 
         var messageToB = new EstablishConnectionMessage { RemoteToken = clientA };
         await _webSocketHandler.SendMessage(clientB, messageToB);
+
+        if (ConnectionEstablished != null)
+        {
+            foreach (var handler in ConnectionEstablished.GetInvocationList().Cast<Func<string, string, Task>>())
+            {
+                await handler(clientA, clientB);
+            }
+        }
     }
 }

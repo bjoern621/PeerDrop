@@ -21,7 +21,6 @@
     --outline-text-color: var(--primary);
     --outline-hover-bg-color: var(--primary-10);
     --outline-pressed-bg-color: var(--primary-20);
-
     --filled-text-color: var(--background);
     --filled-bg-color: var(--primary);
     --filled-hover-bg-color: var(--primary);
@@ -31,8 +30,7 @@
 .secondary {
     --outline-text-color: var(--secondary);
     --outline-hover-bg-color: var(--secondary-10);
-    --outline-hover-bg-color: var(--secondary-20);
-
+    --outline-pressed-bg-color: var(--secondary-20);
     --filled-text-color: var(--background);
     --filled-bg-color: var(--secondary);
     --filled-hover-bg-color: var(--secondary);
@@ -43,7 +41,6 @@
     --outline-text-color: var(--text);
     --outline-hover-bg-color: var(--text-muted-10);
     --outline-pressed-bg-color: var(--text-muted-20);
-
     --filled-text-color: var(--text);
     --filled-bg-color: var(--text-muted-5);
     --filled-hover-bg-color: var(--text-muted-10);
@@ -54,7 +51,6 @@
     --outline-text-color: var(--error-text);
     --outline-hover-bg-color: var(--error-10);
     --outline-pressed-bg-color: var(--error-20);
-
     --filled-text-color: var(--error-text);
     --filled-bg-color: var(--error-20);
     --filled-hover-bg-color: var(--error-30);

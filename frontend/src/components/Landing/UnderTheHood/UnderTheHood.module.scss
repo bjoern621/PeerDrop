@@ -16,6 +16,7 @@ $layout-breakpoint: 800px;
     align-items: center;
 
     @include background-effect;
+
     --background-effect-size: 600px;
 
     @media (max-width: $layout-breakpoint) {
@@ -39,6 +40,7 @@ $layout-breakpoint: 800px;
         opacity: 0;
         transform: scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -48,6 +50,7 @@ $layout-breakpoint: 800px;
 .textBoxes {
     // --text-boxes-height: 500px;
     --text-boxes-gap: var(--space-8);
+
     // --text-box-header-height: 60px;
 
     flex: 2; // TODO make 1.618 (inside peer drop p wird zu sehr verschoben)
@@ -131,6 +134,7 @@ $layout-breakpoint: 800px;
         &[data-state="open"] {
             animation: slideDown 0.6s ease;
         }
+
         &[data-state="closed"] {
             animation: slideUp 0.6s ease;
         }
@@ -156,6 +160,7 @@ $layout-breakpoint: 800px;
         height: var(--header-border-radius);
         border-bottom-width: 0;
     }
+
     to {
         height: var(--radix-accordion-content-height);
         border-bottom-width: var(--border-width);
@@ -167,6 +172,7 @@ $layout-breakpoint: 800px;
         height: var(--radix-accordion-content-height);
         border-bottom-width: var(--border-width);
     }
+
     to {
         height: var(--header-border-radius);
         border-bottom-width: 0;
