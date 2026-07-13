@@ -1,18 +1,14 @@
 :root {
     --toastify-font-family: "Jost";
-
     --toastify-color-info: var(--info-20);
     --toastify-color-success: var(--success-20);
     --toastify-color-warning: var(--warning-20);
     --toastify-color-error: var(--error-20);
-
     --toastify-text-color-info: var(--info-text);
     --toastify-text-color-success: var(--success-text);
     --toastify-text-color-warning: var(--warning-text);
     --toastify-text-color-error: var(--error-text);
-
     --toastify-toast-bd-radius: var(--space-4);
-
     --toastify-color-progress-bgo: 0;
     --toastify-progress-bar-height: 5px;
     --toastify-toast-padding: var(--space-8) var(--space-16)
@@ -25,11 +21,10 @@
     scrollbar-width: thin;
     scrollbar-gutter: stable;
 
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden auto;
     width: 100vw;
     padding-right: calc(var(--space-16) - 10px); // 10px is scrollbar width
-    right: 0px;
+    right: 0;
 
     pointer-events: none;
 }
@@ -87,14 +82,11 @@
 }
 
 .Toastify__toast-icon {
-    fill: currentColor;
+    fill: currentcolor;
     width: 30px;
+    margin-inline-end: var(--space-8);
 }
 
 .Toastify__progress-bar--wrp {
     height: var(--toastify-progress-bar-height);
-}
-
-.Toastify__toast-icon {
-    margin-inline-end: var(--space-8);
 }

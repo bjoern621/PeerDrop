@@ -58,7 +58,7 @@
     font-size: var(--font-size-base);
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .statusCode {
         font-size: 6rem;
     }
