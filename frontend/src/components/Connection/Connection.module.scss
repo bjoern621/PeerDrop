@@ -19,16 +19,16 @@
     flex-wrap: wrap;
 
     align-items: flex-start;
-    align-content: center;
-    justify-content: center;
+    place-content: center center;
 
     width: 100%;
 
     @include background-effect;
+
     --background-effect-size: 1100px;
 }
 
-@mixin containerBorder {
+@mixin container-border {
     border: 1px solid var(--border);
 
     border-radius: var(--space-16);
@@ -36,7 +36,7 @@
 }
 
 @mixin container {
-    @include containerBorder;
+    @include container-border;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -44,7 +44,7 @@
     flex: 1;
 
     // 550px >= 450px + horizontal padding / margin / border
-    @media (min-width: 550px) {
+    @media (width >= 550px) {
         min-width: 450px;
     }
 
@@ -56,7 +56,7 @@
 .heading {
     font-size: var(--font-size-l);
     line-height: var(--line-height-l);
-    font-family: "Atma";
+    font-family: Atma, sans-serif;
     font-weight: var(--font-weight-semibold);
 
     > svg {

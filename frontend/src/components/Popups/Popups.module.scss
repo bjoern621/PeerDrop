@@ -41,11 +41,12 @@
 
 .token {
     font-size: 2rem;
+
     --spacing: 0.5rem;
     letter-spacing: var(--spacing);
     margin-right: calc(var(--spacing) * -1);
 
-    font-family: "Roboto Mono";
+    font-family: "Roboto Mono", monospace;
     font-weight: lighter;
 
     color: var(--white);
@@ -58,7 +59,7 @@
 }
 
 .button {
-    margin: 10px 10px 0 10px;
+    margin: 10px 10px 0;
     font-size: 1.5rem;
     background-color: var(--light);
     color: var(--black);
