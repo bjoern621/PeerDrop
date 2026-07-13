@@ -333,9 +333,10 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Returns true if the connection request was successfully sent, false otherwise.
+     * Validates a remote token before a connection attempt. Shows a toast
+     * and returns false for invalid tokens (wrong length or the own token).
      */
-    public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
+    public validateRemoteToken(remoteToken: ClientToken): boolean {
         if (remoteToken.length !== 5) {
             toast.warn("Peer Token muss 5 Zeichen lang sein.", {
                 toastId: "token-length-toast",
@@ -352,6 +353,17 @@ export class PeerConnectionManager {
                     updateId: "cannot-send-to-self-toast",
                 }
             );
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns true if the connection request was successfully sent, false otherwise.
+     */
+    public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
+        if (!this.validateRemoteToken(remoteToken)) {
             return false;
         }
 
