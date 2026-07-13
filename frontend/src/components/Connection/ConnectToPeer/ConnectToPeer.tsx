@@ -5,6 +5,7 @@ import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
+import { OutgoingRequestEvent } from "../../../services/PeerConnectionManager";
 import { toast } from "react-toastify/unstyled";
 import { ConnectWarningDialog } from "../../Popups/ConnectWarningDialog";
 import {
@@ -29,6 +30,32 @@ export default function ConnectToPeer() {
     const autoConnectAttemptedRef = useRef<boolean>(false);
 
     const connectButtonRef = useRef<HTMLButtonElement | null>(null);
+
+    // Mirror the shared outgoing-request state so requests initiated elsewhere
+    // (e.g. by clicking a LAN peer) show the same waiting UI and can be
+    // cancelled here. Responses are handled by the response callback below to
+    // preserve the minimum-delay behavior.
+    useEffect(() => {
+        const onOutgoingRequestChanged = (event: OutgoingRequestEvent) => {
+            if (event.state === "requested") {
+                setRemoteToken(event.remoteToken);
+                setConnectionRequestTimestamp(Date.now());
+                setWaitingForResponse(true);
+            } else if (event.state === "cancelled") {
+                setWaitingForResponse(false);
+            }
+        };
+
+        peerConnectionManager.subscribeToOutgoingRequestChanged(
+            onOutgoingRequestChanged
+        );
+
+        return () => {
+            peerConnectionManager.unsubscribeFromOutgoingRequestChanged(
+                onOutgoingRequestChanged
+            );
+        };
+    }, [peerConnectionManager]);
 
     useEffect(() => {
         /**

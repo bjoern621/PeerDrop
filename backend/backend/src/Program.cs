@@ -17,6 +17,10 @@ using backend.DeviceComponent.Facade.Api;
 using backend.DeviceComponent.Facade.Impl;
 using backend.DeviceComponent.Logic.Api;
 using backend.DeviceComponent.Logic.Impl;
+using backend.LanComponent.Facade.Api;
+using backend.LanComponent.Facade.Impl;
+using backend.LanComponent.Logic.Api;
+using backend.LanComponent.Logic.Impl;
 using backend.SignalingComponent.Facade.Api;
 using backend.SignalingComponent.Facade.Impl;
 using backend.SignalingComponent.Logic.Api;
@@ -83,6 +87,8 @@ builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
 builder.Services.AddSingleton<IDeviceRoutes, DeviceRoutes>();
 builder.Services.AddSingleton<IDeviceWebsocketMessages, DeviceWebsocketMessages>();
 builder.Services.AddSingleton<IDeviceService, DeviceService>();
+builder.Services.AddSingleton<ILanDiscoveryService, LanDiscoveryService>();
+builder.Services.AddSingleton<ILanEventSubscriptions, LanEventSubscriptions>();
 builder.Services.AddSingleton<IConnectionWebsocketMessages, ConnectionWebsocketMessages>();
 builder.Services.AddSingleton<ITokenConnectService, TokenConnectService>();
 builder.Services.AddSingleton<IQuickConnectService, QuickConnectService>();
@@ -129,5 +135,7 @@ var deviceWebsocketMessages = app.Services.GetRequiredService<IDeviceWebsocketMe
 deviceWebsocketMessages.SubscribeToMessageHandlers();
 var connectionWSMessages = app.Services.GetRequiredService<IConnectionWebsocketMessages>();
 connectionWSMessages.SubscribeToMessageHandlers();
+var lanEventSubscriptions = app.Services.GetRequiredService<ILanEventSubscriptions>();
+lanEventSubscriptions.SubscribeToEvents();
 
 app.Run();
