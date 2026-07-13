@@ -1,3 +1,5 @@
+@use "../../../../theme/shadows.scss" as *;
+
 .peerDisplay {
     display: flex;
     gap: var(--space-8);
@@ -10,13 +12,64 @@
     border-radius: var(--space-16);
 
     text-wrap: nowrap;
+
+    transition:
+        transform 0.15s ease-out,
+        box-shadow 0.15s ease-out,
+        background-color 0.15s ease-out,
+        border-color 0.15s ease-out;
+
+    &:hover:not([aria-disabled="true"]) {
+        transform: translateY(-2px);
+        background-color: var(--primary-20);
+        border-color: var(--primary-40);
+        @include elevated-shadow-no-highlight;
+    }
+
+    &:active:not([aria-disabled="true"]) {
+        transform: translateY(0);
+        background-color: var(--primary-30);
+    }
+
+    &[aria-disabled="true"] {
+        cursor: not-allowed !important;
+        opacity: 0.6;
+    }
 }
 
 .statusIndicator {
     height: var(--space-16);
     aspect-ratio: 1;
     border-radius: 50%;
+
+    transition: box-shadow 0.15s ease-out;
+}
+
+.peerOnline {
     background-color: var(--success);
+
+    .peerDisplay:hover:not([aria-disabled="true"]) & {
+        box-shadow: 0 0 0 var(--space-4) var(--success-20);
+    }
+}
+
+.peerBusy {
+    background-color: var(--warning);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner {
+    height: var(--space-16);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid var(--primary-30);
+    border-top-color: var(--primary);
+    animation: spin 0.8s linear infinite;
 }
 
 .peerName {

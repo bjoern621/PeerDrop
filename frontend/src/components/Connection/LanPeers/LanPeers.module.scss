@@ -15,9 +15,14 @@
 
 .peerList {
     display: flex;
+    align-items: center;
     gap: var(--space-8);
     width: 100%;
     min-height: 50px;
+
+    // Room for the chip hover lift + shadow, otherwise overflow-x clips them.
+    padding-block: var(--space-16);
+    margin-block: calc(-1 * var(--space-16));
 
     overflow-x: auto;
 }

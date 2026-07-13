@@ -1,24 +1,56 @@
 import css from "./LanPeers.module.scss";
 import QuestionIcon from "../../../assets/icons8-question.svg?react";
-import { toast } from "react-toastify/unstyled";
+import { useEffect, useState } from "react";
 import { useLanPeers } from "../../../hooks/useLanPeers";
 import { LanPeer } from "../../../types/lan/LanPeer";
 import LanPeerDisplay from "./LanPeerDisplay/LanPeerDisplay";
 import Tooltip from "../../Tooltip/Tooltip";
+import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 
 export default function LanPeers() {
     const { peers } = useLanPeers();
+    const peerConnectionManager = usePeerConnectionManager();
 
-    const connectToPeer = (peer: LanPeer) => {
-        // TODO: Request a connection via PeerConnectionManager once LAN
-        // discovery delivers real peer tokens.
-        toast.info(
-            `Lokale Geräteerkennung ist noch in Arbeit (${peer.displayName}).`,
-            {
-                toastId: "lan-discovery-wip-toast",
-                updateId: "lan-discovery-wip-toast",
-            }
+    // Token of the peer our pending outgoing connection request is addressed
+    // to, regardless of where the request was initiated (chip or token input).
+    const [pendingToken, setPendingToken] = useState<string | undefined>(
+        peerConnectionManager.getOutgoingRequestToken()
+    );
+
+    useEffect(() => {
+        const onOutgoingRequestChanged = () => {
+            setPendingToken(peerConnectionManager.getOutgoingRequestToken());
+        };
+
+        peerConnectionManager.subscribeToOutgoingRequestChanged(
+            onOutgoingRequestChanged
         );
+
+        return () => {
+            peerConnectionManager.unsubscribeFromOutgoingRequestChanged(
+                onOutgoingRequestChanged
+            );
+        };
+    }, [peerConnectionManager]);
+
+    const handlePeerClick = (peer: LanPeer) => {
+        // Ignore entries without a real token (e.g. the loading placeholder).
+        if (peer.token.length !== 5) {
+            return;
+        }
+
+        // Clicking the pending peer again cancels the request.
+        if (peer.token === pendingToken) {
+            peerConnectionManager.cancelConnectionRequest(peer.token);
+            return;
+        }
+
+        // Only one outgoing request at a time: switch to the new peer.
+        if (pendingToken) {
+            peerConnectionManager.cancelConnectionRequest(pendingToken);
+        }
+
+        peerConnectionManager.requestConnectionToRemotePeer(peer.token);
     };
 
     return (
@@ -39,7 +71,8 @@ export default function LanPeers() {
                     <LanPeerDisplay
                         key={peer.token}
                         peer={peer}
-                        onConnect={connectToPeer}
+                        pending={peer.token === pendingToken}
+                        onClick={handlePeerClick}
                     />
                 ))}
                 {/* Stays mounted in both states so the pulse animation is not

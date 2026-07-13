@@ -1,44 +1,58 @@
 import { useEffect, useState } from "react";
 import { LanPeer } from "../types/lan/LanPeer";
-
-// TODO: Replace with real LAN discovery.
-// The backend groups clients by public IP (same IP = same network) and
-// pushes the peer list over the existing WebSocket connection.
-const STUB_LAN_PEERS: LanPeer[] = [
-    {
-        token: "K7Q2M",
-        displayName: "Flinker Fuchs",
-        deviceInfo: "Chrome · Windows",
-    },
-    {
-        token: "X4B9T",
-        displayName: "Mutiger Adler",
-        deviceInfo: "Safari · iPhone",
-    },
-    {
-        token: "P3W6R",
-        displayName: "Stiller Panda",
-        deviceInfo: "Firefox · Linux",
-    },
-];
+import { MessageType } from "../types/MessageType";
+import { LanPeersMessage } from "../types/lan/LanPeersMessage";
+import { LanPeersRequestMessage } from "../types/lan/LanPeersRequestMessage";
+import { useWebSocketService } from "../context/connection/WebSocketContext";
+import { MessageHandler } from "../services/WebSocketService";
 
 /**
  * Provides the list of peers discovered in the local network.
  *
- * Discovery runs continuously; the list grows and shrinks as peers appear
- * and disappear. Currently returns stub data after a short artificial delay
- * so the UI can be developed against realistic behavior.
+ * The backend groups clients by public IP (same IP = same network) and pushes
+ * the full peer list over the existing WebSocket connection whenever it
+ * changes. On mount, the current list is requested explicitly so peers that
+ * were already present are shown immediately. Discovery runs continuously;
+ * the list grows and shrinks as peers appear and disappear.
  */
 export const useLanPeers = () => {
+    const webSocketService = useWebSocketService();
     const [peers, setPeers] = useState<LanPeer[]>([]);
 
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            setPeers(STUB_LAN_PEERS);
-        }, 1500);
+        const handleLanPeers = (message: LanPeersMessage) => {
+            setPeers(message.msg.peers);
+        };
 
-        return () => clearTimeout(timeoutId);
-    }, []);
+        // A new client token means a fresh WebSocket connection (e.g. after a
+        // token reset). The previous peer list belongs to the old connection;
+        // the server pushes the current list right after.
+        const handleClientToken = () => {
+            setPeers([]);
+        };
+
+        webSocketService.subscribeMessage(
+            MessageType.LAN_PEERS,
+            handleLanPeers as MessageHandler
+        );
+        webSocketService.subscribeMessage(
+            MessageType.CLIENT_TOKEN,
+            handleClientToken as MessageHandler
+        );
+
+        webSocketService.sendMessage(new LanPeersRequestMessage());
+
+        return () => {
+            webSocketService.unsubscribeMessage(
+                MessageType.LAN_PEERS,
+                handleLanPeers as MessageHandler
+            );
+            webSocketService.unsubscribeMessage(
+                MessageType.CLIENT_TOKEN,
+                handleClientToken as MessageHandler
+            );
+        };
+    }, [webSocketService]);
 
     return { peers };
 };

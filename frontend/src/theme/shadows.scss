@@ -18,7 +18,11 @@
         position: absolute;
         top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%);
+
+        // translateZ(0) pins the gradient to its own compositing layer so a
+        // descendant animating its transform (e.g. hover-lifting chips) can't
+        // force the gradient to repaint, which showed up as flicker.
+        transform: translate(-50%, -50%) translateZ(0);
         width: var(--background-effect-size);
         height: var(--background-effect-size);
 

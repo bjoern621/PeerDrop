@@ -1,3 +1,5 @@
+@use "../../../../theme/shadows.scss" as *;
+
 .deviceDisplay {
     display: flex;
     gap: var(--space-4);
@@ -11,8 +13,27 @@
 
     text-wrap: nowrap;
 
+    transition:
+        transform 0.15s ease-out,
+        box-shadow 0.15s ease-out,
+        background-color 0.15s ease-out,
+        border-color 0.15s ease-out;
+
+    &:hover:not([aria-disabled="true"]) {
+        transform: translateY(-2px);
+        background-color: var(--secondary-20);
+        border-color: var(--secondary-40);
+        @include elevated-shadow-no-highlight;
+    }
+
+    &:active:not([aria-disabled="true"]) {
+        transform: translateY(0);
+        background-color: var(--secondary-30);
+    }
+
     &[aria-disabled="true"] {
         cursor: not-allowed !important;
+        opacity: 0.6;
     }
 }
 
@@ -20,6 +41,12 @@
     height: var(--space-16);
     aspect-ratio: 1;
     border-radius: 50%;
+
+    transition: box-shadow 0.15s ease-out;
+}
+
+.deviceDisplay:hover:not([aria-disabled="true"]) .deviceOnline {
+    box-shadow: 0 0 0 var(--space-4) var(--success-20);
 }
 
 .deviceOnline {
