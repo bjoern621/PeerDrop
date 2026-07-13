@@ -22,10 +22,12 @@
         width: var(--background-effect-size);
         height: var(--background-effect-size);
 
+        // closest-side keeps the gradient inside the box even when the
+        // container is non-square
         background: radial-gradient(
-            circle,
-            var(--background-effect-color) 20%,
-            transparent 70%
+            ellipse closest-side,
+            var(--background-effect-color) 28%,
+            transparent 100%
         );
 
         // z-index: -1; // optional, sometimes useful, sometimes not, should be set if needed by the user
