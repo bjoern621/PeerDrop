@@ -23,6 +23,7 @@
         transform: translateY(-2px);
         background-color: var(--primary-20);
         border-color: var(--primary-40);
+
         @include elevated-shadow-no-highlight;
     }
 

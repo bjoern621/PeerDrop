@@ -16,10 +16,10 @@
 
 .own-token-container {
     --token-height: 8rem;
-    --border_width: 5px;
+    --border-width: 5px;
 
     border-radius: 50px;
-    border: var(--border_width) solid black;
+    border: var(--border-width) solid black;
     position: relative;
     text-align: center;
 
@@ -38,10 +38,10 @@
 }
 
 .tooltip {
-    --line_height: 30px;
+    --line-height: 30px;
 
     position: absolute;
-    top: calc(0px - var(--line_height) / 2 - var(--border_width) / 2);
+    top: calc(0px - var(--line-height) / 2 - var(--border-width) / 2);
     left: 50px;
 
     background-color: var(--white);
@@ -50,7 +50,7 @@
     padding: 0 5px;
 
     font-size: 1.8rem;
-    line-height: var(--line_height);
+    line-height: var(--line-height);
     font-weight: bold;
 }
 
@@ -59,11 +59,13 @@
         opacity: 0;
         transform: translateX(-50%) translateY(10px);
     }
+
     10%,
     90% {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
     }
+
     100% {
         opacity: 0;
         transform: translateX(-50%) translateY(10px);
@@ -79,7 +81,11 @@
     letter-spacing: var(--spacing);
     margin-right: calc(var(--spacing) * -1);
 
-    font-family: "Roboto Mono";
+    font-family: "Roboto Mono", monospace;
+
+    transition:
+        filter 0.2s ease,
+        opacity 0.2s ease;
 }
 
 .tokenOverlay {
@@ -94,12 +100,6 @@
 
 .tokenOverlayIcon {
     height: var(--token-height);
-}
-
-.token {
-    transition:
-        filter 0.2s ease,
-        opacity 0.2s ease;
 }
 
 .peer-token-container {
@@ -176,6 +176,7 @@
     100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0;
     }
