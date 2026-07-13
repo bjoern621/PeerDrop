@@ -29,7 +29,7 @@ export default function TokenInput({
             data-bwignore="true"
             data-lpignore="true"
             data-1p-ignore="true"
-            onChange={onChange}
+            onChange={value => onChange?.(value.toUpperCase())}
             render={({ slots }) => (
                 <>
                     <div className={css.slotsContainer}>
