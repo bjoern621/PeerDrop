@@ -227,9 +227,7 @@ export class PeerConnectionManager {
             // Match against the outgoing request token, not expectedRemoteToken:
             // an incoming request received while waiting overwrites the latter,
             // which would strand the pending request forever.
-            const responseToken = normalizeClientToken(
-                message.msg.remoteToken
-            );
+            const responseToken = normalizeClientToken(message.msg.remoteToken);
 
             if (this.outgoingRequestToken !== responseToken) {
                 return;
