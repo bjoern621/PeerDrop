@@ -5,6 +5,10 @@
 
 .label {
     margin-bottom: var(--space-16);
+
+    > * {
+        vertical-align: top;
+    }
 }
 
 .icon {
