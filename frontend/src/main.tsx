@@ -32,7 +32,6 @@ const router = createBrowserRouter(
             <Route path="/" element={<Landing />} />
             <Route path="share" element={<Sharing />} />
             <Route path="connect" element={<Connection />} />
-            <Route path="connect/:token" element={<Connection />} />
             <Route path="faq" element={<WorkInProgress />} />
             <Route path="inside" element={<WorkInProgress />} />
         </Route>

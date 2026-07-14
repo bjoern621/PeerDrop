@@ -3,7 +3,7 @@ import TokenInput from "../TokenInput/TokenInput";
 import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router";
+import { useSearchParams } from "react-router";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import { OutgoingRequestEvent } from "../../../services/PeerConnectionManager";
 import { toast } from "react-toastify/unstyled";
@@ -15,7 +15,8 @@ import {
 
 export default function ConnectToPeer() {
     const peerConnectionManager = usePeerConnectionManager();
-    const { token: urlToken } = useParams();
+    const [searchParams] = useSearchParams();
+    const urlToken = searchParams.get("token") ?? undefined;
 
     const [remoteToken, setRemoteToken] = useState<string>(
         urlToken?.toUpperCase() ?? ""
@@ -144,7 +145,7 @@ export default function ConnectToPeer() {
         setShowConnectWarning(true);
     }, [peerConnectionManager, connectToPeer, remoteToken]);
 
-    // Tokens opened via /connect/<TOKEN> trigger the regular connect flow,
+    // Tokens opened via /connect?token=<TOKEN> trigger the regular connect flow,
     // including the warning dialog and token validation, once per page load.
     useEffect(() => {
         if (!urlToken || autoConnectAttemptedRef.current) {
