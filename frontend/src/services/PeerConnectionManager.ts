@@ -69,7 +69,9 @@ export class PeerConnectionManager {
      * delivered as events. Supports multiple subscribers; each must
      * unsubscribe itself.
      */
-    public subscribeToConnectionResponse(callback: (accepted: boolean) => void) {
+    public subscribeToConnectionResponse(
+        callback: (accepted: boolean) => void
+    ) {
         this.onConnectionResponseReceivedObservable.subscribe(callback);
     }
 
