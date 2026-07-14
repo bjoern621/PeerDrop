@@ -9,24 +9,28 @@ public class ConnectionInitiationService : IConnectionInitiationService
 {
     private readonly IWebSocketHandler _webSocketHandler;
     private readonly IOpenConnectionRequestRepository _openConnectionRequestRepository;
+    private readonly IConnectionStateService _connectionStateService;
 
     public event Func<string, string, Task>? ConnectionEstablished;
 
-    public ConnectionInitiationService(IWebSocketHandler webSocketHandler, IOpenConnectionRequestRepository openConnectionRequestRepository)
+    public ConnectionInitiationService(IWebSocketHandler webSocketHandler, IOpenConnectionRequestRepository openConnectionRequestRepository, IConnectionStateService connectionStateService)
     {
         _webSocketHandler = webSocketHandler;
         _openConnectionRequestRepository = openConnectionRequestRepository;
+        _connectionStateService = connectionStateService;
     }
 
     public async Task InitiateConnection(string clientA, string clientB)
     {
-        // Clear any open requests involving either client, as they are now connecting.
-        _openConnectionRequestRepository.TryRemove(clientA, out _);
-        _openConnectionRequestRepository.TryRemove(clientB, out _);
+        // Clear any open requests involving either client, as they are now
+        // connecting. The targets of those requests receive a fresh snapshot
+        // below.
+        _openConnectionRequestRepository.TryRemove(clientA, out var previousTargetA);
+        _openConnectionRequestRepository.TryRemove(clientB, out var previousTargetB);
 
         // Also, cancel any pending requests where either client was the target.
-        var cancelledRequestersA = _openConnectionRequestRepository.FindAndRemoveRequestersForTarget(clientA);
-        var cancelledRequestersB = _openConnectionRequestRepository.FindAndRemoveRequestersForTarget(clientB);
+        var cancelledRequestersA = _openConnectionRequestRepository.FindAndRemoveRequestersForTarget(clientA).ToList();
+        var cancelledRequestersB = _openConnectionRequestRepository.FindAndRemoveRequestersForTarget(clientB).ToList();
 
         // Notify all cancelled requesters.
         var cancellationMessageA = new ConnectionResponseMessage { Accepted = false, RemoteToken = clientA };
@@ -47,6 +51,13 @@ public class ConnectionInitiationService : IConnectionInitiationService
 
         var messageToB = new EstablishConnectionMessage { RemoteToken = clientA };
         await _webSocketHandler.SendMessage(clientB, messageToB);
+
+        // Everyone whose request state changed gets a fresh snapshot.
+        await _connectionStateService.PushStateTo([
+            clientA, clientB,
+            previousTargetA, previousTargetB,
+            .. cancelledRequestersA, .. cancelledRequestersB,
+        ]);
 
         if (ConnectionEstablished != null)
         {

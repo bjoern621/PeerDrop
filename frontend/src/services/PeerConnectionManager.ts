@@ -9,12 +9,13 @@ import { MessageType } from "../types/MessageType";
 import { IObservable, Observable } from "../util/observer/Observable";
 import { Logger } from "../util/Logger";
 import { ConnectionRequestCancelledMessage } from "../types/connection/ConnectionRequestCancelledMessage";
+import { ConnectionStateMessage } from "../types/connection/ConnectionStateMessage";
 import { ConnectionRequestMessage } from "../types/connection/ConnectionRequestMessage";
 import { ConnectionResponseMessage } from "../types/connection//ConnectionResponseMessage";
 import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
 import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
-import { toast } from "react-toastify/unstyled";
 import { TransferTracker } from "./TransferTracker";
+import { CLIENT_TOKEN_LENGTH } from "../util/Constants";
 
 /**
  * Indicates who initiated the closing of the peer connection.
@@ -22,78 +23,89 @@ import { TransferTracker } from "./TransferTracker";
 export type CloseInitiator = "local" | "remote";
 
 /**
- * State change of the locally initiated (outgoing) connection request.
- *
- * - "requested": a request to `remoteToken` was sent and is awaiting a response.
- * - "cancelled": the request was cancelled locally before a response arrived.
- * - "responded": the remote peer (or the server) answered the request; the
- *   outcome is delivered via the connection response callback.
+ * Reason a connection request was rejected locally before being sent.
+ * `invalid-length`: the token does not have the required length.
+ * `own-token`: the token is this client's own token.
  */
-export interface OutgoingRequestEvent {
-    remoteToken: ClientToken;
-    state: "requested" | "cancelled" | "responded";
+export type ConnectError = "invalid-length" | "own-token";
+
+/** Outcome of a {@link PeerConnectionManager.connect} call. */
+export type ConnectResult = { ok: true } | { ok: false; error: ConnectError };
+
+/**
+ * Server-pushed snapshot of this client's connection-request state. The
+ * server sends a fresh snapshot on every change; the UI derives its display
+ * from the latest one.
+ */
+export interface ConnectionRequestState {
+    /** Token the client's own pending request is addressed to, or null. */
+    outgoingRequestTarget: ClientToken | null;
+    /** Tokens of peers with a pending request addressed to this client. */
+    incomingRequesters: ClientToken[];
 }
 
 export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
     private readonly log = (...args: unknown[]) => this.logger.log(...args);
-    private expectedRemoteToken: ClientToken | undefined; // The token of the remote peer we accept connections from.
-    private outgoingRequestToken: ClientToken | undefined; // The token of the peer our own pending connection request is addressed to.
+    // Token of the peer of the current WebRTC connection. Set when
+    // establishment starts and cleared when the connection is torn down.
+    private connectedRemoteToken: ClientToken | undefined;
     private webrtcConnection: WebRTCConnection | undefined;
+
+    private connectionRequestState: ConnectionRequestState = {
+        outgoingRequestTarget: null,
+        incomingRequesters: [],
+    };
 
     private readonly onConnectionResponseReceivedObservable: IObservable<boolean> =
         new Observable<boolean>(); // Boolean is true if the connection request was accepted, false otherwise.
-    private readonly onConnectionRequestReceivedObservable: IObservable<string> =
-        new Observable<string>(); // String is the remote token of the requesting peer.
-    private readonly onConnectionRequestCancelledReceivedObservable: IObservable<string> =
-        new Observable<string>(); // String is the remote token of the requesting peer.
 
-    public setOnConnectionResponseReceivedCallback(
+    /**
+     * Subscribes to responses to this client's own outgoing connection request.
+     * The boolean is true if the request was accepted, false if rejected.
+     * Rejections are transient and not part of the snapshot, so they are
+     * delivered as events. Supports multiple subscribers; each must
+     * unsubscribe itself.
+     */
+    public subscribeToConnectionResponse(
         callback: (accepted: boolean) => void
     ) {
-        this.onConnectionResponseReceivedObservable.unsubscribeAll();
         this.onConnectionResponseReceivedObservable.subscribe(callback);
     }
-    public setOnConnectionRequestReceivedCallback(
-        callback: (remoteToken: string) => void
+
+    public unsubscribeFromConnectionResponse(
+        callback: (accepted: boolean) => void
     ) {
-        this.onConnectionRequestReceivedObservable.unsubscribeAll();
-        this.onConnectionRequestReceivedObservable.subscribe(callback);
-    }
-    public setOnConnectionRequestCancelledReceivedCallback(
-        callback: (remoteToken: string) => void
-    ) {
-        this.onConnectionRequestCancelledReceivedObservable.unsubscribeAll();
-        this.onConnectionRequestCancelledReceivedObservable.subscribe(callback);
+        this.onConnectionResponseReceivedObservable.unsubscribe(callback);
     }
 
-    private readonly onOutgoingRequestChangedObservable: IObservable<OutgoingRequestEvent> =
-        new Observable<OutgoingRequestEvent>();
+    private readonly onConnectionRequestStateChangedObservable: IObservable<ConnectionRequestState> =
+        new Observable<ConnectionRequestState>();
     private readonly onConnectionEstablishingObservable: IObservable<ClientToken> =
         new Observable<ClientToken>(); // Notified with the remote token when the WebRTC connection setup starts.
 
     /**
-     * Subscribes to state changes of the locally initiated connection request.
+     * Subscribes to server-pushed connection-request state snapshots.
      * Supports multiple subscribers; each must unsubscribe itself.
      */
-    public subscribeToOutgoingRequestChanged(
-        callback: (event: OutgoingRequestEvent) => void
+    public subscribeToConnectionRequestState(
+        callback: (state: ConnectionRequestState) => void
     ) {
-        this.onOutgoingRequestChangedObservable.subscribe(callback);
+        this.onConnectionRequestStateChangedObservable.subscribe(callback);
     }
 
-    public unsubscribeFromOutgoingRequestChanged(
-        callback: (event: OutgoingRequestEvent) => void
+    public unsubscribeFromConnectionRequestState(
+        callback: (state: ConnectionRequestState) => void
     ) {
-        this.onOutgoingRequestChangedObservable.unsubscribe(callback);
+        this.onConnectionRequestStateChangedObservable.unsubscribe(callback);
     }
 
     /**
-     * Returns the token of the peer the pending outgoing connection request is
-     * addressed to, or undefined if no request is pending.
+     * Returns the latest server-pushed connection-request state snapshot.
+     * The reference is stable until the next snapshot arrives.
      */
-    public getOutgoingRequestToken(): ClientToken | undefined {
-        return this.outgoingRequestToken;
+    public getConnectionRequestState(): ConnectionRequestState {
+        return this.connectionRequestState;
     }
 
     /**
@@ -110,22 +122,6 @@ export class PeerConnectionManager {
         callback: (remoteToken: ClientToken) => void
     ) {
         this.onConnectionEstablishingObservable.unsubscribe(callback);
-    }
-
-    private setOutgoingRequest(
-        remoteToken: ClientToken | undefined,
-        state: OutgoingRequestEvent["state"]
-    ) {
-        const previousToken = this.outgoingRequestToken;
-        this.outgoingRequestToken = remoteToken;
-
-        const eventToken = remoteToken ?? previousToken;
-        if (eventToken) {
-            this.onOutgoingRequestChangedObservable.notify({
-                remoteToken: eventToken,
-                state,
-            });
-        }
     }
 
     private readonly onConnectionClosedObservable: IObservable<CloseInitiator> =
@@ -151,85 +147,53 @@ export class PeerConnectionManager {
     public constructor(private readonly signaling: WebSocketService) {
         this.logger.setEnabled(false);
 
+        this.handleConnectionStateMessage();
+
         this.handleConnectionEstablishmentMessage();
 
         this.handleConnectionRequestMessage();
-
-        this.handleConnectionRequestCancelledMessage();
 
         this.waitForCloseConnectionRequest();
 
         this.handleConnectionResponseMessages();
     }
 
-    private handleConnectionRequestCancelledMessage() {
-        const onConnectionRequestCancelledReceived = (
-            message: ConnectionRequestCancelledMessage
-        ) => {
-            const requestingPeerToken = message.msg.remoteToken;
-            this.log("Received remote token:", message.msg.remoteToken);
+    private handleConnectionStateMessage() {
+        const onConnectionStateReceived = (message: ConnectionStateMessage) => {
+            this.connectionRequestState = {
+                outgoingRequestTarget: message.msg.outgoingRequestTarget,
+                incomingRequesters: message.msg.incomingRequesters,
+            };
 
-            if (!requestingPeerToken) {
-                console.error(
-                    "Received connection request cancelled message without remote token by server."
-                );
-                return;
-            }
-
-            this.onConnectionRequestCancelledReceivedObservable.notify(
-                requestingPeerToken
+            this.onConnectionRequestStateChangedObservable.notify(
+                this.connectionRequestState
             );
         };
 
         this.signaling.subscribeMessage(
-            MessageType.CONNECTION_REQUEST_CANCELLED,
-            onConnectionRequestCancelledReceived as MessageHandler
+            MessageType.CONNECTION_STATE,
+            onConnectionStateReceived as MessageHandler
         );
     }
 
     /**
-     * Returns true if the connection request was successfully cancelled, false otherwise.
+     * Asks the server to cancel the pending outgoing connection request. The
+     * server removes the request and pushes fresh state snapshots to both
+     * peers; the UI clears when the snapshot arrives.
      */
-    public cancelConnectionRequest(remoteToken: ClientToken): boolean {
-        if (!this.expectedRemoteToken) {
-            console.warn("No connection request to cancel.");
-            return false;
-        }
-
-        if (remoteToken !== this.expectedRemoteToken) {
-            console.warn(
-                "Cannot cancel connection request to a different remote token."
-            );
-            return false;
-        }
-
+    public cancelConnectionRequest() {
         const connectionRequestCancelMessage =
             new ConnectionRequestCancelledMessage({});
 
         this.signaling.sendMessage(connectionRequestCancelMessage);
-
-        this.expectedRemoteToken = undefined;
-        this.setOutgoingRequest(undefined, "cancelled");
-
-        return true;
     }
 
     private handleConnectionResponseMessages() {
         const onConnectionResponseReceived = (
             message: ConnectionResponseMessage
         ) => {
-            // Match against the outgoing request token, not expectedRemoteToken:
-            // an incoming request received while waiting overwrites the latter,
-            // which would strand the pending request forever.
-            if (this.outgoingRequestToken !== message.msg.remoteToken) {
-                return;
-            }
-
-            if (this.expectedRemoteToken === message.msg.remoteToken) {
-                this.expectedRemoteToken = undefined;
-            }
-            this.setOutgoingRequest(undefined, "responded");
-
+            // The server only sends responses for this client's own request, so
+            // no matching against local bookkeeping is needed.
             this.onConnectionResponseReceivedObservable.notify(
                 message.msg.accepted
             );
@@ -259,34 +223,35 @@ export class PeerConnectionManager {
         this.signaling.sendMessage(connectionResponseMessage);
     }
 
+    /**
+     * Guards against incoming connection requests while a WebRTC connection is
+     * already active: those are auto-rejected. This handler is only the
+     * WebRTC-level gate. The UI list of pending incoming requests is driven by
+     * the server-pushed snapshot (see {@link ConnectionRequestState}), not by
+     * this message.
+     */
     private handleConnectionRequestMessage() {
         const onConnectionRequestReceived = (
             message: EstablishConnectionMessage
         ) => {
-            //Before Processing the connection request, check if we are already in a WebRTC connection.
-            if (this.webrtcConnection && this.expectedRemoteToken) {
+            if (this.webrtcConnection) {
                 this.log(
-                    "Received connection request while already in a WebRTC connection. Sending cancel message."
+                    "Received connection request while already in a WebRTC connection. Auto-rejecting."
                 );
 
-                const cancelMessage = new ConnectionResponseMessage({
+                const rejectMessage = new ConnectionResponseMessage({
                     accepted: false,
                     remoteToken: message.msg.remoteToken,
                 });
 
-                this.log(
-                    "Token in ConnectionRequestCancelledMessage:",
-                    message.msg.remoteToken
-                );
-                this.signaling.sendMessage(cancelMessage);
+                this.signaling.sendMessage(rejectMessage);
                 return;
             }
 
-            this.expectedRemoteToken = message.msg.remoteToken;
-
-            this.onConnectionRequestReceivedObservable.notify(
-                message.msg.remoteToken
-            );
+            // Otherwise nothing to record: the pending incoming request is
+            // reflected in the server-pushed snapshot, and acceptance is driven
+            // from the UI via acceptConnectionRequest. The connected peer is
+            // recorded only once establishment starts.
         };
 
         this.signaling.subscribeMessage(
@@ -304,13 +269,7 @@ export class PeerConnectionManager {
         ) => {
             this.closePeerConnection();
 
-            // A quick connect (or an incoming accept) can establish a
-            // connection while an outgoing request is still pending elsewhere.
-            if (this.outgoingRequestToken) {
-                this.setOutgoingRequest(undefined, "responded");
-            }
-
-            this.expectedRemoteToken = message.msg.remoteToken;
+            this.connectedRemoteToken = message.msg.remoteToken;
 
             this.transferTracker.clear();
             this.webrtcConnection = new WebRTCConnection(
@@ -333,30 +292,32 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Returns true if the connection request was successfully sent, false otherwise.
+     * Checks whether a connection request to the given token is allowed.
+     * Returns the reason it is not, or null if the token is valid. Pure: no
+     * side effects and no UI feedback.
      */
-    public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
-        if (remoteToken.length !== 5) {
-            toast.warn("Peer Token muss 5 Zeichen lang sein.", {
-                toastId: "token-length-toast",
-                updateId: "token-length-toast",
-            });
-            return false;
+    public validateRemoteToken(remoteToken: ClientToken): ConnectError | null {
+        if (remoteToken.length !== CLIENT_TOKEN_LENGTH) {
+            return "invalid-length";
         }
 
         if (this.signaling.getLocalClientToken() === remoteToken) {
-            toast.warn(
-                "Bitte gib einen fremden Token ein, nicht deinen eigenen.",
-                {
-                    toastId: "cannot-send-to-self-toast",
-                    updateId: "cannot-send-to-self-toast",
-                }
-            );
-            return false;
+            return "own-token";
         }
 
-        this.expectedRemoteToken = remoteToken;
-        this.setOutgoingRequest(remoteToken, "requested");
+        return null;
+    }
+
+    /**
+     * Sends a connection request to the remote peer. Returns whether the
+     * request was sent, or the reason it was rejected locally. UI feedback for
+     * a rejection is the caller's responsibility.
+     */
+    public connect(remoteToken: ClientToken): ConnectResult {
+        const error = this.validateRemoteToken(remoteToken);
+        if (error) {
+            return { ok: false, error };
+        }
 
         const connectionRequestMessage = new ConnectionRequestMessage({
             remoteToken: remoteToken,
@@ -364,7 +325,7 @@ export class PeerConnectionManager {
 
         this.signaling.sendMessage(connectionRequestMessage);
 
-        return true;
+        return { ok: true };
     }
 
     /**
@@ -374,7 +335,7 @@ export class PeerConnectionManager {
         this.webrtcConnection?.closeConnection();
 
         this.webrtcConnection = undefined;
-        this.expectedRemoteToken = undefined;
+        this.connectedRemoteToken = undefined;
     }
 
     /**
@@ -386,10 +347,10 @@ export class PeerConnectionManager {
             return;
         }
 
-        const expectedRemoteToken = this.expectedRemoteToken!;
+        const connectedRemoteToken = this.connectedRemoteToken!;
 
         const closeConnectionMessage = new CloseConnectionMessage({
-            remoteToken: expectedRemoteToken,
+            remoteToken: connectedRemoteToken,
         });
 
         this.signaling.sendMessage(closeConnectionMessage);
@@ -474,10 +435,10 @@ export class PeerConnectionManager {
 
     public getRemoteToken() {
         assert(
-            this.expectedRemoteToken,
+            this.connectedRemoteToken,
             "Remote token is not set. Ensure you have received the remote token."
         );
-        return this.expectedRemoteToken;
+        return this.connectedRemoteToken;
     }
 
     /**

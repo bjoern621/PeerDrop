@@ -9,7 +9,8 @@ public class TokenConnectService(
     IWebSocketHandler _webSocketHandler,
     ILogger<TokenConnectService> _logger,
     IOpenConnectionRequestRepository _openConnectionRequestRepository,
-    IConnectionInitiationService _connectionInitiationService) : ITokenConnectService
+    IConnectionInitiationService _connectionInitiationService,
+    IConnectionStateService _connectionStateService) : ITokenConnectService
 {
     public async Task HandleConnectionRequest(string clientId, ConnectionRequestMessage message)
     {
@@ -29,6 +30,10 @@ public class TokenConnectService(
             return;
         }
 
+        // Adding silently replaces an existing request from the same client;
+        // the previous target must also receive a fresh snapshot.
+        _openConnectionRequestRepository.TryGetTarget(clientId, out var previousTarget);
+
         _openConnectionRequestRepository.Add(clientId, remoteToken);
         _logger.LogDebug($"Connection request from {clientId} to {remoteToken} is now open.");
 
@@ -39,6 +44,8 @@ public class TokenConnectService(
 
         await _webSocketHandler.SendMessage(remoteToken, forwardedConnectionRequest);
         _logger.LogDebug($"to {remoteToken}: Connection Request from {clientId}");
+
+        await _connectionStateService.PushStateTo(clientId, remoteToken, previousTarget);
     }
 
     public async Task HandleConnectionResponse(string clientId, ConnectionResponseMessage message)
@@ -79,12 +86,17 @@ public class TokenConnectService(
             await _connectionInitiationService.InitiateConnection(requestingClientToken, clientId);
             _logger.LogDebug($"to {requestingClientToken} and {clientId}: Initiating connection.");
         }
+        else
+        {
+            await _connectionStateService.PushStateTo(requestingClientToken, clientId);
+        }
     }
 
     public async Task HandleConnectionRequestCancelled(string clientToken, ConnectionRequestCancelledMessage messageData)
     {
         _logger.LogDebug($"from {clientToken}: Connection Request Cancelled");
-        // Note: The received messageData.RemoteToken is not checked / used. This means that the requesting client can cancel their active request even if their messageData is faulty.
+        // messageData.RemoteToken is intentionally ignored: a client can only
+        // cancel its own open request, which is keyed by its own token.
 
         if (!_openConnectionRequestRepository.TryRemove(clientToken, out var remoteToken))
         {
@@ -92,32 +104,22 @@ public class TokenConnectService(
             return;
         }
 
-        if (!_webSocketHandler.RemoteTokenExists(remoteToken))
-        {
-            // The requesting client cancelled their request, but the remote token does not exist.
-            // This can happen if the remote client disconnected while the request was open.
-            _logger.LogDebug($"Remote client {remoteToken} for cancelled request from {clientToken} no longer exists.");
-            return;
-        }
-
-        // Forward the cancellation to the client that was requested.
-        var msg = new ConnectionRequestCancelledMessage
-        {
-            RemoteToken = clientToken
-        };
-
-        await _webSocketHandler.SendMessage(remoteToken, msg);
-        _logger.LogDebug($"to {remoteToken}: Forwarded cancellation of request from {clientToken}");
+        // Both affected clients get a fresh snapshot: the requester's outgoing
+        // target clears and the former target's incoming list shrinks. 
+        // PushStateTo skips clients that are no longer
+        // connected, covering the case where the target already disconnected.
+        await _connectionStateService.PushStateTo(clientToken, remoteToken);
     }
 
     public async Task HandleClientDisconnected(string clientToken)
     {
-        // Drop the disconnected client's own open request, if any.
-        _openConnectionRequestRepository.TryRemove(clientToken, out _);
+        // Drop the disconnected client's own open request, if any. The target
+        // of that request must learn that the request is gone.
+        _openConnectionRequestRepository.TryRemove(clientToken, out var ownRequestTarget);
 
         // Requesters waiting for the disconnected client would otherwise wait
         // forever. Reject their requests.
-        var waitingRequesters = _openConnectionRequestRepository.FindAndRemoveRequestersForTarget(clientToken);
+        var waitingRequesters = _openConnectionRequestRepository.FindAndRemoveRequestersForTarget(clientToken).ToList();
 
         var rejectionMessage = new ConnectionResponseMessage
         {
@@ -130,6 +132,8 @@ public class TokenConnectService(
             await _webSocketHandler.SendMessage(requester, rejectionMessage);
             _logger.LogDebug($"to {requester}: Connection Request Rejected: Target {clientToken} disconnected");
         }
+
+        await _connectionStateService.PushStateTo([ownRequestTarget, .. waitingRequesters]);
     }
 
     public async Task HandleCloseConnection(string clientId, CloseConnectionMessage message)

@@ -1,56 +1,27 @@
 import css from "./LanPeers.module.scss";
 import QuestionIcon from "../../../assets/icons8-question.svg?react";
-import { useEffect, useState } from "react";
 import { useLanPeers } from "../../../hooks/useLanPeers";
 import { LanPeer } from "../../../types/lan/LanPeer";
 import LanPeerDisplay from "./LanPeerDisplay/LanPeerDisplay";
 import Tooltip from "../../Tooltip/Tooltip";
-import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
+import { useOutgoingConnectionRequest } from "../../../hooks/useOutgoingConnectionRequest";
+import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
 
 export default function LanPeers() {
     const { peers } = useLanPeers();
-    const peerConnectionManager = usePeerConnectionManager();
+    const { target, switchTo } = useOutgoingConnectionRequest();
 
     // Token of the peer our pending outgoing connection request is addressed
     // to, regardless of where the request was initiated (chip or token input).
-    const [pendingToken, setPendingToken] = useState<string | undefined>(
-        peerConnectionManager.getOutgoingRequestToken()
-    );
-
-    useEffect(() => {
-        const onOutgoingRequestChanged = () => {
-            setPendingToken(peerConnectionManager.getOutgoingRequestToken());
-        };
-
-        peerConnectionManager.subscribeToOutgoingRequestChanged(
-            onOutgoingRequestChanged
-        );
-
-        return () => {
-            peerConnectionManager.unsubscribeFromOutgoingRequestChanged(
-                onOutgoingRequestChanged
-            );
-        };
-    }, [peerConnectionManager]);
+    const pendingToken = target ?? undefined;
 
     const handlePeerClick = (peer: LanPeer) => {
         // Ignore entries without a real token (e.g. the loading placeholder).
-        if (peer.token.length !== 5) {
+        if (peer.token.length !== CLIENT_TOKEN_LENGTH) {
             return;
         }
 
-        // Clicking the pending peer again cancels the request.
-        if (peer.token === pendingToken) {
-            peerConnectionManager.cancelConnectionRequest(peer.token);
-            return;
-        }
-
-        // Only one outgoing request at a time: switch to the new peer.
-        if (pendingToken) {
-            peerConnectionManager.cancelConnectionRequest(pendingToken);
-        }
-
-        peerConnectionManager.requestConnectionToRemotePeer(peer.token);
+        switchTo(peer.token);
     };
 
     return (

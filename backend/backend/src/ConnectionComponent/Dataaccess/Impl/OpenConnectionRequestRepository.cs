@@ -33,4 +33,16 @@ public class OpenConnectionRequestRepository : IOpenConnectionRequestRepository
 
         return requesters;
     }
+
+    public bool TryGetTarget(string requesterToken, [MaybeNullWhen(false)] out string targetToken)
+    {
+        return _openRequests.TryGetValue(requesterToken, out targetToken);
+    }
+
+    public IReadOnlyList<string> GetRequestersForTarget(string targetToken)
+    {
+        return [.. _openRequests
+            .Where(kv => kv.Value == targetToken)
+            .Select(kv => kv.Key)];
+    }
 }

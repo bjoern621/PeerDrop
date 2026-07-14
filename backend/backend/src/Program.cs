@@ -93,6 +93,7 @@ builder.Services.AddSingleton<IConnectionWebsocketMessages, ConnectionWebsocketM
 builder.Services.AddSingleton<ITokenConnectService, TokenConnectService>();
 builder.Services.AddSingleton<IQuickConnectService, QuickConnectService>();
 builder.Services.AddSingleton<IConnectionInitiationService, ConnectionInitiationService>();
+builder.Services.AddSingleton<IConnectionStateService, ConnectionStateService>();
 builder.Services.AddSingleton<IOpenConnectionRequestRepository, OpenConnectionRequestRepository>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
