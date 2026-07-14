@@ -48,9 +48,7 @@ export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
     private readonly log = (...args: unknown[]) => this.logger.log(...args);
     // Token of the peer of the current WebRTC connection. Set when
-    // establishment starts and cleared when the connection is torn down. It is
-    // the WebRTC peer identity only; pending request targets live in the
-    // server-pushed snapshot, not here.
+    // establishment starts and cleared when the connection is torn down.
     private connectedRemoteToken: ClientToken | undefined;
     private webrtcConnection: WebRTCConnection | undefined;
 
