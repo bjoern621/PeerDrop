@@ -170,50 +170,44 @@ public class TokenConnectServiceTest
     }
 
     [Test]
-    public async Task HandleConnectionRequestCancelled_RemoteTokenExists_ForwardCancellation()
+    public async Task HandleConnectionRequestCancelled_OpenRequestExists_PushesStateWithoutForwarding()
     {
         var requester = "ABCDE";
         var responder = "BCDEF";
 
-        _mockHandler.Setup(h => h.RemoteTokenExists(responder)).Returns(true);
-
-        // Set up repository to store and retrieve the request
-        string storedTarget = string.Empty;
-        _mockOpenConnectionRequestRepository
-            .Setup(r => r.Add(requester, responder))
-            .Callback<string, string>((req, target) => storedTarget = target);
-#pragma warning disable CS8601 // Possible null reference assignment.
         _mockOpenConnectionRequestRepository
             .Setup(r => r.TryRemove(requester, out It.Ref<string>.IsAny))
             .Returns(
-                (string req, out string target) =>
+                (string _, out string target) =>
                 {
-                    target = storedTarget;
-                    var result = !string.IsNullOrEmpty(storedTarget);
-                    storedTarget = string.Empty;
-                    return result;
+                    target = responder;
+                    return true;
                 }
             );
-#pragma warning restore CS8601 // Possible null reference assignment.
-
-        await _service.HandleConnectionRequest(
-            requester,
-            new ConnectionRequestMessage { RemoteToken = responder }
-        );
-
-        // Need to ensure RemoteTokenExists returns true for responder when HandleConnectionRequestCancelled checks
-        _mockHandler.Setup(h => h.RemoteTokenExists(responder)).Returns(true);
 
         await _service.HandleConnectionRequestCancelled(
             requester,
             new ConnectionRequestCancelledMessage { RemoteToken = responder }
         );
 
-        _mockHandler.Verify(h =>
-            h.SendMessage(
-                responder,
-                It.Is<ConnectionRequestCancelledMessage>(m => m.RemoteToken == requester)
+        // The cancellation is reflected via a fresh snapshot to both affected
+        // clients, not via a forwarded cancellation message.
+        _mockConnectionStateService.Verify(s =>
+            s.PushStateTo(
+                It.Is<string?[]>(tokens =>
+                    Array.IndexOf(tokens, requester) >= 0
+                    && Array.IndexOf(tokens, responder) >= 0
+                )
             )
+        );
+
+        _mockHandler.Verify(
+            h =>
+                h.SendMessage(
+                    It.IsAny<string>(),
+                    It.IsAny<ConnectionRequestCancelledMessage>()
+                ),
+            Times.Never
         );
     }
 }

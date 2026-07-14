@@ -95,7 +95,8 @@ public class TokenConnectService(
     public async Task HandleConnectionRequestCancelled(string clientToken, ConnectionRequestCancelledMessage messageData)
     {
         _logger.LogDebug($"from {clientToken}: Connection Request Cancelled");
-        // Note: The received messageData.RemoteToken is not checked / used. This means that the requesting client can cancel their active request even if their messageData is faulty.
+        // messageData.RemoteToken is intentionally ignored: a client can only
+        // cancel its own open request, which is keyed by its own token.
 
         if (!_openConnectionRequestRepository.TryRemove(clientToken, out var remoteToken))
         {
@@ -103,24 +104,11 @@ public class TokenConnectService(
             return;
         }
 
-        if (!_webSocketHandler.RemoteTokenExists(remoteToken))
-        {
-            // The requesting client cancelled their request, but the remote token does not exist.
-            // This can happen if the remote client disconnected while the request was open.
-            _logger.LogDebug($"Remote client {remoteToken} for cancelled request from {clientToken} no longer exists.");
-            await _connectionStateService.PushStateTo(clientToken);
-            return;
-        }
-
-        // Forward the cancellation to the client that was requested.
-        var msg = new ConnectionRequestCancelledMessage
-        {
-            RemoteToken = clientToken
-        };
-
-        await _webSocketHandler.SendMessage(remoteToken, msg);
-        _logger.LogDebug($"to {remoteToken}: Forwarded cancellation of request from {clientToken}");
-
+        // Both affected clients get a fresh snapshot: the requester's outgoing
+        // target clears and the former target's incoming list shrinks. No
+        // dedicated cancellation message is forwarded; the snapshot is the
+        // single source of truth. PushStateTo skips clients that are no longer
+        // connected, covering the case where the target already disconnected.
         await _connectionStateService.PushStateTo(clientToken, remoteToken);
     }
 

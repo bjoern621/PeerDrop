@@ -47,28 +47,12 @@ export class PeerConnectionManager {
 
     private readonly onConnectionResponseReceivedObservable: IObservable<boolean> =
         new Observable<boolean>(); // Boolean is true if the connection request was accepted, false otherwise.
-    private readonly onConnectionRequestReceivedObservable: IObservable<string> =
-        new Observable<string>(); // String is the remote token of the requesting peer.
-    private readonly onConnectionRequestCancelledReceivedObservable: IObservable<string> =
-        new Observable<string>(); // String is the remote token of the requesting peer.
 
     public setOnConnectionResponseReceivedCallback(
         callback: (accepted: boolean) => void
     ) {
         this.onConnectionResponseReceivedObservable.unsubscribeAll();
         this.onConnectionResponseReceivedObservable.subscribe(callback);
-    }
-    public setOnConnectionRequestReceivedCallback(
-        callback: (remoteToken: string) => void
-    ) {
-        this.onConnectionRequestReceivedObservable.unsubscribeAll();
-        this.onConnectionRequestReceivedObservable.subscribe(callback);
-    }
-    public setOnConnectionRequestCancelledReceivedCallback(
-        callback: (remoteToken: string) => void
-    ) {
-        this.onConnectionRequestCancelledReceivedObservable.unsubscribeAll();
-        this.onConnectionRequestCancelledReceivedObservable.subscribe(callback);
     }
 
     private readonly onConnectionRequestStateChangedObservable: IObservable<ConnectionRequestState> =
@@ -145,8 +129,6 @@ export class PeerConnectionManager {
 
         this.handleConnectionRequestMessage();
 
-        this.handleConnectionRequestCancelledMessage();
-
         this.waitForCloseConnectionRequest();
 
         this.handleConnectionResponseMessages();
@@ -167,31 +149,6 @@ export class PeerConnectionManager {
         this.signaling.subscribeMessage(
             MessageType.CONNECTION_STATE,
             onConnectionStateReceived as MessageHandler
-        );
-    }
-
-    private handleConnectionRequestCancelledMessage() {
-        const onConnectionRequestCancelledReceived = (
-            message: ConnectionRequestCancelledMessage
-        ) => {
-            const requestingPeerToken = message.msg.remoteToken;
-            this.log("Received remote token:", message.msg.remoteToken);
-
-            if (!requestingPeerToken) {
-                console.error(
-                    "Received connection request cancelled message without remote token by server."
-                );
-                return;
-            }
-
-            this.onConnectionRequestCancelledReceivedObservable.notify(
-                requestingPeerToken
-            );
-        };
-
-        this.signaling.subscribeMessage(
-            MessageType.CONNECTION_REQUEST_CANCELLED,
-            onConnectionRequestCancelledReceived as MessageHandler
         );
     }
 
@@ -250,34 +207,32 @@ export class PeerConnectionManager {
         this.signaling.sendMessage(connectionResponseMessage);
     }
 
+    /**
+     * Guards against incoming connection requests while a WebRTC connection is
+     * already active: those are auto-rejected. This handler is only the
+     * WebRTC-level gate. The UI list of pending incoming requests is driven by
+     * the server-pushed snapshot (see {@link ConnectionRequestState}), not by
+     * this message.
+     */
     private handleConnectionRequestMessage() {
         const onConnectionRequestReceived = (
             message: EstablishConnectionMessage
         ) => {
-            //Before Processing the connection request, check if we are already in a WebRTC connection.
             if (this.webrtcConnection && this.expectedRemoteToken) {
                 this.log(
-                    "Received connection request while already in a WebRTC connection. Sending cancel message."
+                    "Received connection request while already in a WebRTC connection. Auto-rejecting."
                 );
 
-                const cancelMessage = new ConnectionResponseMessage({
+                const rejectMessage = new ConnectionResponseMessage({
                     accepted: false,
                     remoteToken: message.msg.remoteToken,
                 });
 
-                this.log(
-                    "Token in ConnectionRequestCancelledMessage:",
-                    message.msg.remoteToken
-                );
-                this.signaling.sendMessage(cancelMessage);
+                this.signaling.sendMessage(rejectMessage);
                 return;
             }
 
             this.expectedRemoteToken = message.msg.remoteToken;
-
-            this.onConnectionRequestReceivedObservable.notify(
-                message.msg.remoteToken
-            );
         };
 
         this.signaling.subscribeMessage(
