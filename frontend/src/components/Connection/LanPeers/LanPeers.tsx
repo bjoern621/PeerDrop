@@ -27,13 +27,13 @@ export default function LanPeers() {
 
         // Clicking the pending peer again cancels the request.
         if (peer.token === pendingToken) {
-            peerConnectionManager.cancelConnectionRequest(peer.token);
+            peerConnectionManager.cancelConnectionRequest();
             return;
         }
 
         // Only one outgoing request at a time: switch to the new peer.
         if (pendingToken) {
-            peerConnectionManager.cancelConnectionRequest(pendingToken);
+            peerConnectionManager.cancelConnectionRequest();
         }
 
         const result = peerConnectionManager.connect(peer.token);

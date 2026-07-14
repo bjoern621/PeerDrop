@@ -86,7 +86,7 @@ export default function ConnectToPeer() {
     }, [peerConnectionManager]);
 
     const interruptWaiting = () => {
-        peerConnectionManager.cancelConnectionRequest(remoteToken);
+        peerConnectionManager.cancelConnectionRequest();
         // A local cancel needs no minimum-wait hold.
         requestStartRef.current = 0;
     };

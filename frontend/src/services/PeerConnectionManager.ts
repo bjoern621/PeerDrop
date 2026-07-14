@@ -47,7 +47,11 @@ export interface ConnectionRequestState {
 export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
     private readonly log = (...args: unknown[]) => this.logger.log(...args);
-    private expectedRemoteToken: ClientToken | undefined; // The token of the remote peer we accept connections from.
+    // Token of the peer of the current WebRTC connection. Set when
+    // establishment starts and cleared when the connection is torn down. It is
+    // the WebRTC peer identity only; pending request targets live in the
+    // server-pushed snapshot, not here.
+    private connectedRemoteToken: ClientToken | undefined;
     private webrtcConnection: WebRTCConnection | undefined;
 
     private connectionRequestState: ConnectionRequestState = {
@@ -177,27 +181,19 @@ export class PeerConnectionManager {
      * server removes the request and pushes fresh state snapshots to both
      * peers; the UI clears when the snapshot arrives.
      */
-    public cancelConnectionRequest(remoteToken: ClientToken) {
+    public cancelConnectionRequest() {
         const connectionRequestCancelMessage =
             new ConnectionRequestCancelledMessage({});
 
         this.signaling.sendMessage(connectionRequestCancelMessage);
-
-        if (this.expectedRemoteToken === remoteToken) {
-            this.expectedRemoteToken = undefined;
-        }
     }
 
     private handleConnectionResponseMessages() {
         const onConnectionResponseReceived = (
             message: ConnectionResponseMessage
         ) => {
-            // The server only sends responses for this client's own request,
-            // so no matching against local bookkeeping is needed.
-            if (this.expectedRemoteToken === message.msg.remoteToken) {
-                this.expectedRemoteToken = undefined;
-            }
-
+            // The server only sends responses for this client's own request, so
+            // no matching against local bookkeeping is needed.
             this.onConnectionResponseReceivedObservable.notify(
                 message.msg.accepted
             );
@@ -238,7 +234,7 @@ export class PeerConnectionManager {
         const onConnectionRequestReceived = (
             message: EstablishConnectionMessage
         ) => {
-            if (this.webrtcConnection && this.expectedRemoteToken) {
+            if (this.webrtcConnection) {
                 this.log(
                     "Received connection request while already in a WebRTC connection. Auto-rejecting."
                 );
@@ -252,7 +248,10 @@ export class PeerConnectionManager {
                 return;
             }
 
-            this.expectedRemoteToken = message.msg.remoteToken;
+            // Otherwise nothing to record: the pending incoming request is
+            // reflected in the server-pushed snapshot, and acceptance is driven
+            // from the UI via acceptConnectionRequest. The connected peer is
+            // recorded only once establishment starts.
         };
 
         this.signaling.subscribeMessage(
@@ -270,7 +269,7 @@ export class PeerConnectionManager {
         ) => {
             this.closePeerConnection();
 
-            this.expectedRemoteToken = message.msg.remoteToken;
+            this.connectedRemoteToken = message.msg.remoteToken;
 
             this.transferTracker.clear();
             this.webrtcConnection = new WebRTCConnection(
@@ -320,8 +319,6 @@ export class PeerConnectionManager {
             return { ok: false, error };
         }
 
-        this.expectedRemoteToken = remoteToken;
-
         const connectionRequestMessage = new ConnectionRequestMessage({
             remoteToken: remoteToken,
         });
@@ -338,7 +335,7 @@ export class PeerConnectionManager {
         this.webrtcConnection?.closeConnection();
 
         this.webrtcConnection = undefined;
-        this.expectedRemoteToken = undefined;
+        this.connectedRemoteToken = undefined;
     }
 
     /**
@@ -350,10 +347,10 @@ export class PeerConnectionManager {
             return;
         }
 
-        const expectedRemoteToken = this.expectedRemoteToken!;
+        const connectedRemoteToken = this.connectedRemoteToken!;
 
         const closeConnectionMessage = new CloseConnectionMessage({
-            remoteToken: expectedRemoteToken,
+            remoteToken: connectedRemoteToken,
         });
 
         this.signaling.sendMessage(closeConnectionMessage);
@@ -438,10 +435,10 @@ export class PeerConnectionManager {
 
     public getRemoteToken() {
         assert(
-            this.expectedRemoteToken,
+            this.connectedRemoteToken,
             "Remote token is not set. Ensure you have received the remote token."
         );
-        return this.expectedRemoteToken;
+        return this.connectedRemoteToken;
     }
 
     /**
