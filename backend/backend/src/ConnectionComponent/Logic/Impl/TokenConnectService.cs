@@ -105,9 +105,8 @@ public class TokenConnectService(
         }
 
         // Both affected clients get a fresh snapshot: the requester's outgoing
-        // target clears and the former target's incoming list shrinks. No
-        // dedicated cancellation message is forwarded; the snapshot is the
-        // single source of truth. PushStateTo skips clients that are no longer
+        // target clears and the former target's incoming list shrinks. 
+        // PushStateTo skips clients that are no longer
         // connected, covering the case where the target already disconnected.
         await _connectionStateService.PushStateTo(clientToken, remoteToken);
     }
