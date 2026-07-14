@@ -69,7 +69,9 @@ export default function IncomingConnectionRequests() {
     useEffect(() => {
         const shownTokens = shownTokensRef.current;
         return () => {
-            shownTokens.forEach(token => toast.dismiss(TOAST_ID_PREFIX + token));
+            shownTokens.forEach(token =>
+                toast.dismiss(TOAST_ID_PREFIX + token)
+            );
             shownTokens.clear();
         };
     }, []);
