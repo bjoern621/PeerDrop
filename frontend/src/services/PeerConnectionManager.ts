@@ -48,11 +48,21 @@ export class PeerConnectionManager {
     private readonly onConnectionResponseReceivedObservable: IObservable<boolean> =
         new Observable<boolean>(); // Boolean is true if the connection request was accepted, false otherwise.
 
-    public setOnConnectionResponseReceivedCallback(
+    /**
+     * Subscribes to responses to this client's own outgoing connection request.
+     * The boolean is true if the request was accepted, false if rejected.
+     * Rejections are transient and not part of the snapshot, so they are
+     * delivered as events. Supports multiple subscribers; each must
+     * unsubscribe itself.
+     */
+    public subscribeToConnectionResponse(callback: (accepted: boolean) => void) {
+        this.onConnectionResponseReceivedObservable.subscribe(callback);
+    }
+
+    public unsubscribeFromConnectionResponse(
         callback: (accepted: boolean) => void
     ) {
-        this.onConnectionResponseReceivedObservable.unsubscribeAll();
-        this.onConnectionResponseReceivedObservable.subscribe(callback);
+        this.onConnectionResponseReceivedObservable.unsubscribe(callback);
     }
 
     private readonly onConnectionRequestStateChangedObservable: IObservable<ConnectionRequestState> =

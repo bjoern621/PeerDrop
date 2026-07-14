@@ -59,26 +59,29 @@ export default function ConnectToPeer() {
     // Rejections are transient feedback, not state: the waiting UI itself
     // clears via the snapshot. The toast is delayed to match the hold.
     useEffect(() => {
-        peerConnectionManager.setOnConnectionResponseReceivedCallback(
-            (accepted: boolean) => {
-                if (accepted) {
-                    // Navigation is handled in ConnectionProvider.
-                    return;
-                }
-
-                const remaining = Math.max(
-                    0,
-                    MIN_WAITING_MS - (Date.now() - requestStartRef.current)
-                );
-
-                setTimeout(() => {
-                    toast.error("Verbindungsanfrage wurde abgelehnt!", {
-                        toastId: "connection-rejected-toast",
-                        updateId: "connection-rejected-toast",
-                    });
-                }, remaining);
+        const onResponse = (accepted: boolean) => {
+            if (accepted) {
+                // Navigation is handled in ConnectionProvider.
+                return;
             }
-        );
+
+            const remaining = Math.max(
+                0,
+                MIN_WAITING_MS - (Date.now() - requestStartRef.current)
+            );
+
+            setTimeout(() => {
+                toast.error("Verbindungsanfrage wurde abgelehnt!", {
+                    toastId: "connection-rejected-toast",
+                    updateId: "connection-rejected-toast",
+                });
+            }, remaining);
+        };
+
+        peerConnectionManager.subscribeToConnectionResponse(onResponse);
+        return () => {
+            peerConnectionManager.unsubscribeFromConnectionResponse(onResponse);
+        };
     }, [peerConnectionManager]);
 
     const interruptWaiting = () => {
