@@ -4,20 +4,16 @@ import { useLanPeers } from "../../../hooks/useLanPeers";
 import { LanPeer } from "../../../types/lan/LanPeer";
 import LanPeerDisplay from "./LanPeerDisplay/LanPeerDisplay";
 import Tooltip from "../../Tooltip/Tooltip";
-import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
-import { useConnectionRequestState } from "../../../hooks/useConnectionRequestState";
-import { toast } from "react-toastify/unstyled";
-import { connectErrorToast } from "../../../util/connectErrorToast";
+import { useOutgoingConnectionRequest } from "../../../hooks/useOutgoingConnectionRequest";
 import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
 
 export default function LanPeers() {
     const { peers } = useLanPeers();
-    const peerConnectionManager = usePeerConnectionManager();
+    const { target, switchTo } = useOutgoingConnectionRequest();
 
     // Token of the peer our pending outgoing connection request is addressed
     // to, regardless of where the request was initiated (chip or token input).
-    const pendingToken =
-        useConnectionRequestState().outgoingRequestTarget ?? undefined;
+    const pendingToken = target ?? undefined;
 
     const handlePeerClick = (peer: LanPeer) => {
         // Ignore entries without a real token (e.g. the loading placeholder).
@@ -25,22 +21,7 @@ export default function LanPeers() {
             return;
         }
 
-        // Clicking the pending peer again cancels the request.
-        if (peer.token === pendingToken) {
-            peerConnectionManager.cancelConnectionRequest();
-            return;
-        }
-
-        // Only one outgoing request at a time: switch to the new peer.
-        if (pendingToken) {
-            peerConnectionManager.cancelConnectionRequest();
-        }
-
-        const result = peerConnectionManager.connect(peer.token);
-        if (!result.ok) {
-            const { message, toastId } = connectErrorToast(result.error);
-            toast.warn(message, { toastId, updateId: toastId });
-        }
+        switchTo(peer.token);
     };
 
     return (

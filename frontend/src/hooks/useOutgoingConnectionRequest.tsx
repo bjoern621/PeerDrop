@@ -26,6 +26,12 @@ export interface OutgoingConnectionRequest {
     connect: (remoteToken: string) => boolean;
     /** Cancels the pending outgoing request. */
     cancel: () => void;
+    /**
+     * Enforces the "one outgoing request at a time" rule: cancels the pending
+     * request if the token is already the target (toggle off), otherwise
+     * cancels any other pending request and connects to the given token.
+     */
+    switchTo: (remoteToken: string) => void;
 }
 
 /**
@@ -116,10 +122,26 @@ export function useOutgoingConnectionRequest(): OutgoingConnectionRequest {
         requestStartRef.current = 0;
     };
 
+    const switchTo = (remoteToken: string) => {
+        // Clicking the current target again cancels the request.
+        if (remoteToken === target) {
+            cancel();
+            return;
+        }
+
+        // Only one outgoing request at a time: drop the previous one first.
+        if (target) {
+            cancel();
+        }
+
+        connect(remoteToken);
+    };
+
     return {
         target,
         waitingForResponse: serverWaiting || holdingWait,
         connect,
         cancel,
+        switchTo,
     };
 }
