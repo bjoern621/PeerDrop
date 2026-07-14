@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import { useConnectionRequestState } from "../../../hooks/useConnectionRequestState";
 import { toast } from "react-toastify/unstyled";
+import { connectErrorToast } from "../../../util/connectErrorToast";
 
 /**
  * Minimum time the waiting UI stays visible after a request was sent, so
@@ -91,16 +92,19 @@ export default function ConnectToPeer() {
     };
 
     const connectToPeer = () => {
-        const successfullySent =
-            peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
+        const result = peerConnectionManager.connect(remoteToken);
 
-        if (successfullySent) {
-            // Covers rejections that arrive before the first snapshot does
-            // (e.g. the entered token does not exist).
-            requestStartRef.current = Date.now();
+        if (!result.ok) {
+            const { message, toastId } = connectErrorToast(result.error);
+            toast.warn(message, { toastId, updateId: toastId });
+            return false;
         }
 
-        return successfullySent;
+        // Covers rejections that arrive before the first snapshot does
+        // (e.g. the entered token does not exist).
+        requestStartRef.current = Date.now();
+
+        return true;
     };
 
     const handleSubmit = (event: React.FormEvent) => {

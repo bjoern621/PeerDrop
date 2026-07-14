@@ -6,6 +6,9 @@ import LanPeerDisplay from "./LanPeerDisplay/LanPeerDisplay";
 import Tooltip from "../../Tooltip/Tooltip";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import { useConnectionRequestState } from "../../../hooks/useConnectionRequestState";
+import { toast } from "react-toastify/unstyled";
+import { connectErrorToast } from "../../../util/connectErrorToast";
+import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
 
 export default function LanPeers() {
     const { peers } = useLanPeers();
@@ -18,7 +21,7 @@ export default function LanPeers() {
 
     const handlePeerClick = (peer: LanPeer) => {
         // Ignore entries without a real token (e.g. the loading placeholder).
-        if (peer.token.length !== 5) {
+        if (peer.token.length !== CLIENT_TOKEN_LENGTH) {
             return;
         }
 
@@ -33,7 +36,11 @@ export default function LanPeers() {
             peerConnectionManager.cancelConnectionRequest(pendingToken);
         }
 
-        peerConnectionManager.requestConnectionToRemotePeer(peer.token);
+        const result = peerConnectionManager.connect(peer.token);
+        if (!result.ok) {
+            const { message, toastId } = connectErrorToast(result.error);
+            toast.warn(message, { toastId, updateId: toastId });
+        }
     };
 
     return (

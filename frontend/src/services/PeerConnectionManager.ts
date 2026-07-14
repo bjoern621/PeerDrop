@@ -14,13 +14,23 @@ import { ConnectionRequestMessage } from "../types/connection/ConnectionRequestM
 import { ConnectionResponseMessage } from "../types/connection//ConnectionResponseMessage";
 import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
 import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
-import { toast } from "react-toastify/unstyled";
 import { TransferTracker } from "./TransferTracker";
+import { CLIENT_TOKEN_LENGTH } from "../util/Constants";
 
 /**
  * Indicates who initiated the closing of the peer connection.
  */
 export type CloseInitiator = "local" | "remote";
+
+/**
+ * Reason a connection request was rejected locally before being sent.
+ * `invalid-length`: the token does not have the required length.
+ * `own-token`: the token is this client's own token.
+ */
+export type ConnectError = "invalid-length" | "own-token";
+
+/** Outcome of a {@link PeerConnectionManager.connect} call. */
+export type ConnectResult = { ok: true } | { ok: false; error: ConnectError };
 
 /**
  * Server-pushed snapshot of this client's connection-request state. The
@@ -283,26 +293,31 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Returns true if the connection request was successfully sent, false otherwise.
+     * Checks whether a connection request to the given token is allowed.
+     * Returns the reason it is not, or null if the token is valid. Pure: no
+     * side effects and no UI feedback.
      */
-    public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
-        if (remoteToken.length !== 5) {
-            toast.warn("Peer Token muss 5 Zeichen lang sein.", {
-                toastId: "token-length-toast",
-                updateId: "token-length-toast",
-            });
-            return false;
+    public validateRemoteToken(remoteToken: ClientToken): ConnectError | null {
+        if (remoteToken.length !== CLIENT_TOKEN_LENGTH) {
+            return "invalid-length";
         }
 
         if (this.signaling.getLocalClientToken() === remoteToken) {
-            toast.warn(
-                "Bitte gib einen fremden Token ein, nicht deinen eigenen.",
-                {
-                    toastId: "cannot-send-to-self-toast",
-                    updateId: "cannot-send-to-self-toast",
-                }
-            );
-            return false;
+            return "own-token";
+        }
+
+        return null;
+    }
+
+    /**
+     * Sends a connection request to the remote peer. Returns whether the
+     * request was sent, or the reason it was rejected locally. UI feedback for
+     * a rejection is the caller's responsibility.
+     */
+    public connect(remoteToken: ClientToken): ConnectResult {
+        const error = this.validateRemoteToken(remoteToken);
+        if (error) {
+            return { ok: false, error };
         }
 
         this.expectedRemoteToken = remoteToken;
@@ -313,7 +328,7 @@ export class PeerConnectionManager {
 
         this.signaling.sendMessage(connectionRequestMessage);
 
-        return true;
+        return { ok: true };
     }
 
     /**
