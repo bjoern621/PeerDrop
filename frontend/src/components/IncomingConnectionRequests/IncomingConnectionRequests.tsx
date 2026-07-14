@@ -1,60 +1,78 @@
-import { useState } from "react";
-import css from "./IncomingConnectionRequests.module.scss";
+import { useEffect, useRef } from "react";
+import { toast } from "react-toastify/unstyled";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import { useConnectionRequestState } from "../../hooks/useConnectionRequestState";
+import ConfirmConnectToast from "../ConfirmConnectToast/ConfirmConnectToast";
+
+const TOAST_ID_PREFIX = "confirm-connection-toast-";
 
 /**
- * Renders one banner per pending incoming connection request, driven entirely
- * by the server-pushed connection-request state. A banner disappears as soon
- * as the server drops the request (answered, cancelled, requester
- * disconnected, or this client joined another connection).
+ * Shows one toast per pending incoming connection request, driven entirely by
+ * the server-pushed connection-request state. A toast appears when the server
+ * reports a new requester and is dismissed as soon as the server drops the
+ * request (answered, cancelled, requester disconnected, or this client joined
+ * another connection). Renders nothing itself.
  */
 export default function IncomingConnectionRequests() {
+    const peerConnectionManager = usePeerConnectionManager();
     const { incomingRequesters } = useConnectionRequestState();
 
-    if (incomingRequesters.length === 0) {
-        return null;
-    }
+    // Tokens currently backed by a visible toast, so the snapshot can be
+    // diffed against them to add and remove toasts.
+    const shownTokensRef = useRef<Set<string>>(new Set());
 
-    return (
-        <div className={css.stack}>
-            {incomingRequesters.map(token => (
-                <IncomingRequestBanner key={token} requesterToken={token} />
-            ))}
-        </div>
-    );
-}
+    useEffect(() => {
+        const current = new Set(incomingRequesters);
 
-function IncomingRequestBanner({ requesterToken }: { requesterToken: string }) {
-    const peerConnectionManager = usePeerConnectionManager();
+        // Dismiss toasts for requests the server no longer reports.
+        for (const token of shownTokensRef.current) {
+            if (!current.has(token)) {
+                toast.dismiss(TOAST_ID_PREFIX + token);
+                shownTokensRef.current.delete(token);
+            }
+        }
 
-    // Disables the buttons after answering; the banner itself is removed by
-    // the next server snapshot.
-    const [responded, setResponded] = useState(false);
+        // Show a toast for each newly reported request.
+        for (const token of incomingRequesters) {
+            if (shownTokensRef.current.has(token)) {
+                continue;
+            }
 
-    const accept = () => {
-        setResponded(true);
-        peerConnectionManager.acceptConnectionRequest(requesterToken);
-    };
+            shownTokensRef.current.add(token);
 
-    const reject = () => {
-        setResponded(true);
-        peerConnectionManager.rejectConnectionRequest(requesterToken);
-    };
+            const toastId = TOAST_ID_PREFIX + token;
+            toast.info(
+                <ConfirmConnectToast
+                    requestingPeerToken={token}
+                    onAccept={() =>
+                        peerConnectionManager.acceptConnectionRequest(token)
+                    }
+                    onReject={() =>
+                        peerConnectionManager.rejectConnectionRequest(token)
+                    }
+                    toastId={toastId}
+                />,
+                {
+                    closeOnClick: false,
+                    autoClose: false,
+                    hideProgressBar: false,
+                    progress: 1,
+                    closeButton: false,
+                    className: "confirm-connection-toast-style", // Set in ConfirmConnectToast.module.scss
+                    toastId: toastId,
+                }
+            );
+        }
+    }, [incomingRequesters, peerConnectionManager]);
 
-    return (
-        <div className={css.banner}>
-            <div className={css.message}>
-                Ein Peer möchte sich mit Dir verbinden: {requesterToken}
-            </div>
-            <div className={css.buttonContainer}>
-                <button onClick={accept} disabled={responded}>
-                    Verbinden
-                </button>
-                <button onClick={reject} disabled={responded}>
-                    Ablehnen
-                </button>
-            </div>
-        </div>
-    );
+    // Clear any remaining toasts if this controller unmounts.
+    useEffect(() => {
+        const shownTokens = shownTokensRef.current;
+        return () => {
+            shownTokens.forEach(token => toast.dismiss(TOAST_ID_PREFIX + token));
+            shownTokens.clear();
+        };
+    }, []);
+
+    return null;
 }
