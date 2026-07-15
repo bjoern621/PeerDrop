@@ -139,7 +139,7 @@ export default function ConnectToPeer() {
                     )}
                     <TokenInput
                         value={remoteToken}
-                        onChange={value => setRemoteToken(value.toUpperCase())}
+                        onChange={value => setRemoteToken(value)}
                     />
                     {!waitingForResponse && (
                         <p className={css.mutedText}>
