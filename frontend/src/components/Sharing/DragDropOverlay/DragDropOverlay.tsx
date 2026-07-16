@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import DragDropIcon from "../../../assets/illustrations/drag_and_drop.svg?react";
 import css from "./DragDropOverlay.module.scss";
+import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
 
 interface DragDropOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
     onFilesDropped: (files: FileList) => void;
@@ -14,6 +15,7 @@ export default function DragDropOverlay({
 }: DragDropOverlayProps) {
     const [isDragging, setIsDragging] = useState(false);
     const dragCounterRef = useRef(0); // Counter for drag depth to handle nested element enter/leave events
+    const isTouchDevice = useIsTouchDevice();
 
     const handleDragEnter = (e: React.DragEvent) => {
         e.preventDefault();
@@ -52,6 +54,10 @@ export default function DragDropOverlay({
 
         onFilesDropped(droppedFiles);
     };
+
+    if (isTouchDevice) {
+        return <div className={className}>{children}</div>;
+    }
 
     return (
         <div

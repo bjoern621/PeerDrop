@@ -8,8 +8,11 @@ import InfoIcon from "../../assets/status/icons8-info-3.svg?react";
 import SuccessIcon from "../../assets/status/icons8-check-mark-3.svg?react";
 import ErrorIcon from "../../assets/status/icons8-high-priority-3.svg?react";
 import ConnectionOverlay from "../ConnectionOverlay/ConnectionOverlay";
+import { usePreventFileDropNavigation } from "../../hooks/usePreventFileDropNavigation";
 
 export default function Layout() {
+    usePreventFileDropNavigation();
+
     return (
         <>
             <div className="layout-container">
