@@ -2,20 +2,33 @@ import Button from "../../Button/Button";
 import TokenInput from "../TokenInput/TokenInput";
 import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import { OutgoingRequestEvent } from "../../../services/PeerConnectionManager";
 import { toast } from "react-toastify/unstyled";
+import { ConnectWarningDialog } from "../../Popups/ConnectWarningDialog";
+import {
+    dismissConnectWarning,
+    isConnectWarningDismissed,
+} from "../../../util/ConnectWarningPreference";
 
 export default function ConnectToPeer() {
     const peerConnectionManager = usePeerConnectionManager();
+    const [searchParams] = useSearchParams();
+    const urlToken = searchParams.get("token") ?? undefined;
 
-    const [remoteToken, setRemoteToken] = useState<string>("");
+    const [remoteToken, setRemoteToken] = useState<string>(
+        urlToken?.toUpperCase() ?? ""
+    );
+    const [showConnectWarning, setShowConnectWarning] =
+        useState<boolean>(false);
     const [waitingForResponse, setWaitingForResponse] =
         useState<boolean>(false);
     const [connectionRequestTimestamp, setConnectionRequestTimestamp] =
         useState<number>(0);
     const delayTimeoutIdRef = useRef<number | null>(null);
+    const autoConnectAttemptedRef = useRef<boolean>(false);
 
     const connectButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -104,20 +117,59 @@ export default function ConnectToPeer() {
         peerConnectionManager.cancelConnectionRequest(remoteToken);
     };
 
-    // Waiting state is set by the outgoing-request subscription above.
-    const connectToPeer = () => {
-        return peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
+    const connectToPeer = useCallback(() => {
+        const successfullySent =
+            peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
+
+        if (successfullySent) {
+            setConnectionRequestTimestamp(Date.now());
+            setWaitingForResponse(true);
+            connectButtonRef.current?.focus();
+        }
+
+        return successfullySent;
+    }, [peerConnectionManager, remoteToken]);
+
+    const requestConnect = useCallback(() => {
+        // Token checks (length, own token) run first, so the warning is
+        // only shown for tokens that can actually be connected to.
+        if (!peerConnectionManager.validateRemoteToken(remoteToken)) {
+            return;
+        }
+
+        if (isConnectWarningDismissed()) {
+            connectToPeer();
+            return;
+        }
+
+        setShowConnectWarning(true);
+    }, [peerConnectionManager, connectToPeer, remoteToken]);
+
+    // Tokens opened via /connect?token=<TOKEN> trigger the regular connect flow,
+    // including the warning dialog and token validation, once per page load.
+    useEffect(() => {
+        if (!urlToken || autoConnectAttemptedRef.current) {
+            return;
+        }
+
+        autoConnectAttemptedRef.current = true;
+        requestConnect();
+    }, [urlToken, requestConnect]);
+
+    const confirmConnectWarning = (dontShowAgain: boolean) => {
+        if (dontShowAgain) {
+            dismissConnectWarning();
+        }
+
+        setShowConnectWarning(false);
+        connectToPeer();
     };
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
         if (!waitingForResponse) {
-            const successfullySent = connectToPeer();
-
-            if (successfullySent) {
-                connectButtonRef.current!.focus();
-            }
+            requestConnect();
         }
     };
 
@@ -155,12 +207,19 @@ export default function ConnectToPeer() {
                 </Button>
             ) : (
                 <Button
-                    onClick={connectToPeer}
+                    onClick={requestConnect}
                     variant={"filled"}
                     ref={connectButtonRef}
                 >
                     Verbinden
                 </Button>
+            )}
+
+            {showConnectWarning && (
+                <ConnectWarningDialog
+                    onConfirm={confirmConnectWarning}
+                    onCancel={() => setShowConnectWarning(false)}
+                />
             )}
         </div>
     );

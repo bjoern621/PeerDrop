@@ -64,7 +64,7 @@ export default function OwnToken() {
 
         const [, err] = await errorAsValue(
             navigator.clipboard.writeText(
-                `${getRuntimeEnvVars().frontendDomain}/connect/${clientToken}`
+                `${getRuntimeEnvVars().frontendDomain}/connect?token=${clientToken}`
             )
         );
 
