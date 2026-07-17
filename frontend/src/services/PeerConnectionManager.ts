@@ -346,7 +346,7 @@ export class PeerConnectionManager {
      * Validates a remote token before a connection attempt. Shows a toast
      * and returns false for invalid tokens (wrong length or the own token).
      */
-    public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
+    public validateRemoteToken(remoteToken: ClientToken): boolean {
         remoteToken = normalizeClientToken(remoteToken);
 
         if (remoteToken.length !== 5) {
@@ -375,6 +375,8 @@ export class PeerConnectionManager {
      * Returns true if the connection request was successfully sent, false otherwise.
      */
     public requestConnectionToRemotePeer(remoteToken: ClientToken): boolean {
+        remoteToken = normalizeClientToken(remoteToken);
+
         if (!this.validateRemoteToken(remoteToken)) {
             return false;
         }
