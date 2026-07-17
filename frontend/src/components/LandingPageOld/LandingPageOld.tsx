@@ -25,7 +25,8 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
             data-state={!char ? "empty" : "filled"}
             data-active={isActive || undefined}
         >
-            {char}
+            {/* Tokens are stored lowercase; presentation is uppercase. */}
+            {char?.toUpperCase()}
             {hasFakeCaret && <div className={css.otpSlotCaret} />}
         </div>
     );
@@ -293,7 +294,7 @@ export default function LandingPageOld() {
                     )}
                 </div>
                 <span className={css.token}>
-                    {clientToken ? clientToken : "_____"}
+                    {clientToken ? clientToken.toUpperCase() : "_____"}
                 </span>
             </button>
             <div className={css.peerTokenContainer}>
@@ -305,7 +306,7 @@ export default function LandingPageOld() {
                         data-bwignore="true"
                         data-lpignore="true"
                         data-1p-ignore="true"
-                        onChange={value => setRemoteToken(value.toUpperCase())}
+                        onChange={value => setRemoteToken(value.toLowerCase())}
                         render={({ slots }) => (
                             <>
                                 <div className={css.slotsContainer}>

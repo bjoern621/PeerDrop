@@ -47,7 +47,7 @@ export default function LanPeerDisplay({
                     />
                 )}
             </Tooltip>
-            <span className={css.peerName}>{peer.token}</span>
+            <span className={css.peerName}>{peer.token.toUpperCase()}</span>
             <span className={css.deviceInfo}>{deviceInfo}</span>
         </FakeButton>
     );
