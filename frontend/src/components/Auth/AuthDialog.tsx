@@ -1,4 +1,4 @@
-import { useState, RefObject } from "react";
+import { useState, useEffect, RefObject } from "react";
 import { flushSync } from "react-dom";
 import css from "./AuthDialog.module.scss";
 import RegisterForm from "./RegisterForm";
@@ -31,6 +31,42 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
 
     const { login, register } = useAuth();
     const resetWebsocketConnection = useResetWebsocket();
+
+    // Mirrors the dialog's bottom edge into --auth-dialog-bottom on the root
+    // element so the toast container can position itself below the open
+    // dialog (see toastify-styles.scss). offsetTop/offsetHeight are layout
+    // values and ignore the scale transform of the open animation.
+    useEffect(() => {
+        const dialog = ref.current;
+
+        const updateToastOffset = () => {
+            if (dialog.open) {
+                document.documentElement.style.setProperty(
+                    "--auth-dialog-bottom",
+                    `${dialog.offsetTop + dialog.offsetHeight}px`
+                );
+            } else {
+                document.documentElement.style.removeProperty(
+                    "--auth-dialog-bottom"
+                );
+            }
+        };
+
+        // Covers open/close (rendered size changes from/to zero) and form
+        // switches that change the dialog height
+        const resizeObserver = new ResizeObserver(updateToastOffset);
+        resizeObserver.observe(dialog);
+        // Covers header height changes that move the anchored dialog
+        window.addEventListener("resize", updateToastOffset);
+
+        return () => {
+            resizeObserver.disconnect();
+            window.removeEventListener("resize", updateToastOffset);
+            document.documentElement.style.removeProperty(
+                "--auth-dialog-bottom"
+            );
+        };
+    }, [ref]);
 
     const switchMode = (newMode: AuthForm) => {
         if (document.startViewTransition) {
