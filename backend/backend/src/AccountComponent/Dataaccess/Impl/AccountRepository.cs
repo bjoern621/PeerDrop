@@ -33,18 +33,19 @@ public class AccountRepository(NpgsqlDataSource _dataSource) : IAccountRepositor
     public async Task<AccountRetrieveDto?> GetByNameAsync(string name)
     {
         await using var cmd = _dataSource.CreateCommand(
-            "SELECT id, display_name, passwort FROM users WHERE display_name = @name");
+            "SELECT id, display_name, passwort, security_stamp FROM users WHERE display_name = @name");
         cmd.Parameters.AddWithValue("name", name);
 
         await using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync()) return null;
 
-        // DTO since we dont want to encrypt the password 
+        // DTO since we dont want to encrypt the password
         var account = new AccountRetrieveDto
         {
             Id = reader.GetInt32(0),
             DisplayName = reader.GetString(1),
-            Password = reader.GetString(2)
+            Password = reader.GetString(2),
+            SecurityStamp = reader.GetGuid(3)
         };
         return account;
     }
@@ -52,18 +53,19 @@ public class AccountRepository(NpgsqlDataSource _dataSource) : IAccountRepositor
     public async Task<AccountRetrieveDto?> GetByIdAsync(int id)
     {
         await using var cmd = _dataSource.CreateCommand(
-            "SELECT id, display_name, passwort FROM users WHERE id = @id");
+            "SELECT id, display_name, passwort, security_stamp FROM users WHERE id = @id");
         cmd.Parameters.AddWithValue("id", id);
 
         await using var reader = await cmd.ExecuteReaderAsync();
         if (!await reader.ReadAsync()) return null;
 
-        // DTO since we dont want to encrypt the password 
+        // DTO since we dont want to encrypt the password
         var account = new AccountRetrieveDto
         {
             Id = reader.GetInt32(0),
             DisplayName = reader.GetString(1),
-            Password = reader.GetString(2)
+            Password = reader.GetString(2),
+            SecurityStamp = reader.GetGuid(3)
         };
 
         return account;
