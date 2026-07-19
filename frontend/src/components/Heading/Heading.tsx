@@ -3,6 +3,7 @@ import Logo from "../Logo/Logo";
 import css from "./Heading.module.scss";
 import StableText from "../StableText/StableText";
 import AuthButton from "../Auth/AuthButton";
+import SettingsMenu from "../SettingsMenu/SettingsMenu";
 
 export default function Heading() {
     return (
@@ -31,6 +32,7 @@ export default function Heading() {
             </div>
 
             <div className={css.authSection}>
+                <SettingsMenu />
                 <AuthButton />
             </div>
         </header>
