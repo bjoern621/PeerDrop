@@ -150,6 +150,41 @@ public class DeviceRepositoryTest
     }
 
     [Test]
+    public async Task RenameAsync_Updates_DisplayName()
+    {
+        var account = new Account("testuser", "testpassword");
+        var id = await _accountRepository.SaveAsync(account);
+        Assert.That(id, Is.EqualTo(1));
+        // add some device
+        const int accountId = 1;
+        Guid guid = Guid.NewGuid();
+        var device = new Device("testdevice", guid, accountId);
+        var uuid = await _deviceRepository.SaveDeviceAsync(device);
+        var result = await _deviceRepository.RenameDeviceAsync(accountId, uuid, "renamed device");
+        Assert.That(result, Is.EqualTo(1));
+        var deviceLoginDtos = await _deviceRepository.GetAllDisplayNamesForAccountAsync(accountId, Guid.Empty);
+        Assert.That(deviceLoginDtos, Has.Count.EqualTo(1));
+        Assert.That(deviceLoginDtos[0].DisplayName, Is.EqualTo("renamed device"));
+    }
+
+    [Test]
+    public async Task RenameAsync_RenamesNoDevice_IfDeviceUuid_OrAccountId_DoesntExist()
+    {
+        var account = new Account("testuser", "testpassword");
+        var id = await _accountRepository.SaveAsync(account);
+        Assert.That(id, Is.EqualTo(1));
+        // add some device
+        const int accountId = 1;
+        Guid guid = Guid.NewGuid();
+        var device = new Device("testdevice", guid, accountId);
+        var uuid = await _deviceRepository.SaveDeviceAsync(device);
+        var result = await _deviceRepository.RenameDeviceAsync(accountId, Guid.NewGuid(), "renamed device");
+        Assert.That(result, Is.EqualTo(0));
+        result = await _deviceRepository.RenameDeviceAsync(53, uuid, "renamed device");
+        Assert.That(result, Is.EqualTo(0));
+    }
+
+    [Test]
     public async Task DeleteAsync_DeletesNoDevice_IfDeviceUuid_OrAccountId_DoesntExist()
     {
         var account = new Account("testuser", "testpassword");

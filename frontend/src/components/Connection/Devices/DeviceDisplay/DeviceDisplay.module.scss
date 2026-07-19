@@ -66,3 +66,21 @@
     padding: var(--space-4);
     border-radius: var(--space-8);
 }
+
+.renameButton {
+    padding: var(--space-4);
+    border-radius: var(--space-8);
+}
+
+.nameInput {
+    width: 12ch;
+    padding: 0 var(--space-4);
+    background-color: var(--text-muted-5);
+    color: var(--text);
+    border: none;
+    border-bottom: 1px solid var(--text-muted);
+    border-radius: var(--space-4);
+
+    font-size: inherit;
+    font-family: inherit;
+}

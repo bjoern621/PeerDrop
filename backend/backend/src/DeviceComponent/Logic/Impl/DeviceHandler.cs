@@ -2,6 +2,8 @@ using System.Text.RegularExpressions;
 using backend.AccountComponent.Common.Api.DTOs;
 using backend.AccountComponent.Logic.Api;
 using backend.DeviceComponent.Common.DTOs;
+using backend.DeviceComponent.Common.Exception;
+using backend.DeviceComponent.Common.Validators;
 using backend.DeviceComponent.Dataaccess.Api.Entity;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
@@ -273,5 +275,70 @@ public class DeviceHandler(
         );
 
         return Results.Ok("Device deleted successfully.");
+    }
+
+    public async Task<IResult> RenameDeviceAsync(HttpContext context)
+    {
+        // Check for session cookie
+        if (!context.Request.Cookies.TryGetValue(".AspNetCore.Session", out var sessionToken))
+        {
+            return Results.Unauthorized();
+        }
+
+        var result = await login.HandleGetCurrentUser(context);
+        if (result is not Ok<LoginResponse>)
+        {
+            return Results.Unauthorized();
+        }
+
+        // Access the session using the sessionToken or from the session store
+        var accountId = context.Session.GetString("UserId");
+
+        if (string.IsNullOrEmpty(accountId))
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!int.TryParse(accountId, out var parsedAccountId))
+        {
+            return Results.BadRequest("Invalid account ID in session.");
+        }
+
+        // Read device UUID and new display name from request body
+        var renameDto = await context.Request.ReadFromJsonAsync<DeviceRenameDto>();
+        if (renameDto == null || renameDto.Uuid == Guid.Empty)
+        {
+            return Results.BadRequest("Device UUID is required.");
+        }
+
+        var displayName = renameDto.DisplayName.Trim();
+        try
+        {
+            DisplayNameValidator.ValidateDisplayNameFormat(displayName);
+        }
+        catch (InvalidDisplayNameException e)
+        {
+            return Results.BadRequest(e.Message);
+        }
+
+        // Prüfen, ob das Device existiert und zu diesem Account gehört
+        var device = await repo.GetDeviceByUuidAsync(renameDto.Uuid);
+        if (device == null || device.GetAccountId() != parsedAccountId)
+        {
+            return Results.Unauthorized();
+        }
+
+        // Proceed with renaming the device
+        await repo.RenameDeviceAsync(parsedAccountId, renameDto.Uuid, displayName);
+
+        _deviceService.SendDeviceChangedMessage(
+            parsedAccountId,
+            "renamed",
+            renameDto.Uuid,
+            displayName,
+            _deviceService.GetDeviceStatus(renameDto.Uuid)
+        );
+
+        return Results.Ok("Device renamed successfully.");
     }
 }
