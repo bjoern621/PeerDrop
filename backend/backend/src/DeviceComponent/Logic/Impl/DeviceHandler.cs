@@ -42,26 +42,41 @@ public class DeviceHandler(
         string displayNameRaw = context.Request.Headers["User-Agent"].ToString();
         string displayName = GetBrowserAndOs(displayNameRaw);
 
-        // Generate a new UUID for the device
-        var deviceUuid = Guid.NewGuid();
+        // Reuse the UUID from an existing cookie so the device keeps its identity across accounts.
+        // The cookie is only set once and never overwritten.
+        var hasValidCookie = Guid.TryParse(context.Request.Cookies["deviceUuid"], out var deviceUuid);
+        if (!hasValidCookie)
+        {
+            deviceUuid = Guid.NewGuid();
+        }
+
+        var existingDevice = await repo.GetDeviceByUuidAsync(deviceUuid, accountId);
+        if (existingDevice != null)
+        {
+            // The account already registered this device
+            return Results.Ok(new DeviceRegisterDto { uuid = deviceUuid });
+        }
 
         // Create a new device object to save in the repository
         var device = Device.Of(displayName, deviceUuid, accountId);
         // Save the device to the repository (database)
         await repo.SaveDeviceAsync(device);
 
-        context.Response.Cookies.Append(
-            "deviceUuid",
-            deviceUuid.ToString(),
-            new CookieOptions
-            {
-                HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (you may validate the cookie on the server side by using the auth session token)
-                IsEssential = true,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddYears(5),
-                Domain = cookieDomain,
-            }
-        );
+        if (!hasValidCookie)
+        {
+            context.Response.Cookies.Append(
+                "deviceUuid",
+                deviceUuid.ToString(),
+                new CookieOptions
+                {
+                    HttpOnly = false, // Client needs to access this cookie via JavaScript to send heartbeats and check if the local device is registered; THIS ALSO MEANS THAT THE COOKIE IS NOT SECURE (you may validate the cookie on the server side by using the auth session token)
+                    IsEssential = true,
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddYears(5),
+                    Domain = cookieDomain,
+                }
+            );
+        }
 
         _deviceService.SendDeviceChangedMessage(
             accountId,
@@ -162,44 +177,34 @@ public class DeviceHandler(
             return Results.BadRequest("Invalid account ID in session.");
         }
 
-        var deviceUuid = context.Request.Cookies["deviceUuid"];
-        List<DeviceLoginDto>? devices;
-        if (!string.IsNullOrEmpty(deviceUuid))
-        {
-            Guid deviceGuid;
-            try
-            {
-                deviceGuid = Guid.Parse(deviceUuid);
-            }
-            catch (FormatException)
-            {
-                deviceGuid = Guid.Empty;
-            }
+        var devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId);
 
-            devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, deviceGuid);
-            var exists = devices.Any(d => d.Uuid == deviceGuid);
-            if (!exists)
-            {
-                // Cookie löschen, weil das Gerät nicht mehr existiert
-                context.Response.Cookies.Append(
-                    "deviceUuid",
-                    "",
-                    new CookieOptions
-                    {
-                        Expires = DateTimeOffset.UtcNow.AddDays(-1),
-                        HttpOnly = false,
-                        IsEssential = true,
-                        SameSite = SameSiteMode.Lax,
-                        Path = "/",
-                        Domain = cookieDomain,
-                    }
-                );
-            }
-        }
-        // Proceed with fetching the devices for the user
-        else
+        var deviceUuid = context.Request.Cookies["deviceUuid"];
+        if (Guid.TryParse(deviceUuid, out var deviceGuid))
         {
-            devices = await repo.GetAllDisplayNamesForAccountAsync(parsedAccountId, Guid.Empty);
+            var registeredForAccount = devices.Any(d => d.Uuid == deviceGuid);
+            if (!registeredForAccount)
+            {
+                // Another account may still have the device registered, in that case the cookie must stay.
+                var accountIds = await repo.GetAccountIdsByDeviceUuidAsync(deviceGuid);
+                if (accountIds.Count == 0)
+                {
+                    // Cookie löschen, weil das Gerät nicht mehr existiert
+                    context.Response.Cookies.Append(
+                        "deviceUuid",
+                        "",
+                        new CookieOptions
+                        {
+                            Expires = DateTimeOffset.UtcNow.AddDays(-1),
+                            HttpOnly = false,
+                            IsEssential = true,
+                            SameSite = SameSiteMode.Lax,
+                            Path = "/",
+                            Domain = cookieDomain,
+                        }
+                    );
+                }
+            }
         }
 
         var deviceResponse = new DeviceResponseDTO
@@ -251,16 +256,16 @@ public class DeviceHandler(
             return Results.BadRequest("Device UUID is required.");
         }
 
-        // Prüfen, ob das Device existiert und zu diesem Account gehört
-        var device = await repo.GetDeviceByUuidAsync(deviceGuid);
-        if (device == null || device.GetAccountId() != parsedAccountId)
+        // Prüfen, ob das Device für diesen Account registriert ist
+        var device = await repo.GetDeviceByUuidAsync(deviceGuid, parsedAccountId);
+        if (device == null)
         {
             return Results.Unauthorized();
         }
 
         var deviceDisplayName = device.GetDisplayName(); // TODO
 
-        // Proceed with deleting the device
+        // Only the link of the acting account is removed, other accounts keep the device
         await repo.DeleteDeviceAsync(parsedAccountId, deviceGuid);
         _deviceService.HandleDeviceDelete(deviceGuid, parsedAccountId, "offline");
 

@@ -75,19 +75,17 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
 
                 using var scope = _scopeFactory.CreateScope();
                 var repo = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
-                var device = await repo.GetDeviceByUuidAsync(kvp.Value.DeviceGuid);
+                var accountIds = await repo.GetAccountIdsByDeviceUuidAsync(kvp.Value.DeviceGuid);
 
-                if (device == null)
+                // The list is empty if the device was deleted by all accounts in the meantime
+                foreach (var accountId in accountIds)
                 {
-                    // Something went wrong, the device should be in the database if it is in the _activeDevices list
-                    return;
+                    SendHeartbeatToAllActiveClientTokens(
+                        accountId,
+                        kvp.Value.DeviceGuid,
+                        "offline"
+                    );
                 }
-
-                SendHeartbeatToAllActiveClientTokens(
-                    device.GetAccountId(),
-                    kvp.Value.DeviceGuid,
-                    "offline"
-                );
             }
         }
     }
@@ -131,9 +129,9 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
 
         using var scope = _scopeFactory.CreateScope();
         var repo = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
-        var device = await repo.GetDeviceByUuidAsync(message.Uuid);
+        var accountIds = await repo.GetAccountIdsByDeviceUuidAsync(message.Uuid);
 
-        if (device == null)
+        if (accountIds.Count == 0)
         {
             // Device not found in the database
             logger.LogDebug(
@@ -142,11 +140,11 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
             return;
         }
 
-        if (device.GetAccountId() != realUserId)
+        if (!accountIds.Contains(realUserId.Value))
         {
-            // Device does not belong to the sending user
+            // Device is not registered for the sending user
             logger.LogDebug(
-                $"Device with UUID {message.Uuid} does not belong to user {realUserId}. Heartbeat is not valid."
+                $"Device with UUID {message.Uuid} is not registered for user {realUserId}. Heartbeat is not valid."
             );
             return;
         }
@@ -185,7 +183,11 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
         }
 
         // TODO maybe exlude sender token from the forwarded list
-        SendHeartbeatToAllActiveClientTokens(realUserId.Value, message.Uuid, message.DeviceStatus);
+        // Forward the heartbeat to all accounts that registered the device
+        foreach (var accountId in accountIds)
+        {
+            SendHeartbeatToAllActiveClientTokens(accountId, message.Uuid, message.DeviceStatus);
+        }
     }
 
     public void HandleDeviceDelete(Guid uuid, int userId, string deviceStatus)
@@ -193,13 +195,21 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
         // Delete from the _activeDevices list
         foreach (var kvp in _activeDevices.ToArray())
         {
-            if (kvp.Value.DeviceGuid == uuid)
+            if (kvp.Value.DeviceGuid != uuid)
             {
-                _activeDevices.TryRemove(kvp.Key, out _);
-                logger.LogDebug(
-                    $"Removed deleted device {kvp.Value.DeviceGuid} for client {kvp.Key}"
-                );
+                continue;
             }
+
+            if (_webSocketHandler.GetUserIdForClientToken(kvp.Key) != userId)
+            {
+                // The client is logged in with another account that may still have the device registered
+                continue;
+            }
+
+            _activeDevices.TryRemove(kvp.Key, out _);
+            logger.LogDebug(
+                $"Removed deleted device {kvp.Value.DeviceGuid} for client {kvp.Key}"
+            );
         }
     }
 
