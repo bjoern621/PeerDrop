@@ -1,8 +1,12 @@
-import { ReactNode, useId, useState } from "react";
+import { ReactNode, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import css from "./Tooltip.module.scss";
 
 export type TooltipPosition = "top" | "bottom" | "left" | "right";
+
+// Grace period before a hoverable tooltip hides, so the pointer can travel
+// from the trigger to the tooltip content.
+const HIDE_DELAY_MS = 200;
 
 interface TooltipProps {
     children: ReactNode;
@@ -11,6 +15,8 @@ interface TooltipProps {
     showArrow?: boolean;
     className?: string;
     disabled?: boolean;
+    /** Keeps the tooltip open while hovered, so its content can be selected and clicked. */
+    hoverable?: boolean;
 }
 
 export default function Tooltip({
@@ -20,18 +26,30 @@ export default function Tooltip({
     showArrow = false,
     className = "",
     disabled = false,
+    hoverable = false,
 }: TooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
+    const hideTimeout = useRef<number | undefined>(undefined);
     const anchorId = useId();
 
+    useEffect(() => () => window.clearTimeout(hideTimeout.current), []);
+
     const handleMouseEnter = () => {
+        window.clearTimeout(hideTimeout.current);
         if (!disabled) {
             setIsVisible(true);
         }
     };
 
     const handleMouseLeave = () => {
-        setIsVisible(false);
+        if (hoverable) {
+            hideTimeout.current = window.setTimeout(
+                () => setIsVisible(false),
+                HIDE_DELAY_MS
+            );
+        } else {
+            setIsVisible(false);
+        }
     };
 
     const tooltipClasses = [
@@ -39,6 +57,7 @@ export default function Tooltip({
         css[position],
         showArrow ? css.withArrow : "",
         isVisible ? css.visible : "",
+        hoverable ? css.hoverable : "",
         className,
     ]
         .filter(Boolean)
@@ -70,6 +89,8 @@ export default function Tooltip({
                         } as React.CSSProperties
                     }
                     data-anchor-id={anchorId}
+                    onMouseEnter={hoverable ? handleMouseEnter : undefined}
+                    onMouseLeave={hoverable ? handleMouseLeave : undefined}
                 >
                     {showArrow && <div className={css.arrow} />}
                     {content}
