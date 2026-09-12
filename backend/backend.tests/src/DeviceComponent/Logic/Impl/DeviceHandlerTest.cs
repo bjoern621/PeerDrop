@@ -237,4 +237,77 @@ public class DeviceHandlerTests
         var okResult = result as Ok<string>;
         Assert.That(okResult?.Value, Is.EqualTo("Device deleted successfully."));
     }
+
+    private static void SetRenameRequestBody(HttpContext context, Guid deviceUuid, string displayName)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(new DeviceRenameDto
+        {
+            Uuid = deviceUuid,
+            DisplayName = displayName
+        });
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        context.Request.Body = new MemoryStream(bytes);
+        context.Request.ContentType = "application/json";
+    }
+
+    [Test]
+    public async Task RenameDeviceAsync_WhenDeviceExists_RenamesDevice()
+    {
+        // Arrange
+        var deviceUuid = Guid.NewGuid();
+        var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
+        SetRenameRequestBody(context, deviceUuid, "  Mein Laptop  ");
+
+        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid))
+            .ReturnsAsync(new Device("TestDevice", deviceUuid, 1));
+        _repoMock.Setup(r => r.RenameDeviceAsync(1, deviceUuid, "Mein Laptop"))
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _deviceHandler.RenameDeviceAsync(context);
+
+        // Assert
+        Assert.That(result, Is.TypeOf<Ok<string>>());
+        var okResult = result as Ok<string>;
+        Assert.That(okResult?.Value, Is.EqualTo("Device renamed successfully."));
+        _repoMock.Verify(r => r.RenameDeviceAsync(1, deviceUuid, "Mein Laptop"), Times.Once);
+        _deviceServiceMock.Verify(
+            s => s.SendDeviceChangedMessage(1, "renamed", deviceUuid, "Mein Laptop", It.IsAny<string>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task RenameDeviceAsync_WhenDisplayNameInvalid_ReturnsBadRequest()
+    {
+        // Arrange
+        var deviceUuid = Guid.NewGuid();
+        var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
+        SetRenameRequestBody(context, deviceUuid, "  ");
+
+        // Act
+        var result = await _deviceHandler.RenameDeviceAsync(context);
+
+        // Assert
+        Assert.That(result, Is.TypeOf<BadRequest<string>>());
+        _repoMock.Verify(r => r.RenameDeviceAsync(It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task RenameDeviceAsync_WhenDeviceBelongsToOtherAccount_ReturnsUnauthorized()
+    {
+        // Arrange
+        var deviceUuid = Guid.NewGuid();
+        var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
+        SetRenameRequestBody(context, deviceUuid, "Mein Laptop");
+
+        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid))
+            .ReturnsAsync(new Device("TestDevice", deviceUuid, 2));
+
+        // Act
+        var result = await _deviceHandler.RenameDeviceAsync(context);
+
+        // Assert
+        Assert.That(result, Is.TypeOf<UnauthorizedHttpResult>());
+        _repoMock.Verify(r => r.RenameDeviceAsync(It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+    }
 }
