@@ -32,7 +32,7 @@ func Dial(ctx context.Context, wsBackendURL, userAgent string) (*Client, error) 
 		HTTPHeader: header,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("could not reach the signaling server at %s: %w", wsBackendURL, err)
+		return nil, fmt.Errorf("Could not reach the signaling server at %s. %s", wsBackendURL, err)
 	}
 
 	conn.SetReadLimit(readLimitBytes)

@@ -185,10 +185,10 @@ func (s *session) awaitToken(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-timeout.C:
-			return fmt.Errorf("the signaling server sent no token within %s", tokenTimeout)
+			return fmt.Errorf("The signaling server sent no token within %s", tokenTimeout)
 		case envelope, open := <-s.client.Messages():
 			if !open {
-				return fmt.Errorf("the signaling connection ended before a token arrived")
+				return fmt.Errorf("The signaling connection ended before a token arrived")
 			}
 
 			if envelope.Type != signaling.TypeClientToken {
@@ -224,10 +224,10 @@ func (s *session) prepareReceiveDir() error {
 
 	info, err := os.Stat(directory)
 	if err != nil {
-		return fmt.Errorf("could not use %s as the target directory: %w", directory, err)
+		return fmt.Errorf("Could not use %s as the target directory. %s", directory, err)
 	}
 	if !info.IsDir() {
-		return fmt.Errorf("%s is not a directory", directory)
+		return fmt.Errorf("%s is not a directory. Name one with --dir", directory)
 	}
 
 	s.receiveDir = directory

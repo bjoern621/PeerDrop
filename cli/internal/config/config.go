@@ -4,6 +4,7 @@ package config
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -52,12 +53,12 @@ func Load(ctx context.Context, host string) (Instance, error) {
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return Instance{}, fmt.Errorf("could not reach %s: %w", normalized, err)
+		return Instance{}, fmt.Errorf("Could not reach %s. %s", normalized, reason(err))
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return Instance{}, fmt.Errorf("%s answered %s for %s", normalized, response.Status, envvarsPath)
+		return Instance{}, fmt.Errorf("%s answered %s for %s. Check the address, or name another instance with --host", normalized, response.Status, envvarsPath)
 	}
 
 	body, err := io.ReadAll(io.LimitReader(response.Body, 1<<20))
@@ -81,6 +82,16 @@ func Load(ctx context.Context, host string) (Instance, error) {
 	}
 
 	return instance, nil
+}
+
+// reason strips the request wrapper, which repeats the address the message already names.
+func reason(err error) string {
+	var requestErr *url.Error
+	if errors.As(err, &requestErr) {
+		return requestErr.Err.Error()
+	}
+
+	return err.Error()
 }
 
 // normalizeHost accepts "peerdrop.de" as well as a full origin and returns an origin without trailing slash.
