@@ -1,5 +1,6 @@
 import { OTPInput, SlotProps } from "input-otp";
 import css from "./TokenInput.module.scss";
+import { normalizeClientToken } from "../../../services/WebSocketService";
 
 const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
     return (
@@ -8,7 +9,8 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
             data-state={!char ? "empty" : "filled"}
             data-active={isActive || undefined}
         >
-            {char}
+            {/* Tokens are stored lowercase; presentation is uppercase. */}
+            {char?.toUpperCase()}
             {hasFakeCaret && "_"}
         </div>
     );
@@ -29,7 +31,7 @@ export default function TokenInput({
             data-bwignore="true"
             data-lpignore="true"
             data-1p-ignore="true"
-            onChange={onChange}
+            onChange={value => onChange?.(normalizeClientToken(value))}
             render={({ slots }) => (
                 <>
                     <div className={css.slotsContainer}>

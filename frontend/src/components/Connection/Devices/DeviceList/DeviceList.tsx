@@ -11,6 +11,7 @@ export default function DeviceList() {
         registerCurrentDevice,
         connectToDevice,
         deleteDevice,
+        renameDevice,
     } = useDevices();
 
     return (
@@ -32,6 +33,9 @@ export default function DeviceList() {
                     device={device}
                     onConnect={connectToDevice}
                     onDelete={() => void deleteDevice(device)}
+                    onRename={(device, newName) =>
+                        void renameDevice(device, newName)
+                    }
                 />
             ))}
         </div>

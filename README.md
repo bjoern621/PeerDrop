@@ -11,7 +11,7 @@ PeerDrop ist eine dezentrale P2P-Dateifreigabe-Plattform, die es dir ermöglicht
 
 ## How To Use
 
-1. Besuche [`https://peerdrop.bjoernblessin.de`](https://peerdrop.bjoernblessin.de).
+1. Besuche https://peerdrop.de/.
 2. Gib die Peer-ID des Empfängers an.
 3. Warte bis dein Peer die Verbindung bestätigt hat.
 4. Wähle beliebig viele Dateien per Drag & Drop oder Datei-Auswahl.

@@ -27,7 +27,8 @@ export default function ConnectionRequestToast({
     return (
         <div className={css.container}>
             <div className={css.message}>
-                Ein Peer möchte sich mit Dir verbinden: {requestingPeerToken}.
+                Ein Peer möchte sich mit Dir verbinden:{" "}
+                {requestingPeerToken.toUpperCase()}.
             </div>
             <div className={css.buttonContainer}>
                 <button onClick={handleAccept}>Verbinden</button>
