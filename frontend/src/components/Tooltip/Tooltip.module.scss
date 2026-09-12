@@ -27,6 +27,11 @@
         scale: 1;
     }
 
+    // Only while visible, so the hidden tooltip never blocks clicks underneath.
+    &.hoverable.visible {
+        pointer-events: auto;
+    }
+
     &.top {
         bottom: anchor(top);
         left: anchor(center);

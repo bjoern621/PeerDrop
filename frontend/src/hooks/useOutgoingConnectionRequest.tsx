@@ -24,6 +24,12 @@ export interface OutgoingConnectionRequest {
      * false if the token is rejected locally (wrong length or own token).
      */
     connect: (remoteToken: string) => boolean;
+    /**
+     * Reports whether a request to the given token would be sent, with the same
+     * toast as {@link connect}. For callers that run something in between, such
+     * as a confirmation dialog.
+     */
+    validate: (remoteToken: string) => boolean;
     /** Cancels the pending outgoing request. */
     cancel: () => void;
     /**
@@ -100,6 +106,18 @@ export function useOutgoingConnectionRequest(): OutgoingConnectionRequest {
         };
     }, [peerConnectionManager]);
 
+    const validate = (remoteToken: string): boolean => {
+        const error = peerConnectionManager.validateRemoteToken(remoteToken);
+
+        if (error) {
+            const { message, toastId } = connectErrorToast(error);
+            toast.warn(message, { toastId, updateId: toastId });
+            return false;
+        }
+
+        return true;
+    };
+
     const connect = (remoteToken: string): boolean => {
         const result = peerConnectionManager.connect(remoteToken);
 
@@ -141,6 +159,7 @@ export function useOutgoingConnectionRequest(): OutgoingConnectionRequest {
         target,
         waitingForResponse: serverWaiting || holdingWait,
         connect,
+        validate,
         cancel,
         switchTo,
     };

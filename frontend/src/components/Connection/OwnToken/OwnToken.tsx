@@ -64,7 +64,7 @@ export default function OwnToken() {
 
         const [, err] = await errorAsValue(
             navigator.clipboard.writeText(
-                `${getRuntimeEnvVars().frontendDomain}/connect/${clientToken}`
+                `${getRuntimeEnvVars().frontendDomain}/connect?token=${clientToken}`
             )
         );
 
@@ -88,7 +88,9 @@ export default function OwnToken() {
             </h2>
 
             <div className={css.tokenBox}>
-                <div className={css.token}>{clientToken ?? "_____"}</div>
+                <div className={css.token}>
+                    {clientToken?.toUpperCase() ?? "_____"}
+                </div>
                 <p className={css.mutedText}>Teile diesen Token mit anderen</p>
             </div>
 

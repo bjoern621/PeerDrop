@@ -4,6 +4,7 @@ import {
     MessageHandler,
     WebSocketService,
     ClientToken,
+    normalizeClientToken,
 } from "./WebSocketService";
 import { MessageType } from "../types/MessageType";
 import { IObservable, Observable } from "../util/observer/Observable";
@@ -161,8 +162,11 @@ export class PeerConnectionManager {
     private handleConnectionStateMessage() {
         const onConnectionStateReceived = (message: ConnectionStateMessage) => {
             this.connectionRequestState = {
-                outgoingRequestTarget: message.msg.outgoingRequestTarget,
-                incomingRequesters: message.msg.incomingRequesters,
+                outgoingRequestTarget: message.msg.outgoingRequestTarget
+                    ? normalizeClientToken(message.msg.outgoingRequestTarget)
+                    : null,
+                incomingRequesters:
+                    message.msg.incomingRequesters.map(normalizeClientToken),
             };
 
             this.onConnectionRequestStateChangedObservable.notify(
@@ -208,7 +212,7 @@ export class PeerConnectionManager {
     public acceptConnectionRequest(remoteToken: ClientToken) {
         const connectionResponseMessage = new ConnectionResponseMessage({
             accepted: true,
-            remoteToken: remoteToken,
+            remoteToken: normalizeClientToken(remoteToken),
         });
 
         this.signaling.sendMessage(connectionResponseMessage);
@@ -217,7 +221,7 @@ export class PeerConnectionManager {
     public rejectConnectionRequest(remoteToken: ClientToken) {
         const connectionResponseMessage = new ConnectionResponseMessage({
             accepted: false,
-            remoteToken: remoteToken,
+            remoteToken: normalizeClientToken(remoteToken),
         });
 
         this.signaling.sendMessage(connectionResponseMessage);
@@ -241,7 +245,7 @@ export class PeerConnectionManager {
 
                 const rejectMessage = new ConnectionResponseMessage({
                     accepted: false,
-                    remoteToken: message.msg.remoteToken,
+                    remoteToken: normalizeClientToken(message.msg.remoteToken),
                 });
 
                 this.signaling.sendMessage(rejectMessage);
@@ -269,20 +273,21 @@ export class PeerConnectionManager {
         ) => {
             this.closePeerConnection();
 
-            this.connectedRemoteToken = message.msg.remoteToken;
+            const establishToken = normalizeClientToken(
+                message.msg.remoteToken
+            );
+            this.connectedRemoteToken = establishToken;
 
             this.transferTracker.clear();
             this.webrtcConnection = new WebRTCConnection(
                 this.signaling,
-                message.msg.remoteToken,
+                establishToken,
                 this.transferTracker
             );
 
             this.setupListeners();
 
-            this.onConnectionEstablishingObservable.notify(
-                message.msg.remoteToken
-            );
+            this.onConnectionEstablishingObservable.notify(establishToken);
         };
 
         this.signaling.subscribeMessage(
@@ -297,6 +302,8 @@ export class PeerConnectionManager {
      * side effects and no UI feedback.
      */
     public validateRemoteToken(remoteToken: ClientToken): ConnectError | null {
+        remoteToken = normalizeClientToken(remoteToken);
+
         if (remoteToken.length !== CLIENT_TOKEN_LENGTH) {
             return "invalid-length";
         }
@@ -314,6 +321,8 @@ export class PeerConnectionManager {
      * a rejection is the caller's responsibility.
      */
     public connect(remoteToken: ClientToken): ConnectResult {
+        remoteToken = normalizeClientToken(remoteToken);
+
         const error = this.validateRemoteToken(remoteToken);
         if (error) {
             return { ok: false, error };

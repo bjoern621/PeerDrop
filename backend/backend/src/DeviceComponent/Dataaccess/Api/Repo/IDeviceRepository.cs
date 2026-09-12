@@ -6,7 +6,9 @@ namespace backend.DeviceComponent.Dataaccess.Api.Repo;
 public interface IDeviceRepository
 {
     Task<Guid> SaveDeviceAsync(Device device);
-    Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId, Guid uuid);
+    Task<List<DeviceLoginDto>> GetAllDisplayNamesForAccountAsync(int accountId);
     Task<int> DeleteDeviceAsync(int accountId, Guid uuid);
-    Task<Device?> GetDeviceByUuidAsync(Guid uuid);
+    Task<int> RenameDeviceAsync(int accountId, Guid uuid, string displayName);
+    Task<Device?> GetDeviceByUuidAsync(Guid uuid, int accountId);
+    Task<List<int>> GetAccountIdsByDeviceUuidAsync(Guid uuid);
 }

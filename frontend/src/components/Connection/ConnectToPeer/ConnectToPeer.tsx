@@ -2,15 +2,29 @@ import Button from "../../Button/Button";
 import TokenInput from "../TokenInput/TokenInput";
 import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 import { useOutgoingConnectionRequest } from "../../../hooks/useOutgoingConnectionRequest";
+import { normalizeClientToken } from "../../../services/WebSocketService";
+import { ConnectWarningDialog } from "../../Popups/ConnectWarningDialog";
+import {
+    dismissConnectWarning,
+    isConnectWarningDismissed,
+} from "../../../util/ConnectWarningPreference";
 
 export default function ConnectToPeer() {
-    const { target, waitingForResponse, connect, cancel } =
+    const { target, waitingForResponse, connect, validate, cancel } =
         useOutgoingConnectionRequest();
+    const [searchParams] = useSearchParams();
+    const urlToken = searchParams.get("token") ?? undefined;
 
-    const [remoteToken, setRemoteToken] = useState<string>("");
+    const [remoteToken, setRemoteToken] = useState<string>(
+        urlToken ? normalizeClientToken(urlToken) : ""
+    );
+    const [showConnectWarning, setShowConnectWarning] =
+        useState<boolean>(false);
     const connectButtonRef = useRef<HTMLButtonElement | null>(null);
+    const autoConnectAttemptedRef = useRef<boolean>(false);
 
     // Mirror the outgoing target into the token input so requests initiated
     // elsewhere (e.g. by clicking a LAN peer) are visible and cancellable here.
@@ -20,13 +34,52 @@ export default function ConnectToPeer() {
         }
     }, [target]);
 
-    const submitConnect = () => connect(remoteToken);
+    const submitConnect = useCallback(() => {
+        if (connect(remoteToken)) {
+            connectButtonRef.current?.focus();
+        }
+    }, [connect, remoteToken]);
+
+    const requestConnect = useCallback(() => {
+        // Token checks (length, own token) run first, so the warning is
+        // only shown for tokens that can actually be connected to.
+        if (!validate(remoteToken)) {
+            return;
+        }
+
+        if (isConnectWarningDismissed()) {
+            submitConnect();
+            return;
+        }
+
+        setShowConnectWarning(true);
+    }, [remoteToken, submitConnect, validate]);
+
+    // Tokens opened via /connect?token=<TOKEN> trigger the regular connect flow,
+    // including the warning dialog and token validation, once per page load.
+    useEffect(() => {
+        if (!urlToken || autoConnectAttemptedRef.current) {
+            return;
+        }
+
+        autoConnectAttemptedRef.current = true;
+        requestConnect();
+    }, [urlToken, requestConnect]);
+
+    const confirmConnectWarning = (dontShowAgain: boolean) => {
+        if (dontShowAgain) {
+            dismissConnectWarning();
+        }
+
+        setShowConnectWarning(false);
+        submitConnect();
+    };
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
-        if (!waitingForResponse && submitConnect()) {
-            connectButtonRef.current!.focus();
+        if (!waitingForResponse) {
+            requestConnect();
         }
     };
 
@@ -48,7 +101,7 @@ export default function ConnectToPeer() {
                     )}
                     <TokenInput
                         value={remoteToken}
-                        onChange={value => setRemoteToken(value.toUpperCase())}
+                        onChange={value => setRemoteToken(value)}
                     />
                     {!waitingForResponse && (
                         <p className={css.mutedText}>
@@ -64,12 +117,19 @@ export default function ConnectToPeer() {
                 </Button>
             ) : (
                 <Button
-                    onClick={submitConnect}
+                    onClick={requestConnect}
                     variant={"filled"}
                     ref={connectButtonRef}
                 >
                     Verbinden
                 </Button>
+            )}
+
+            {showConnectWarning && (
+                <ConnectWarningDialog
+                    onConfirm={confirmConnectWarning}
+                    onCancel={() => setShowConnectWarning(false)}
+                />
             )}
         </div>
     );

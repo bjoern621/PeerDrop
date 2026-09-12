@@ -1,11 +1,18 @@
+using System.Security.Claims;
 using System.Text.Json;
 using backend.AccountComponent.Common.Api.DTOs;
 using backend.AccountComponent.Dataaccess.Api.Repo;
 using backend.AccountComponent.Logic.Api;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace backend.AccountComponent.Logic.Impl;
 
-public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher) : IAccountLoginHandler
+public class AccountLoginHandler(
+    IAccountRepository repo,
+    IPasswordHasher hasher,
+    IAccountSignInService signIn
+) : IAccountLoginHandler
 {
     public async Task<IResult> HandleLogin(HttpContext context)
     {
@@ -31,38 +38,35 @@ public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher
 
         if (accountobj == null)
         {
-            return Results.BadRequest("Invalid username");
+            // Hash anyway so response time does not reveal whether the username
+            // exists, and return the same generic error as a wrong password.
+            hasher.HashPassword(acc.Password);
+            return Results.BadRequest("Invalid username or password");
         }
 
         bool valid = hasher.VerifyPassword(acc.Password, accountobj.Password);
 
         if (!valid)
-            return Results.BadRequest("Invalid password");
+            return Results.BadRequest("Invalid username or password");
 
-        // Store user ID (or other data) in session
-        context.Session.SetString("UserId", accountobj.Id.ToString());
+        await signIn.SignInAsync(context, accountobj.Id, accountobj.SecurityStamp);
 
         return Results.Ok(new LoginResponse("Logged in successfully"));
     }
 
-    public IResult HandleLogout(HttpContext context)
+    public async Task<IResult> HandleLogout(HttpContext context)
     {
-        // Clear the session
-        context.Session.Clear();
-        // remove client-side cookie
-        context.Response.Cookies.Delete(".AspNetCore.Session");
+        // Local logout: removes the authentication cookie
+        await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return Results.Ok(new LogoutResponse("Logged out successfully"));
     }
 
-    // retrieves the current user from the session if exists, otherwise returns 401
+    // retrieves the current user from the authenticated principal, otherwise returns 401
     public async Task<IResult> HandleGetCurrentUser(HttpContext context)
     {
-        var userIdStr = context.Session.GetString("UserId");
-        if (userIdStr == null)
-            return Results.Unauthorized(); // No active session / not logged in
-
-        if (!int.TryParse(userIdStr, out int userId))
-            return Results.Unauthorized();
+        var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out int userId))
+            return Results.Unauthorized(); // Not logged in
 
         var user = await repo.GetByIdAsync(userId);
         if (user == null)
@@ -73,11 +77,8 @@ public class AccountLoginHandler(IAccountRepository repo, IPasswordHasher hasher
 
     public async Task<IResult> HandleGetLoggedInStatus(HttpContext context)
     {
-        var userIdStr = context.Session.GetString("UserId");
-        if (userIdStr == null)
-            return Results.Ok(new StatusResponse(false));
-
-        if (!int.TryParse(userIdStr, out int userId))
+        var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out int userId))
             return Results.Ok(new StatusResponse(false));
 
         var user = await repo.GetByIdAsync(userId);

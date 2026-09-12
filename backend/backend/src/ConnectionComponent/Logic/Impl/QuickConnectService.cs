@@ -26,16 +26,13 @@ public class QuickConnectService(
 
         using var scope = _scopeFactory.CreateScope();
         var deviceRepository = scope.ServiceProvider.GetRequiredService<IDeviceRepository>();
-        var device = await deviceRepository.GetDeviceByUuidAsync(deviceUuid);
+        var device = await deviceRepository.GetDeviceByUuidAsync(
+            deviceUuid,
+            requestingClientId.Value
+        );
         if (device == null)
         {
-            // Device with the given UUID does not exist.
-            return;
-        }
-
-        if (device.GetAccountId() != requestingClientId)
-        {
-            // Device does not belong to the requesting client.
+            // Device is not registered for the requesting client.
             return;
         }
 
