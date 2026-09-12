@@ -2,7 +2,7 @@ import Button from "../../Button/Button";
 import TokenInput from "../TokenInput/TokenInput";
 import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useOutgoingConnectionRequest } from "../../../hooks/useOutgoingConnectionRequest";
 import { normalizeClientToken } from "../../../services/WebSocketService";
@@ -34,13 +34,13 @@ export default function ConnectToPeer() {
         }
     }, [target]);
 
-    const submitConnect = useCallback(() => {
+    const submitConnect = () => {
         if (connect(remoteToken)) {
             connectButtonRef.current?.focus();
         }
-    }, [connect, remoteToken]);
+    };
 
-    const requestConnect = useCallback(() => {
+    const requestConnect = () => {
         // Token checks (length, own token) run first, so the warning is
         // only shown for tokens that can actually be connected to.
         if (!validate(remoteToken)) {
@@ -53,7 +53,7 @@ export default function ConnectToPeer() {
         }
 
         setShowConnectWarning(true);
-    }, [remoteToken, submitConnect, validate]);
+    };
 
     // Tokens opened via /connect?token=<TOKEN> trigger the regular connect flow,
     // including the warning dialog and token validation, once per page load.
@@ -64,7 +64,11 @@ export default function ConnectToPeer() {
 
         autoConnectAttemptedRef.current = true;
         requestConnect();
-    }, [urlToken, requestConnect]);
+
+        // The token from the URL is the only trigger. requestConnect closes over
+        // the token state, which the ref guard keeps out of a second attempt.
+        // exhaustive-deps-exclude [requestConnect]
+    }, [urlToken]);
 
     const confirmConnectWarning = (dontShowAgain: boolean) => {
         if (dontShowAgain) {

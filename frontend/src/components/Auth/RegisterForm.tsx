@@ -67,7 +67,11 @@ export default function RegisterForm({
     const username = watch("username");
     useEffect(() => {
         onUsernameChange(username);
-    }, [username, onUsernameChange]);
+
+        // The watched value drives the sync. A parent that re-creates the handler
+        // says nothing about the field.
+        // exhaustive-deps-exclude [onUsernameChange]
+    }, [username]);
 
     const password = watch("password");
     const passwordRetype = watch("passwordRetype");
@@ -79,7 +83,11 @@ export default function RegisterForm({
         if (passwordRetype) {
             void trigger("passwordRetype");
         }
-    }, [password, onPasswordChange, passwordRetype, trigger]);
+
+        // A changed password re-checks the retype field. Typing in the retype field
+        // is already validated by the form itself, so it stays out of the deps.
+        // exhaustive-deps-exclude [onPasswordChange, passwordRetype, trigger]
+    }, [password]);
 
     /**
      * Prevents dialog from closing on Enter key press in input fields

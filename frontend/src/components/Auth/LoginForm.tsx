@@ -62,12 +62,18 @@ export default function LoginForm({
     const username = watch("username");
     useEffect(() => {
         onUsernameChange(username);
-    }, [username, onUsernameChange]);
+
+        // The watched value drives the sync. A parent that re-creates the handler
+        // says nothing about the field.
+        // exhaustive-deps-exclude [onUsernameChange]
+    }, [username]);
 
     const password = watch("password");
     useEffect(() => {
         onPasswordChange(password);
-    }, [password, onPasswordChange]);
+
+        // exhaustive-deps-exclude [onPasswordChange]
+    }, [password]);
 
     /**
      * Prevents dialog from closing on Enter key press in input fields

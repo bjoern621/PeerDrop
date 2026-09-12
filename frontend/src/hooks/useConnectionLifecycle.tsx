@@ -36,7 +36,10 @@ export default function useConnectionLifecycle() {
         if (!peerConnectionManager.getConnection()) {
             void navigate("/connect");
         }
-    }, [navigate, peerConnectionManager]); // TODO: use Exhaustive Deps Exclude
+
+        // Page load only: a later connection loss is handled by the closed listener below.
+        // exhaustive-deps-exclude [navigate, peerConnectionManager]
+    }, []);
 
     // Block all navigation attempts
     useEffect(() => {
@@ -76,7 +79,11 @@ export default function useConnectionLifecycle() {
                 onConnectionClosed
             );
         };
-    }, [navigate, peerConnectionManager]); // TODO: use Exhaustive Deps Exclude
+
+        // One subscription per mount. Both are stable: the manager lives in a ref
+        // in ConnectionProvider, navigate keeps working across renders.
+        // exhaustive-deps-exclude [navigate, peerConnectionManager]
+    }, []);
 
     /**
      * Manually closes the peer connection.

@@ -6,7 +6,7 @@ import deleteIconLight from "../../../assets/delete_light.svg";
 import addIcon from "../../../assets/add.svg";
 import logoutIcon from "../../../assets/logout.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
 import { LoginResponse } from "../../../util/dtos/LoginResponse";
 import { DeviceResponse } from "../../../util/dtos/DeviceResponse";
@@ -35,7 +35,7 @@ export const UserProfile = () => {
 
     const websocketService = useWebSocketService();
 
-    const handleHeartbeatMessage = useCallback(() => {
+    const handleHeartbeatMessage = () => {
         const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
             setDevices(prevDevices =>
                 prevDevices.map(device =>
@@ -50,7 +50,7 @@ export const UserProfile = () => {
             MessageType.DEVICE_HEARTBEAT,
             onHeartbeatReceived as MessageHandler
         );
-    }, [websocketService]);
+    };
 
     // const handleDeviceChangedMessage = useCallback(() => {
     //     const onDeviceChanged = async () => {
@@ -66,7 +66,7 @@ export const UserProfile = () => {
     /**
      * Sends a heartbeat message if the user has registered the device.
      */
-    const sendHeartbeatIfPossible = useCallback(() => {
+    const sendHeartbeatIfPossible = () => {
         const deviceUuid: string | undefined = document.cookie
             .split("; ")
             .find(row => row.startsWith("deviceUuid="))
@@ -82,12 +82,12 @@ export const UserProfile = () => {
         });
 
         websocketService.sendMessage(heartbeat);
-    }, [websocketService]);
+    };
 
     /**
      * Sets up an event listener to send an offline heartbeat when the tab is closed.
      */
-    const registerOfflineHeartbeatOnClose = useCallback(() => {
+    const registerOfflineHeartbeatOnClose = () => {
         const handleTabClose = () => {
             const deviceUuid: string | undefined = document.cookie
                 .split("; ")
@@ -107,7 +107,7 @@ export const UserProfile = () => {
             window.removeEventListener("beforeunload", handleTabClose);
         };
         window.addEventListener("beforeunload", handleTabClose);
-    }, [websocketService]);
+    };
 
     useEffect(() => {
         void fetchUserName();
@@ -120,12 +120,11 @@ export const UserProfile = () => {
         sendHeartbeatIfPossible();
 
         registerOfflineHeartbeatOnClose();
-    }, [
-        // handleDeviceChangedMessage,
-        handleHeartbeatMessage,
-        sendHeartbeatIfPossible,
-        registerOfflineHeartbeatOnClose,
-    ]);
+
+        // Mount only. Every excluded function reaches just the WebSocket service,
+        // which lives in a ref in ConnectionProvider.
+        // exhaustive-deps-exclude [handleHeartbeatMessage, sendHeartbeatIfPossible, registerOfflineHeartbeatOnClose]
+    }, []);
 
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(

@@ -43,7 +43,7 @@ export const useDevices = () => {
     /**
      * Fetches all devices for the current user from the backend.
      */
-    const fetchDevices = useCallback(async () => {
+    const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
             fetch(`${getRuntimeEnvVars().backendUrl}/devices`, {
                 method: "GET",
@@ -88,7 +88,7 @@ export const useDevices = () => {
         }));
 
         setDevices(updatedDevices);
-    }, []);
+    };
 
     /**
      * Registers the current device with the backend.
@@ -249,7 +249,7 @@ export const useDevices = () => {
     /**
      * Handles incoming heartbeat messages to update device status
      */
-    const handleHeartbeatMessage = useCallback(() => {
+    const handleHeartbeatMessage = () => {
         const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
             setDevices(prevDevices =>
                 prevDevices.map(device =>
@@ -271,12 +271,12 @@ export const useDevices = () => {
                 onHeartbeatReceived as MessageHandler
             );
         };
-    }, [websocketService]);
+    };
 
     /**
      * Handles incoming device-changed messages to add/remove devices from local state
      */
-    const handleDeviceChangedMessage = useCallback(() => {
+    const handleDeviceChangedMessage = () => {
         const onDeviceChanged = (message: DeviceChangedMessage) => {
             const { action, deviceInfo } = message.msg;
 
@@ -333,7 +333,7 @@ export const useDevices = () => {
                 onDeviceChanged as MessageHandler
             );
         };
-    }, [websocketService]);
+    };
 
     useEffect(() => {
         void fetchDevices();
@@ -344,7 +344,11 @@ export const useDevices = () => {
             cleanupHeartbeat();
             cleanupDeviceChanged();
         };
-    }, [fetchDevices, handleHeartbeatMessage, handleDeviceChangedMessage]);
+
+        // One fetch and one pair of subscriptions per mount. Both handlers reach
+        // just the WebSocket service, which lives in a ref in ConnectionProvider.
+        // exhaustive-deps-exclude [handleHeartbeatMessage, handleDeviceChangedMessage]
+    }, []);
 
     return {
         devices,

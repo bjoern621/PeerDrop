@@ -63,7 +63,11 @@ export default function IncomingConnectionRequests() {
                 }
             );
         }
-    }, [incomingRequesters, peerConnectionManager]);
+
+        // The snapshot alone decides which toasts exist. The manager is a stable
+        // handle the accept and reject buttons call into.
+        // exhaustive-deps-exclude [peerConnectionManager]
+    }, [incomingRequesters]);
 
     // Clear any remaining toasts if this controller unmounts.
     useEffect(() => {

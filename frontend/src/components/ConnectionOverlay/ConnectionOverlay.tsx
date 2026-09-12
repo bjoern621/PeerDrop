@@ -1,5 +1,5 @@
 import { useLocation } from "react-router";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 import IncomingConnectionRequests from "../IncomingConnectionRequests/IncomingConnectionRequests";
@@ -19,13 +19,13 @@ export default function ConnectionOverlay() {
     /**
      * Shows a loading dialog while the connection is being established.
      */
-    const showLoadingDialog = useCallback(() => {
+    const showLoadingDialog = () => {
         const dialog = awaitConnectionDialog.current!;
 
         if (!dialog.open) {
             dialog.showModal();
         }
-    }, []);
+    };
 
     // The dialog opens on the establishing event (the server told both peers
     // to connect) rather than on the local accept click. This covers every
@@ -45,7 +45,11 @@ export default function ConnectionOverlay() {
                 onConnectionEstablishing
             );
         };
-    }, [peerConnectionManager, showLoadingDialog]);
+
+        // One subscription per mount. The manager is stable and the handler
+        // reaches the dialog through a ref.
+        // exhaustive-deps-exclude [peerConnectionManager, showLoadingDialog]
+    }, []);
 
     // The dialog lives above the routed pages and survives route changes,
     // so it must be closed explicitly once navigation away from the
