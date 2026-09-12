@@ -78,6 +78,7 @@ export default function DeviceDisplay({
                     </>
                 }
                 showArrow={true}
+                hoverable
             >
                 <div
                     className={`${css.statusIndicator} ${getDeviceStatusClass()}`}

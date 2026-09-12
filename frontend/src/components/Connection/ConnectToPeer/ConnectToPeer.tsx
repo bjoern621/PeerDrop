@@ -4,9 +4,8 @@ import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
-import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
-import { OutgoingRequestEvent } from "../../../services/PeerConnectionManager";
-import { toast } from "react-toastify/unstyled";
+import { useOutgoingConnectionRequest } from "../../../hooks/useOutgoingConnectionRequest";
+import { normalizeClientToken } from "../../../services/WebSocketService";
 import { ConnectWarningDialog } from "../../Popups/ConnectWarningDialog";
 import {
     dismissConnectWarning,
@@ -14,136 +13,47 @@ import {
 } from "../../../util/ConnectWarningPreference";
 
 export default function ConnectToPeer() {
-    const peerConnectionManager = usePeerConnectionManager();
+    const { target, waitingForResponse, connect, validate, cancel } =
+        useOutgoingConnectionRequest();
     const [searchParams] = useSearchParams();
     const urlToken = searchParams.get("token") ?? undefined;
 
     const [remoteToken, setRemoteToken] = useState<string>(
-        urlToken?.toUpperCase() ?? ""
+        urlToken ? normalizeClientToken(urlToken) : ""
     );
     const [showConnectWarning, setShowConnectWarning] =
         useState<boolean>(false);
-    const [waitingForResponse, setWaitingForResponse] =
-        useState<boolean>(false);
-    const [connectionRequestTimestamp, setConnectionRequestTimestamp] =
-        useState<number>(0);
-    const delayTimeoutIdRef = useRef<number | null>(null);
+    const connectButtonRef = useRef<HTMLButtonElement | null>(null);
     const autoConnectAttemptedRef = useRef<boolean>(false);
 
-    const connectButtonRef = useRef<HTMLButtonElement | null>(null);
-
-    // Mirror the shared outgoing-request state so requests initiated elsewhere
-    // (e.g. by clicking a LAN peer) show the same waiting UI and can be
-    // cancelled here. Responses are handled by the response callback below to
-    // preserve the minimum-delay behavior.
+    // Mirror the outgoing target into the token input so requests initiated
+    // elsewhere (e.g. by clicking a LAN peer) are visible and cancellable here.
     useEffect(() => {
-        const onOutgoingRequestChanged = (event: OutgoingRequestEvent) => {
-            if (event.state === "requested") {
-                setRemoteToken(event.remoteToken);
-                setConnectionRequestTimestamp(Date.now());
-                setWaitingForResponse(true);
-            } else if (event.state === "cancelled") {
-                setWaitingForResponse(false);
-            }
-        };
-
-        peerConnectionManager.subscribeToOutgoingRequestChanged(
-            onOutgoingRequestChanged
-        );
-
-        return () => {
-            peerConnectionManager.unsubscribeFromOutgoingRequestChanged(
-                onOutgoingRequestChanged
-            );
-        };
-    }, [peerConnectionManager]);
-
-    useEffect(() => {
-        /**
-         * Wait for the minimum delay before processing the connection response.
-         * This prevents instant rejections from feeling abrupt.
-         */
-        const waitForMinimumDelay = async () => {
-            const elapsedTime = Date.now() - connectionRequestTimestamp;
-            const remainingDelay = Math.max(0, 1000 - elapsedTime);
-
-            if (remainingDelay > 0) {
-                await new Promise<void>(resolve => {
-                    delayTimeoutIdRef.current = setTimeout(
-                        resolve,
-                        remainingDelay
-                    );
-                });
-            }
-        };
-
-        peerConnectionManager.setOnConnectionResponseReceivedCallback(
-            (accepted: boolean) => {
-                void (async () => {
-                    if (!accepted) {
-                        // If remote peer accepted, we can skip the delay
-                        await waitForMinimumDelay();
-                    }
-
-                    delayTimeoutIdRef.current = null;
-                    setWaitingForResponse(false);
-
-                    if (!accepted) {
-                        toast.error("Verbindungsanfrage wurde abgelehnt!", {
-                            toastId: "connection-rejected-toast",
-                            updateId: "connection-rejected-toast",
-                        });
-                    }
-
-                    // Navigation is handled in ConnectionProvider
-                })();
-            }
-        );
-
-        return () => {
-            if (delayTimeoutIdRef.current !== null) {
-                clearTimeout(delayTimeoutIdRef.current);
-            }
-        };
-    }, [peerConnectionManager, connectionRequestTimestamp]);
-
-    const interruptWaiting = () => {
-        if (delayTimeoutIdRef.current !== null) {
-            clearTimeout(delayTimeoutIdRef.current);
-            delayTimeoutIdRef.current = null;
+        if (target) {
+            setRemoteToken(target);
         }
+    }, [target]);
 
-        setWaitingForResponse(false);
-        peerConnectionManager.cancelConnectionRequest(remoteToken);
-    };
-
-    const connectToPeer = useCallback(() => {
-        const successfullySent =
-            peerConnectionManager.requestConnectionToRemotePeer(remoteToken);
-
-        if (successfullySent) {
-            setConnectionRequestTimestamp(Date.now());
-            setWaitingForResponse(true);
+    const submitConnect = useCallback(() => {
+        if (connect(remoteToken)) {
             connectButtonRef.current?.focus();
         }
-
-        return successfullySent;
-    }, [peerConnectionManager, remoteToken]);
+    }, [connect, remoteToken]);
 
     const requestConnect = useCallback(() => {
         // Token checks (length, own token) run first, so the warning is
         // only shown for tokens that can actually be connected to.
-        if (!peerConnectionManager.validateRemoteToken(remoteToken)) {
+        if (!validate(remoteToken)) {
             return;
         }
 
         if (isConnectWarningDismissed()) {
-            connectToPeer();
+            submitConnect();
             return;
         }
 
         setShowConnectWarning(true);
-    }, [peerConnectionManager, connectToPeer, remoteToken]);
+    }, [remoteToken, submitConnect, validate]);
 
     // Tokens opened via /connect?token=<TOKEN> trigger the regular connect flow,
     // including the warning dialog and token validation, once per page load.
@@ -162,7 +72,7 @@ export default function ConnectToPeer() {
         }
 
         setShowConnectWarning(false);
-        connectToPeer();
+        submitConnect();
     };
 
     const handleSubmit = (event: React.FormEvent) => {
@@ -202,7 +112,7 @@ export default function ConnectToPeer() {
             </form>
 
             {waitingForResponse ? (
-                <Button onClick={interruptWaiting} variant={"outline"}>
+                <Button onClick={cancel} variant={"outline"}>
                     Abbrechen
                 </Button>
             ) : (

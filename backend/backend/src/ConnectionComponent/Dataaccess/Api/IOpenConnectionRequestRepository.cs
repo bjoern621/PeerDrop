@@ -18,4 +18,12 @@ public interface IOpenConnectionRequestRepository
     /// Finds and removes all requesters that have an open connection request targeting the specified targetToken.
     /// </summary>
     IEnumerable<string> FindAndRemoveRequestersForTarget(string targetToken);
+    /// <summary>
+    /// Returns the target of the open connection request made by the requesterToken, without removing it.
+    /// </summary>
+    bool TryGetTarget(string requesterToken, [MaybeNullWhen(false)] out string targetToken);
+    /// <summary>
+    /// Returns all requesters with an open connection request targeting the specified targetToken, without removing them.
+    /// </summary>
+    IReadOnlyList<string> GetRequestersForTarget(string targetToken);
 }

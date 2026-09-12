@@ -1,1 +1,3 @@
-$header-breakpoint: 750px;
+// Stacked layout starts here.
+// Below ~850px the centered nav and the right-pinned auth section, both out of flow, overlap.
+$header-breakpoint: 900px;

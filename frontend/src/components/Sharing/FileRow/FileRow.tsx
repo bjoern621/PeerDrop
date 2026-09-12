@@ -11,6 +11,7 @@ import {
     getTimeInHumanReadableFormat,
     getTransferInfo,
 } from "../transferFormat";
+import useSettings from "../../../hooks/useSettings";
 
 interface FileRowProps {
     transfer: TransferSnapshot;
@@ -20,6 +21,7 @@ interface FileRowProps {
 
 function FileRowComponent({ transfer, depth = 0 }: FileRowProps) {
     const peerConnectionManager = usePeerConnectionManager();
+    const { autoSaveDownloads } = useSettings();
     const [isOverflowing, setIsOverflowing] = useState(false);
     const nameRef = useRef<HTMLDivElement>(null);
 
@@ -58,7 +60,11 @@ function FileRowComponent({ transfer, depth = 0 }: FileRowProps) {
                         </Badge>
                         {transfer.direction === "down" && (
                             <Tooltip
-                                content="Klicken, um erneut zu speichern"
+                                content={
+                                    autoSaveDownloads
+                                        ? "Klicken, um erneut zu speichern"
+                                        : "Klicken, um die Datei zu speichern"
+                                }
                                 position="top"
                             >
                                 <Badge
