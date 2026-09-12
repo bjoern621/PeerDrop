@@ -23,7 +23,10 @@
 }
 
 .uploadButtons {
-    display: flex;
+    // Equal columns so both upload buttons get the same size.
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
     gap: var(--gap);
 }
 

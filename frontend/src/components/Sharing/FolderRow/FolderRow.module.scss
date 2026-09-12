@@ -1,0 +1,47 @@
+// Expand/collapse toggle spanning folder icon and name.
+.folderToggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    overflow: hidden;
+
+    background: none;
+    border: none;
+    padding: 0;
+    padding-left: calc(var(--nesting-depth, 0) * var(--space-24));
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.chevron {
+    height: calc(var(--font-size-s) * var(--line-height-s) * 0.6);
+    flex-shrink: 0;
+    fill: currentcolor;
+    transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+    transform: rotate(90deg);
+}
+
+// Square box matching the other row icons; the wide folder glyph
+// scales down to fit instead of rendering at full row height.
+.folderIcon {
+    width: calc(var(--font-size-s) * var(--line-height-s));
+    height: calc(var(--font-size-s) * var(--line-height-s));
+    flex-shrink: 0;
+    fill: currentcolor;
+}
+
+.folderName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fileCount {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+}
