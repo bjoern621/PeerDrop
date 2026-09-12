@@ -5,8 +5,6 @@ using backend.DeviceComponent.Logic.Impl;
 using backend.tests.TestUtils;
 using Moq;
 using Microsoft.AspNetCore.Http;
-using backend.AccountComponent.Logic.Api;
-using backend.AccountComponent.Common.Api.DTOs;
 using Microsoft.AspNetCore.Http.HttpResults;
 using backend.DeviceComponent.Logic.Api;
 
@@ -16,7 +14,6 @@ namespace backend.tests.DeviceComponent.Logic.Impl;
 public class DeviceHandlerTests
 {
     private Mock<IDeviceRepository> _repoMock;
-    private Mock<IAccountLoginHandler> _loginHandlerMock;
     private Mock<IDeviceService> _deviceServiceMock;
     private DeviceHandler _deviceHandler;
 
@@ -24,28 +21,19 @@ public class DeviceHandlerTests
     public void SetUp()
     {
         _repoMock = new Mock<IDeviceRepository>();
-        _loginHandlerMock = new Mock<IAccountLoginHandler>();
         _deviceServiceMock = new Mock<IDeviceService>();
-        _deviceHandler = new DeviceHandler(_repoMock.Object, _loginHandlerMock.Object, _deviceServiceMock.Object);
+        _deviceHandler = new DeviceHandler(_repoMock.Object, _deviceServiceMock.Object);
     }
 
-    private HttpContext CreateValidContext(string userId, Boolean inSession, Guid deviceUuid = default, string userAgent = "Mozilla-Firefox")
+    private HttpContext CreateValidContext(int userId, Guid deviceUuid = default, string userAgent = "Mozilla-Firefox")
     {
         var context = HttpUtil.CreateMockHttpContext(new { });
-        context.Session.SetString("UserId", userId);
+        HttpUtil.SetAuthenticatedUser(context, userId);
         context.Request.Headers.UserAgent = userAgent;
-        if (inSession)
-        {
-            context.Request.Headers.Cookie = $".AspNetCore.Session=session123;";
-        }
         if (deviceUuid != Guid.Empty)
         {
-            context.Request.Headers.Cookie = $".AspNetCore.Session=session123; deviceUuid={deviceUuid}";
+            context.Request.Headers.Cookie = $"deviceUuid={deviceUuid}";
         }
-
-
-        _loginHandlerMock.Setup(l => l.HandleGetCurrentUser(context))
-            .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
 
         return context;
     }
@@ -54,7 +42,7 @@ public class DeviceHandlerTests
     public async Task RegisterDeviceAsync_WhenDeviceNotRegistered_ReturnsOkWithUuid()
     {
         // Arrange
-        var context = CreateValidContext("6", true);
+        var context = CreateValidContext(6);
         Guid generatedGuid = Guid.NewGuid();
 
         _repoMock.Setup(r => r.SaveDeviceAsync(It.IsAny<Device>()))
@@ -74,7 +62,7 @@ public class DeviceHandlerTests
     {
         Guid guid = Guid.NewGuid();
         // Arrange
-        var context = CreateValidContext("6", true, deviceUuid: guid);
+        var context = CreateValidContext(6, deviceUuid: guid);
 
         _repoMock.Setup(r => r.SaveDeviceAsync(It.IsAny<Device>()))
                  .ReturnsAsync(guid);
@@ -94,7 +82,7 @@ public class DeviceHandlerTests
     {
         Guid guid = Guid.NewGuid();
         // Arrange
-        var context = CreateValidContext("6", true, deviceUuid: guid);
+        var context = CreateValidContext(6, deviceUuid: guid);
 
         _repoMock.Setup(r => r.GetDeviceByUuidAsync(guid, 6))
                  .ReturnsAsync(new Device("TestDevice", guid, 6));
@@ -110,15 +98,11 @@ public class DeviceHandlerTests
     }
 
     [Test]
-    public async Task RegisterDeviceAsync_WhenSessionInvalid_ReturnsUnauthorized()
+    public async Task RegisterDeviceAsync_WhenNotAuthenticated_ReturnsUnauthorized()
     {
-        // Arrange
+        // Arrange: context without an authenticated principal
         var context = HttpUtil.CreateMockHttpContext(new { });
-        context.Session.Clear(); // no "UserId"
         context.Request.Headers["User-Agent"] = "Mozilla-Firefox";
-
-        _loginHandlerMock.Setup(l => l.HandleGetCurrentUser(context))
-            .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
 
         // Act
         var result = await _deviceHandler.RegisterDeviceAsync(context);
@@ -132,7 +116,7 @@ public class DeviceHandlerTests
     {
         Guid guid = Guid.NewGuid();
         // Arrange
-        var context = CreateValidContext("1", true, deviceUuid: guid, userAgent: "Windows Mozilla");
+        var context = CreateValidContext(1, deviceUuid: guid, userAgent: "Windows Mozilla");
 
         _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1))
                  .ReturnsAsync(new List<DeviceLoginDto>
@@ -156,7 +140,7 @@ public class DeviceHandlerTests
     public async Task GetDevicesByUserAsync_WhenDeviceUuidNotProvided_ReturnsDeviceList()
     {
         // Arrange
-        var context = CreateValidContext("1", true, userAgent: "Windows Mozilla");
+        var context = CreateValidContext(1, userAgent: "Windows Mozilla");
 
         _repoMock.Setup(r => r.GetAllDisplayNamesForAccountAsync(1))
             .ReturnsAsync(new List<DeviceLoginDto>
@@ -178,14 +162,10 @@ public class DeviceHandlerTests
     }
 
     [Test]
-    public async Task GetDevicesByUserAsync_WhenSessionInvalid_ReturnsUnauthorized()
+    public async Task GetDevicesByUserAsync_WhenNotAuthenticated_ReturnsUnauthorized()
     {
-        // Arrange
+        // Arrange: context without an authenticated principal
         var context = HttpUtil.CreateMockHttpContext(new { });
-        context.Session.Clear(); // Simulate missing session
-
-        _loginHandlerMock.Setup(l => l.HandleGetCurrentUser(context))
-            .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
 
         // Act
         var result = await _deviceHandler.GetDevicesByUserAsync(context);
@@ -199,17 +179,13 @@ public class DeviceHandlerTests
     {
         // Arrange
         var deviceUuid = Guid.NewGuid();
-        var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
+        var context = CreateValidContext(1, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
 
-        _loginHandlerMock.Setup(l => l.HandleGetCurrentUser(context))
-            .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
-
-        var userIdString = context.Session.GetString("UserId") ?? "1";
         _repoMock.Setup(r => r.SaveDeviceAsync(It.IsAny<Device>()))
             .ReturnsAsync(deviceUuid);
-        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid, int.Parse(userIdString)))
-            .ReturnsAsync(new Device("TestDevice", deviceUuid, int.Parse(userIdString)));
-        _repoMock.Setup(r => r.DeleteDeviceAsync(int.Parse(userIdString), deviceUuid))
+        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid, 1))
+            .ReturnsAsync(new Device("TestDevice", deviceUuid, 1));
+        _repoMock.Setup(r => r.DeleteDeviceAsync(1, deviceUuid))
             .ReturnsAsync(1);
 
         var result = await _deviceHandler.RegisterDeviceAsync(context);
@@ -235,7 +211,7 @@ public class DeviceHandlerTests
     {
         // Arrange
         var deviceUuid = Guid.NewGuid();
-        var context = CreateValidContext("1", true, deviceUuid: Guid.NewGuid(), userAgent: "Windows Mozilla");
+        var context = CreateValidContext(1, deviceUuid: Guid.NewGuid(), userAgent: "Windows Mozilla");
 
         // Set up the request body as a JSON string containing the UUID
         var json = System.Text.Json.JsonSerializer.Serialize(deviceUuid);
@@ -243,13 +219,9 @@ public class DeviceHandlerTests
         context.Request.Body = new MemoryStream(bytes);
         context.Request.ContentType = "application/json";
 
-        _loginHandlerMock.Setup(l => l.HandleGetCurrentUser(context))
-            .ReturnsAsync(Results.Ok(new LoginResponse("Logged in successfully")));
-
-        var userIdString = context.Session.GetString("UserId") ?? "1";
-        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid, int.Parse(userIdString)))
-            .ReturnsAsync(new Device("TestDevice", deviceUuid, int.Parse(userIdString)));
-        _repoMock.Setup(r => r.DeleteDeviceAsync(int.Parse(userIdString), deviceUuid))
+        _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid, 1))
+            .ReturnsAsync(new Device("TestDevice", deviceUuid, 1));
+        _repoMock.Setup(r => r.DeleteDeviceAsync(1, deviceUuid))
             .ReturnsAsync(1);
 
         // Act
@@ -278,7 +250,7 @@ public class DeviceHandlerTests
     {
         // Arrange
         var deviceUuid = Guid.NewGuid();
-        var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
+        var context = CreateValidContext(1, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
 
         var json = System.Text.Json.JsonSerializer.Serialize(deviceUuid);
         var bytes = System.Text.Encoding.UTF8.GetBytes(json);
@@ -302,7 +274,7 @@ public class DeviceHandlerTests
     {
         // Arrange
         var deviceUuid = Guid.NewGuid();
-        var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
+        var context = CreateValidContext(1, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
         SetRenameRequestBody(context, deviceUuid, "  Mein Laptop  ");
 
         _repoMock.Setup(r => r.GetDeviceByUuidAsync(deviceUuid, 1))
@@ -328,7 +300,7 @@ public class DeviceHandlerTests
     {
         // Arrange
         var deviceUuid = Guid.NewGuid();
-        var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
+        var context = CreateValidContext(1, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
         SetRenameRequestBody(context, deviceUuid, "  ");
 
         // Act
@@ -344,7 +316,7 @@ public class DeviceHandlerTests
     {
         // Arrange
         var deviceUuid = Guid.NewGuid();
-        var context = CreateValidContext("1", true, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
+        var context = CreateValidContext(1, deviceUuid: deviceUuid, userAgent: "Windows Mozilla");
         SetRenameRequestBody(context, deviceUuid, "Mein Laptop");
 
         // The device is not registered for account 1

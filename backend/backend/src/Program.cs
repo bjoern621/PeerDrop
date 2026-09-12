@@ -29,6 +29,9 @@ using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Impl;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.WebSockets;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
@@ -98,16 +101,46 @@ builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IAccountSignInService, AccountSignInService>();
+builder.Services.AddScoped<ISecurityStampValidator, SecurityStampValidator>();
 builder.Services.AddScoped<IDeviceHandler, DeviceHandler>();
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
 
-builder.Services.AddDistributedMemoryCache(); // For in-memory session storage (session gets deleted upon backend restart!!)
-builder.Services.AddSession(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-    options.IdleTimeout = TimeSpan.FromDays(1); // Time for how long the (session-)cookie will be valid
-});
+// The data protection key ring encrypts the auth cookies. It is stored in the
+// database so cookies stay valid across backend restarts and deployments and the
+// keys share the lifecycle of the account data they protect.
+builder.Services.AddDataProtection().SetApplicationName("PeerDrop");
+builder.Services.Configure<KeyManagementOptions>(options =>
+    options.XmlRepository = new PostgresXmlRepository(dataSource)
+);
+
+builder
+    .Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.ExpireTimeSpan = TimeSpan.FromDays(365);
+        options.SlidingExpiration = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        // Development runs on plain http (localhost), production must only send the cookie over https
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
+        // JSON API: return status codes instead of redirecting to a login page
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        };
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
+        options.Events.OnValidatePrincipal = context =>
+            context
+                .HttpContext.RequestServices.GetRequiredService<ISecurityStampValidator>()
+                .ValidateAsync(context);
+    });
 
 var app = builder.Build();
 
@@ -119,7 +152,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors(corsAllowFrontendOrigin);
 
-app.UseSession(); // Enables session handling on incoming requests
+app.UseAuthentication();
 
 app.UseWebSockets();
 

@@ -7,7 +7,11 @@ using backend.AccountComponent.Logic.Api;
 
 namespace backend.AccountComponent.Logic.Impl;
 
-public class AccountCreationHandler(IAccountRepository repo, IPasswordHasher hasher) : IAccountCreationHandler
+public class AccountCreationHandler(
+    IAccountRepository repo,
+    IPasswordHasher hasher,
+    IAccountSignInService signIn
+) : IAccountCreationHandler
 {
     public async Task<IResult> HandleAccounts(HttpContext context)
     {
@@ -44,8 +48,10 @@ public class AccountCreationHandler(IAccountRepository repo, IPasswordHasher has
 
             var newId = await repo.SaveAsync(account);
 
-            // Store user ID (or other data) in session
-            context.Session.SetString("UserId", newId.ToString());
+            // Reload the account to get the database-generated security stamp for the cookie
+            var created = await repo.GetByIdAsync(newId);
+            if (created != null)
+                await signIn.SignInAsync(context, created.Id, created.SecurityStamp);
 
             return Results.Created($"/users/{newId}", new { Id = newId });
         }
