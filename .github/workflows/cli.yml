@@ -1,0 +1,59 @@
+name: CLI
+
+on:
+    pull_request:
+        branches:
+            - main
+    push:
+        paths:
+            - "cli/**"
+
+jobs:
+    check:
+        runs-on: ubuntu-latest
+        name: Check Terminal Client
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: cli/go.mod
+
+            - name: Check Formatting
+              run: |
+                  unformatted=$(gofmt -l .)
+                  if [ -n "$unformatted" ]; then
+                      echo "$unformatted"
+                      exit 1
+                  fi
+              working-directory: cli
+
+            - name: Vet Sources
+              run: go vet ./...
+              working-directory: cli
+
+            - name: Run Tests
+              run: go test -race ./...
+              working-directory: cli
+
+    windows:
+        runs-on: windows-latest
+        name: Build Terminal Client for Windows
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: cli/go.mod
+
+            - name: Build and Report Version
+              run: |
+                  go build -o peerdrop.exe .
+                  ./peerdrop.exe --version
+              working-directory: cli

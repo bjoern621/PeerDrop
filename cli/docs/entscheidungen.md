@@ -52,7 +52,7 @@ Festgelegte Punkte des Entwurfs, je einer pro Zeile.
 ## Stack und Prüfung
 
 - Go mit pion/webrtc, `go` im Nix-DevShell, `gofmt` und `go vet` als Prüfer.
-- Unit-Tests, Integrationstest Terminal gegen Terminal mit Backend-Container, Windows-Smoke-Test in CI.
+- Unit-Tests, Integrationstest Terminal gegen Terminal im Testprozess, Windows-Smoke-Test in CI.
 - Browser-Interoperabilität per Checkliste je Release.
 
 ## Berührte Stellen außerhalb von `cli/`

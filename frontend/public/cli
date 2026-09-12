@@ -1,0 +1,121 @@
+#!/bin/sh
+# Bootstrap of the PeerDrop terminal client.
+# Loads the binary for this system into a cache directory and runs it with the
+# arguments of the invocation.
+#
+# The image build replaces the version placeholder and the container start
+# replaces the instance variables.
+# An unreplaced version loads the newest release.
+set -e
+
+instance_scheme="${HTTP_SCHEME}"
+instance_domain="${FRONTEND_DOMAIN}"
+version="@PEERDROP_VERSION@"
+
+repository="bjoern621/PeerDrop"
+
+binary=""
+
+fail() {
+    echo "$1" >&2
+    exit 1
+}
+
+case "$(uname -s)" in
+Linux) operating_system="linux" ;;
+*) fail "peerdrop has no binary for $(uname -s). Linux and Windows are supported." ;;
+esac
+
+case "$(uname -m)" in
+x86_64 | amd64) architecture="amd64" ;;
+*) fail "peerdrop has no binary for $(uname -m). amd64 is supported." ;;
+esac
+
+asset="peerdrop-${operating_system}-${architecture}"
+
+# A release tag names its own assets. Anything else takes the newest release
+# and loads it again on every run.
+case "$version" in
+v[0-9]*) release="download/${version}" ;;
+*)
+    version="latest"
+    release="latest/download"
+    ;;
+esac
+
+source_url="https://github.com/${repository}/releases/${release}"
+
+# download writes one release asset. A failure here ends the run, because
+# another cache directory reaches the same release.
+download() {
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsL -o "$2" "$1" && return 0
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q -O "$2" "$1" && return 0
+    else
+        fail "peerdrop needs curl or wget to load the binary."
+    fi
+
+    rm -f "$2"
+    fail "Could not load $(basename "$1") from ${source_url}. Check the connection, or take the binary from the release page of the repository."
+}
+
+# verify compares the checksum where a tool for it exists.
+verify() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        grep " ${asset}\$" "$1/SHA256SUMS" | (cd "$1" && sha256sum -c - >/dev/null 2>&1)
+    elif command -v shasum >/dev/null 2>&1; then
+        grep " ${asset}\$" "$1/SHA256SUMS" | (cd "$1" && shasum -a 256 -c - >/dev/null 2>&1)
+    else
+        echo "peerdrop found no checksum tool, so the download stays unverified." >&2
+    fi
+}
+
+# install_into puts the binary in one cache directory and sets the binary
+# variable. A directory that refuses the write or the execution returns 1, and
+# the caller moves on to the next one.
+install_into() {
+    directory="$1/peerdrop/${version}"
+    candidate="${directory}/${asset}"
+
+    mkdir -p "$directory" 2>/dev/null || return 1
+
+    if [ ! -x "$candidate" ] || [ "$version" = "latest" ]; then
+        download "${source_url}/${asset}" "${candidate}.part"
+        download "${source_url}/SHA256SUMS" "${directory}/SHA256SUMS"
+        mv "${candidate}.part" "$candidate"
+
+        if ! verify "$directory"; then
+            rm -f "$candidate"
+            fail "The checksum of ${asset} does not match. The file was removed."
+        fi
+
+        chmod +x "$candidate" || return 1
+    fi
+
+    "$candidate" --version >/dev/null 2>&1 || return 1
+
+    binary="$candidate"
+    return 0
+}
+
+for location in xdg home temporary; do
+    case "$location" in
+    xdg) root="${XDG_CACHE_HOME}" ;;
+    home) root="${HOME:+${HOME}/.cache}" ;;
+    temporary) root="$(mktemp -d 2>/dev/null || true)" ;;
+    esac
+
+    [ -n "$root" ] || continue
+    install_into "$root" || continue
+
+    echo "peerdrop is at ${binary}" >&2
+
+    if [ -n "$instance_domain" ]; then
+        exec "$binary" --host "${instance_scheme:-https}://${instance_domain}" "$@"
+    fi
+
+    exec "$binary" "$@"
+done
+
+fail "Could not run peerdrop from \$XDG_CACHE_HOME, \$HOME/.cache or a temporary directory. A directory mounted with noexec blocks it."

@@ -46,7 +46,7 @@ Version des Clients ist der Release-Tag, `peerdrop --version` gibt ihn aus.
 `.github/workflows/cli.yml` läuft auf Pull Requests:
 
 - `gofmt -l`, `go vet`, `go test` für Framing, Namensbereinigung und SDP-Kürzung.
-- Integrationstest: Backend aus `docker-compose.yml`, zwei Client-Prozesse auf dem Runner, Senden mit und ohne Token, Vergleich der Prüfsummen.
+- Integrationstest im Testprozess: zwei Sitzungen, vermittelt von einem Signaling mit der Frame-Grenze des Backends, Senden mit und ohne Token, Vergleich des Inhalts.
 - `windows-latest`: Build und `peerdrop.exe --version`.
 
 Der Test gegen einen echten Browser ist eine Checkliste je Release: Browser sendet an Terminal, Terminal sendet an Browser, beides gleichzeitig.
