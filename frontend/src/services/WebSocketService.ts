@@ -10,6 +10,18 @@ export type MessageHandler = (typedMessage: ITypedMessage) => unknown;
 export type ClientToken = string;
 
 /**
+ * Normalizes a client token to its canonical form (lowercase).
+ *
+ * Tokens are proquints that the backend generates and matches in lowercase.
+ * Lowercase is the canonical form everywhere in application state and in every
+ * token comparison, so equality never depends on how a token was typed or
+ * received. Uppercase is a presentation concern applied only at render time.
+ */
+export function normalizeClientToken(token: ClientToken): ClientToken {
+    return token.toLowerCase();
+}
+
+/**
  * The `WebSocketService` class provides functionality for managing the WebSocket connection
  * to the server, sending and receiving typed messages, and subscribing to specific
  * message types for event handling.
@@ -86,7 +98,7 @@ export class WebSocketService {
         const handleClientTokenMessage = (message: ClientTokenMessage) => {
             this.log("Received client token:", message.msg.token);
 
-            this.localToken = message.msg.token;
+            this.localToken = normalizeClientToken(message.msg.token);
 
             this.unsubscribeMessage(
                 MessageType.CLIENT_TOKEN,
@@ -186,6 +198,10 @@ export class WebSocketService {
         this.log("Unsubscribed a handler from message type:", messageType);
     }
 
+    /**
+     * Returns the local client token in normalized (lowercase) form, or
+     * undefined if it has not been received yet. See {@link normalizeClientToken}.
+     */
     public getLocalClientToken(): ClientToken | undefined {
         return this.localToken;
     }

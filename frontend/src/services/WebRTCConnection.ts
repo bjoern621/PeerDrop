@@ -22,6 +22,16 @@ const serversConfig: RTCConfiguration = {
         {
             urls: "stun:stun.l.google.com:19302",
         },
+        {
+            urls: "turn:global.relay.metered.ca:443",
+            username: "7cfed80f2da5f327b1e8a894",
+            credential: "Uvb5QuG/FHIpdQYA",
+        },
+        {
+            urls: "turns:global.relay.metered.ca:443?transport=tcp",
+            username: "7cfed80f2da5f327b1e8a894",
+            credential: "Uvb5QuG/FHIpdQYA",
+        },
     ],
 };
 
