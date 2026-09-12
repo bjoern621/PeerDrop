@@ -68,12 +68,12 @@ Auf einem Terminal wird pro aktivem Transfer eine Zeile fortgeschrieben, darunte
 
 ```
 Your token: BABAB
-Share link: https://peerdrop.de/connect?token=babab
+Open https://peerdrop.de/connect in a browser and enter it.
 From another terminal: curl -fsSL https://peerdrop.de/cli | sh -s -- babab
 
 Connected to KUZOK.
-up    report.pdf   [##########----------]  52%  12.3 MB/s  0:04
-down  photo.jpg    [####----------------]  21%   4.1 MB/s  0:12
+up    report.pdf               [##########----------]  52%   12.3 MB/s  0:04
+down  photo.jpg                [####----------------]  21%    4.1 MB/s  0:12
 >
 ```
 
@@ -86,6 +86,21 @@ Der Dateiname ist der Basename des gesendeten Namens, ein leerer Name wird zu `r
 Geschrieben wird nach `NAME.part`, umbenannt nach vollständigem Empfang.
 Ein vorhandener Name erhält ein numerisches Suffix, `--overwrite` ersetzt.
 Ein abgebrochener Transfer löscht seine `.part`-Datei.
+
+## Entwicklung
+
+Der Client ist ein Go-Modul in diesem Ordner.
+`go` steht im Nix-DevShell des Repositories bereit.
+
+```sh
+go build -o peerdrop .
+go test ./...
+gofmt -l . && go vet ./...
+```
+
+Die Tests bauen zwei Peers im selben Prozess auf und schicken Dateien zwischen ihnen.
+Ein Signaling-Server im Testprozess übernimmt die Vermittlung, mit derselben Frame-Grenze wie das Backend.
+Kein Test erreicht eine Adresse außerhalb des Rechners.
 
 ## Weitere Seiten
 

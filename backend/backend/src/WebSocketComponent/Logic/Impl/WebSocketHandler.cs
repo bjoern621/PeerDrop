@@ -177,12 +177,19 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         await SendMessage(clientToken, message);
     }
 
+    /// <summary>Bytes read per receive call. A message longer than this arrives in several fragments.</summary>
+    private const int ReceiveBufferBytes = 1024;
+
+    /// <summary>Largest message assembled from fragments. A session description of a peer without a browser reaches several kilobytes.</summary>
+    private const int MaxMessageBytes = 64 * 1024;
+
     /// <summary>
-    /// Continuously listens for messages from the WebSocket connection. If a message is received, it is deserialized and forwarded to typed message listeners. If the message is too large or cannot be deserialized, the connection is closed.
+    /// Continuously listens for messages from the WebSocket connection. Fragments are collected until the message is complete, then it is deserialized and forwarded to typed message listeners. If the message is too large or cannot be deserialized, the connection is closed.
     /// </summary>
     private async Task ListenForMessages(WebSocket webSocket, string clientToken)
     {
-        var buffer = new byte[1024];
+        var buffer = new byte[ReceiveBufferBytes];
+        using var assembled = new MemoryStream();
 
         while (webSocket.State == WebSocketState.Open)
         {
@@ -202,16 +209,22 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
                 return;
             }
 
-            if (!result.EndOfMessage)
+            if (result.MessageType == WebSocketMessageType.Close)
+                break;
+
+            if (assembled.Length + result.Count > MaxMessageBytes)
             {
                 CloseConnection(webSocket, WebSocketCloseStatus.MessageTooBig);
                 return;
             }
 
-            if (result.MessageType == WebSocketMessageType.Close)
-                break;
+            assembled.Write(buffer, 0, result.Count);
 
-            var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            if (!result.EndOfMessage)
+                continue;
+
+            var messageJson = Encoding.UTF8.GetString(assembled.GetBuffer(), 0, (int)assembled.Length);
+            assembled.SetLength(0);
 
             try
             {
