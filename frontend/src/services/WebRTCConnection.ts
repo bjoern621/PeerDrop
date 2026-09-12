@@ -9,6 +9,7 @@ import { SdpMessage } from "../types/rtc/SdpMessage";
 import { TransferStatsMonitor } from "./TransferStats";
 import { OpfsFileWriter } from "./OpfsFileWriter";
 import { TransferTracker } from "./TransferTracker";
+import { getSettings } from "./SettingsStore";
 
 /** Bytes of the little-endian chunk sequence number prefixing each binary message. */
 const SEQUENCE_HEADER_BYTES = 4;
@@ -406,8 +407,10 @@ export class WebRTCConnection {
     }
 
     /**
-     * Assembles the received file, stores it for re-download and triggers the
-     * browser download. Called once all chunks have arrived.
+     * Assembles the received file and stores it for later saving. Called once
+     * all chunks have arrived. The browser download starts automatically when
+     * the autoSaveDownloads setting is enabled; otherwise the file is only
+     * saved after an explicit click (redownloadFile).
      *
      * With OPFS the file is finalized on disk and downloaded as a disk-backed
      * File; otherwise the buffered chunks are assembled into an in-memory Blob.
@@ -449,14 +452,15 @@ export class WebRTCConnection {
             this.incomingTransfers.delete(state.fileMeta.uuid);
         }
 
-        // Yield to the event loop so the UI can render the completed state
-        // before the (possible) download prompt ("where do you want to save this file?") opens.
-        await new Promise(resolve => setTimeout(resolve, 100));
+        if (getSettings().autoSaveDownloads) {
+            // Yield to the event loop so the UI can render the completed state
+            // before the (possible) download prompt ("where do you want to save this file?") opens.
+            await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Trigger initial download
-        this.triggerDownload(blob, filename);
+            this.triggerDownload(blob, filename);
+        }
 
-        this.log("File downloaded with TransferID:", state.fileMeta?.uuid);
+        this.log("File received with TransferID:", state.fileMeta?.uuid);
     }
 
     /**
