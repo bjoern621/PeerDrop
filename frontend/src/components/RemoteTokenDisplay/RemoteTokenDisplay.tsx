@@ -26,5 +26,8 @@ export default function RemoteTokenDisplay({
         }
     };
 
-    return <span>{getRemoteTokenIfAvailable() ?? placeholder}</span>;
+    // Tokens are stored lowercase; presentation is uppercase.
+    return (
+        <span>{getRemoteTokenIfAvailable()?.toUpperCase() ?? placeholder}</span>
+    );
 }
