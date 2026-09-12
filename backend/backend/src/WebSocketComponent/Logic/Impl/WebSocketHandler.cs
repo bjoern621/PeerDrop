@@ -13,7 +13,8 @@ using MessageType = string;
 
 public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHandler
 {
-    private readonly ConcurrentDictionary<string, RuntimeClientInformation> ActiveConnections = new(); // String is the client token
+    // String is the client token. Case-insensitive so tokens entered with any casing map to the same connection.
+    private readonly ConcurrentDictionary<string, RuntimeClientInformation> ActiveConnections = new(StringComparer.OrdinalIgnoreCase);
     private readonly Random Random = new();
     private readonly ConcurrentDictionary<MessageType, List<MessageHandlerDelegate>> MessageHandlers = new();
 
@@ -24,10 +25,25 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     {
         return ActiveConnections.ContainsKey(remoteToken);
     }
+    private const string ProquintConsonants = "bdfghjklmnprstvz"; // 4 bits
+    private const string ProquintVowels = "aiou"; // 2 bits
+
+    /// <summary>
+    /// Generates a client token as a proquint: a random 16-bit value encoded into a pronounceable
+    /// five-letter con-vo-con-vo-con syllable (e.g. "kuras"), following the Wilkerson specification.
+    /// The value maps losslessly to and from the token.
+    /// </summary>
     private string GenerateClientToken()
     {
-        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
-        return new string([.. Enumerable.Repeat(chars, 5).Select(s => s[Random.Next(s.Length)])]);
+        int value = Random.Next(0x10000); // 16 bits
+
+        return new string([
+            ProquintConsonants[(value >> 12) & 0xF],
+            ProquintVowels[(value >> 10) & 0x3],
+            ProquintConsonants[(value >> 6) & 0xF],
+            ProquintVowels[(value >> 4) & 0x3],
+            ProquintConsonants[value & 0xF],
+        ]);
     }
 
     /// <summary>
