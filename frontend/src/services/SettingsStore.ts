@@ -9,12 +9,25 @@ export interface AppSettings {
      * received file is only saved after an explicit click.
      */
     autoSaveDownloads: boolean;
+
+    /**
+     * Shows the security warning before every connection attempt when true;
+     * otherwise the connection is established right away.
+     */
+    showConnectWarning: boolean;
 }
 
-const AUTO_SAVE_STORAGE_KEY = "autoSaveDownloads";
+const STORAGE_KEYS: Record<keyof AppSettings, string> = {
+    autoSaveDownloads: "autoSaveDownloads",
+    showConnectWarning: "showConnectWarning",
+};
+
+// Written by the warning dialog's "Nicht wieder anzeigen" before the setting existed.
+const LEGACY_HIDE_CONNECT_WARNING_KEY = "hideConnectWarning";
 
 const DEFAULT_SETTINGS: AppSettings = {
     autoSaveDownloads: true,
+    showConnectWarning: true,
 };
 
 function readBooleanSetting(key: string, defaultValue: boolean): boolean {
@@ -24,10 +37,36 @@ function readBooleanSetting(key: string, defaultValue: boolean): boolean {
     return defaultValue;
 }
 
+/**
+ * Carries a dismissal made before the setting existed over to it, then drops
+ * the old key. An explicit setting already stored wins.
+ */
+function migrateLegacyConnectWarning(): void {
+    const dismissed = localStorage.getItem(LEGACY_HIDE_CONNECT_WARNING_KEY);
+    if (dismissed === null) {
+        return;
+    }
+
+    if (localStorage.getItem(STORAGE_KEYS.showConnectWarning) === null) {
+        localStorage.setItem(
+            STORAGE_KEYS.showConnectWarning,
+            String(dismissed !== "true")
+        );
+    }
+
+    localStorage.removeItem(LEGACY_HIDE_CONNECT_WARNING_KEY);
+}
+
+migrateLegacyConnectWarning();
+
 let settings: AppSettings = {
     autoSaveDownloads: readBooleanSetting(
-        AUTO_SAVE_STORAGE_KEY,
+        STORAGE_KEYS.autoSaveDownloads,
         DEFAULT_SETTINGS.autoSaveDownloads
+    ),
+    showConnectWarning: readBooleanSetting(
+        STORAGE_KEYS.showConnectWarning,
+        DEFAULT_SETTINGS.showConnectWarning
     ),
 };
 
@@ -44,10 +83,11 @@ export function getSettings(): AppSettings {
 /** Applies and persists the given settings, then notifies subscribers. */
 export function updateSettings(update: Partial<AppSettings>) {
     settings = { ...settings, ...update };
-    localStorage.setItem(
-        AUTO_SAVE_STORAGE_KEY,
-        String(settings.autoSaveDownloads)
-    );
+
+    for (const key of Object.keys(update) as (keyof AppSettings)[]) {
+        localStorage.setItem(STORAGE_KEYS[key], String(settings[key]));
+    }
+
     listeners.forEach(listener => listener());
 }
 

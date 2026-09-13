@@ -7,10 +7,7 @@ import { useSearchParams } from "react-router";
 import { useOutgoingConnectionRequest } from "../../../hooks/useOutgoingConnectionRequest";
 import { normalizeClientToken } from "../../../services/WebSocketService";
 import { ConnectWarningDialog } from "../../Popups/ConnectWarningDialog";
-import {
-    dismissConnectWarning,
-    isConnectWarningDismissed,
-} from "../../../util/ConnectWarningPreference";
+import { getSettings, updateSettings } from "../../../services/SettingsStore";
 
 export default function ConnectToPeer() {
     const { target, waitingForResponse, connect, validate, cancel } =
@@ -21,8 +18,7 @@ export default function ConnectToPeer() {
     const [remoteToken, setRemoteToken] = useState<string>(
         urlToken ? normalizeClientToken(urlToken) : ""
     );
-    const [showConnectWarning, setShowConnectWarning] =
-        useState<boolean>(false);
+    const [warningDialogOpen, setWarningDialogOpen] = useState<boolean>(false);
     const connectButtonRef = useRef<HTMLButtonElement | null>(null);
     const autoConnectAttemptedRef = useRef<boolean>(false);
 
@@ -53,12 +49,12 @@ export default function ConnectToPeer() {
                 return;
             }
 
-            if (isConnectWarningDismissed()) {
+            if (!getSettings().showConnectWarning) {
                 submitConnect(token);
                 return;
             }
 
-            setShowConnectWarning(true);
+            setWarningDialogOpen(true);
         },
         [validate, submitConnect]
     );
@@ -77,10 +73,10 @@ export default function ConnectToPeer() {
 
     const confirmConnectWarning = (dontShowAgain: boolean) => {
         if (dontShowAgain) {
-            dismissConnectWarning();
+            updateSettings({ showConnectWarning: false });
         }
 
-        setShowConnectWarning(false);
+        setWarningDialogOpen(false);
         submitConnect(remoteToken);
     };
 
@@ -134,10 +130,10 @@ export default function ConnectToPeer() {
                 </Button>
             )}
 
-            {showConnectWarning && (
+            {warningDialogOpen && (
                 <ConnectWarningDialog
                     onConfirm={confirmConnectWarning}
-                    onCancel={() => setShowConnectWarning(false)}
+                    onCancel={() => setWarningDialogOpen(false)}
                 />
             )}
         </div>

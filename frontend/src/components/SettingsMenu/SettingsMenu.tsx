@@ -21,8 +21,9 @@ export default function SettingsMenu() {
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const [isOpen, setIsOpen] = useState(false);
     const { themePreference, setThemePreference } = useThemeContext();
-    const { autoSaveDownloads } = useSettings();
+    const { autoSaveDownloads, showConnectWarning } = useSettings();
     const autoSaveId = useId();
+    const connectWarningId = useId();
 
     const openDialog = () => {
         setIsOpen(true);
@@ -118,6 +119,31 @@ export default function SettingsMenu() {
                         <p className={css.hint}>
                             Wenn deaktiviert, wird eine empfangene Datei erst
                             nach einem Klick auf SPEICHERN gespeichert.
+                        </p>
+                    </div>
+
+                    <div className={css.section}>
+                        <div className={css.sectionTitle}>Verbindung</div>
+                        <div className={css.toggleRow}>
+                            <label htmlFor={connectWarningId}>
+                                Sicherheitshinweis anzeigen
+                            </label>
+                            <input
+                                id={connectWarningId}
+                                type="checkbox"
+                                className={css.switch}
+                                checked={showConnectWarning}
+                                onChange={event =>
+                                    updateSettings({
+                                        showConnectWarning:
+                                            event.target.checked,
+                                    })
+                                }
+                            />
+                        </div>
+                        <p className={css.hint}>
+                            Der Hinweis erscheint vor jedem Verbindungsaufbau zu
+                            einem anderen Gerät.
                         </p>
                     </div>
                 </div>
