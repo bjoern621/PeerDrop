@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import globals from "globals";
+import exhaustiveDepsExclude from "eslint-plugin-exhaustive-deps-exclude";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
@@ -25,11 +26,16 @@ export default tseslint.config(
             globals: globals.browser,
         },
         plugins: {
+            "exhaustive-deps-exclude": exhaustiveDepsExclude,
             "react-hooks": reactHooks,
             "react-refresh": reactRefresh,
         },
         rules: {
             ...reactHooks.configs.recommended.rules,
+            // Both rules report the same missing dependencies,
+            // so React's stays off while this one runs.
+            "react-hooks/exhaustive-deps": "off",
+            "exhaustive-deps-exclude/exhaustive-deps": "error",
             "react-refresh/only-export-components": [
                 "warn",
                 { allowConstantExport: true },

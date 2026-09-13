@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import Button from "../Button/Button";
 import FormField from "../FormField/FormField";
 import css from "./AuthForms.module.scss";
@@ -32,7 +32,6 @@ export default function LoginForm({
     const {
         register,
         handleSubmit,
-        watch,
         formState: { errors, dirtyFields, touchedFields, isSubmitted },
     } = useForm<LoginFormFields>({
         resolver: zodResolver(loginSchema),
@@ -57,17 +56,6 @@ export default function LoginForm({
     const onSubmitForm = (data: LoginFormFields) => {
         onSubmit(data.username, data.password);
     };
-
-    // Watch fields and sync it with parent component
-    const username = watch("username");
-    useEffect(() => {
-        onUsernameChange(username);
-    }, [username, onUsernameChange]);
-
-    const password = watch("password");
-    useEffect(() => {
-        onPasswordChange(password);
-    }, [password, onPasswordChange]);
 
     /**
      * Prevents dialog from closing on Enter key press in input fields
@@ -104,7 +92,10 @@ export default function LoginForm({
                 autoComplete="username"
                 error={lastUsernameError.current}
                 showError={shouldShowError("username")}
-                {...register("username")}
+                {...register("username", {
+                    onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
+                        onUsernameChange(event.target.value),
+                })}
             />
 
             <FormField
@@ -113,7 +104,10 @@ export default function LoginForm({
                 autoComplete="current-password"
                 error={lastPasswordError.current}
                 showError={shouldShowError("password")}
-                {...register("password")}
+                {...register("password", {
+                    onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
+                        onPasswordChange(event.target.value),
+                })}
             />
 
             <div className={css.buttonContainer}>

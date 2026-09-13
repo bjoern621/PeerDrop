@@ -6,13 +6,16 @@ import deleteIconLight from "../../../assets/delete_light.svg";
 import addIcon from "../../../assets/add.svg";
 import logoutIcon from "../../../assets/logout.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
-import { useCallback, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
 import { LoginResponse } from "../../../util/dtos/LoginResponse";
 import { DeviceResponse } from "../../../util/dtos/DeviceResponse";
 import { DeviceStatus } from "../../../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../../../types/device/DeviceHeartbeatMessage";
-import { MessageHandler } from "../../../services/WebSocketService";
+import {
+    MessageHandler,
+    WebSocketService,
+} from "../../../services/WebSocketService";
 import { useWebSocketService } from "../../../context/connection/WebSocketContext";
 import { MessageType } from "../../../types/MessageType";
 import { QuickConnectMessage } from "../../../types/connection/QuickConnectMessage";
@@ -26,6 +29,85 @@ interface DeviceDisplay {
     uuid: string;
 }
 
+/**
+ * Reads the device UUID the backend stored as a cookie.
+ * undefined while the device is unregistered.
+ */
+const getDeviceUuidFromCookie = (): string | undefined => {
+    return document.cookie
+        .split("; ")
+        .find(row => row.startsWith("deviceUuid="))
+        ?.split("=")[1];
+};
+
+/**
+ * Sends a heartbeat for the registered device.
+ * No-op while the device is unregistered.
+ */
+const sendHeartbeat = (
+    websocketService: WebSocketService,
+    status: DeviceStatus
+) => {
+    const deviceUuid = getDeviceUuidFromCookie();
+
+    if (!deviceUuid) {
+        return;
+    }
+
+    websocketService.sendMessage(
+        new DeviceHeartbeatMessage({ uuid: deviceUuid, status })
+    );
+};
+
+/**
+ * Subscribes to heartbeat messages that carry the status of a device.
+ * Returns the unsubscribe.
+ */
+const subscribeToHeartbeats = (
+    websocketService: WebSocketService,
+    setDevices: Dispatch<SetStateAction<DeviceDisplay[]>>
+) => {
+    const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
+        setDevices(prevDevices =>
+            prevDevices.map(device =>
+                device.uuid === message.msg.uuid
+                    ? { ...device, status: message.msg.status }
+                    : device
+            )
+        );
+    };
+
+    websocketService.subscribeMessage(
+        MessageType.DEVICE_HEARTBEAT,
+        onHeartbeatReceived as MessageHandler
+    );
+
+    return () => {
+        websocketService.unsubscribeMessage(
+            MessageType.DEVICE_HEARTBEAT,
+            onHeartbeatReceived as MessageHandler
+        );
+    };
+};
+
+/**
+ * Sends an offline heartbeat when the tab closes.
+ * Returns the unregister.
+ */
+const registerOfflineHeartbeatOnClose = (
+    websocketService: WebSocketService
+) => {
+    const sendOfflineHeartbeat = () => {
+        sendHeartbeat(websocketService, DeviceStatus.OFFLINE);
+    };
+
+    window.addEventListener("beforeunload", sendOfflineHeartbeat);
+
+    return () => {
+        window.removeEventListener("beforeunload", sendOfflineHeartbeat);
+    };
+};
+
 export const UserProfile = () => {
     const [userName, setUserName] = useState<string | null>(null);
     const [devices, setDevices] = useState<DeviceDisplay[]>([]);
@@ -34,23 +116,6 @@ export const UserProfile = () => {
     const [registerButtonDisabled, setRegisterButtonDisabled] = useState(false);
 
     const websocketService = useWebSocketService();
-
-    const handleHeartbeatMessage = useCallback(() => {
-        const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
-            setDevices(prevDevices =>
-                prevDevices.map(device =>
-                    device.uuid === message.msg.uuid
-                        ? { ...device, status: message.msg.status }
-                        : device
-                )
-            );
-        };
-
-        websocketService.subscribeMessage(
-            MessageType.DEVICE_HEARTBEAT,
-            onHeartbeatReceived as MessageHandler
-        );
-    }, [websocketService]);
 
     // const handleDeviceChangedMessage = useCallback(() => {
     //     const onDeviceChanged = async () => {
@@ -63,69 +128,30 @@ export const UserProfile = () => {
     //     );
     // }, [websocketService]);
 
-    /**
-     * Sends a heartbeat message if the user has registered the device.
-     */
-    const sendHeartbeatIfPossible = useCallback(() => {
-        const deviceUuid: string | undefined = document.cookie
-            .split("; ")
-            .find(row => row.startsWith("deviceUuid="))
-            ?.split("=")[1];
-
-        if (!deviceUuid) {
-            return; // The user might not have registered the device
-        }
-
-        const heartbeat = new DeviceHeartbeatMessage({
-            uuid: deviceUuid,
-            status: DeviceStatus.ONLINE,
-        });
-
-        websocketService.sendMessage(heartbeat);
-    }, [websocketService]);
-
-    /**
-     * Sets up an event listener to send an offline heartbeat when the tab is closed.
-     */
-    const registerOfflineHeartbeatOnClose = useCallback(() => {
-        const handleTabClose = () => {
-            const deviceUuid: string | undefined = document.cookie
-                .split("; ")
-                .find(row => row.startsWith("deviceUuid="))
-                ?.split("=")[1];
-
-            if (!deviceUuid) {
-                return; // The user might not have registered the device
-            }
-
-            const heartbeat = new DeviceHeartbeatMessage({
-                uuid: deviceUuid,
-                status: DeviceStatus.OFFLINE,
-            });
-            websocketService.sendMessage(heartbeat);
-
-            window.removeEventListener("beforeunload", handleTabClose);
-        };
-        window.addEventListener("beforeunload", handleTabClose);
-    }, [websocketService]);
-
     useEffect(() => {
         void fetchUserName();
         void fetchDevices();
 
         // handleDeviceChangedMessage();
 
-        handleHeartbeatMessage();
+        const unsubscribeHeartbeats = subscribeToHeartbeats(
+            websocketService,
+            setDevices
+        );
 
-        sendHeartbeatIfPossible();
+        sendHeartbeat(websocketService, DeviceStatus.ONLINE);
 
-        registerOfflineHeartbeatOnClose();
-    }, [
-        // handleDeviceChangedMessage,
-        handleHeartbeatMessage,
-        sendHeartbeatIfPossible,
-        registerOfflineHeartbeatOnClose,
-    ]);
+        const unregisterOfflineHeartbeat =
+            registerOfflineHeartbeatOnClose(websocketService);
+
+        return () => {
+            unsubscribeHeartbeats();
+            unregisterOfflineHeartbeat();
+        };
+
+        // Both fetches load the initial state once, the profile has no reload path.
+        // exhaustive-deps-exclude [fetchUserName, fetchDevices, websocketService]
+    }, []);
 
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
@@ -159,10 +185,7 @@ export const UserProfile = () => {
             return;
         }
 
-        const currentDeviceUuid: string | undefined = document.cookie
-            .split("; ")
-            .find(row => row.startsWith("deviceUuid="))
-            ?.split("=")[1];
+        const currentDeviceUuid = getDeviceUuidFromCookie();
 
         const devicesData = responseBody as DeviceResponse;
         assert(devicesData && devicesData.devices, "Invalid device response");
@@ -252,7 +275,7 @@ export const UserProfile = () => {
 
         setCurrentDeviceRegistered(true);
 
-        sendHeartbeatIfPossible();
+        sendHeartbeat(websocketService, DeviceStatus.ONLINE);
     };
 
     const connectDevice = (device: DeviceDisplay) => {
