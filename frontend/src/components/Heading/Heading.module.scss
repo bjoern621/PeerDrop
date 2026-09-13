@@ -65,17 +65,17 @@
 
     a {
         font-weight: var(--font-weight-regular);
-        color: var(--text-muted);
+        color: var(--text);
 
         text-underline-position: under;
 
-        &:hover:not(:global(.active)) {
-            text-decoration: underline;
+        &:hover,
+        &:global(.active) {
+            font-weight: var(--font-weight-semibold);
         }
 
         &:global(.active) {
-            font-weight: var(--font-weight-medium);
-            color: var(--text);
+            text-decoration: underline;
         }
     }
 

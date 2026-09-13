@@ -16,7 +16,7 @@ export default function Heading() {
                     <NavLink to="/" aria-label="Zur Hauptseite navigieren">
                         <StableText
                             text="So funktioniert's"
-                            fontWeight={"var(--font-weight-medium)"}
+                            fontWeight={"var(--font-weight-semibold)"}
                         />
                     </NavLink>
                     <NavLink
@@ -25,7 +25,7 @@ export default function Heading() {
                     >
                         <StableText
                             text="Dateien teilen"
-                            fontWeight={"var(--font-weight-medium)"}
+                            fontWeight={"var(--font-weight-semibold)"}
                         />
                     </NavLink>
                 </nav>
