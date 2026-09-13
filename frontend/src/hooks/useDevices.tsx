@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify/unstyled";
 import { Device } from "../types/device/Device";
 import { DeviceResponse } from "../util/dtos/DeviceResponse";
+import { LoginResponse } from "../util/dtos/LoginResponse";
 import { DeviceStatus } from "../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../types/device/DeviceHeartbeatMessage";
 import { DeviceChangedMessage } from "../types/device/DeviceChangedMessage";
@@ -29,6 +30,7 @@ const getDeviceUuidFromCookie = (): string | undefined => {
  */
 export const useDevices = () => {
     const [devices, setDevices] = useState<Device[]>([]);
+    const [userName, setUserName] = useState<string | null>(null);
 
     const currentDeviceRegistered = devices.some(
         device => device.uuid === getDeviceUuidFromCookie()
@@ -39,6 +41,48 @@ export const useDevices = () => {
         status: DeviceStatus.ONLINE,
         enabled: false,
     });
+
+    /**
+     * Fetches the display name of the logged-in user.
+     */
+    const fetchUserName = async () => {
+        const [response, err] = await errorAsValue(
+            fetch(`${getRuntimeEnvVars().backendUrl}/me`, {
+                method: "GET",
+                credentials: "include",
+            })
+        );
+
+        if (err) {
+            toast.error(
+                "Fehler beim Abrufen des Benutzernamens. Bitte versuche es später erneut."
+            );
+            console.error("Error fetching user name:", err);
+            return;
+        } else if (!response.ok) {
+            toast.error(
+                "Fehler beim Abrufen des Benutzernamens. Bitte versuche es später erneut."
+            );
+            console.error("Error fetching user name:", response.statusText);
+            return;
+        }
+
+        const [responseBody, parseError] = await errorAsValue(response.json());
+
+        if (parseError) {
+            toast.error(
+                "Fehler beim Abrufen des Benutzernamens. Bitte versuche es später erneut."
+            );
+            console.error("Error parsing user name response:", parseError);
+            return;
+        }
+
+        const loginData = responseBody as LoginResponse;
+
+        assert(loginData && loginData.message, "Invalid user name response");
+
+        setUserName(loginData.message);
+    };
 
     /**
      * Fetches all devices for the current user from the backend.
@@ -178,6 +222,20 @@ export const useDevices = () => {
             return;
         }
     }, []);
+
+    /**
+     * Deletes the device this browser is registered as.
+     * No-op while this browser holds no registered device.
+     */
+    const deleteCurrentDevice = useCallback(async () => {
+        const currentDevice = devices.find(device => device.current);
+
+        if (!currentDevice) {
+            return;
+        }
+
+        await deleteDevice(currentDevice);
+    }, [devices, deleteDevice]);
 
     /**
      * Renames a device by sending its UUID and the new name to the server.
@@ -336,6 +394,7 @@ export const useDevices = () => {
     };
 
     useEffect(() => {
+        void fetchUserName();
         void fetchDevices();
         const cleanupHeartbeat = handleHeartbeatMessage();
         const cleanupDeviceChanged = handleDeviceChangedMessage();
@@ -345,16 +404,18 @@ export const useDevices = () => {
             cleanupDeviceChanged();
         };
 
-        // One fetch and one pair of subscriptions per mount. Both handlers reach
+        // Fetches and subscriptions run once per mount. Both handlers reach
         // just the WebSocket service, which lives in a ref in ConnectionProvider.
         // exhaustive-deps-exclude [handleHeartbeatMessage, handleDeviceChangedMessage]
     }, []);
 
     return {
         devices,
+        userName,
         currentDeviceRegistered,
         registerCurrentDevice,
         deleteDevice,
+        deleteCurrentDevice,
         renameDevice,
         connectToDevice,
     };
