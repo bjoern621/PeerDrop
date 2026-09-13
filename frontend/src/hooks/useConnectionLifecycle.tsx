@@ -79,9 +79,7 @@ export default function useConnectionLifecycle() {
                 onConnectionClosed
             );
         };
-        // One subscription per mount.
-        // The manager holds one identity for the lifetime of the app,
-        // and navigate keeps working across renders.
+
         // exhaustive-deps-exclude [navigate, peerConnectionManager]
     }, []);
 

@@ -46,8 +46,6 @@ export default function ConnectionOverlay() {
             );
         };
 
-        // The manager holds one identity for the lifetime of the app,
-        // so this subscribes once per mount.
         // exhaustive-deps-exclude [peerConnectionManager]
     }, []);
 

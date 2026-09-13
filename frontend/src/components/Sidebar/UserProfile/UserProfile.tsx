@@ -150,7 +150,6 @@ export const UserProfile = () => {
         };
 
         // Both fetches load the initial state once, the profile has no reload path.
-        // The service holds one identity for the lifetime of the app.
         // exhaustive-deps-exclude [fetchUserName, fetchDevices, websocketService]
     }, []);
 

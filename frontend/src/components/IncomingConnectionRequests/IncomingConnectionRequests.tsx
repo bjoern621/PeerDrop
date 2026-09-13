@@ -63,8 +63,7 @@ export default function IncomingConnectionRequests() {
                 }
             );
         }
-        // The snapshot alone decides which toasts exist.
-        // The manager holds one identity for the lifetime of the app.
+
         // exhaustive-deps-exclude [peerConnectionManager]
     }, [incomingRequesters]);
 
