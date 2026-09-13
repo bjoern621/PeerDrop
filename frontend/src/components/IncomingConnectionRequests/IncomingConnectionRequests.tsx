@@ -63,7 +63,9 @@ export default function IncomingConnectionRequests() {
                 }
             );
         }
-    }, [incomingRequesters, peerConnectionManager]);
+
+        // exhaustive-deps-exclude [peerConnectionManager]
+    }, [incomingRequesters]);
 
     // Clear any remaining toasts if this controller unmounts.
     useEffect(() => {

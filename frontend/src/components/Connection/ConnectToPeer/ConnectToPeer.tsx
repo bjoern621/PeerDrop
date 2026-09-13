@@ -34,36 +34,45 @@ export default function ConnectToPeer() {
         }
     }, [target]);
 
-    const submitConnect = useCallback(() => {
-        if (connect(remoteToken)) {
-            connectButtonRef.current?.focus();
-        }
-    }, [connect, remoteToken]);
+    // The token is passed in rather than read from state, so both stay stable
+    // and the auto-connect effect below runs on the URL token alone.
+    const submitConnect = useCallback(
+        (token: string) => {
+            if (connect(token)) {
+                connectButtonRef.current?.focus();
+            }
+        },
+        [connect]
+    );
 
-    const requestConnect = useCallback(() => {
-        // Token checks (length, own token) run first, so the warning is
-        // only shown for tokens that can actually be connected to.
-        if (!validate(remoteToken)) {
-            return;
-        }
+    const requestConnect = useCallback(
+        (token: string) => {
+            // Token checks (length, own token) run first, so the warning is
+            // only shown for tokens that can actually be connected to.
+            if (!validate(token)) {
+                return;
+            }
 
-        if (isConnectWarningDismissed()) {
-            submitConnect();
-            return;
-        }
+            if (isConnectWarningDismissed()) {
+                submitConnect(token);
+                return;
+            }
 
-        setShowConnectWarning(true);
-    }, [remoteToken, submitConnect, validate]);
+            setShowConnectWarning(true);
+        },
+        [validate, submitConnect]
+    );
 
     // Tokens opened via /connect?token=<TOKEN> trigger the regular connect flow,
     // including the warning dialog and token validation, once per page load.
+    // The ref guard covers the second mount StrictMode performs in development.
     useEffect(() => {
         if (!urlToken || autoConnectAttemptedRef.current) {
             return;
         }
 
         autoConnectAttemptedRef.current = true;
-        requestConnect();
+        requestConnect(normalizeClientToken(urlToken));
     }, [urlToken, requestConnect]);
 
     const confirmConnectWarning = (dontShowAgain: boolean) => {
@@ -72,14 +81,14 @@ export default function ConnectToPeer() {
         }
 
         setShowConnectWarning(false);
-        submitConnect();
+        submitConnect(remoteToken);
     };
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
         if (!waitingForResponse) {
-            requestConnect();
+            requestConnect(remoteToken);
         }
     };
 
@@ -117,7 +126,7 @@ export default function ConnectToPeer() {
                 </Button>
             ) : (
                 <Button
-                    onClick={requestConnect}
+                    onClick={() => requestConnect(remoteToken)}
                     variant={"filled"}
                     ref={connectButtonRef}
                 >
