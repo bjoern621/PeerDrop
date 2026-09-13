@@ -4,9 +4,14 @@ import GitHubIcon from "../../assets/socials/icons8-github.svg?react";
 import Anchor from "../Anchor/Anchor";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
-export default function Footer() {
+type FooterProps = {
+    // Set by pages whose content needs the vertical space.
+    compact?: boolean;
+};
+
+export default function Footer({ compact = false }: FooterProps) {
     return (
-        <footer className={css.footer}>
+        <footer className={`${css.footer} ${compact ? css.compact : ""}`}>
             <div className={css.column}>
                 <Logo aria-hidden />
                 <div className={css.version}>

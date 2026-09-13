@@ -1,4 +1,4 @@
-import { Outlet } from "react-router";
+import { Outlet, useMatches } from "react-router";
 import Heading from "../Heading/Heading";
 import Footer from "../Footer/Footer";
 import "./Layout.scss";
@@ -10,8 +10,18 @@ import ErrorIcon from "../../assets/status/icons8-high-priority-3.svg?react";
 import ConnectionOverlay from "../ConnectionOverlay/ConnectionOverlay";
 import { usePreventFileDropNavigation } from "../../hooks/usePreventFileDropNavigation";
 
+// Per-route layout options, read from the matched route's `handle`.
+export type RouteHandle = {
+    compactFooter?: boolean;
+};
+
 export default function Layout() {
     usePreventFileDropNavigation();
+
+    const matches = useMatches();
+    const compactFooter = matches.some(
+        match => (match.handle as RouteHandle | undefined)?.compactFooter
+    );
 
     return (
         <>
@@ -20,7 +30,7 @@ export default function Layout() {
                 <main>
                     <Outlet />
                 </main>
-                <Footer />
+                <Footer compact={compactFooter} />
             </div>
 
             <ConnectionOverlay />
