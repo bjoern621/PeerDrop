@@ -104,7 +104,9 @@ export function useOutgoingConnectionRequest(): OutgoingConnectionRequest {
         return () => {
             peerConnectionManager.unsubscribeFromConnectionResponse(onResponse);
         };
-    }, [peerConnectionManager]);
+
+        // exhaustive-deps-exclude [peerConnectionManager]
+    }, []);
 
     // validate and connect keep their identity, so a caller can list them in a
     // dependency array without re-running an effect per keystroke.
