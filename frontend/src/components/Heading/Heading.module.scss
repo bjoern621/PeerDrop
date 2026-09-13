@@ -64,18 +64,22 @@
     gap: var(--space-24);
 
     a {
+        display: inline-block; // inline elements ignore scale
+
         font-weight: var(--font-weight-regular);
-        color: var(--text-muted);
+        color: var(--text);
 
         text-underline-position: under;
 
-        &:hover:not(:global(.active)) {
-            text-decoration: underline;
+        transition: scale 0.2s ease;
+
+        &:hover {
+            font-weight: var(--font-weight-medium);
+            scale: 1.05;
         }
 
         &:global(.active) {
-            font-weight: var(--font-weight-medium);
-            color: var(--text);
+            text-decoration: underline;
         }
     }
 
