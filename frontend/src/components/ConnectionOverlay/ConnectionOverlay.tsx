@@ -5,6 +5,15 @@ import { AwaitConnectionDialog } from "../Popups/AwaitConnectionDialog";
 import IncomingConnectionRequests from "../IncomingConnectionRequests/IncomingConnectionRequests";
 
 /**
+ * Shows the loading dialog while a connection is being established.
+ */
+const showLoadingDialog = (dialog: HTMLDialogElement) => {
+    if (!dialog.open) {
+        dialog.showModal();
+    }
+};
+
+/**
  * Handles the global connection lifecycle UI: incoming connection request
  * banners and the loading dialog shown while a connection is being
  * established. Mounted at the layout level so these are shown regardless of
@@ -24,11 +33,7 @@ export default function ConnectionOverlay() {
     // really starts.
     useEffect(() => {
         const onConnectionEstablishing = () => {
-            const dialog = awaitConnectionDialog.current!;
-
-            if (!dialog.open) {
-                dialog.showModal();
-            }
+            showLoadingDialog(awaitConnectionDialog.current!);
         };
 
         peerConnectionManager.subscribeToConnectionEstablishing(
@@ -40,7 +45,11 @@ export default function ConnectionOverlay() {
                 onConnectionEstablishing
             );
         };
-    }, [peerConnectionManager]);
+
+        // The manager holds one identity for the lifetime of the app,
+        // so this subscribes once per mount.
+        // exhaustive-deps-exclude [peerConnectionManager]
+    }, []);
 
     // The dialog lives above the routed pages and survives route changes,
     // so it must be closed explicitly once navigation away from the

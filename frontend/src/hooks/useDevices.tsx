@@ -363,7 +363,11 @@ export const useDevices = () => {
             unsubscribeHeartbeats();
             unsubscribeDeviceChanges();
         };
-    }, [websocketService]);
+
+        // One fetch and one pair of subscriptions per mount.
+        // The service holds one identity for the lifetime of the app.
+        // exhaustive-deps-exclude [websocketService]
+    }, []);
 
     return {
         devices,

@@ -63,7 +63,10 @@ export default function IncomingConnectionRequests() {
                 }
             );
         }
-    }, [incomingRequesters, peerConnectionManager]);
+        // The snapshot alone decides which toasts exist.
+        // The manager holds one identity for the lifetime of the app.
+        // exhaustive-deps-exclude [peerConnectionManager]
+    }, [incomingRequesters]);
 
     // Clear any remaining toasts if this controller unmounts.
     useEffect(() => {

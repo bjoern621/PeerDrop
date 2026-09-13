@@ -6,7 +6,7 @@ import deleteIconLight from "../../../assets/delete_light.svg";
 import addIcon from "../../../assets/add.svg";
 import logoutIcon from "../../../assets/logout.svg";
 import errorAsValue from "../../../util/ErrorAsValue";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { assert } from "../../../util/Assert";
 import { LoginResponse } from "../../../util/dtos/LoginResponse";
 import { DeviceResponse } from "../../../util/dtos/DeviceResponse";
@@ -59,6 +59,55 @@ const sendHeartbeat = (
     );
 };
 
+/**
+ * Subscribes to heartbeat messages that carry the status of a device.
+ * Returns the unsubscribe.
+ */
+const subscribeToHeartbeats = (
+    websocketService: WebSocketService,
+    setDevices: Dispatch<SetStateAction<DeviceDisplay[]>>
+) => {
+    const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
+        setDevices(prevDevices =>
+            prevDevices.map(device =>
+                device.uuid === message.msg.uuid
+                    ? { ...device, status: message.msg.status }
+                    : device
+            )
+        );
+    };
+
+    websocketService.subscribeMessage(
+        MessageType.DEVICE_HEARTBEAT,
+        onHeartbeatReceived as MessageHandler
+    );
+
+    return () => {
+        websocketService.unsubscribeMessage(
+            MessageType.DEVICE_HEARTBEAT,
+            onHeartbeatReceived as MessageHandler
+        );
+    };
+};
+
+/**
+ * Sends an offline heartbeat when the tab closes.
+ * Returns the unregister.
+ */
+const registerOfflineHeartbeatOnClose = (
+    websocketService: WebSocketService
+) => {
+    const sendOfflineHeartbeat = () => {
+        sendHeartbeat(websocketService, DeviceStatus.OFFLINE);
+    };
+
+    window.addEventListener("beforeunload", sendOfflineHeartbeat);
+
+    return () => {
+        window.removeEventListener("beforeunload", sendOfflineHeartbeat);
+    };
+};
+
 export const UserProfile = () => {
     const [userName, setUserName] = useState<string | null>(null);
     const [devices, setDevices] = useState<DeviceDisplay[]>([]);
@@ -85,40 +134,25 @@ export const UserProfile = () => {
 
         // handleDeviceChangedMessage();
 
-        const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
-            setDevices(prevDevices =>
-                prevDevices.map(device =>
-                    device.uuid === message.msg.uuid
-                        ? { ...device, status: message.msg.status }
-                        : device
-                )
-            );
-        };
-
-        websocketService.subscribeMessage(
-            MessageType.DEVICE_HEARTBEAT,
-            onHeartbeatReceived as MessageHandler
+        const unsubscribeHeartbeats = subscribeToHeartbeats(
+            websocketService,
+            setDevices
         );
 
         sendHeartbeat(websocketService, DeviceStatus.ONLINE);
 
-        const sendOfflineHeartbeat = () => {
-            sendHeartbeat(websocketService, DeviceStatus.OFFLINE);
-        };
-        window.addEventListener("beforeunload", sendOfflineHeartbeat);
+        const unregisterOfflineHeartbeat =
+            registerOfflineHeartbeatOnClose(websocketService);
 
         return () => {
-            websocketService.unsubscribeMessage(
-                MessageType.DEVICE_HEARTBEAT,
-                onHeartbeatReceived as MessageHandler
-            );
-            window.removeEventListener("beforeunload", sendOfflineHeartbeat);
+            unsubscribeHeartbeats();
+            unregisterOfflineHeartbeat();
         };
 
-        // Both fetches load the initial state once. The profile has no reload path
-        // that would justify re-running them.
-        // exhaustive-deps-exclude [fetchUserName, fetchDevices]
-    }, [websocketService]);
+        // Both fetches load the initial state once, the profile has no reload path.
+        // The service holds one identity for the lifetime of the app.
+        // exhaustive-deps-exclude [fetchUserName, fetchDevices, websocketService]
+    }, []);
 
     const fetchDevices = async () => {
         const [response, err] = await errorAsValue(
