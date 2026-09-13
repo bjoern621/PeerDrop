@@ -21,6 +21,10 @@
         grid-template-columns: 1fr;
     }
 
+    &.compact {
+        margin-top: var(--space-32);
+    }
+
     ul {
         padding-left: 0;
     }
