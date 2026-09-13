@@ -1,0 +1,4 @@
+# Binaries built by "go build" in this directory.
+/peerdrop
+/peerdrop.exe
+/dist/

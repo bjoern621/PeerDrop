@@ -18,7 +18,13 @@ RUN npm run build
 
 FROM nginx:latest
 
+# A build argument reaches one stage only.
+ARG VITE_APP_VERSION=none
+
 COPY --from=react-build /app/dist/ /www/html
+
+# The bootstrap scripts load the release the image was built from.
+RUN sed -i "s|@PEERDROP_VERSION@|${VITE_APP_VERSION}|" /www/html/cli /www/html/cli.ps1
 
 COPY ./nginx.conf /etc/nginx/templates/nginx.conf.template
 COPY ./common-headers.conf /etc/nginx/templates/common-headers.conf.template
