@@ -79,11 +79,7 @@ export default function useConnectionLifecycle() {
                 onConnectionClosed
             );
         };
-
-        // One subscription per mount. Both are stable: the manager lives in a ref
-        // in ConnectionProvider, navigate keeps working across renders.
-        // exhaustive-deps-exclude [navigate, peerConnectionManager]
-    }, []);
+    }, [navigate, peerConnectionManager]);
 
     /**
      * Manually closes the peer connection.

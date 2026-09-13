@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import Button from "../Button/Button";
 import FormField from "../FormField/FormField";
 import css from "./AuthForms.module.scss";
@@ -32,8 +32,6 @@ export default function RegisterForm({
     const {
         register,
         handleSubmit,
-        watch,
-        trigger,
         formState: { errors, dirtyFields, touchedFields, isSubmitted },
     } = useForm<RegisterFormFields>({
         resolver: zodResolver(registerSchema),
@@ -62,32 +60,6 @@ export default function RegisterForm({
     const onSubmitForm = (data: RegisterFormFields) => {
         onSubmit(data.username, data.password);
     };
-
-    // Watch fields and sync it with parent component
-    const username = watch("username");
-    useEffect(() => {
-        onUsernameChange(username);
-
-        // The watched value drives the sync. A parent that re-creates the handler
-        // says nothing about the field.
-        // exhaustive-deps-exclude [onUsernameChange]
-    }, [username]);
-
-    const password = watch("password");
-    const passwordRetype = watch("passwordRetype");
-    useEffect(() => {
-        onPasswordChange(password);
-
-        // Trigger validation of passwordRetype when password changes
-        // This ensures the "passwords don't match" error is updated
-        if (passwordRetype) {
-            void trigger("passwordRetype");
-        }
-
-        // A changed password re-checks the retype field. Typing in the retype field
-        // is already validated by the form itself, so it stays out of the deps.
-        // exhaustive-deps-exclude [onPasswordChange, passwordRetype, trigger]
-    }, [password]);
 
     /**
      * Prevents dialog from closing on Enter key press in input fields
@@ -126,7 +98,10 @@ export default function RegisterForm({
                 autoComplete="username"
                 error={lastUsernameError.current}
                 showError={shouldShowError("username")}
-                {...register("username")}
+                {...register("username", {
+                    onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
+                        onUsernameChange(event.target.value),
+                })}
             />
 
             <FormField
@@ -135,7 +110,13 @@ export default function RegisterForm({
                 autoComplete="new-password"
                 error={lastPasswordError.current}
                 showError={shouldShowError("password")}
-                {...register("password")}
+                {...register("password", {
+                    // Re-checks the retype field, so the mismatch error follows
+                    // a corrected password.
+                    deps: ["passwordRetype"],
+                    onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
+                        onPasswordChange(event.target.value),
+                })}
             />
 
             <div className={registerCss.confirmPasswordField}>

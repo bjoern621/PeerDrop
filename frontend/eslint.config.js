@@ -35,7 +35,7 @@ export default tseslint.config(
             // Both rules report the same missing dependencies,
             // so React's stays off while this one runs.
             "react-hooks/exhaustive-deps": "off",
-            "exhaustive-deps-exclude/exhaustive-deps": "warn",
+            "exhaustive-deps-exclude/exhaustive-deps": "error",
             "react-refresh/only-export-components": [
                 "warn",
                 { allowConstantExport: true },

@@ -16,17 +16,6 @@ export default function ConnectionOverlay() {
 
     const awaitConnectionDialog = useRef<HTMLDialogElement | null>(null);
 
-    /**
-     * Shows a loading dialog while the connection is being established.
-     */
-    const showLoadingDialog = () => {
-        const dialog = awaitConnectionDialog.current!;
-
-        if (!dialog.open) {
-            dialog.showModal();
-        }
-    };
-
     // The dialog opens on the establishing event (the server told both peers
     // to connect) rather than on the local accept click. This covers every
     // path: accepting an incoming request, our own request being accepted,
@@ -34,7 +23,13 @@ export default function ConnectionOverlay() {
     // server ignored as stale, because it only opens once establishment
     // really starts.
     useEffect(() => {
-        const onConnectionEstablishing = () => showLoadingDialog();
+        const onConnectionEstablishing = () => {
+            const dialog = awaitConnectionDialog.current!;
+
+            if (!dialog.open) {
+                dialog.showModal();
+            }
+        };
 
         peerConnectionManager.subscribeToConnectionEstablishing(
             onConnectionEstablishing
@@ -45,11 +40,7 @@ export default function ConnectionOverlay() {
                 onConnectionEstablishing
             );
         };
-
-        // One subscription per mount. The manager is stable and the handler
-        // reaches the dialog through a ref.
-        // exhaustive-deps-exclude [peerConnectionManager, showLoadingDialog]
-    }, []);
+    }, [peerConnectionManager]);
 
     // The dialog lives above the routed pages and survives route changes,
     // so it must be closed explicitly once navigation away from the

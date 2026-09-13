@@ -2,7 +2,7 @@ import Button from "../../Button/Button";
 import TokenInput from "../TokenInput/TokenInput";
 import css from "./ConnectToPeer.module.scss";
 import ConnectIcon from "../../../assets/icons8-computers-connecting.svg?react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useOutgoingConnectionRequest } from "../../../hooks/useOutgoingConnectionRequest";
 import { normalizeClientToken } from "../../../services/WebSocketService";
@@ -34,41 +34,46 @@ export default function ConnectToPeer() {
         }
     }, [target]);
 
-    const submitConnect = () => {
-        if (connect(remoteToken)) {
-            connectButtonRef.current?.focus();
-        }
-    };
+    // The token is passed in rather than read from state, so both stay stable
+    // and the auto-connect effect below runs on the URL token alone.
+    const submitConnect = useCallback(
+        (token: string) => {
+            if (connect(token)) {
+                connectButtonRef.current?.focus();
+            }
+        },
+        [connect]
+    );
 
-    const requestConnect = () => {
-        // Token checks (length, own token) run first, so the warning is
-        // only shown for tokens that can actually be connected to.
-        if (!validate(remoteToken)) {
-            return;
-        }
+    const requestConnect = useCallback(
+        (token: string) => {
+            // Token checks (length, own token) run first, so the warning is
+            // only shown for tokens that can actually be connected to.
+            if (!validate(token)) {
+                return;
+            }
 
-        if (isConnectWarningDismissed()) {
-            submitConnect();
-            return;
-        }
+            if (isConnectWarningDismissed()) {
+                submitConnect(token);
+                return;
+            }
 
-        setShowConnectWarning(true);
-    };
+            setShowConnectWarning(true);
+        },
+        [validate, submitConnect]
+    );
 
     // Tokens opened via /connect?token=<TOKEN> trigger the regular connect flow,
     // including the warning dialog and token validation, once per page load.
+    // The ref guard covers the second mount StrictMode performs in development.
     useEffect(() => {
         if (!urlToken || autoConnectAttemptedRef.current) {
             return;
         }
 
         autoConnectAttemptedRef.current = true;
-        requestConnect();
-
-        // The token from the URL is the only trigger. requestConnect closes over
-        // the token state, which the ref guard keeps out of a second attempt.
-        // exhaustive-deps-exclude [requestConnect]
-    }, [urlToken]);
+        requestConnect(normalizeClientToken(urlToken));
+    }, [urlToken, requestConnect]);
 
     const confirmConnectWarning = (dontShowAgain: boolean) => {
         if (dontShowAgain) {
@@ -76,14 +81,14 @@ export default function ConnectToPeer() {
         }
 
         setShowConnectWarning(false);
-        submitConnect();
+        submitConnect(remoteToken);
     };
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
 
         if (!waitingForResponse) {
-            requestConnect();
+            requestConnect(remoteToken);
         }
     };
 
@@ -121,7 +126,7 @@ export default function ConnectToPeer() {
                 </Button>
             ) : (
                 <Button
-                    onClick={requestConnect}
+                    onClick={() => requestConnect(remoteToken)}
                     variant={"filled"}
                     ref={connectButtonRef}
                 >

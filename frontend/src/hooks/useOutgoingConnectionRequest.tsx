@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify/unstyled";
 import { usePeerConnectionManager } from "../context/connection/PeerConnectionContext";
 import { useConnectionRequestState } from "./useConnectionRequestState";
@@ -106,33 +106,42 @@ export function useOutgoingConnectionRequest(): OutgoingConnectionRequest {
         };
     }, [peerConnectionManager]);
 
-    const validate = (remoteToken: string): boolean => {
-        const error = peerConnectionManager.validateRemoteToken(remoteToken);
+    // validate and connect keep their identity, so a caller can list them in a
+    // dependency array without re-running an effect per keystroke.
+    const validate = useCallback(
+        (remoteToken: string): boolean => {
+            const error =
+                peerConnectionManager.validateRemoteToken(remoteToken);
 
-        if (error) {
-            const { message, toastId } = connectErrorToast(error);
-            toast.warn(message, { toastId, updateId: toastId });
-            return false;
-        }
+            if (error) {
+                const { message, toastId } = connectErrorToast(error);
+                toast.warn(message, { toastId, updateId: toastId });
+                return false;
+            }
 
-        return true;
-    };
+            return true;
+        },
+        [peerConnectionManager]
+    );
 
-    const connect = (remoteToken: string): boolean => {
-        const result = peerConnectionManager.connect(remoteToken);
+    const connect = useCallback(
+        (remoteToken: string): boolean => {
+            const result = peerConnectionManager.connect(remoteToken);
 
-        if (!result.ok) {
-            const { message, toastId } = connectErrorToast(result.error);
-            toast.warn(message, { toastId, updateId: toastId });
-            return false;
-        }
+            if (!result.ok) {
+                const { message, toastId } = connectErrorToast(result.error);
+                toast.warn(message, { toastId, updateId: toastId });
+                return false;
+            }
 
-        // Covers rejections that arrive before the first snapshot does
-        // (e.g. the entered token does not exist).
-        requestStartRef.current = Date.now();
+            // Covers rejections that arrive before the first snapshot does
+            // (e.g. the entered token does not exist).
+            requestStartRef.current = Date.now();
 
-        return true;
-    };
+            return true;
+        },
+        [peerConnectionManager]
+    );
 
     const cancel = () => {
         peerConnectionManager.cancelConnectionRequest();
