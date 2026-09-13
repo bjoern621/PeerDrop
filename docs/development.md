@@ -8,6 +8,7 @@ Stelle sicher, dass die folgenden Programme auf deinem System installiert sind:
 
 -   **Node.js:** Für das Frontend. ([Download Node.js](https://nodejs.org/) oder `winget install OpenJS.NodeJS`)
 -   **.NET SDK Version 9.0:** Für das Backend. ([Download .NET SDK](https://dotnet.microsoft.com/download) oder `winget install Microsoft.DotNet.SDK.9`)
+-   **Go:** Für den Terminal-Client. ([Download Go](https://go.dev/dl/) oder `winget install GoLang.Go`)
 -   **Docker und Docker Compose:** Für die Containerisierung und die einfache Einrichtung der gesamten Umgebung. ([Download Docker](https://www.docker.com/products/docker-desktop/))
 -   **Git:** Zur Versionskontrolle. ([Download Git](https://git-scm.com/downloads))
 -   **(Empfehlung) VSCode** Für die Frontendentwicklung. (`winget install Microsoft.VisualStudioCode`)
@@ -34,6 +35,7 @@ In der Review-Umgebung sind folgende Schnittstellen verfügbar:
 -   Frontend: [`http://localhost:80`](http://localhost:80)
 -   Backend: [`http://localhost:8080`](http://localhost:8080)
 -   Postgres Datenbank: `localhost:5432`
+-   Bootstrap-Skripte des Terminal-Clients: [`http://localhost:80/cli`](http://localhost:80/cli) und [`http://localhost:80/cli.ps1`](http://localhost:80/cli.ps1)
 
 ### 2. Entwicklung-Umgebung
 
@@ -79,6 +81,26 @@ Beim Erstellen der Datenbank wird das aktuelle Schema aus `<base_dir>/database/d
 12. Rechtsklick auf **postgres@localhost** > **DDL Mapping** > **Apply from ...** > **Execute**. <= **Dieser Schritt aktualisiert das lokale Datenbankschema mit dem aktuellen Schema des Projekts**.
 13. Wähle **Properties** > **postgres@localhost** > **Schemas**.
 14. Entferne alle Haken und setze den Haken bei **peerdrop** > **public**. Wähle **OK** und **Yes**.
+
+---
+
+_Terminal-Client_
+
+Der Client ist ein Go-Modul in `<base_dir>/cli/`.
+Er lädt `/envvars.json` der Instanz, die `--host` nennt, deshalb müssen Frontend und Backend laufen.
+
+1. Starte Frontend und Backend wie oben beschrieben.
+2. Führe `go run . --host http://localhost:5173` in `<base_dir>/cli/` aus.
+3. Der Client zeigt sein Token. Gib es auf [`http://localhost:5173/connect`](http://localhost:5173/connect) ein, oder starte einen zweiten Client mit `go run . --host http://localhost:5173 <token> ./datei.pdf`.
+
+Tests und Prüfungen brauchen keine laufende Instanz, da sie Signaling und beide Peers im Testprozess aufbauen:
+
+```bash
+go test ./...
+gofmt -l . && go vet ./...
+```
+
+Aufruf, Optionen und Protokoll stehen in [`cli/README.md`](../cli/README.md).
 
 Jetzt ist die Entwicklungsumgebung komplett eingerichtet.
 

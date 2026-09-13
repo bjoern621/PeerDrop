@@ -58,3 +58,4 @@ Bei Pull Requests mit Frontend-Änderungen sollten mindestens folgende Punkte ü
 -   **Merge:** Nach erfolgreichem Review und Genehmigung wird der Pull Request in den `main`-Branch gemerged.
 -   **Release:** Anschließend kann ein neuer Release mit einer entsprechenden Versionsnummer erstellt werden.
 -   **Deployment:** Die neue Version wird nach einem Release automatisch auf der Produktivumgebung deployed.
+-   **Terminal-Client:** Der Release-Workflow baut die Binärdateien für Linux und Windows und hängt sie an den Release. Die Bootstrap-Skripte eines Images laden den Release, aus dem das Image gebaut wurde.
