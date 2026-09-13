@@ -69,7 +69,8 @@
 
         text-underline-position: under;
 
-        &:hover {
+        &:hover,
+        &:global(.active) {
             font-weight: var(--font-weight-semibold);
         }
 
