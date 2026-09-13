@@ -63,6 +63,14 @@ export default function Tooltip({
         .filter(Boolean)
         .join(" ");
 
+    const arrowClasses = [
+        css.arrow,
+        css[position],
+        isVisible ? css.visible : "",
+    ]
+        .filter(Boolean)
+        .join(" ");
+
     const anchorName = `--anchor-${anchorId.replace(/:/g, "")}`;
 
     return (
@@ -81,20 +89,31 @@ export default function Tooltip({
                 {children}
             </div>
             {createPortal(
-                <div
-                    className={tooltipClasses}
-                    style={
-                        {
-                            positionAnchor: anchorName,
-                        } as React.CSSProperties
-                    }
-                    data-anchor-id={anchorId}
-                    onMouseEnter={hoverable ? handleMouseEnter : undefined}
-                    onMouseLeave={hoverable ? handleMouseLeave : undefined}
-                >
-                    {showArrow && <div className={css.arrow} />}
-                    {content}
-                </div>,
+                <>
+                    <div
+                        className={tooltipClasses}
+                        style={
+                            {
+                                positionAnchor: anchorName,
+                            } as React.CSSProperties
+                        }
+                        data-anchor-id={anchorId}
+                        onMouseEnter={hoverable ? handleMouseEnter : undefined}
+                        onMouseLeave={hoverable ? handleMouseLeave : undefined}
+                    >
+                        {content}
+                    </div>
+                    {showArrow && (
+                        <div
+                            className={arrowClasses}
+                            style={
+                                {
+                                    positionAnchor: anchorName,
+                                } as React.CSSProperties
+                            }
+                        />
+                    )}
+                </>,
                 document.body
             )}
         </>
