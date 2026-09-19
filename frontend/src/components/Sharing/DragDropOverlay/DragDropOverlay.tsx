@@ -157,7 +157,11 @@ export default function DragDropOverlay({
     };
 
     if (isTouchDevice) {
-        return <div className={className}>{children}</div>;
+        return (
+            <div className={`${css.dropAreaContainer} ${className || ""}`}>
+                {children}
+            </div>
+        );
     }
 
     return (
