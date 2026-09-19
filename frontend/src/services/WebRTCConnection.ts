@@ -58,8 +58,15 @@ export interface FolderInfo {
     relativePath: string;
 }
 
+/** Reply the receiver sends on the file's channel once the file is complete. */
+interface AckMessage {
+    ack: string;
+}
+
 /** Reassembly state of one incoming file transfer. */
 interface ReceiveState {
+    /** Channel the file arrives on; carries the acknowledgement back. */
+    dataChannel: RTCDataChannel;
     fileMeta: FileMeta | null;
     /** In-memory chunks; only used when OPFS is unavailable. */
     receivedChunks: ArrayBuffer[];
@@ -144,7 +151,9 @@ export class WebRTCConnection {
      * blocking. Each binary message carries a 4-byte little-endian sequence
      * number followed by the payload; the receiver reassembles chunks by
      * sequence number and completes when all chunks announced in the metadata
-     * have arrived. The channel is closed once the send buffer has drained.
+     * have arrived. It then acknowledges the file on the same channel, and
+     * the sender closes the channel. A channel that closes before the
+     * acknowledgement fails the transfer on the sender's side.
      *
      * The file is read in READ_SIZE slices via Blob.arrayBuffer() and sent in
      * messages as large as the negotiated SCTP maximum message size allows,
@@ -188,7 +197,7 @@ export class WebRTCConnection {
         // Bytes handed to the channel so far; the progress interval reads it.
         let offset = 0;
         let progressInterval: ReturnType<typeof setInterval> | null = null;
-        let finished = false;
+        let acknowledged = false;
 
         // Resolves when the send buffer drains to LOW_WATER_MARK or the
         // channel closes, whichever comes first.
@@ -275,7 +284,8 @@ export class WebRTCConnection {
                 readOffset += buffer.byteLength;
             }
 
-            // Warten darauf, dass der Buffer leer ist, bevor der Channel geschlossen wird
+            // A drained buffer means handed to the local transport. The
+            // receiver's acknowledgement marks the file as delivered.
             while (dataChannel.bufferedAmount > 0) {
                 if (dataChannel.readyState !== "open") {
                     this.log("Data channel closed during transfer:", uuid);
@@ -284,16 +294,39 @@ export class WebRTCConnection {
                 await new Promise(resolve => setTimeout(resolve, 10));
             }
 
+            // The acknowledgement can land while the last bytes drain.
+            if (acknowledged) {
+                return;
+            }
+
             if (progressInterval) clearInterval(progressInterval);
-            finished = true;
+            this.transferTracker.setStatus(uuid, "finalizing");
+            this.log("File handed to transport for Transfer:", uuid);
+        };
+
+        dataChannel.onmessage = event => {
+            if (typeof event.data !== "string") {
+                return;
+            }
+            const message = JSON.parse(event.data) as AckMessage;
+            if (message.ack !== uuid) {
+                return;
+            }
+
+            acknowledged = true;
+            if (progressInterval) clearInterval(progressInterval);
             this.transferTracker.setStatus(uuid, "done");
-            this.log("File sent for Transfer:", uuid, " closing data channel");
+            this.log(
+                "File acknowledged for Transfer:",
+                uuid,
+                " closing data channel"
+            );
             dataChannel.close();
         };
 
         dataChannel.onclose = () => {
             if (progressInterval) clearInterval(progressInterval);
-            if (!finished) {
+            if (!acknowledged) {
                 this.transferTracker.setStatus(uuid, "failed");
             }
             this.transferStats.release();
@@ -323,7 +356,8 @@ export class WebRTCConnection {
     /**
      * Handles a data channel opened by the remote peer. The reassembly state
      * is keyed by the channel label (the file UUID). The "init" channel used
-     * to kick off negotiation is ignored.
+     * to kick off negotiation is ignored. The sender closes the channel once
+     * the file is acknowledged; a close before that fails the transfer.
      */
     private handleIncomingDataChannel(dataChannel: RTCDataChannel) {
         if (dataChannel.label === "init") {
@@ -333,7 +367,7 @@ export class WebRTCConnection {
         this.log("Received data channel", dataChannel.label);
         dataChannel.binaryType = "arraybuffer";
 
-        const state = this.getOrCreateReceiveState(dataChannel.label);
+        const state = this.getOrCreateReceiveState(dataChannel);
         let statsAcquired = false;
 
         const handleSequencedChunk = (data: ArrayBuffer) => {
@@ -420,10 +454,12 @@ export class WebRTCConnection {
         };
     }
 
-    private getOrCreateReceiveState(uuid: string): ReceiveState {
+    private getOrCreateReceiveState(dataChannel: RTCDataChannel): ReceiveState {
+        const uuid = dataChannel.label;
         let state = this.incomingTransfers.get(uuid);
         if (!state) {
             state = {
+                dataChannel,
                 fileMeta: null,
                 receivedChunks: [],
                 opfsWriter: null,
@@ -445,6 +481,9 @@ export class WebRTCConnection {
      *
      * With OPFS the file is finalized on disk and downloaded as a disk-backed
      * File; otherwise the buffered chunks are assembled into an in-memory Blob.
+     *
+     * A finalized file is acknowledged to the sender on its channel. A failed
+     * finalization closes the channel instead, which fails the sender's side.
      */
     private async finishDownload(state: ReceiveState) {
         state.finished = true;
@@ -465,6 +504,7 @@ export class WebRTCConnection {
                     err
                 );
                 this.transferTracker.setStatus(uuid, "failed");
+                state.dataChannel.close();
                 return;
             }
             blob = file;
@@ -473,6 +513,9 @@ export class WebRTCConnection {
         }
 
         this.transferTracker.setStatus(uuid, "done");
+        if (state.dataChannel.readyState === "open") {
+            state.dataChannel.send(JSON.stringify({ ack: uuid } as AckMessage));
+        }
 
         // Store the blob for potential re-download and folder saving
         if (state.fileMeta?.uuid) {

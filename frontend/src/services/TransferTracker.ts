@@ -15,7 +15,10 @@ export type TransferStatus =
     | "waiting"
     /** Bytes are flowing. */
     | "active"
-    /** All bytes arrived, file is being finalized (e.g. written to disk). */
+    /**
+     * All bytes handed over. Receiver: file is being finalized (e.g. written
+     * to disk). Sender: waiting for the receiver's acknowledgement.
+     */
     | "finalizing"
     | "done"
     | "failed";
