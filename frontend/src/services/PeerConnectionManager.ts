@@ -16,6 +16,7 @@ import { ConnectionResponseMessage } from "../types/connection//ConnectionRespon
 import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
 import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
 import { TransferTracker } from "./TransferTracker";
+import { ReceivedFiles } from "./ReceivedFiles";
 import { CLIENT_TOKEN_LENGTH } from "../util/Constants";
 
 /**
@@ -144,6 +145,10 @@ export class PeerConnectionManager {
 
     /** Single source of truth for transfer progress, speed and status. */
     private readonly transferTracker = new TransferTracker();
+
+    // Held across a remote close so the files stay saveable on the transfer
+    // screen; released with the session.
+    private readonly receivedFiles = new ReceivedFiles();
 
     public constructor(private readonly signaling: WebSocketService) {
         this.logger.setEnabled(false);
@@ -279,10 +284,12 @@ export class PeerConnectionManager {
             this.connectedRemoteToken = establishToken;
 
             this.transferTracker.clear();
+            this.receivedFiles.clear();
             this.webrtcConnection = new WebRTCConnection(
                 this.signaling,
                 establishToken,
-                this.transferTracker
+                this.transferTracker,
+                this.receivedFiles
             );
 
             this.setupListeners();
@@ -350,6 +357,7 @@ export class PeerConnectionManager {
     /**
      * Closes the current WebRTC connection, cleans up all related resources, and notifies observers about the connection closure.
      * The connection may already be closed, in which case this method does nothing because all related resources are already cleaned up.
+     * Received files are released along with the connection, as the local user is leaving the session.
      */
     public closePeerConnection() {
         if (!this.webrtcConnection) {
@@ -365,8 +373,17 @@ export class PeerConnectionManager {
         this.signaling.sendMessage(closeConnectionMessage);
 
         this.clearWebRTCConnection();
+        this.receivedFiles.clear();
 
         this.onConnectionClosedObservable.notify("local");
+    }
+
+    /**
+     * Releases the files received in the session. Called once the transfer
+     * screen is left after the peer closed the connection.
+     */
+    public releaseReceivedFiles() {
+        this.receivedFiles.clear();
     }
 
     /**
@@ -374,6 +391,7 @@ export class PeerConnectionManager {
      *
      * This method subscribes to messages of the specified type and, upon receiving a close connection request,
      * closes the current connection and notifies observers about the connection closure.
+     * Received files stay held, so the transfer screen can keep offering them for saving.
      *
      * The subscription to the message type remains active to handle future close requests.
      */
@@ -463,29 +481,22 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Re-downloads a previously received file by UUID.
-     * @param uuid The UUID of the file to re-download.
-     * @returns true if the file was found and download was triggered, false otherwise.
+     * Saves a received file by UUID, with or without an active connection.
+     * @param uuid The UUID of the file to save.
+     * @returns true if the file was found and the download was triggered, false otherwise.
      */
     public redownloadFile(uuid: string): boolean {
-        if (!this.webrtcConnection) {
-            this.log("No active connection to re-download file.");
-            return false;
-        }
-        return this.webrtcConnection.redownloadFile(uuid);
+        return this.receivedFiles.save(uuid);
     }
 
     /**
      * Saves all completed files of a received folder transfer, either into a
-     * user-picked directory (Chromium) or as individual downloads.
+     * user-picked directory (Chromium) or as individual downloads, with or
+     * without an active connection.
      * @param folderId The folder ID of the transfer to save.
      * @returns true if saving was started, false otherwise.
      */
     public async saveFolder(folderId: string): Promise<boolean> {
-        if (!this.webrtcConnection) {
-            this.log("No active connection to save folder.");
-            return false;
-        }
-        return this.webrtcConnection.saveFolder(folderId);
+        return this.receivedFiles.saveFolder(folderId);
     }
 }

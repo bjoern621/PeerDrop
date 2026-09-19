@@ -139,6 +139,22 @@ export class TransferTracker {
         this.syncInterval();
     }
 
+    /** Marks every transfer still in flight as failed, e.g. when the connection closes. */
+    public failUnfinished() {
+        let changed = false;
+        for (const entry of this.entries.values()) {
+            if (entry.status === "done" || entry.status === "failed") {
+                continue;
+            }
+            entry.status = "failed";
+            changed = true;
+        }
+        if (changed) {
+            this.notify();
+            this.syncInterval();
+        }
+    }
+
     /** Removes all transfers, e.g. when a new peer session starts. */
     public clear() {
         this.entries.clear();
