@@ -102,9 +102,17 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
         }
     };
 
+    // close() fires the dialog's close event, which reports every way of
+    // closing (button, backdrop click, Escape) through onClose.
     const closeDialog = () => {
         ref.current.close();
-        onClose?.();
+    };
+
+    const handleBackdropClick = (event: React.MouseEvent) => {
+        // Clicks on the backdrop target the dialog element itself.
+        if (event.target === ref.current) {
+            closeDialog();
+        }
     };
 
     const resetForm = () => {
@@ -115,7 +123,12 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
     };
 
     return (
-        <dialog ref={ref} className={css.dialog}>
+        <dialog
+            ref={ref}
+            className={css.dialog}
+            onClose={() => onClose?.()}
+            onClick={handleBackdropClick}
+        >
             <Button
                 className={css.closeButton}
                 onClick={() => closeDialog()}
