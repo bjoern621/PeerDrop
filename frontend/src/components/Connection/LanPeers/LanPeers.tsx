@@ -7,10 +7,12 @@ import Tooltip from "../../Tooltip/Tooltip";
 import { useOutgoingConnectionRequest } from "../../../hooks/useOutgoingConnectionRequest";
 import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
 import useSettings from "../../../hooks/useSettings";
+import { useSettingsDialog } from "../../../context/SettingsDialogContext";
 
 export default function LanPeers() {
     const { peers } = useLanPeers();
     const { lanDiscovery } = useSettings();
+    const { openSettings } = useSettingsDialog();
     const { target, switchTo } = useOutgoingConnectionRequest();
 
     // Token of the peer our pending outgoing connection request is addressed
@@ -62,7 +64,15 @@ export default function LanPeers() {
                 ) : (
                     <div className={css.discoveryOff}>
                         Die Suche nach Geräten im Netzwerk ist abgeschaltet.
-                        Schalte sie in den Einstellungen wieder ein.
+                        Schalte sie{" "}
+                        <button
+                            type="button"
+                            className={css.settingsLink}
+                            onClick={() => openSettings()}
+                        >
+                            in den Einstellungen
+                        </button>{" "}
+                        wieder ein.
                     </div>
                 )}
             </div>

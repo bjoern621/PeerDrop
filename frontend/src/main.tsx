@@ -17,6 +17,7 @@ import Layout, { RouteHandle } from "./components/Layout/Layout.tsx";
 import Sharing from "./components/Sharing/Sharing.tsx";
 import Connection from "./components/Connection/Connection.tsx";
 import { loadRuntimeEnvVars } from "./util/RuntimeEnvVars.ts";
+import { SettingsDialogProvider } from "./context/SettingsDialogContext.tsx";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -47,7 +48,9 @@ void loadRuntimeEnvVars().then(() => {
         <StrictMode>
             <ThemeProvider>
                 <AuthProvider>
-                    <RouterProvider router={router} />
+                    <SettingsDialogProvider>
+                        <RouterProvider router={router} />
+                    </SettingsDialogProvider>
                 </AuthProvider>
             </ThemeProvider>
         </StrictMode>
