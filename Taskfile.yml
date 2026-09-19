@@ -1,0 +1,39 @@
+version: "3"
+
+tasks:
+    default:
+        desc: Clear PeerDrop containers and start the stack fresh
+        cmds:
+            - task: clean
+            - task: up
+
+    up:
+        desc: Build the images and start the stack
+        cmds:
+            - docker compose up -d --build
+
+    down:
+        desc: Stop the stack
+        cmds:
+            - docker compose down --remove-orphans
+
+    clean:
+        desc: Remove PeerDrop containers, networks, and volumes
+        cmds:
+            - docker compose down --volumes --remove-orphans
+            # `docker compose down` reaches this compose project alone.
+            # A container started from a worktree carries that worktree's project and keeps the peerdrop_* name.
+            - docker ps -aq --filter "name=^/peerdrop_" | xargs -r docker rm -f
+            - docker network ls -q --filter "name=peerdrop" | xargs -r docker network rm
+            - docker volume ls -q --filter "name=peerdrop" | xargs -r docker volume rm
+
+    purge:
+        desc: Remove the PeerDrop containers and the images built from this project
+        cmds:
+            - task: clean
+            - docker images -q "peerdrop-*" | xargs -r docker rmi -f
+
+    logs:
+        desc: Follow the logs of the running stack
+        cmds:
+            - docker compose logs -f

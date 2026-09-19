@@ -27,6 +27,7 @@
             packages = [
               dotnet
               pkgs.nodejs_22
+              pkgs.go-task
             ];
 
             # Required by IDEs and tools that locate the SDK via DOTNET_ROOT.
