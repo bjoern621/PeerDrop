@@ -13,7 +13,8 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
     // Maps client token to its network membership. Clients without a resolvable
     // IP address are not tracked and do not take part in discovery.
     // DiscoveryEnabled false keeps the entry for busy tracking while hiding the
-    // client from every peer list, its own included.
+    // client from every peer list, its own included. A fresh entry starts
+    // hidden and the client's own report opens it up.
     private readonly Dictionary<string, (string RemoteIpAddress, string? Os, string? Browser, bool DiscoveryEnabled)> _peers = new();
 
     // Maps a client token to the token of its current peer connection partner.
@@ -22,22 +23,25 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
 
     private readonly Lock _lock = new();
 
-    public async Task HandleClientConnected(ClientConnectedEvent connectedEvent)
+    public Task HandleClientConnected(ClientConnectedEvent connectedEvent)
     {
         if (string.IsNullOrEmpty(connectedEvent.RemoteIpAddress))
         {
             _logger.LogDebug($"Client {connectedEvent.ClientToken} has no remote IP address, skipping LAN discovery.");
-            return;
+            return Task.CompletedTask;
         }
 
         var (os, browser) = ParseDeviceInfo(connectedEvent.UserAgent);
 
         lock (_lock)
         {
-            _peers[connectedEvent.ClientToken] = (connectedEvent.RemoteIpAddress, os, browser, true);
+            // Hidden until the client reports its setting, so a page reload
+            // never shows the device to its network for the moment in between.
+            _peers[connectedEvent.ClientToken] = (connectedEvent.RemoteIpAddress, os, browser, false);
         }
 
-        await NotifyNetwork(connectedEvent.RemoteIpAddress);
+        // The client's own report notifies the network once it arrives.
+        return Task.CompletedTask;
     }
 
     public async Task HandleClientDisconnected(string clientToken)

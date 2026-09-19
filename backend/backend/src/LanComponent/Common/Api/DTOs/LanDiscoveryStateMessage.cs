@@ -6,7 +6,7 @@ namespace backend.LanComponent.Common.Api.DTOs;
 /// <summary>
 /// Announces whether the sending client takes part in LAN discovery.
 /// A client with discovery switched off receives no peer list and appears in no other client's list.
-/// Discovery counts as switched on until a client says otherwise.
+/// A connection starts out switched off, so a client is discoverable from its own report onwards.
 /// </summary>
 public class LanDiscoveryStateMessage : ITypedMessage
 {

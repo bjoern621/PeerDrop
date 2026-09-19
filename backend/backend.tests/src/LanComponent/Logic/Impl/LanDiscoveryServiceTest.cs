@@ -55,18 +55,26 @@ public class LanDiscoveryServiceTest
             RemoteIpAddress = NETWORK_IP,
         });
 
-    private Task SetDiscovery(string clientToken, bool enabled) =>
+    private Task ReportDiscovery(string clientToken, bool enabled) =>
         _service.HandleLanDiscoveryState(clientToken, new LanDiscoveryStateMessage { Enabled = enabled });
+
+    private async Task ConnectAndReportDiscovery(string clientToken, bool enabled)
+    {
+        await Connect(clientToken);
+        await ReportDiscovery(clientToken, enabled);
+    }
 
     private List<string> LastPeerTokensFor(string clientToken) =>
         [.. _sentPeerLists[clientToken][^1].Peers.Select(peer => peer.Token)];
 
+    private int PeerListCountFor(string clientToken) =>
+        _sentPeerLists.TryGetValue(clientToken, out var messages) ? messages.Count : 0;
+
     [Test]
     public async Task HandleLanPeersRequest_DiscoveryDisabled_SendsEmptyList()
     {
-        await Connect(TOKEN_A);
-        await Connect(TOKEN_B);
-        await SetDiscovery(TOKEN_A, false);
+        await ConnectAndReportDiscovery(TOKEN_A, false);
+        await ConnectAndReportDiscovery(TOKEN_B, true);
 
         await _service.HandleLanPeersRequest(TOKEN_A, new RequestLanPeersMessage());
 
@@ -74,14 +82,36 @@ public class LanDiscoveryServiceTest
     }
 
     [Test]
+    public async Task HandleLanPeersRequest_PeerHasNotReportedDiscovery_LeavesPeerOut()
+    {
+        await ConnectAndReportDiscovery(TOKEN_A, true);
+        await Connect(TOKEN_B);
+
+        await _service.HandleLanPeersRequest(TOKEN_A, new RequestLanPeersMessage());
+
+        Assert.That(LastPeerTokensFor(TOKEN_A), Is.Empty);
+    }
+
+    [Test]
+    public async Task HandleClientConnected_BeforeThatClientReportsDiscovery_PushesNothing()
+    {
+        await ConnectAndReportDiscovery(TOKEN_A, true);
+        var pushesBefore = PeerListCountFor(TOKEN_A);
+
+        await Connect(TOKEN_B);
+
+        Assert.That(PeerListCountFor(TOKEN_A), Is.EqualTo(pushesBefore));
+    }
+
+    [Test]
     public async Task HandleLanDiscoveryState_Disabled_RemovesClientFromOtherPeerLists()
     {
-        await Connect(TOKEN_A);
-        await Connect(TOKEN_B);
+        await ConnectAndReportDiscovery(TOKEN_A, true);
+        await ConnectAndReportDiscovery(TOKEN_B, true);
 
         Assert.That(LastPeerTokensFor(TOKEN_B), Does.Contain(TOKEN_A));
 
-        await SetDiscovery(TOKEN_A, false);
+        await ReportDiscovery(TOKEN_A, false);
 
         Assert.That(LastPeerTokensFor(TOKEN_B), Is.Empty);
     }
@@ -89,10 +119,10 @@ public class LanDiscoveryServiceTest
     [Test]
     public async Task HandleLanDiscoveryState_Disabled_ClearsOwnPeerList()
     {
-        await Connect(TOKEN_A);
-        await Connect(TOKEN_B);
+        await ConnectAndReportDiscovery(TOKEN_A, true);
+        await ConnectAndReportDiscovery(TOKEN_B, true);
 
-        await SetDiscovery(TOKEN_A, false);
+        await ReportDiscovery(TOKEN_A, false);
 
         Assert.That(LastPeerTokensFor(TOKEN_A), Is.Empty);
     }
@@ -100,27 +130,16 @@ public class LanDiscoveryServiceTest
     [Test]
     public async Task HandleLanDiscoveryState_Reenabled_RestoresBothPeerLists()
     {
-        await Connect(TOKEN_A);
-        await Connect(TOKEN_B);
-        await SetDiscovery(TOKEN_A, false);
+        await ConnectAndReportDiscovery(TOKEN_A, true);
+        await ConnectAndReportDiscovery(TOKEN_B, true);
+        await ReportDiscovery(TOKEN_A, false);
 
-        await SetDiscovery(TOKEN_A, true);
+        await ReportDiscovery(TOKEN_A, true);
 
         Assert.Multiple(() =>
         {
             Assert.That(LastPeerTokensFor(TOKEN_A), Does.Contain(TOKEN_B));
             Assert.That(LastPeerTokensFor(TOKEN_B), Does.Contain(TOKEN_A));
         });
-    }
-
-    [Test]
-    public async Task HandleLanDiscoveryState_Disabled_HidesTheOtherClientsFromIt()
-    {
-        await Connect(TOKEN_A);
-        await SetDiscovery(TOKEN_A, false);
-
-        await Connect(TOKEN_B);
-
-        Assert.That(LastPeerTokensFor(TOKEN_A), Is.Empty);
     }
 }
