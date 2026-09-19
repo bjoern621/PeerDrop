@@ -1,52 +1,19 @@
 // Fallback placements offered to position-try-fallbacks.
-// A `-start` or `-end` variant keeps the preferred side and slides the tooltip
-// along it, so a trigger near the window edge keeps its tooltip beside it.
+// Each one puts the tooltip on the side opposite its preferred one.
 @position-try --tooltip-top {
-    position-area: top center;
-}
-
-@position-try --tooltip-top-start {
-    position-area: top span-right;
-}
-
-@position-try --tooltip-top-end {
-    position-area: top span-left;
+    position-area: top span-all;
 }
 
 @position-try --tooltip-bottom {
-    position-area: bottom center;
-}
-
-@position-try --tooltip-bottom-start {
-    position-area: bottom span-right;
-}
-
-@position-try --tooltip-bottom-end {
-    position-area: bottom span-left;
+    position-area: bottom span-all;
 }
 
 @position-try --tooltip-left {
-    position-area: left center;
-}
-
-@position-try --tooltip-left-start {
-    position-area: left span-bottom;
-}
-
-@position-try --tooltip-left-end {
-    position-area: left span-top;
+    position-area: left span-all;
 }
 
 @position-try --tooltip-right {
-    position-area: right center;
-}
-
-@position-try --tooltip-right-start {
-    position-area: right span-bottom;
-}
-
-@position-try --tooltip-right-end {
-    position-area: right span-top;
+    position-area: right span-all;
 }
 
 .tooltipTrigger {
@@ -66,8 +33,8 @@
     position: fixed;
     position-anchor: --tooltip-anchor; // Will be replaced dynamically
 
-    // The position-area region is only as wide as the trigger, so the box takes
-    // its width from its content instead.
+    // Placement region can be narrower than the text, and shrink-to-fit would
+    // clamp the box to it.
     width: max-content;
 
     // Gap to the trigger, on whichever side the placement lands on.
@@ -90,60 +57,42 @@
         pointer-events: auto;
     }
 
+    // `span-all` spans the whole axis beside the trigger.
+    // A `center` placement carries the trigger's own width,
+    // so a wider tooltip overflows it and drops to the next fallback.
+    // Spanning keeps the tooltip centered on the trigger,
+    // and slides it clear of the window edge.
     &.top {
-        position-area: top center;
-        position-try-fallbacks:
-            --tooltip-top-start, --tooltip-top-end, --tooltip-bottom,
-            --tooltip-bottom-start, --tooltip-bottom-end;
+        position-area: top span-all;
+        position-try-fallbacks: --tooltip-bottom;
     }
 
     &.bottom {
-        position-area: bottom center;
-        position-try-fallbacks:
-            --tooltip-bottom-start, --tooltip-bottom-end, --tooltip-top,
-            --tooltip-top-start, --tooltip-top-end;
+        position-area: bottom span-all;
+        position-try-fallbacks: --tooltip-top;
     }
 
     &.left {
-        position-area: left center;
-        position-try-fallbacks:
-            --tooltip-left-start, --tooltip-left-end, --tooltip-right,
-            --tooltip-right-start, --tooltip-right-end;
+        position-area: left span-all;
+        position-try-fallbacks: --tooltip-right;
     }
 
     &.right {
-        position-area: right center;
-        position-try-fallbacks:
-            --tooltip-right-start, --tooltip-right-end, --tooltip-left,
-            --tooltip-left-start, --tooltip-left-end;
+        position-area: right span-all;
+        position-try-fallbacks: --tooltip-left;
     }
 
-    // The arrow sits on the preferred side and no fallback can move it across,
-    // so an arrowed tooltip only slides along that side.
+    // The arrow sits on the preferred side and no fallback carries it across,
+    // so an arrowed tooltip keeps its side and slides along it.
     &.withArrow {
-        &.top {
-            position-try-fallbacks: --tooltip-top-start, --tooltip-top-end;
-        }
-
-        &.bottom {
-            position-try-fallbacks:
-                --tooltip-bottom-start, --tooltip-bottom-end;
-        }
-
-        &.left {
-            position-try-fallbacks: --tooltip-left-start, --tooltip-left-end;
-        }
-
-        &.right {
-            position-try-fallbacks: --tooltip-right-start, --tooltip-right-end;
-        }
+        position-try-fallbacks: none;
     }
 }
 
 // Sibling of the tooltip rather than a child, because anchor() needs the
 // trigger to sit outside the element's containing block.
-// Anchored to the trigger, the tip stays over it once a fallback slides the
-// tooltip along its side.
+// Anchored to the trigger, the tip stays over it once the tooltip slides
+// along its side.
 .arrow {
     position: fixed;
     pointer-events: none;
