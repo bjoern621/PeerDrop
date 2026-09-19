@@ -54,3 +54,16 @@
     background-color: var(--primary);
     animation: pulse 1.5s ease-out infinite;
 }
+
+.discoveryOff {
+    color: var(--text-muted);
+}
+
+.settingsLink {
+    text-decoration: dashed underline;
+    text-underline-position: under;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

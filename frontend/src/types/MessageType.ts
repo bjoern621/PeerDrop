@@ -16,4 +16,5 @@ export const enum MessageType {
     QUICK_CONNECT = "quick-connect",
     LAN_PEERS = "lan-peers",
     LAN_PEERS_REQUEST = "lan-peers-request",
+    LAN_DISCOVERY_STATE = "lan-discovery-state",
 }

@@ -5,6 +5,7 @@ import { LanPeersMessage } from "../types/lan/LanPeersMessage";
 import { LanPeersRequestMessage } from "../types/lan/LanPeersRequestMessage";
 import { useWebSocketService } from "../context/connection/WebSocketContext";
 import { MessageHandler } from "../services/WebSocketService";
+import useSettings from "./useSettings";
 
 /**
  * Provides the list of peers discovered in the local network.
@@ -14,12 +15,21 @@ import { MessageHandler } from "../services/WebSocketService";
  * changes. On mount, the current list is requested explicitly so peers that
  * were already present are shown immediately. Discovery runs continuously;
  * the list grows and shrinks as peers appear and disappear.
+ *
+ * The list stays empty while the LAN discovery setting is off. Switching the
+ * setting back on requests the current list again.
  */
 export const useLanPeers = () => {
     const webSocketService = useWebSocketService();
+    const { lanDiscovery } = useSettings();
     const [peers, setPeers] = useState<LanPeer[]>([]);
 
     useEffect(() => {
+        if (!lanDiscovery) {
+            setPeers([]);
+            return;
+        }
+
         const handleLanPeers = (message: LanPeersMessage) => {
             setPeers(message.msg.peers);
         };
@@ -52,7 +62,7 @@ export const useLanPeers = () => {
                 handleClientToken as MessageHandler
             );
         };
-    }, [webSocketService]);
+    }, [lanDiscovery, webSocketService]);
 
     return { peers };
 };

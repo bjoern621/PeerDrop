@@ -20,6 +20,9 @@ public class LanEventSubscriptions(
         _webSocketHandler.SubscribeToMessageType<RequestLanPeersMessage>(
             RequestLanPeersMessage.TypeString, _lanDiscoveryService.HandleLanPeersRequest);
 
+        _webSocketHandler.SubscribeToMessageType<LanDiscoveryStateMessage>(
+            LanDiscoveryStateMessage.TypeString, _lanDiscoveryService.HandleLanDiscoveryState);
+
         // Busy tracking: a peer connection starts when the server tells two
         // clients to establish one and ends when either sends a close message
         // (a plain disconnect is covered by ClientDisconnected above).

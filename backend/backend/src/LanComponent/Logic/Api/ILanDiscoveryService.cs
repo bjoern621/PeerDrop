@@ -8,11 +8,13 @@ namespace backend.LanComponent.Logic.Api;
 /// from and pushes the resulting peer list to every client in a network as it
 /// changes. Clients sharing a public IP are treated as being on the same LAN.
 /// A peer is reported as "busy" while it is in an active peer connection.
+/// A client stays out of every peer list until it reports discovery as switched on.
 /// </summary>
 public interface ILanDiscoveryService
 {
     /// <summary>
-    /// Registers a newly connected client and notifies its network of the change.
+    /// Registers a newly connected client, hidden from its network until the
+    /// client reports its discovery state.
     /// </summary>
     public Task HandleClientConnected(ClientConnectedEvent connectedEvent);
 
@@ -25,8 +27,16 @@ public interface ILanDiscoveryService
 
     /// <summary>
     /// Sends the requesting client its current peer list.
+    /// Empty while the client has discovery switched off.
     /// </summary>
     public Task HandleLanPeersRequest(string clientToken, RequestLanPeersMessage message);
+
+    /// <summary>
+    /// Takes over the client's discovery state and notifies its network.
+    /// Discovery switched off hides the client from the other clients and clears its own peer list.
+    /// Switching it on shows the client and fills its peer list, without a reconnect.
+    /// </summary>
+    public Task HandleLanDiscoveryState(string clientToken, LanDiscoveryStateMessage message);
 
     /// <summary>
     /// Marks both clients as busy and notifies their networks.

@@ -9,6 +9,7 @@ import SuccessIcon from "../../assets/status/icons8-check-mark-3.svg?react";
 import ErrorIcon from "../../assets/status/icons8-high-priority-3.svg?react";
 import ConnectionOverlay from "../ConnectionOverlay/ConnectionOverlay";
 import { usePreventFileDropNavigation } from "../../hooks/usePreventFileDropNavigation";
+import { useLanDiscoveryState } from "../../hooks/useLanDiscoveryState";
 
 // Per-route layout options, read from the matched route's `handle`.
 export type RouteHandle = {
@@ -17,6 +18,7 @@ export type RouteHandle = {
 
 export default function Layout() {
     usePreventFileDropNavigation();
+    useLanDiscoveryState();
 
     const matches = useMatches();
     const compactFooter = matches.some(
