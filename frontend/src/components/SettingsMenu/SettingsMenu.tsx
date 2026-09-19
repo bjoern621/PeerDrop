@@ -143,7 +143,7 @@ export default function SettingsMenu() {
                         </div>
                         <p className={css.hint}>
                             Der Hinweis erscheint vor jedem Verbindungsaufbau zu
-                            einem anderen Gerät.
+                            einem anderen GerÃ¤t.
                         </p>
                     </div>
                 </div>
