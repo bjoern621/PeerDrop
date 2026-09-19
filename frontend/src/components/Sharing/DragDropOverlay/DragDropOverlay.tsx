@@ -10,6 +10,8 @@ import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
 interface DragDropOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
     onItemsDropped: (selection: ShareSelection) => void;
     children: React.ReactNode;
+    /** Ignores drops, e.g. once there is no peer to send to. */
+    disabled?: boolean;
 }
 
 /** Reads all entries of a directory; readEntries returns batches (100 in Chromium) until an empty one marks the end. */
@@ -107,6 +109,7 @@ export default function DragDropOverlay({
     onItemsDropped,
     children,
     className,
+    disabled = false,
 }: DragDropOverlayProps) {
     const [isDragging, setIsDragging] = useState(false);
     const dragCounterRef = useRef(0); // Counter for drag depth to handle nested element enter/leave events
@@ -156,7 +159,7 @@ export default function DragDropOverlay({
             });
     };
 
-    if (isTouchDevice) {
+    if (isTouchDevice || disabled) {
         return <div className={className}>{children}</div>;
     }
 
