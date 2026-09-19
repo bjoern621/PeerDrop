@@ -6,9 +6,11 @@ import LanPeerDisplay from "./LanPeerDisplay/LanPeerDisplay";
 import Tooltip from "../../Tooltip/Tooltip";
 import { useOutgoingConnectionRequest } from "../../../hooks/useOutgoingConnectionRequest";
 import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
+import useSettings from "../../../hooks/useSettings";
 
 export default function LanPeers() {
     const { peers } = useLanPeers();
+    const { lanDiscovery } = useSettings();
     const { target, switchTo } = useOutgoingConnectionRequest();
 
     // Token of the peer our pending outgoing connection request is addressed
@@ -38,22 +40,31 @@ export default function LanPeers() {
             </div>
 
             <div className={css.peerList}>
-                {peers.map(peer => (
-                    <LanPeerDisplay
-                        key={peer.token}
-                        peer={peer}
-                        pending={peer.token === pendingToken}
-                        onClick={handlePeerClick}
-                    />
-                ))}
-                {/* Stays mounted in both states so the pulse animation is not
-                    restarted when the text switches. */}
-                <div className={css.searchState}>
-                    <div className={css.pulse} />
-                    {peers.length > 0
-                        ? "Suche weiter..."
-                        : "Suche nach Geräten in deinem Netzwerk..."}
-                </div>
+                {lanDiscovery ? (
+                    <>
+                        {peers.map(peer => (
+                            <LanPeerDisplay
+                                key={peer.token}
+                                peer={peer}
+                                pending={peer.token === pendingToken}
+                                onClick={handlePeerClick}
+                            />
+                        ))}
+                        {/* Stays mounted in both states so the pulse animation
+                            is not restarted when the text switches. */}
+                        <div className={css.searchState}>
+                            <div className={css.pulse} />
+                            {peers.length > 0
+                                ? "Suche weiter..."
+                                : "Suche nach Geräten in deinem Netzwerk..."}
+                        </div>
+                    </>
+                ) : (
+                    <div className={css.discoveryOff}>
+                        Die Suche nach Geräten im Netzwerk ist abgeschaltet.
+                        Schalte sie in den Einstellungen wieder ein.
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -21,9 +21,11 @@ export default function SettingsMenu() {
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const [isOpen, setIsOpen] = useState(false);
     const { themePreference, setThemePreference } = useThemeContext();
-    const { autoSaveDownloads, showConnectWarning } = useSettings();
+    const { autoSaveDownloads, showConnectWarning, lanDiscovery } =
+        useSettings();
     const autoSaveId = useId();
     const connectWarningId = useId();
+    const lanDiscoveryId = useId();
 
     const openDialog = () => {
         setIsOpen(true);
@@ -144,6 +146,27 @@ export default function SettingsMenu() {
                         <p className={css.hint}>
                             Der Hinweis erscheint vor jedem Verbindungsaufbau zu
                             einem anderen Gerät.
+                        </p>
+
+                        <div className={css.toggleRow}>
+                            <label htmlFor={lanDiscoveryId}>
+                                Geräte im Netzwerk finden
+                            </label>
+                            <input
+                                id={lanDiscoveryId}
+                                type="checkbox"
+                                className={css.switch}
+                                checked={lanDiscovery}
+                                onChange={event =>
+                                    updateSettings({
+                                        lanDiscovery: event.target.checked,
+                                    })
+                                }
+                            />
+                        </div>
+                        <p className={css.hint}>
+                            Dein Gerät erscheint dann bei anderen Geräten im
+                            selben Netzwerk und zeigt sie dir an.
                         </p>
                     </div>
                 </div>

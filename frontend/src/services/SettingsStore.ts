@@ -15,11 +15,18 @@ export interface AppSettings {
      * otherwise the connection is established right away.
      */
     showConnectWarning: boolean;
+
+    /**
+     * Announces the device to other devices in the same network and lists them
+     * when true; otherwise the device stays hidden and no devices are listed.
+     */
+    lanDiscovery: boolean;
 }
 
 const STORAGE_KEYS: Record<keyof AppSettings, string> = {
     autoSaveDownloads: "autoSaveDownloads",
     showConnectWarning: "showConnectWarning",
+    lanDiscovery: "lanDiscovery",
 };
 
 // Written by the warning dialog's "Nicht wieder anzeigen" before the setting existed.
@@ -28,6 +35,7 @@ const LEGACY_HIDE_CONNECT_WARNING_KEY = "hideConnectWarning";
 const DEFAULT_SETTINGS: AppSettings = {
     autoSaveDownloads: true,
     showConnectWarning: true,
+    lanDiscovery: true,
 };
 
 function readBooleanSetting(key: string, defaultValue: boolean): boolean {
@@ -67,6 +75,10 @@ let settings: AppSettings = {
     showConnectWarning: readBooleanSetting(
         STORAGE_KEYS.showConnectWarning,
         DEFAULT_SETTINGS.showConnectWarning
+    ),
+    lanDiscovery: readBooleanSetting(
+        STORAGE_KEYS.lanDiscovery,
+        DEFAULT_SETTINGS.lanDiscovery
     ),
 };
 
