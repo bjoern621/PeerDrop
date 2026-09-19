@@ -1,3 +1,21 @@
+// Fallback placements offered to position-try-fallbacks.
+// Each one puts the tooltip on the side opposite its preferred one.
+@position-try --tooltip-top {
+    position-area: top span-all;
+}
+
+@position-try --tooltip-bottom {
+    position-area: bottom span-all;
+}
+
+@position-try --tooltip-left {
+    position-area: left span-all;
+}
+
+@position-try --tooltip-right {
+    position-area: right span-all;
+}
+
 .tooltipTrigger {
     display: inline-flex;
 }
@@ -14,6 +32,13 @@
 
     position: fixed;
     position-anchor: --tooltip-anchor; // Will be replaced dynamically
+
+    // Placement region can be narrower than the text, and shrink-to-fit would
+    // clamp the box to it.
+    width: max-content;
+
+    // Gap to the trigger, on whichever side the placement lands on.
+    margin: var(--space-8);
 
     opacity: 0;
     scale: 0.9;
@@ -32,69 +57,96 @@
         pointer-events: auto;
     }
 
+    // `span-all` spans the whole axis beside the trigger.
+    // A `center` placement carries the trigger's own width,
+    // so a wider tooltip overflows it and drops to the next fallback.
+    // Spanning keeps the tooltip centered on the trigger,
+    // and slides it clear of the window edge.
+    &.top {
+        position-area: top span-all;
+        position-try-fallbacks: --tooltip-bottom;
+    }
+
+    &.bottom {
+        position-area: bottom span-all;
+        position-try-fallbacks: --tooltip-top;
+    }
+
+    &.left {
+        position-area: left span-all;
+        position-try-fallbacks: --tooltip-right;
+    }
+
+    &.right {
+        position-area: right span-all;
+        position-try-fallbacks: --tooltip-left;
+    }
+
+    // The arrow sits on the preferred side and no fallback carries it across,
+    // so an arrowed tooltip keeps its side and slides along it.
+    &.withArrow {
+        position-try-fallbacks: none;
+    }
+}
+
+// Sibling of the tooltip rather than a child, because anchor() needs the
+// trigger to sit outside the element's containing block.
+// Anchored to the trigger, the tip stays over it once the tooltip slides
+// along its side.
+.arrow {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999;
+
+    width: 8px;
+    height: 8px;
+    background-color: var(--background);
+    background-image: linear-gradient(var(--text-muted-10));
+    border: 1px solid var(--border);
+    rotate: 45deg;
+
+    opacity: 0;
+    transition: opacity 0.1s;
+
+    &.visible {
+        opacity: 1;
+    }
+
+    // Margin matches the tooltip's, less the nudge that covers the seam
+    // between arrow and tooltip border.
     &.top {
         bottom: anchor(top);
         left: anchor(center);
-        translate: -50% -8px;
+        margin-bottom: calc(var(--space-8) - 0.75px);
+        translate: -50% 50%;
+        border-top: none;
+        border-left: none;
     }
 
     &.bottom {
         top: anchor(bottom);
         left: anchor(center);
-        translate: -50% 8px;
+        margin-top: calc(var(--space-8) - 0.75px);
+        translate: -50% -50%;
+        border-bottom: none;
+        border-right: none;
     }
 
     &.left {
         right: anchor(left);
         top: anchor(center);
-        translate: -8px -50%;
+        margin-right: calc(var(--space-8) - 0.75px);
+        translate: 50% -50%;
+        border-left: none;
+        border-bottom: none;
     }
 
     &.right {
         left: anchor(right);
         top: anchor(center);
-        translate: 8px -50%;
-    }
-
-    .arrow {
-        position: absolute;
-        width: 8px;
-        height: 8px;
-        background-color: var(--background);
-        background-image: linear-gradient(var(--text-muted-10));
-        border: 1px solid var(--border);
-        transform: rotate(45deg);
-    }
-
-    &.top .arrow {
-        left: 50%;
-        top: calc(100% + 0.75px);
+        margin-left: calc(var(--space-8) - 0.75px);
         translate: -50% -50%;
-        border-top: none;
-        border-left: none;
-    }
-
-    &.bottom .arrow {
-        left: 50%;
-        bottom: calc(100% + 0.75px);
-        translate: -50% 50%;
-        border-bottom: none;
-        border-right: none;
-    }
-
-    &.right .arrow {
-        right: calc(100% + 0.75px);
-        top: 50%;
-        translate: 50% -50%;
         border-right: none;
         border-top: none;
-    }
-
-    &.left .arrow {
-        left: calc(100% + 0.75px);
-        top: 50%;
-        translate: -50% -50%;
-        border-left: none;
-        border-bottom: none;
     }
 }
