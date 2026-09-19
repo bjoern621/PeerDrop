@@ -12,7 +12,9 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
 
     // Maps client token to its network membership. Clients without a resolvable
     // IP address are not tracked and do not take part in discovery.
-    private readonly Dictionary<string, (string RemoteIpAddress, string? Os, string? Browser)> _peers = new();
+    // DiscoveryEnabled false keeps the entry for busy tracking while hiding the
+    // client from every peer list, its own included.
+    private readonly Dictionary<string, (string RemoteIpAddress, string? Os, string? Browser, bool DiscoveryEnabled)> _peers = new();
 
     // Maps a client token to the token of its current peer connection partner.
     // Both directions are stored. A client in this dictionary is "busy".
@@ -32,7 +34,7 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
 
         lock (_lock)
         {
-            _peers[connectedEvent.ClientToken] = (connectedEvent.RemoteIpAddress, os, browser);
+            _peers[connectedEvent.ClientToken] = (connectedEvent.RemoteIpAddress, os, browser, true);
         }
 
         await NotifyNetwork(connectedEvent.RemoteIpAddress);
@@ -69,7 +71,7 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
 
         lock (_lock)
         {
-            var peers = _peers.TryGetValue(clientToken, out var entry)
+            var peers = _peers.TryGetValue(clientToken, out var entry) && entry.DiscoveryEnabled
                 ? BuildPeerListUnlocked(entry.RemoteIpAddress, clientToken)
                 : [];
 
@@ -77,6 +79,27 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
         }
 
         await _webSocketHandler.SendMessage(clientToken, response);
+    }
+
+    public async Task HandleLanDiscoveryState(string clientToken, LanDiscoveryStateMessage message)
+    {
+        string remoteIpAddress;
+
+        lock (_lock)
+        {
+            if (!_peers.TryGetValue(clientToken, out var entry) || entry.DiscoveryEnabled == message.Enabled)
+                return;
+
+            _peers[clientToken] = (entry.RemoteIpAddress, entry.Os, entry.Browser, message.Enabled);
+            remoteIpAddress = entry.RemoteIpAddress;
+        }
+
+        // NotifyNetwork skips the client from here on, so its now empty list is
+        // sent separately.
+        if (!message.Enabled)
+            await _webSocketHandler.SendMessage(clientToken, new LanPeersMessage { Peers = [] });
+
+        await NotifyNetwork(remoteIpAddress);
     }
 
     public async Task HandleConnectionEstablished(string clientTokenA, string clientTokenB)
@@ -138,7 +161,9 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
     private List<LanPeerDTO> BuildPeerListUnlocked(string remoteIpAddress, string recipientToken)
     {
         return [.. _peers
-            .Where(kvp => kvp.Value.RemoteIpAddress == remoteIpAddress && kvp.Key != recipientToken)
+            .Where(kvp => kvp.Value.RemoteIpAddress == remoteIpAddress
+                && kvp.Key != recipientToken
+                && kvp.Value.DiscoveryEnabled)
             .Select(kvp => new LanPeerDTO
             {
                 Token = kvp.Key,
@@ -162,7 +187,8 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
 
     /// <summary>
     /// Sends every client in the given network its current peer list (the other
-    /// clients on the same IP address).
+    /// clients on the same IP address). Clients with discovery switched off are
+    /// skipped.
     /// </summary>
     private async Task NotifyNetwork(string remoteIpAddress)
     {
@@ -171,7 +197,7 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
         lock (_lock)
         {
             messages = [.. _peers
-                .Where(kvp => kvp.Value.RemoteIpAddress == remoteIpAddress)
+                .Where(kvp => kvp.Value.RemoteIpAddress == remoteIpAddress && kvp.Value.DiscoveryEnabled)
                 .Select(kvp => (
                     kvp.Key,
                     new LanPeersMessage { Peers = BuildPeerListUnlocked(remoteIpAddress, kvp.Key) }
