@@ -32,6 +32,7 @@ using backend.WebSocketComponent.Logic.Impl;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.WebSockets;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
@@ -80,6 +81,10 @@ var database =
 var connString = $"Host={host};Username={user};Password={pass};Database={database}";
 var dataSource = Npgsql.NpgsqlDataSource.Create(connString);
 builder.Services.AddSingleton(dataSource);
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    TrustedProxies.Configure(options, Environment.GetEnvironmentVariable(TrustedProxies.EnvironmentVariable))
+);
 
 builder.Services.AddWebSockets(options => { });
 builder.Services.AddSingleton<IWebSocketRoutes, WebSocketRoutes>();
@@ -144,6 +149,9 @@ builder
     });
 
 var app = builder.Build();
+
+// First, so every later step sees the client address instead of the proxy's.
+app.UseForwardedHeaders();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
