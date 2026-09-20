@@ -15,6 +15,7 @@ import { ConnectionRequestMessage } from "../types/connection/ConnectionRequestM
 import { ConnectionResponseMessage } from "../types/connection//ConnectionResponseMessage";
 import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
 import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
+import { SessionLeftMessage } from "../types/connection/SessionLeftMessage";
 import { TransferTracker } from "./TransferTracker";
 import { ReceivedFiles } from "./ReceivedFiles";
 import { CLIENT_TOKEN_LENGTH } from "../util/Constants";
@@ -379,10 +380,12 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Releases the files received in the session. Called once the transfer
-     * screen is left after the peer closed the connection.
+     * Ends the session once the transfer screen is left: the server marks this
+     * client available again for the other devices in the network, and the
+     * files received in the session are released.
      */
-    public releaseReceivedFiles() {
+    public endSession() {
+        this.signaling.sendMessage(new SessionLeftMessage());
         this.receivedFiles.clear();
     }
 

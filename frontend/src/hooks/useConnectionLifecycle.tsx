@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import {
     NavigateFunction,
     useNavigate,
@@ -17,7 +17,8 @@ import { CloseInitiator } from "../services/PeerConnectionManager";
 function handleConnectionClosed(
     initiator: CloseInitiator,
     navigate: NavigateFunction,
-    setPeerDisconnected: (disconnected: boolean) => void
+    setPeerDisconnected: (disconnected: boolean) => void,
+    sessionHeld: RefObject<boolean>
 ) {
     if (initiator === "local") {
         toast.success("Verbindung erfolgreich getrennt.");
@@ -26,6 +27,11 @@ function handleConnectionClosed(
     }
 
     toast.info("Die Verbindung wurde vom Peer getrennt.");
+
+    // The close message of the peer frees the peer alone. This client keeps the
+    // session until it leaves the screen.
+    sessionHeld.current = true;
+
     setPeerDisconnected(true);
 }
 
@@ -50,6 +56,10 @@ export default function useConnectionLifecycle() {
 
     // True after the peer closed the connection, until a new session starts.
     const [peerDisconnected, setPeerDisconnected] = useState(false);
+
+    // True while the server still counts this client as busy after a close by
+    // the peer. A ref, as the unmount cleanup below reads it.
+    const sessionHeld = useRef(false);
 
     const shouldBlock = () => {
         return peerConnectionManager.getConnection() !== undefined;
@@ -94,8 +104,16 @@ export default function useConnectionLifecycle() {
     // new session starts on this screen.
     useEffect(() => {
         const onConnectionClosed = (initiator: CloseInitiator) =>
-            handleConnectionClosed(initiator, navigate, setPeerDisconnected);
-        const onConnectionEstablishing = () => setPeerDisconnected(false);
+            handleConnectionClosed(
+                initiator,
+                navigate,
+                setPeerDisconnected,
+                sessionHeld
+            );
+        const onConnectionEstablishing = () => {
+            sessionHeld.current = false;
+            setPeerDisconnected(false);
+        };
 
         peerConnectionManager.subscribeToConnectionClosed(onConnectionClosed);
         peerConnectionManager.subscribeToConnectionEstablishing(
@@ -114,10 +132,13 @@ export default function useConnectionLifecycle() {
         // exhaustive-deps-exclude [navigate, peerConnectionManager]
     }, []);
 
-    // Files held after a close by the peer are released once the screen is left.
+    // Leaving the screen after a close by the peer releases the held files and
+    // frees the device for the other devices in the network.
     useEffect(() => {
         return () => {
-            peerConnectionManager.releaseReceivedFiles();
+            if (sessionHeld.current) {
+                peerConnectionManager.endSession();
+            }
         };
 
         // exhaustive-deps-exclude [peerConnectionManager]
