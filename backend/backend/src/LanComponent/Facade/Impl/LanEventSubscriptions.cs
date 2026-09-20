@@ -24,12 +24,18 @@ public class LanEventSubscriptions(
             LanDiscoveryStateMessage.TypeString, _lanDiscoveryService.HandleLanDiscoveryState);
 
         // Busy tracking: a peer connection starts when the server tells two
-        // clients to establish one and ends when either sends a close message
-        // (a plain disconnect is covered by ClientDisconnected above).
+        // clients to establish one. The closing client leaves the session with
+        // its close message, the client staying on the transfer screen with a
+        // session-left message (a plain disconnect is covered by
+        // ClientDisconnected above).
         _connectionInitiationService.ConnectionEstablished += _lanDiscoveryService.HandleConnectionEstablished;
 
         _webSocketHandler.SubscribeToMessageType<CloseConnectionMessage>(
             CloseConnectionMessage.TypeString,
-            (clientToken, _) => _lanDiscoveryService.HandleConnectionClosed(clientToken));
+            (clientToken, _) => _lanDiscoveryService.HandleSessionLeft(clientToken));
+
+        _webSocketHandler.SubscribeToMessageType<SessionLeftMessage>(
+            SessionLeftMessage.TypeString,
+            (clientToken, _) => _lanDiscoveryService.HandleSessionLeft(clientToken));
     }
 }

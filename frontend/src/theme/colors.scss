@@ -20,6 +20,7 @@
 @mixin alpha {
     --a-5: 0.05;
     --a-10: 0.1;
+    --a-15: 0.15;
     --a-20: 0.2;
     --a-30: 0.3;
     --a-40: 0.4;
@@ -41,6 +42,7 @@
     --border: rgb(0 0 0 / var(--a-5));
     --highlight: rgb(255 255 255 / var(--a-20));
     --shadow: rgb(0 0 0 / var(--a-10));
+    --backdrop: rgb(0 0 0 / var(--a-15));
     --background-effect-color: var(--secondary-20);
     --info-text: oklch(57.586% 0.1191 242.306deg);
     --success-text: oklch(50.114% 0.1377 145.411deg);
@@ -58,6 +60,7 @@
     --border: rgb(255 255 255 / var(--a-5));
     --highlight: rgb(255 255 255 / var(--a-5));
     --shadow: rgb(0 0 0 / var(--a-20));
+    --backdrop: rgb(0 0 0 / var(--a-50));
     --background-effect-color: var(--primary-10);
     --info-text: var(--info);
     --success-text: var(--success);

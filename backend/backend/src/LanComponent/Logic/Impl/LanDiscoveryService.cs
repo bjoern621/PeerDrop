@@ -18,7 +18,9 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
     private readonly Dictionary<string, (string RemoteIpAddress, string? Os, string? Browser, bool DiscoveryEnabled)> _peers = new();
 
     // Maps a client token to the token of its current peer connection partner.
-    // Both directions are stored. A client in this dictionary is "busy".
+    // Both directions are stored, and each side leaves on its own.
+    // A client in this dictionary counts as "busy".
+    // The peer that keeps the transfer screen after a close stays busy until it leaves the session itself.
     private readonly Dictionary<string, string> _sessionPartners = new();
 
     private readonly Lock _lock = new();
@@ -47,7 +49,6 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
     public async Task HandleClientDisconnected(string clientToken)
     {
         string? remoteIpAddress = null;
-        string? partnerIpAddress = null;
 
         lock (_lock)
         {
@@ -57,16 +58,13 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
                 _peers.Remove(clientToken);
             }
 
-            // A disconnect ends any peer connection the client was in. Free the
-            // partner so it is no longer shown as busy.
-            if (RemoveSessionUnlocked(clientToken, out var partnerToken)
-                && _peers.TryGetValue(partnerToken, out var partnerEntry))
-            {
-                partnerIpAddress = partnerEntry.RemoteIpAddress;
-            }
+            // A disconnect ends the session for this client.
+            // The partner holds the files it received and stays busy until it leaves the session itself.
+            _sessionPartners.Remove(clientToken);
         }
 
-        await NotifyNetworks(remoteIpAddress, partnerIpAddress);
+        if (remoteIpAddress != null)
+            await NotifyNetwork(remoteIpAddress);
     }
 
     public async Task HandleLanPeersRequest(string clientToken, RequestLanPeersMessage message)
@@ -125,37 +123,22 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
         await NotifyNetworks(ipA, ipB);
     }
 
-    public async Task HandleConnectionClosed(string clientToken)
+    public async Task HandleSessionLeft(string clientToken)
     {
-        string? ipA = null;
-        string? ipB = null;
+        string? remoteIpAddress = null;
 
         lock (_lock)
         {
-            if (!RemoveSessionUnlocked(clientToken, out var partnerToken))
+            // A client outside a session leaves every peer list as it was.
+            if (!_sessionPartners.Remove(clientToken))
                 return;
 
-            if (_peers.TryGetValue(clientToken, out var entryA))
-                ipA = entryA.RemoteIpAddress;
-            if (_peers.TryGetValue(partnerToken, out var entryB))
-                ipB = entryB.RemoteIpAddress;
+            if (_peers.TryGetValue(clientToken, out var entry))
+                remoteIpAddress = entry.RemoteIpAddress;
         }
 
-        await NotifyNetworks(ipA, ipB);
-    }
-
-    /// <summary>
-    /// Removes the session the client is in, if any. Returns true and the
-    /// partner's token if a session existed. Must be called under _lock.
-    /// </summary>
-    private bool RemoveSessionUnlocked(string clientToken, out string partnerToken)
-    {
-        if (!_sessionPartners.TryGetValue(clientToken, out partnerToken!))
-            return false;
-
-        _sessionPartners.Remove(clientToken);
-        _sessionPartners.Remove(partnerToken);
-        return true;
+        if (remoteIpAddress != null)
+            await NotifyNetwork(remoteIpAddress);
     }
 
     /// <summary>
