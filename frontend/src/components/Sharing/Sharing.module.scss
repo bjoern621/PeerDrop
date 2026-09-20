@@ -145,7 +145,10 @@
     font-family: "Roboto Mono", monospace;
 }
 
+// Containing block of the absolutely positioned table, whatever the
+// overlay renders around it.
 .dragDropOverlay {
+    position: relative;
     flex: 1;
 }
 
