@@ -20,7 +20,8 @@ Bei PeerDrop gehen deine Dateien direkt zum anderen Peer, sonst nirgendwohin.
 3. Angezeigten Token vergleichen, Verbindung zulassen.
 4. Dateien und Ordner draufziehen. 🚀
 
-Peers im selben Netzwerk werden dir ohne Token angezeigt, ein Klick stellt die Verbindung her.
+Peers im selben Netzwerk werden dir samt Token angezeigt.
+Ein Klick stellt die Verbindung her, ohne den Token einzutippen.
 
 ## Unsere Server sehen deine Dateien nie
 
