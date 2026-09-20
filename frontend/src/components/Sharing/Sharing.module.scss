@@ -140,6 +140,26 @@
     justify-content: space-between;
 }
 
+// Takes the place of the upload buttons once the peer has left.
+.disconnectedNotice {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-4);
+
+    padding: var(--space-8) var(--space-16);
+    border: 1px solid var(--border);
+    border-radius: var(--space-16);
+    background-color: var(--background);
+    background-image: linear-gradient(var(--secondary-20));
+}
+
+.disconnectedHint {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+}
+
 .remoteToken {
     color: var(--accent);
     font-family: "Roboto Mono", monospace;

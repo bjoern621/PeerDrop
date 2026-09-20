@@ -4,6 +4,7 @@ export const enum MessageType {
     ERROR = "error",
     SUCCESS = "success",
     CLOSE_CONNECTION = "close-connection",
+    SESSION_LEFT = "session-left",
     ICE_CANDIDATE = "ice-candidate",
     SDP = "sdp",
     CONNECTION_REQUEST = "connection-request",

@@ -24,82 +24,106 @@ export default function Sharing() {
 
     const { transfers, handleFileInputChange, sendSelection } =
         useFileTransfer();
-    const { closeConnection } = useConnectionLifecycle();
+    const { closeConnection, leaveSession, peerDisconnected } =
+        useConnectionLifecycle();
 
     const transferItems = useMemo(() => groupTransfers(transfers), [transfers]);
 
     return (
         <div className={css.sharingContainer}>
             <div className={css.sharingHeader}>
-                <div className={css.uploadButtons}>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        multiple
-                        onChange={handleFileInputChange}
-                        hidden={true}
-                        style={{ display: "none" }}
-                    />
-                    <Button
-                        variant="outline"
-                        color_scheme="primary"
-                        alignment="vertical"
-                        className={css.fileButton}
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <div className={css.fileIconContainer}>
-                            <CodeFileIcon className={css.fileIcon1} />
-                            <ImageFileIcon className={css.fileIcon2} />
-                            <ZipFileIcon className={css.fileIcon3} />
-                        </div>
-                        Datei teilen
-                    </Button>
-                    <input
-                        type="file"
-                        ref={folderInputRef}
-                        // @ts-expect-error - webkitdirectory is not in the types but is widely supported
-                        webkitdirectory=""
-                        directory=""
-                        multiple
-                        onChange={handleFileInputChange}
-                        hidden={true}
-                        style={{ display: "none" }}
-                    />
-                    <Button
-                        variant="outline"
-                        color_scheme="primary"
-                        alignment="vertical"
-                        className={css.folderButton}
-                        onClick={() => folderInputRef.current?.click()}
-                    >
-                        <div className={css.folderIconContainer}>
-                            <FolderIcon className={css.folderClosed} />
-                            <FolderOpenIcon className={css.folderOpen} />
-                        </div>
-                        Ordner teilen
-                    </Button>
-                </div>
+                {peerDisconnected ? (
+                    <div className={css.disconnectedNotice} role="status">
+                        <p>Der Peer hat die Verbindung getrennt.</p>
+                        <p className={css.disconnectedHint}>
+                            Empfangene Dateien kannst du speichern, bis du diese
+                            Seite verlässt.
+                        </p>
+                    </div>
+                ) : (
+                    <div className={css.uploadButtons}>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            multiple
+                            onChange={handleFileInputChange}
+                            hidden={true}
+                            style={{ display: "none" }}
+                        />
+                        <Button
+                            variant="outline"
+                            color_scheme="primary"
+                            alignment="vertical"
+                            className={css.fileButton}
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <div className={css.fileIconContainer}>
+                                <CodeFileIcon className={css.fileIcon1} />
+                                <ImageFileIcon className={css.fileIcon2} />
+                                <ZipFileIcon className={css.fileIcon3} />
+                            </div>
+                            Datei teilen
+                        </Button>
+                        <input
+                            type="file"
+                            ref={folderInputRef}
+                            // @ts-expect-error - webkitdirectory is not in the types but is widely supported
+                            webkitdirectory=""
+                            directory=""
+                            multiple
+                            onChange={handleFileInputChange}
+                            hidden={true}
+                            style={{ display: "none" }}
+                        />
+                        <Button
+                            variant="outline"
+                            color_scheme="primary"
+                            alignment="vertical"
+                            className={css.folderButton}
+                            onClick={() => folderInputRef.current?.click()}
+                        >
+                            <div className={css.folderIconContainer}>
+                                <FolderIcon className={css.folderClosed} />
+                                <FolderOpenIcon className={css.folderOpen} />
+                            </div>
+                            Ordner teilen
+                        </Button>
+                    </div>
+                )}
 
                 <div className={css.informationTopRight}>
-                    <p>
-                        Aktuell verbunden mit:{" "}
-                        <span className={css.remoteToken}>
-                            <RemoteTokenDisplay />
-                        </span>
-                    </p>
-                    <Button
-                        color_scheme={"neutral"}
-                        variant={"outline"}
-                        onClick={() => void closeConnection()}
-                    >
-                        Verbindung trennen
-                    </Button>
+                    {peerDisconnected ? (
+                        <Button
+                            color_scheme={"primary"}
+                            variant={"filled"}
+                            onClick={() => leaveSession()}
+                        >
+                            Neue Verbindung
+                        </Button>
+                    ) : (
+                        <>
+                            <p>
+                                Aktuell verbunden mit:{" "}
+                                <span className={css.remoteToken}>
+                                    <RemoteTokenDisplay />
+                                </span>
+                            </p>
+                            <Button
+                                color_scheme={"neutral"}
+                                variant={"outline"}
+                                onClick={() => void closeConnection()}
+                            >
+                                Verbindung trennen
+                            </Button>
+                        </>
+                    )}
                 </div>
             </div>
 
             <DragDropOverlay
                 onItemsDropped={sendSelection}
                 className={css.dragDropOverlay}
+                disabled={peerDisconnected}
             >
                 <table className={css.table}>
                     <thead>

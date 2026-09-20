@@ -9,6 +9,7 @@ import { SdpMessage } from "../types/rtc/SdpMessage";
 import { TransferStatsMonitor } from "./TransferStats";
 import { OpfsFileWriter } from "./OpfsFileWriter";
 import { TransferTracker } from "./TransferTracker";
+import { ReceivedFiles } from "./ReceivedFiles";
 import { getSettings } from "./SettingsStore";
 
 /** Bytes of the little-endian chunk sequence number prefixing each binary message. */
@@ -86,17 +87,6 @@ export class WebRTCConnection {
     // Reassembly state of incoming transfers, keyed by file UUID (= channel label).
     private readonly incomingTransfers: Map<string, ReceiveState> = new Map();
 
-    // Store completed downloads for re-download and folder saving
-    private readonly completedDownloads: Map<
-        string, // File UUID
-        {
-            blob: Blob;
-            filename: string;
-            relativePath?: string;
-            folderId?: string;
-        }
-    > = new Map();
-
     // Perfect Negotiation Pattern variables
     private makingOffer: boolean = false;
     private ignoreOffer: boolean = false;
@@ -106,7 +96,8 @@ export class WebRTCConnection {
     public constructor(
         signalingChannel: WebSocketService,
         remoteToken: ClientToken,
-        private readonly transferTracker: TransferTracker
+        private readonly transferTracker: TransferTracker,
+        private readonly receivedFiles: ReceivedFiles
     ) {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
@@ -438,10 +429,10 @@ export class WebRTCConnection {
     }
 
     /**
-     * Assembles the received file and stores it for later saving. Called once
-     * all chunks have arrived. The browser download starts automatically when
-     * the autoSaveDownloads setting is enabled; otherwise the file is only
-     * saved after an explicit click (redownloadFile).
+     * Assembles the received file and hands it to the received files store.
+     * Called once all chunks have arrived. The browser download starts
+     * automatically when the autoSaveDownloads setting is enabled; otherwise
+     * the file is only saved after an explicit click.
      *
      * With OPFS the file is finalized on disk and downloaded as a disk-backed
      * File; otherwise the buffered chunks are assembled into an in-memory Blob.
@@ -474,23 +465,20 @@ export class WebRTCConnection {
 
         this.transferTracker.setStatus(uuid, "done");
 
-        // Store the blob for potential re-download and folder saving
-        if (state.fileMeta?.uuid) {
-            this.completedDownloads.set(state.fileMeta.uuid, {
-                blob,
-                filename,
-                relativePath: state.fileMeta.relativePath,
-                folderId: state.fileMeta.folderId,
-            });
-            this.incomingTransfers.delete(state.fileMeta.uuid);
-        }
+        this.receivedFiles.add(uuid, {
+            blob,
+            filename,
+            relativePath: state.fileMeta?.relativePath,
+            folderId: state.fileMeta?.folderId,
+        });
+        this.incomingTransfers.delete(uuid);
 
         // Files of a folder transfer are saved together via saveFolder()
         // when the browser has a directory picker; individual downloads
         // would land flat in the download folder.
         if (
             state.fileMeta?.folderId &&
-            WebRTCConnection.isDirectoryPickerSupported()
+            ReceivedFiles.isDirectoryPickerSupported()
         ) {
             this.log(
                 "File ready for folder save with TransferID:",
@@ -504,7 +492,7 @@ export class WebRTCConnection {
             // before the (possible) download prompt ("where do you want to save this file?") opens.
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            this.triggerDownload(blob, filename);
+            this.receivedFiles.save(uuid);
         }
 
         this.log("File received with TransferID:", state.fileMeta?.uuid);
@@ -622,115 +610,16 @@ export class WebRTCConnection {
     }
 
     /**
-     * Triggers a download for a specific blob with the given filename.
-     * Uses a queue system to prevent multiple simultaneous downloads.
+     * Tears the connection down. Unfinished transfers in both directions are
+     * marked failed; their data channels close without an event once the
+     * peer connection is closed. Received files stay in their store.
      */
-    private triggerDownload(blob: Blob, filename: string) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-
-        // Download in die Queue legen:
-        downloadQueue.push(() => {
-            a.click();
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                downloadActive = false;
-                processDownloadQueue(); // Nächsten Download starten
-            }, 200); // 200ms warten, damit der Download sicher startet
-        });
-        processDownloadQueue();
-    }
-
-    /**
-     * Re-downloads a previously received file by UUID.
-     * @param uuid The UUID of the file to re-download.
-     * @returns true if the file was found and download was triggered, false otherwise.
-     */
-    public redownloadFile(uuid: string): boolean {
-        const fileData = this.completedDownloads.get(uuid);
-        if (!fileData) {
-            this.log("File not found for re-download:", uuid);
-            return false;
-        }
-
-        this.log("Re-downloading file:", fileData.filename);
-        this.triggerDownload(fileData.blob, fileData.filename);
-        return true;
-    }
-
-    /** True when the browser exposes the File System Access directory picker. */
-    public static isDirectoryPickerSupported(): boolean {
-        return (
-            typeof window !== "undefined" &&
-            typeof window.showDirectoryPicker === "function"
-        );
-    }
-
-    /**
-     * Saves all completed files of a folder transfer.
-     *
-     * With the File System Access API (Chromium) the user picks a target
-     * directory and the folder structure is recreated inside it. Without it
-     * each file is downloaded individually via the regular download queue.
-     *
-     * @param folderId The folder ID of the transfer to save.
-     * @returns true if saving was started, false when no completed files
-     * exist for the folder or the user dismissed the directory picker.
-     */
-    public async saveFolder(folderId: string): Promise<boolean> {
-        const entries = Array.from(this.completedDownloads.values()).filter(
-            entry => entry.folderId === folderId
-        );
-        if (entries.length === 0) {
-            this.log("No completed files for folder:", folderId);
-            return false;
-        }
-
-        if (!WebRTCConnection.isDirectoryPickerSupported()) {
-            entries.forEach(entry =>
-                this.triggerDownload(entry.blob, entry.filename)
-            );
-            return true;
-        }
-
-        const [directory, err] = await errorAsValue(
-            window.showDirectoryPicker!({ mode: "readwrite" })
-        );
-        if (err) {
-            // Usually the user closed the picker.
-            this.log("Directory picker dismissed:", err);
-            return false;
-        }
-
-        for (const entry of entries) {
-            const [, writeErr] = await errorAsValue(
-                writeFileToDirectory(
-                    directory,
-                    entry.relativePath ?? entry.filename,
-                    entry.blob
-                )
-            );
-            if (writeErr) {
-                console.error(
-                    "Failed to save file into directory:",
-                    entry.relativePath ?? entry.filename,
-                    writeErr
-                );
-                return false;
-            }
-        }
-        return true;
-    }
-
     public closeConnection() {
         this.incomingTransfers.forEach(state => {
             void state.opfsWriter?.abort();
         });
         this.incomingTransfers.clear();
+        this.transferTracker.failUnfinished();
 
         this.transferStats.stop();
         this.peerConnection.close();
@@ -763,8 +652,6 @@ export class WebRTCConnection {
         this.emitEvent("connectionstatechange", "closed");
 
         this.unsubscribeAllHandlers();
-
-        this.completedDownloads.clear();
     }
 
     public getPeerConnection(): RTCPeerConnection {
@@ -799,39 +686,4 @@ export class WebRTCConnection {
             observable.unsubscribeAll();
         });
     }
-}
-
-/**
- * Writes a blob at the given slash-separated path below a directory,
- * creating intermediate subdirectories as needed.
- */
-async function writeFileToDirectory(
-    root: FileSystemDirectoryHandle,
-    path: string,
-    blob: Blob
-): Promise<void> {
-    const segments = path.split("/").filter(segment => segment.length > 0);
-    const fileName = segments.pop()!;
-
-    let directory = root;
-    for (const segment of segments) {
-        directory = await directory.getDirectoryHandle(segment, {
-            create: true,
-        });
-    }
-
-    const handle = await directory.getFileHandle(fileName, { create: true });
-    const writable = await handle.createWritable();
-    await writable.write(blob);
-    await writable.close();
-}
-
-const downloadQueue: (() => void)[] = [];
-let downloadActive = false;
-
-function processDownloadQueue() {
-    if (downloadActive || downloadQueue.length === 0) return;
-    downloadActive = true;
-    const nextDownload = downloadQueue.shift();
-    if (nextDownload) nextDownload();
 }
