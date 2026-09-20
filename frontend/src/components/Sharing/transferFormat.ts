@@ -1,6 +1,9 @@
 /** Formatting helpers shared by the file and folder rows of the sharing table. */
 
-import { TransferStatus } from "../../services/TransferTracker";
+import {
+    TransferDirection,
+    TransferStatus,
+} from "../../services/TransferTracker";
 
 export const getSizeInHumanReadableFormat = (size: number): string => {
     const units = ["B", "KB", "MB", "GB", "TB"];
@@ -53,11 +56,15 @@ const formatRemainingTime = (seconds: number): string => {
 /** Speed and remaining time line shown next to a running progress bar. */
 export const getTransferInfo = (transfer: {
     status: TransferStatus;
+    direction: TransferDirection;
     speedBps: number | null;
     etaSeconds: number | null;
 }): string => {
     if (transfer.status === "finalizing") {
-        return "Speichern...";
+        // The sender waits for the acknowledgement, the receiver stores the file.
+        return transfer.direction === "up"
+            ? "Warte auf Bestätigung..."
+            : "Speichern...";
     }
     if (transfer.speedBps === null || transfer.speedBps <= 0) {
         return "Berechne...";

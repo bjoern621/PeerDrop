@@ -134,7 +134,8 @@ export class TransferTracker {
         if (entry.status === "done" || entry.status === "failed") return;
 
         entry.status = status;
-        if (status === "done") {
+        // Both states follow the last byte, while the last sample can lag.
+        if (status === "finalizing" || status === "done") {
             entry.bytesTransferred = entry.size;
         }
         this.notify();

@@ -134,6 +134,7 @@ function FolderRowComponent({ folder, folderId, depth = 0 }: FolderRowProps) {
                                         status: anyFinalizing
                                             ? "finalizing"
                                             : "active",
+                                        direction,
                                         speedBps,
                                         etaSeconds,
                                     })}
