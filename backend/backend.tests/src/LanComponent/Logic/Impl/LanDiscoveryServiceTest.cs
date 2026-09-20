@@ -14,6 +14,9 @@ public class LanDiscoveryServiceTest
     private const string NETWORK_IP = "203.0.113.7";
     private const string TOKEN_A = "ABCDE";
     private const string TOKEN_B = "BCDEF";
+    private const string TOKEN_C = "CDEFG";
+    private const string STATUS_ONLINE = "online";
+    private const string STATUS_BUSY = "busy";
 
     // ITypedMessage carries a static abstract member, so it cannot stand as a
     // generic argument of Moq's Callback overloads.
@@ -66,6 +69,9 @@ public class LanDiscoveryServiceTest
 
     private List<string> LastPeerTokensFor(string clientToken) =>
         [.. _sentPeerLists[clientToken][^1].Peers.Select(peer => peer.Token)];
+
+    private string StatusOf(string recipientToken, string peerToken) =>
+        _sentPeerLists[recipientToken][^1].Peers.Single(peer => peer.Token == peerToken).Status;
 
     private int PeerListCountFor(string clientToken) =>
         _sentPeerLists.TryGetValue(clientToken, out var messages) ? messages.Count : 0;
@@ -125,6 +131,70 @@ public class LanDiscoveryServiceTest
         await ReportDiscovery(TOKEN_A, false);
 
         Assert.That(LastPeerTokensFor(TOKEN_A), Is.Empty);
+    }
+
+    [Test]
+    public async Task HandleConnectionEstablished_ShowsBothClientsBusy()
+    {
+        await ConnectAndReportDiscovery(TOKEN_A, true);
+        await ConnectAndReportDiscovery(TOKEN_B, true);
+        await ConnectAndReportDiscovery(TOKEN_C, true);
+
+        await _service.HandleConnectionEstablished(TOKEN_A, TOKEN_B);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(StatusOf(TOKEN_C, TOKEN_A), Is.EqualTo(STATUS_BUSY));
+            Assert.That(StatusOf(TOKEN_C, TOKEN_B), Is.EqualTo(STATUS_BUSY));
+        });
+    }
+
+    [Test]
+    public async Task HandleSessionLeft_PartnerKeepsSession_ShowsPartnerBusy()
+    {
+        await ConnectAndReportDiscovery(TOKEN_A, true);
+        await ConnectAndReportDiscovery(TOKEN_B, true);
+        await ConnectAndReportDiscovery(TOKEN_C, true);
+        await _service.HandleConnectionEstablished(TOKEN_A, TOKEN_B);
+
+        await _service.HandleSessionLeft(TOKEN_A);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(StatusOf(TOKEN_C, TOKEN_A), Is.EqualTo(STATUS_ONLINE));
+            Assert.That(StatusOf(TOKEN_C, TOKEN_B), Is.EqualTo(STATUS_BUSY));
+        });
+    }
+
+    [Test]
+    public async Task HandleSessionLeft_BothSidesLeft_ShowsBothOnline()
+    {
+        await ConnectAndReportDiscovery(TOKEN_A, true);
+        await ConnectAndReportDiscovery(TOKEN_B, true);
+        await ConnectAndReportDiscovery(TOKEN_C, true);
+        await _service.HandleConnectionEstablished(TOKEN_A, TOKEN_B);
+
+        await _service.HandleSessionLeft(TOKEN_A);
+        await _service.HandleSessionLeft(TOKEN_B);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(StatusOf(TOKEN_C, TOKEN_A), Is.EqualTo(STATUS_ONLINE));
+            Assert.That(StatusOf(TOKEN_C, TOKEN_B), Is.EqualTo(STATUS_ONLINE));
+        });
+    }
+
+    [Test]
+    public async Task HandleClientDisconnected_PartnerKeepsSession_ShowsPartnerBusy()
+    {
+        await ConnectAndReportDiscovery(TOKEN_A, true);
+        await ConnectAndReportDiscovery(TOKEN_B, true);
+        await ConnectAndReportDiscovery(TOKEN_C, true);
+        await _service.HandleConnectionEstablished(TOKEN_A, TOKEN_B);
+
+        await _service.HandleClientDisconnected(TOKEN_A);
+
+        Assert.That(StatusOf(TOKEN_C, TOKEN_B), Is.EqualTo(STATUS_BUSY));
     }
 
     [Test]

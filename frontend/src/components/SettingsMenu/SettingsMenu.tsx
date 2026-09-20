@@ -23,11 +23,16 @@ export default function SettingsMenu() {
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const { isOpen, openSettings, closeSettings } = useSettingsDialog();
     const { themePreference, setThemePreference } = useThemeContext();
-    const { autoSaveDownloads, showConnectWarning, lanDiscovery } =
-        useSettings();
+    const {
+        autoSaveDownloads,
+        showConnectWarning,
+        lanDiscovery,
+        stayAfterDisconnect,
+    } = useSettings();
     const autoSaveId = useId();
     const connectWarningId = useId();
     const lanDiscoveryId = useId();
+    const stayAfterDisconnectId = useId();
 
     // showModal() throws on an already open dialog and close() on an already
     // closed one, so both calls go through the element's own open flag.
@@ -170,6 +175,29 @@ export default function SettingsMenu() {
                         <p className={css.hint}>
                             Dein Gerät erscheint dann bei anderen Geräten im
                             selben Netzwerk und zeigt sie dir an.
+                        </p>
+
+                        <div className={css.toggleRow}>
+                            <label htmlFor={stayAfterDisconnectId}>
+                                Nach Trennung auf der Seite bleiben
+                            </label>
+                            <input
+                                id={stayAfterDisconnectId}
+                                type="checkbox"
+                                className={css.switch}
+                                checked={stayAfterDisconnect}
+                                onChange={event =>
+                                    updateSettings({
+                                        stayAfterDisconnect:
+                                            event.target.checked,
+                                    })
+                                }
+                            />
+                        </div>
+                        <p className={css.hint}>
+                            Trennt der Peer die Verbindung, bleiben empfangene
+                            Dateien auf der Übertragungsseite zum Speichern.
+                            Wenn deaktiviert, wird die Seite sofort verlassen.
                         </p>
                     </div>
                 </div>

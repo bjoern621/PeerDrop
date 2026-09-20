@@ -30,6 +30,18 @@
 
     &::backdrop {
         background-color: transparent;
+
+        @media (prefers-reduced-motion: no-preference) {
+            transition: background-color 0.1s;
+        }
+    }
+
+    &[open]::backdrop {
+        background-color: var(--backdrop);
+
+        @starting-style {
+            background-color: transparent;
+        }
     }
 
     width: 320px;
