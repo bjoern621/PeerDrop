@@ -34,7 +34,7 @@ export default function Sharing() {
             <div className={css.sharingHeader}>
                 {peerDisconnected ? (
                     <div className={css.disconnectedNotice} role="status">
-                        <p>Der Peer hat die Verbindung beendet.</p>
+                        <p>Der Peer hat die Verbindung getrennt.</p>
                         <p className={css.disconnectedHint}>
                             Empfangene Dateien kannst du speichern, bis du diese
                             Seite verlässt.

@@ -148,9 +148,10 @@
     gap: var(--space-4);
 
     padding: var(--space-8) var(--space-16);
-    border: 1px solid var(--warning-30);
+    border: 1px solid var(--border);
     border-radius: var(--space-16);
-    background-color: var(--warning-10);
+    background-color: var(--background);
+    background-image: linear-gradient(var(--secondary-20));
 }
 
 .disconnectedHint {
