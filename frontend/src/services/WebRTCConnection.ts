@@ -1,5 +1,5 @@
 import { assert } from "../util/Assert";
-import errorAsValue from "../util/ErrorAsValue";
+import errorAsValue, { errorAsValueSync } from "../util/ErrorAsValue";
 import { ClientToken, WebSocketService } from "./WebSocketService";
 import { MessageType } from "../types/MessageType";
 import { Logger } from "../util/Logger";
@@ -299,8 +299,7 @@ export class WebRTCConnection {
             if (typeof event.data !== "string") {
                 return;
             }
-            const message = JSON.parse(event.data) as AckMessage;
-            if (message.ack !== uuid) {
+            if (readAckedUuid(event.data) !== uuid) {
                 return;
             }
 
@@ -729,4 +728,16 @@ export class WebRTCConnection {
             observable.unsubscribeAll();
         });
     }
+}
+
+/**
+ * UUID an acknowledgement names, null for every other string on the channel.
+ * A peer speaking a different protocol version reaches this with anything.
+ */
+function readAckedUuid(data: string): string | null {
+    const [message] = errorAsValueSync(
+        () => JSON.parse(data) as Partial<AckMessage> | null
+    );
+
+    return typeof message?.ack === "string" ? message.ack : null;
 }
