@@ -1,40 +1,36 @@
 # PeerDrop
 
-Dateien direkt von Peer zu Peer übertragen, im Browser unter [peerdrop.de](https://peerdrop.de).
-Die Datei geht aus dem einen Browser in den anderen, ohne Zwischenstation.
+**Dateien direkt von Peer zu Peer. Im Browser, ohne Upload, ohne Konto.**
+Jetzt teilen auf [peerdrop.de](https://peerdrop.de).
 
 ![Übertragung mit Fortschritt, Tempo und Restzeit je Datei](docs/uebertragung.png)
 
-## Was der Weg über die Cloud kostet
+## Die Cloud will deine Datei. PeerDrop nicht.
 
-Beim Hochladen gibst du die Datei aus der Hand: sie liegt beim Anbieter, lesbar für ihn, bis jemand sie löscht.
-Nach dem Löschen bleibt offen, wie lange Backups und Caches die Kopie noch halten.
-Der Freigabe-Link öffnet die Datei für jeden, der ihn bekommt, und ein Link lässt sich weiterschicken.
-Wer davon Gebrauch gemacht hat, erfährst du nicht.
+Hochladen heißt hergeben: die Datei liegt lesbar beim Anbieter, Backups behalten ihre Kopien, und der Freigabe-Link öffnet sie für jeden, der ihn weiterbekommt.
+Bei PeerDrop geht sie aus deinem Browser in den des anderen Peers. Sonst nirgendwohin.
 
-## So läuft eine Übertragung
+## In Sekunden verbunden
 
 ![Eigener Token und die Anfrage des anderen Peers](docs/verbinden.png)
 
 1. Beide Peers öffnen peerdrop.de und bekommen je einen fünfstelligen Token.
-2. Gib deinen Token weiter, per Kopierknopf oder als Link auf `peerdrop.de/connect?token=ABCDE`.
-3. Der andere Peer fragt damit an, du vergleichst den angezeigten Token und lässt die Verbindung zu.
-4. Zieh Dateien und Ordner auf die Seite. 🚀
+2. Token weitergeben, per Kopierknopf oder als Link auf `peerdrop.de/connect?token=ABCDE`.
+3. Angezeigten Token vergleichen, Verbindung zulassen.
+4. Dateien und Ordner draufziehen. 🚀
 
-Peers im selben Netzwerk stehen ohne Token in einer Liste, ein Klick genügt.
-Mit einem Konto stehen dort deine eigenen Geräte unter selbst vergebenen Namen.
+Peers im selben Netzwerk stehen ohne Token in der Liste, ein Klick genügt.
 
-## Was die Server sehen
+## Unsere Server sehen deine Dateien nie
 
-Ein Server von PeerDrop bringt die beiden Peers zusammen und reicht dafür ihre Verbindungsdaten durch.
-Die Übertragung läuft verschlüsselt über WebRTC, und die Schlüssel handeln die beiden Browser unter sich aus.
-Lässt ein Router keinen direkten Weg zu, reicht ein Relay die verschlüsselten Pakete weiter, für das Dateiname und Inhalt unlesbar bleiben.
-Auf keinem der Server bleibt eine Datei zurück.
+Echte Ende-zu-Ende-Verschlüsselung, direkt zwischen den beiden Browsern.
+Unsere Server vermitteln die Verbindung und bekommen deine Dateien nie zu Gesicht, also kann sie dort auch niemand lesen. Das ist P2P.
+Sperrt eine Firewall den direkten Weg, reicht ein Relay die Pakete weiter, verschlüsselt und für das Relay unlesbar.
 
-## Grenzen
+## Gut zu wissen
 
-Eine Übertragung braucht beide Peers gleichzeitig auf peerdrop.de.
-Schließt ein Peer den Tab, bricht sie ab und beginnt beim nächsten Anlauf von vorn.
+Beide Peers müssen gleichzeitig auf peerdrop.de sein.
+Tab zu heißt Übertragung neu.
 
 ## Lizenz
 
