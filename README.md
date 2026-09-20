@@ -7,7 +7,8 @@ Läuft im Browser unter [peerdrop.de](https://peerdrop.de).
 
 ## Die Cloud will deine Dateien. PeerDrop nicht.
 
-Hochladen heißt Risiko: die Dateien liegen lesbar beim Anbieter, nach dem Löschen bleiben Kopien in seinen Backups, und der Freigabe-Link öffnet sie für jeden, der ihn weiterbekommt.
+Hochladen heißt Risiko: die Dateien liegen lesbar beim Anbieter, nach dem Löschen bleiben Kopien in seinen Backups.
+Der Freigabe-Link öffnet sie für jeden, der ihn weiterbekommt.
 Bei PeerDrop gehen deine Dateien aus deinem Browser in den des anderen Peers, sonst nirgendwohin.
 
 ## In Sekunden verbunden
