@@ -15,7 +15,10 @@ export type TransferStatus =
     | "waiting"
     /** Bytes are flowing. */
     | "active"
-    /** All bytes arrived, file is being finalized (e.g. written to disk). */
+    /**
+     * All bytes handed over. Receiver: file is being finalized (e.g. written
+     * to disk). Sender: waiting for the receiver's acknowledgement.
+     */
     | "finalizing"
     | "done"
     | "failed";
@@ -127,9 +130,12 @@ export class TransferTracker {
     public setStatus(uuid: string, status: TransferStatus) {
         const entry = this.entries.get(uuid);
         if (!entry || entry.status === status) return;
+        // done and failed end a transfer; a later report cannot revive it.
+        if (entry.status === "done" || entry.status === "failed") return;
 
         entry.status = status;
-        if (status === "done") {
+        // Both states follow the last byte, while the last sample can lag.
+        if (status === "finalizing" || status === "done") {
             entry.bytesTransferred = entry.size;
         }
         this.notify();
