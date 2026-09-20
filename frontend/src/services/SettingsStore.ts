@@ -21,12 +21,20 @@ export interface AppSettings {
      * when true; otherwise the device stays hidden and no devices are listed.
      */
     lanDiscovery: boolean;
+
+    /**
+     * Keeps the transfer screen open after the peer closed the connection, so
+     * the received files stay saveable; otherwise the screen is left right
+     * away.
+     */
+    stayAfterDisconnect: boolean;
 }
 
 const STORAGE_KEYS: Record<keyof AppSettings, string> = {
     autoSaveDownloads: "autoSaveDownloads",
     showConnectWarning: "showConnectWarning",
     lanDiscovery: "lanDiscovery",
+    stayAfterDisconnect: "stayAfterDisconnect",
 };
 
 // Written by the warning dialog's "Nicht wieder anzeigen" before the setting existed.
@@ -36,6 +44,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     autoSaveDownloads: true,
     showConnectWarning: true,
     lanDiscovery: true,
+    stayAfterDisconnect: true,
 };
 
 function readBooleanSetting(key: string, defaultValue: boolean): boolean {
@@ -79,6 +88,10 @@ let settings: AppSettings = {
     lanDiscovery: readBooleanSetting(
         STORAGE_KEYS.lanDiscovery,
         DEFAULT_SETTINGS.lanDiscovery
+    ),
+    stayAfterDisconnect: readBooleanSetting(
+        STORAGE_KEYS.stayAfterDisconnect,
+        DEFAULT_SETTINGS.stayAfterDisconnect
     ),
 };
 

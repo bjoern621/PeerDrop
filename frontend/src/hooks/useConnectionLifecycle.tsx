@@ -8,11 +8,13 @@ import {
 import { toast } from "react-toastify/unstyled";
 import { usePeerConnectionManager } from "../context/connection/PeerConnectionContext";
 import { CloseInitiator } from "../services/PeerConnectionManager";
+import { getSettings } from "../services/SettingsStore";
 
 /**
  * Reacts to the end of the peer connection. A local close leaves the
  * transfer screen right away. A close by the peer keeps the screen in its
- * disconnected state, where received files stay saveable.
+ * disconnected state, where received files stay saveable, unless the
+ * stayAfterDisconnect setting is switched off.
  */
 function handleConnectionClosed(
     initiator: CloseInitiator,
@@ -31,6 +33,11 @@ function handleConnectionClosed(
     // The close message of the peer frees the peer alone. This client keeps the
     // session until it leaves the screen.
     sessionHeld.current = true;
+
+    if (!getSettings().stayAfterDisconnect) {
+        void navigate("/connect");
+        return;
+    }
 
     setPeerDisconnected(true);
 }
