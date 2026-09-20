@@ -1,14 +1,14 @@
 # PeerDrop
 
-**Dateien direkt von Peer zu Peer. Im Browser, ohne Upload, ohne Konto.**
-Jetzt teilen auf [peerdrop.de](https://peerdrop.de).
+**Dateien direkt von Peer zu Peer, ohne Upload und ohne Konto.**
+Läuft im Browser unter [peerdrop.de](https://peerdrop.de).
 
 ![Übertragung mit Fortschritt, Tempo und Restzeit je Datei](docs/uebertragung.png)
 
-## Die Cloud will deine Datei. PeerDrop nicht.
+## Die Cloud will deine Dateien. PeerDrop nicht.
 
-Hochladen heißt hergeben: die Datei liegt lesbar beim Anbieter, Backups behalten ihre Kopien, und der Freigabe-Link öffnet sie für jeden, der ihn weiterbekommt.
-Bei PeerDrop geht sie aus deinem Browser in den des anderen Peers. Sonst nirgendwohin.
+Hochladen heißt Risiko: die Dateien liegen lesbar beim Anbieter, Backups behalten ihre Kopien, und der Freigabe-Link öffnet sie für jeden, der ihn weiterbekommt.
+Bei PeerDrop gehen deine Dateien aus deinem Browser in den des anderen Peers, sonst nirgendwohin.
 
 ## In Sekunden verbunden
 
@@ -19,12 +19,13 @@ Bei PeerDrop geht sie aus deinem Browser in den des anderen Peers. Sonst nirgend
 3. Angezeigten Token vergleichen, Verbindung zulassen.
 4. Dateien und Ordner draufziehen. 🚀
 
-Peers im selben Netzwerk stehen ohne Token in der Liste, ein Klick genügt.
+Peers im selben Netzwerk werden dir ohne Token angezeigt, ein Klick verbindet euch.
 
 ## Unsere Server sehen deine Dateien nie
 
 Echte Ende-zu-Ende-Verschlüsselung, direkt zwischen den beiden Browsern.
-Unsere Server vermitteln die Verbindung und bekommen deine Dateien nie zu Gesicht, also kann sie dort auch niemand lesen. Das ist P2P.
+Unsere Server vermitteln die Verbindung und bekommen deine Dateien nie zu Gesicht, also kann sie dort auch niemand lesen.
+Genau das heißt P2P.
 Sperrt eine Firewall den direkten Weg, reicht ein Relay die Pakete weiter, verschlüsselt und für das Relay unlesbar.
 
 ## Gut zu wissen
