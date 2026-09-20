@@ -4,13 +4,14 @@
 }
 
 .label {
+    display: flex;
+    align-items: center;
     margin-bottom: var(--space-16);
 }
 
 .icon {
     height: calc(var(--font-size-s) * var(--line-height-s));
     margin-left: var(--space-4);
-    vertical-align: top;
 }
 
 .peerList {
@@ -38,21 +39,36 @@
 
 @keyframes pulse {
     from {
-        box-shadow: 0 0 0 0 var(--primary-40);
+        scale: 1;
+        opacity: var(--a-80);
     }
 
     to {
-        box-shadow: 0 0 0 var(--space-12) transparent;
+        scale: 3;
+        opacity: 0;
     }
 }
 
+// Ring animated as a scaled outline of the dot. A box-shadow spread fading
+// out lingers as a filled disc around the dot for most of the cycle.
 .pulse {
+    position: relative;
     height: var(--space-12);
     aspect-ratio: 1;
     border-radius: 50%;
-    margin-left: var(--space-8);
+
+    // Ring radius, so the ring stays inside the scroll container.
+    margin-left: var(--space-12);
     background-color: var(--primary);
-    animation: pulse 1.5s ease-out infinite;
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: 1px solid var(--primary);
+        border-radius: inherit;
+        animation: pulse 1.5s ease-out infinite;
+    }
 }
 
 .discoveryOff {
