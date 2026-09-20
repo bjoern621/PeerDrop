@@ -290,6 +290,13 @@ export class WebRTCConnection {
                 return;
             }
 
+            // A channel closed while the last bytes drained already failed
+            // the transfer in onclose.
+            if (dataChannel.readyState !== "open") {
+                this.log("Data channel closed during transfer:", uuid);
+                return;
+            }
+
             if (progressInterval) clearInterval(progressInterval);
             this.transferTracker.setStatus(uuid, "finalizing");
             this.log("File handed to transport for Transfer:", uuid);

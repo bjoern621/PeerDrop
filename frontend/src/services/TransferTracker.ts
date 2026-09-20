@@ -130,6 +130,8 @@ export class TransferTracker {
     public setStatus(uuid: string, status: TransferStatus) {
         const entry = this.entries.get(uuid);
         if (!entry || entry.status === status) return;
+        // done and failed end a transfer; a later report cannot revive it.
+        if (entry.status === "done" || entry.status === "failed") return;
 
         entry.status = status;
         if (status === "done") {
