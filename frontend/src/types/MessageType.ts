@@ -18,4 +18,6 @@ export const enum MessageType {
     LAN_PEERS = "lan-peers",
     LAN_PEERS_REQUEST = "lan-peers-request",
     LAN_DISCOVERY_STATE = "lan-discovery-state",
+    PEER_CONNECTION_REPORT = "peer-connection-report",
+    TRANSFER_REPORT = "transfer-report",
 }

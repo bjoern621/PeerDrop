@@ -11,6 +11,7 @@ import { OpfsFileWriter } from "./OpfsFileWriter";
 import { TransferTracker } from "./TransferTracker";
 import { ReceivedFiles } from "./ReceivedFiles";
 import { getSettings } from "./SettingsStore";
+import { UsageReporter } from "./UsageReporter";
 
 /** Bytes of the little-endian chunk sequence number prefixing each binary message. */
 const SEQUENCE_HEADER_BYTES = 4;
@@ -87,6 +88,8 @@ export class WebRTCConnection {
     private readonly signalingChannel: WebSocketService;
     private readonly peerConnection: RTCPeerConnection;
     private readonly transferStats: TransferStatsMonitor;
+    private readonly usageReporter: UsageReporter;
+    private readonly unsubscribeTransferEnded: () => void;
 
     private readonly eventHandlers: Map<string, Observable<unknown>> =
         new Map();
@@ -113,8 +116,26 @@ export class WebRTCConnection {
             signalingChannel.getLocalClientToken()! < this.remoteToken;
         this.peerConnection = new RTCPeerConnection(serversConfig);
         this.transferStats = new TransferStatsMonitor(this.peerConnection);
+        this.usageReporter = new UsageReporter(
+            this.peerConnection,
+            signalingChannel,
+            this.polite
+        );
+        this.unsubscribeTransferEnded = transferTracker.subscribeEnded(
+            ended => {
+                if (ended.direction === "up") {
+                    this.usageReporter.reportTransfer(
+                        ended.status === "done" ? "completed" : "failed",
+                        ended.bytesTransferred
+                    );
+                }
+            }
+        );
 
         this.peerConnection.onconnectionstatechange = () => {
+            this.usageReporter.handleConnectionState(
+                this.peerConnection.connectionState
+            );
             this.emitEvent(
                 "connectionstatechange",
                 this.peerConnection.connectionState
@@ -669,6 +690,7 @@ export class WebRTCConnection {
         });
         this.incomingTransfers.clear();
         this.transferTracker.failUnfinished();
+        this.unsubscribeTransferEnded();
 
         this.transferStats.stop();
         this.peerConnection.close();

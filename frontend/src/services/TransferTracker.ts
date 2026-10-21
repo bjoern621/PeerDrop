@@ -60,6 +60,13 @@ interface TransferEntry {
     samples: { time: number; bytes: number }[];
 }
 
+/** A transfer that reached done or failed, handed once to each ended listener. */
+export interface EndedTransfer {
+    direction: TransferDirection;
+    status: "done" | "failed";
+    bytesTransferred: number;
+}
+
 /** Samples older than this are dropped from the speed window. */
 const SPEED_WINDOW_MS = 5000;
 /** Minimum spacing between two stored byte samples. */
@@ -70,6 +77,8 @@ const NOTIFY_INTERVAL_MS = 250;
 export class TransferTracker {
     private readonly entries: Map<string, TransferEntry> = new Map();
     private readonly listeners: Set<() => void> = new Set();
+    private readonly endedListeners: Set<(ended: EndedTransfer) => void> =
+        new Set();
     private intervalId: ReturnType<typeof setInterval> | null = null;
     private snapshotCache: TransferSnapshot[] = [];
     private snapshotDirty = true;
@@ -140,22 +149,35 @@ export class TransferTracker {
         }
         this.notify();
         this.syncInterval();
+        if (status === "done" || status === "failed") {
+            this.notifyEnded(entry, status);
+        }
     }
 
     /** Marks every transfer still in flight as failed, e.g. when the connection closes. */
     public failUnfinished() {
-        let changed = false;
+        const failed: TransferEntry[] = [];
         for (const entry of this.entries.values()) {
             if (entry.status === "done" || entry.status === "failed") {
                 continue;
             }
             entry.status = "failed";
-            changed = true;
+            failed.push(entry);
         }
-        if (changed) {
+        if (failed.length > 0) {
             this.notify();
             this.syncInterval();
+            failed.forEach(entry => this.notifyEnded(entry, "failed"));
         }
+    }
+
+    public subscribeEnded(
+        listener: (ended: EndedTransfer) => void
+    ): () => void {
+        this.endedListeners.add(listener);
+        return () => {
+            this.endedListeners.delete(listener);
+        };
     }
 
     /** Removes all transfers, e.g. when a new peer session starts. */
@@ -235,6 +257,15 @@ export class TransferTracker {
         }
 
         return (entry.bytesTransferred - oldest.bytes) / elapsedSeconds;
+    }
+
+    private notifyEnded(entry: TransferEntry, status: EndedTransfer["status"]) {
+        const ended: EndedTransfer = {
+            direction: entry.direction,
+            status,
+            bytesTransferred: entry.bytesTransferred,
+        };
+        this.endedListeners.forEach(listener => listener(ended));
     }
 
     private notify() {

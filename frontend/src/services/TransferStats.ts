@@ -34,7 +34,7 @@ export interface TransferStatsSample {
  * Shape of "local-candidate" / "remote-candidate" stats reports.
  * Not part of the TypeScript DOM lib.
  */
-interface IceCandidateStats {
+export interface IceCandidateStats {
     candidateType: string;
     protocol?: string;
     relayProtocol?: string;
@@ -106,7 +106,7 @@ export class TransferStatsMonitor {
     private async sample() {
         const stats = await this.peerConnection.getStats();
 
-        const pair = this.findSelectedCandidatePair(stats);
+        const pair = findSelectedCandidatePair(stats);
         if (!pair) {
             return;
         }
@@ -170,50 +170,6 @@ export class TransferStatsMonitor {
         this.onSample?.(sample);
     }
 
-    /**
-     * Returns the currently selected ICE candidate pair.
-     *
-     * Chrome exposes it via the transport's selectedCandidatePairId.
-     * Firefox marks the pair itself with selected = true.
-     */
-    private findSelectedCandidatePair(
-        stats: RTCStatsReport
-    ): RTCIceCandidatePairStats | null {
-        let selectedPairId: string | null = null;
-        stats.forEach((report: unknown) => {
-            const transport = report as RTCStats & {
-                selectedCandidatePairId?: string;
-            };
-            if (
-                transport.type === "transport" &&
-                transport.selectedCandidatePairId
-            ) {
-                selectedPairId = transport.selectedCandidatePairId;
-            }
-        });
-
-        let selectedPair: RTCIceCandidatePairStats | null = null;
-        stats.forEach((report: unknown) => {
-            const pair = report as RTCIceCandidatePairStats & {
-                selected?: boolean;
-            };
-            if (pair.type !== "candidate-pair") {
-                return;
-            }
-            if (
-                (selectedPairId !== null && pair.id === selectedPairId) ||
-                (selectedPairId === null && pair.selected === true) ||
-                (selectedPairId === null &&
-                    pair.state === "succeeded" &&
-                    pair.nominated === true)
-            ) {
-                selectedPair = pair;
-            }
-        });
-
-        return selectedPair;
-    }
-
     private logSample(sample: TransferStatsSample) {
         const format = (value: number | null, unit: string) =>
             value !== null ? `${value.toFixed(1)}${unit}` : "n/a";
@@ -230,4 +186,48 @@ export class TransferStatsMonitor {
                 ` availableOut=${format(sample.availableOutgoingMbps, "Mbps")}`
         );
     }
+}
+
+/**
+ * Returns the currently selected ICE candidate pair.
+ *
+ * Chrome exposes it via the transport's selectedCandidatePairId.
+ * Firefox marks the pair itself with selected = true.
+ */
+export function findSelectedCandidatePair(
+    stats: RTCStatsReport
+): RTCIceCandidatePairStats | null {
+    let selectedPairId: string | null = null;
+    stats.forEach((report: unknown) => {
+        const transport = report as RTCStats & {
+            selectedCandidatePairId?: string;
+        };
+        if (
+            transport.type === "transport" &&
+            transport.selectedCandidatePairId
+        ) {
+            selectedPairId = transport.selectedCandidatePairId;
+        }
+    });
+
+    let selectedPair: RTCIceCandidatePairStats | null = null;
+    stats.forEach((report: unknown) => {
+        const pair = report as RTCIceCandidatePairStats & {
+            selected?: boolean;
+        };
+        if (pair.type !== "candidate-pair") {
+            return;
+        }
+        if (
+            (selectedPairId !== null && pair.id === selectedPairId) ||
+            (selectedPairId === null && pair.selected === true) ||
+            (selectedPairId === null &&
+                pair.state === "succeeded" &&
+                pair.nominated === true)
+        ) {
+            selectedPair = pair;
+        }
+    });
+
+    return selectedPair;
 }
