@@ -2,6 +2,7 @@ using backend.ConnectionComponent.Common.Api.DTOs;
 using backend.ConnectionComponent.Logic.Api;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
+using backend.TelemetryComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.ConnectionComponent.Logic.Impl;
@@ -10,7 +11,8 @@ public class QuickConnectService(
     IWebSocketHandler _webSocketHandler,
     IServiceScopeFactory _scopeFactory,
     IDeviceService _deviceService,
-    IConnectionInitiationService _connectionInitiationService
+    IConnectionInitiationService _connectionInitiationService,
+    IUsageMetrics _usageMetrics
 ) : IQuickConnectService
 {
     public async Task HandleQuickConnectMessage(string clientToken, QuickConnectMessage message)
@@ -56,5 +58,6 @@ public class QuickConnectService(
         }
 
         await _connectionInitiationService.InitiateConnection(clientToken, peerClientToken);
+        _usageMetrics.ConnectionInitiated("account");
     }
 }

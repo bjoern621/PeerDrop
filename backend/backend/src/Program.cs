@@ -25,6 +25,12 @@ using backend.SignalingComponent.Facade.Api;
 using backend.SignalingComponent.Facade.Impl;
 using backend.SignalingComponent.Logic.Api;
 using backend.SignalingComponent.Logic.Impl;
+using backend.TelemetryComponent.Dataaccess.Api;
+using backend.TelemetryComponent.Dataaccess.Impl;
+using backend.TelemetryComponent.Facade.Api;
+using backend.TelemetryComponent.Facade.Impl;
+using backend.TelemetryComponent.Logic.Api;
+using backend.TelemetryComponent.Logic.Impl;
 using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
@@ -34,6 +40,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.WebSockets;
+using OpenTelemetry.Metrics;
 
 const string corsAllowFrontendOrigin = "corsAllowFrontendOrigin";
 
@@ -86,6 +93,18 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     TrustedProxies.Configure(options, Environment.GetEnvironmentVariable(TrustedProxies.EnvironmentVariable))
 );
 
+// Unset in local development, where an exporter would retry localhost without end.
+if (Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") != null)
+{
+    builder
+        .Services.AddOpenTelemetry()
+        .WithMetrics(metrics =>
+            metrics
+                .AddMeter(UsageMetrics.MeterName, "Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.Server.Kestrel")
+                .AddOtlpExporter()
+        );
+}
+
 builder.Services.AddWebSockets(options => { });
 builder.Services.AddSingleton<IWebSocketRoutes, WebSocketRoutes>();
 builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
@@ -103,6 +122,9 @@ builder.Services.AddSingleton<IQuickConnectService, QuickConnectService>();
 builder.Services.AddSingleton<IConnectionInitiationService, ConnectionInitiationService>();
 builder.Services.AddSingleton<IConnectionStateService, ConnectionStateService>();
 builder.Services.AddSingleton<IOpenConnectionRequestRepository, OpenConnectionRequestRepository>();
+builder.Services.AddSingleton<IUsageMetrics, UsageMetrics>();
+builder.Services.AddSingleton<IUsageCountRepository, UsageCountRepository>();
+builder.Services.AddSingleton<ITelemetryWebsocketMessages, TelemetryWebsocketMessages>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -179,5 +201,7 @@ var connectionWSMessages = app.Services.GetRequiredService<IConnectionWebsocketM
 connectionWSMessages.SubscribeToMessageHandlers();
 var lanEventSubscriptions = app.Services.GetRequiredService<ILanEventSubscriptions>();
 lanEventSubscriptions.SubscribeToEvents();
+var telemetryWebsocketMessages = app.Services.GetRequiredService<ITelemetryWebsocketMessages>();
+telemetryWebsocketMessages.SubscribeToMessageHandlers();
 
 app.Run();

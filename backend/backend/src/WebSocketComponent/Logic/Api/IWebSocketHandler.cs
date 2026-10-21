@@ -31,4 +31,9 @@ public interface IWebSocketHandler
     /// This is guaranteed to be the correct user ID and can't be influenced by the client.
     /// </summary>
     public int? GetUserIdForClientToken(string clientToken);
+
+    /// <summary>
+    /// Connected clients, split by whether the client holds a session.
+    /// </summary>
+    public (int SignedIn, int Anonymous) CountClients();
 }

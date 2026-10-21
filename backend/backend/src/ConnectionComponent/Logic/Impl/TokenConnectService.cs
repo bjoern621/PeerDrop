@@ -1,6 +1,7 @@
 using backend.ConnectionComponent.Common.Api.DTOs;
 using backend.ConnectionComponent.Dataaccess.Api;
 using backend.ConnectionComponent.Logic.Api;
+using backend.TelemetryComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.ConnectionComponent.Logic.Impl;
@@ -10,14 +11,18 @@ public class TokenConnectService(
     ILogger<TokenConnectService> _logger,
     IOpenConnectionRequestRepository _openConnectionRequestRepository,
     IConnectionInitiationService _connectionInitiationService,
-    IConnectionStateService _connectionStateService) : ITokenConnectService
+    IConnectionStateService _connectionStateService,
+    IUsageMetrics _usageMetrics) : ITokenConnectService
 {
     public async Task HandleConnectionRequest(string clientId, ConnectionRequestMessage message)
     {
         _logger.LogDebug($"from {clientId}: Connection Request");
         string remoteToken = message.RemoteToken;
 
-        if (!_webSocketHandler.RemoteTokenExists(remoteToken))
+        var targetFound = _webSocketHandler.RemoteTokenExists(remoteToken);
+        _usageMetrics.ConnectionRequested(targetFound);
+
+        if (!targetFound)
         {
             var rejectedMessage = new ConnectionResponseMessage
             {
@@ -70,6 +75,7 @@ public class TokenConnectService(
         }
 
         // Validation success
+        _usageMetrics.ConnectionAnswered(message.Accepted);
 
         // Forward the response to the requesting client.
         var messageForRequestingClient = new ConnectionResponseMessage
@@ -84,6 +90,7 @@ public class TokenConnectService(
         if (message.Accepted)
         {
             await _connectionInitiationService.InitiateConnection(requestingClientToken, clientId);
+            _usageMetrics.ConnectionInitiated("token");
             _logger.LogDebug($"to {requestingClientToken} and {clientId}: Initiating connection.");
         }
         else

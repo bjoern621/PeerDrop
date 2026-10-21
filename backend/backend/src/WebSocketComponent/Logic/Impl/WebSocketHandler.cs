@@ -367,4 +367,20 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
 
         return null;
     }
+
+    public (int SignedIn, int Anonymous) CountClients()
+    {
+        int signedIn = 0;
+        int anonymous = 0;
+
+        foreach (var kvp in ActiveConnections)
+        {
+            if (kvp.Value.UserId == null)
+                anonymous++;
+            else
+                signedIn++;
+        }
+
+        return (signedIn, anonymous);
+    }
 }

@@ -3,6 +3,7 @@ using backend.ConnectionComponent.Dataaccess.Api;
 using backend.ConnectionComponent.Logic.Api;
 using backend.ConnectionComponent.Logic.Impl;
 using backend.DeviceComponent.Logic.Api;
+using backend.TelemetryComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Api;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -34,7 +35,8 @@ public class TokenConnectServiceTest
             NullLogger<TokenConnectService>.Instance,
             _mockOpenConnectionRequestRepository.Object,
             _mockConnectionInitiationService.Object,
-            _mockConnectionStateService.Object
+            _mockConnectionStateService.Object,
+            new Mock<IUsageMetrics>().Object
         );
     }
 
