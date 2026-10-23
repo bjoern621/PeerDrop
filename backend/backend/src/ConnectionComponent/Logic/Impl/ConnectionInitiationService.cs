@@ -1,6 +1,7 @@
 using backend.ConnectionComponent.Common.Api.DTOs;
 using backend.ConnectionComponent.Dataaccess.Api;
 using backend.ConnectionComponent.Logic.Api;
+using backend.SignalingComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.ConnectionComponent.Logic.Impl;
@@ -10,14 +11,16 @@ public class ConnectionInitiationService : IConnectionInitiationService
     private readonly IWebSocketHandler _webSocketHandler;
     private readonly IOpenConnectionRequestRepository _openConnectionRequestRepository;
     private readonly IConnectionStateService _connectionStateService;
+    private readonly IIceServerProvider _iceServerProvider;
 
     public event Func<string, string, Task>? ConnectionEstablished;
 
-    public ConnectionInitiationService(IWebSocketHandler webSocketHandler, IOpenConnectionRequestRepository openConnectionRequestRepository, IConnectionStateService connectionStateService)
+    public ConnectionInitiationService(IWebSocketHandler webSocketHandler, IOpenConnectionRequestRepository openConnectionRequestRepository, IConnectionStateService connectionStateService, IIceServerProvider iceServerProvider)
     {
         _webSocketHandler = webSocketHandler;
         _openConnectionRequestRepository = openConnectionRequestRepository;
         _connectionStateService = connectionStateService;
+        _iceServerProvider = iceServerProvider;
     }
 
     public async Task InitiateConnection(string clientA, string clientB)
@@ -46,10 +49,18 @@ public class ConnectionInitiationService : IConnectionInitiationService
         }
 
         // Tell the two clients to establish their connection.
-        var messageToA = new EstablishConnectionMessage { RemoteToken = clientB };
+        var messageToA = new EstablishConnectionMessage
+        {
+            RemoteToken = clientB,
+            IceServers = _iceServerProvider.CreateIceServers(clientA),
+        };
         await _webSocketHandler.SendMessage(clientA, messageToA);
 
-        var messageToB = new EstablishConnectionMessage { RemoteToken = clientA };
+        var messageToB = new EstablishConnectionMessage
+        {
+            RemoteToken = clientA,
+            IceServers = _iceServerProvider.CreateIceServers(clientB),
+        };
         await _webSocketHandler.SendMessage(clientB, messageToB);
 
         // Everyone whose request state changed gets a fresh snapshot.

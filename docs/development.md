@@ -56,6 +56,12 @@ _Backend_
 
 3. Das Backend ist verfügbar unter [`http://localhost:5023`](http://localhost:5023).
 
+Lokal bleiben `TURN_HOST` und `TURN_SECRET` ungesetzt.
+Das Backend schickt dann keine ICE-Server an die Peers.
+Zwei Tabs auf einem Rechner verbinden sich trotzdem über ihre Host-Kandidaten.
+In Produktion nennt `TURN_HOST` den coturn-Host.
+`TURN_SECRET` trägt dort das `static-auth-secret` von coturn, mit dem das Backend kurzlebige TURN-Zugangsdaten signiert.
+
 ---
 
 _Datenbank_

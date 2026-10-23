@@ -290,7 +290,8 @@ export class PeerConnectionManager {
                 this.signaling,
                 establishToken,
                 this.transferTracker,
-                this.receivedFiles
+                this.receivedFiles,
+                message.msg.iceServers
             );
 
             this.setupListeners();

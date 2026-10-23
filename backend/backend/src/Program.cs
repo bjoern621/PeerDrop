@@ -89,6 +89,13 @@ var connString = $"Host={host};Username={user};Password={pass};Database={databas
 var dataSource = Npgsql.NpgsqlDataSource.Create(connString);
 builder.Services.AddSingleton(dataSource);
 
+// Both unset in local development, where peers on one machine reach each other directly.
+var turnHost = Environment.GetEnvironmentVariable("TURN_HOST");
+var turnSecret = Environment.GetEnvironmentVariable("TURN_SECRET");
+if (turnHost != null && turnSecret == null)
+    throw new ApplicationException("TURN_HOST set without TURN_SECRET");
+builder.Services.AddSingleton<IIceServerProvider>(new IceServerProvider(turnHost, turnSecret, TimeProvider.System));
+
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
     TrustedProxies.Configure(options, Environment.GetEnvironmentVariable(TrustedProxies.EnvironmentVariable))
 );

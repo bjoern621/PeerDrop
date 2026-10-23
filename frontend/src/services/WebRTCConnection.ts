@@ -20,24 +20,6 @@ const FILE_CHUNK_READ_SIZE = 8 * 1024 * 1024; // 8 MB
 const HIGH_WATER_MARK = 8 * 1024 * 1024; // 8 MB
 const LOW_WATER_MARK = 2 * 1024 * 1024; // 2 MB
 
-const serversConfig: RTCConfiguration = {
-    iceServers: [
-        {
-            urls: "stun:stun.l.google.com:19302",
-        },
-        {
-            urls: "turn:global.relay.metered.ca:443",
-            username: "7cfed80f2da5f327b1e8a894",
-            credential: "Uvb5QuG/FHIpdQYA",
-        },
-        {
-            urls: "turns:global.relay.metered.ca:443?transport=tcp",
-            username: "7cfed80f2da5f327b1e8a894",
-            credential: "Uvb5QuG/FHIpdQYA",
-        },
-    ],
-};
-
 interface FileMeta {
     name: string;
     size: number;
@@ -107,14 +89,15 @@ export class WebRTCConnection {
         signalingChannel: WebSocketService,
         remoteToken: ClientToken,
         private readonly transferTracker: TransferTracker,
-        private readonly receivedFiles: ReceivedFiles
+        private readonly receivedFiles: ReceivedFiles,
+        iceServers: RTCIceServer[]
     ) {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
         this.signalingChannel = signalingChannel;
         this.polite =
             signalingChannel.getLocalClientToken()! < this.remoteToken;
-        this.peerConnection = new RTCPeerConnection(serversConfig);
+        this.peerConnection = new RTCPeerConnection({ iceServers });
         this.transferStats = new TransferStatsMonitor(this.peerConnection);
         this.usageReporter = new UsageReporter(
             this.peerConnection,
