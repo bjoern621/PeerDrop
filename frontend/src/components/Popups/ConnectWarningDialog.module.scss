@@ -1,13 +1,6 @@
 @use "../../theme/shadows.scss" as *;
 
-// The global dialog reset removes the default positioning, so the dialog is
-// centered manually.
 .dialog {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-
     max-width: 480px;
 }
 
