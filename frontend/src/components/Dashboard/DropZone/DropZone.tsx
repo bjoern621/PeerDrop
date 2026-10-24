@@ -1,14 +1,16 @@
 import { DragEvent, useEffect, useRef, useState } from "react";
 import css from "./DropZone.module.scss";
 import Button from "../../Button/Button";
-import CodeFileIcon from "../../../assets/filesystem/icons8-code-file.svg?react";
-import ImageFileIcon from "../../../assets/filesystem/icons8-image-file.svg?react";
-import ZipFileIcon from "../../../assets/filesystem/icons8-zip.svg?react";
-import FolderIcon from "../../../assets/filesystem/icons8-folder.svg?react";
-import FolderOpenIcon from "../../../assets/filesystem/icons8-folder-2.svg?react";
-import DropIcon from "../../../assets/actions/drop.svg?react";
-import CheckIcon from "../../../assets/actions/check.svg?react";
-import WarningIcon from "../../../assets/actions/warning.svg?react";
+import {
+    IconFileCode as CodeFileIcon,
+    IconFileTypeJpg as ImageFileIcon,
+    IconFileZip as ZipFileIcon,
+    IconFolder as FolderIcon,
+    IconFolderOpen as FolderOpenIcon,
+    IconDragDrop as DropIcon,
+    IconCheck as CheckIcon,
+    IconAlertTriangle as WarningIcon,
+} from "@tabler/icons-react";
 import { ShareSelection } from "../../../types/transfer/ShareSelection";
 import {
     collectDroppedSelection,

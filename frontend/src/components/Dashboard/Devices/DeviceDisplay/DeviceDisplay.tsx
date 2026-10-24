@@ -2,14 +2,16 @@ import { useState } from "react";
 import { Device } from "../../../../types/device/Device";
 import { DeviceStatus } from "../../../../types/device/DeviceStatus";
 import css from "./DeviceDisplay.module.scss";
-import TrashIcon from "../../../../assets/actions/icons8-trash.svg?react";
-import EditIcon from "../../../../assets/actions/icons8-edit.svg?react";
+import {
+    IconTrash as TrashIcon,
+    IconPencil as EditIcon,
+    IconCheck as CheckIcon,
+} from "@tabler/icons-react";
 import Badge from "../../../Badge/Badge";
 import Button from "../../../Button/Button";
 import Tooltip from "../../../Tooltip/Tooltip";
 import Anchor from "../../../Anchor/Anchor";
 import FakeButton from "../../../FakeButton/FakeButton";
-import CheckIcon from "../../../../assets/actions/check.svg?react";
 
 const MAX_DEVICE_NAME_LENGTH = 64; // Linked to the backend DisplayNameValidator
 

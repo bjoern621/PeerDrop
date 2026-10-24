@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import css from "./SettingsMenu.module.scss";
-import SettingsIcon from "../../assets/icons8-settings.svg?react";
+import { IconSettings as SettingsIcon } from "@tabler/icons-react";
 import Button from "../Button/Button";
 import { useThemeContext } from "../../context/ThemeContext";
 import useSettings from "../../hooks/useSettings";

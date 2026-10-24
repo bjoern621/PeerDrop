@@ -1,8 +1,10 @@
 import css from "./Why.module.scss";
-import EasyIcon from "../../../assets/icons8-easy.svg?react";
-import SecurityIcon from "../../../assets/icons8-security-shield.svg?react";
-import GiftIcon from "../../../assets/icons8-gift.svg?react";
-import SpeedIcon from "../../../assets/icons8-lightning.svg?react";
+import {
+    IconMoodSmile as EasyIcon,
+    IconShieldLock as SecurityIcon,
+    IconGift as GiftIcon,
+    IconBolt as SpeedIcon,
+} from "@tabler/icons-react";
 import { useRef } from "react";
 
 export default function Why() {

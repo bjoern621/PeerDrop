@@ -140,26 +140,23 @@
     .fileIcon3 {
         position: absolute;
         transition: all 0.3s ease;
-
-        --fill-0: var(--background);
-        --fill-1: currentcolor;
     }
 
-    .fileIcon1 {
-        z-index: 3;
-    }
-
-    .fileIcon2 {
-        z-index: 2;
-    }
-
+    // Outline icons would show through each other, so only the front one
+    // shows until the fan opens.
+    .fileIcon2,
     .fileIcon3 {
-        z-index: 1;
+        opacity: 0;
     }
 
     &:hover:not(:disabled) {
         .fileIcon1 {
             transform: translate(-20px, 2px) rotate(-10deg);
+        }
+
+        .fileIcon2,
+        .fileIcon3 {
+            opacity: 1;
         }
 
         .fileIcon3 {
@@ -184,7 +181,6 @@
         position: absolute;
         max-width: 24px;
         max-height: 24px;
-        fill: currentcolor;
     }
 
     .folderClosed {

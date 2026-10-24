@@ -3,10 +3,12 @@ import Heading from "../Heading/Heading";
 import Footer from "../Footer/Footer";
 import "./Layout.scss";
 import { ToastContainer } from "react-toastify/unstyled";
-import WarningIcon from "../../assets/status/icons8-error-3.svg?react";
-import InfoIcon from "../../assets/status/icons8-info-3.svg?react";
-import SuccessIcon from "../../assets/status/icons8-check-mark-3.svg?react";
-import ErrorIcon from "../../assets/status/icons8-high-priority-3.svg?react";
+import {
+    IconAlertTriangle as WarningIcon,
+    IconInfoCircle as InfoIcon,
+    IconCircleCheck as SuccessIcon,
+    IconAlertCircle as ErrorIcon,
+} from "@tabler/icons-react";
 import { usePreventFileDropNavigation } from "../../hooks/usePreventFileDropNavigation";
 import { useLanDiscoveryState } from "../../hooks/useLanDiscoveryState";
 

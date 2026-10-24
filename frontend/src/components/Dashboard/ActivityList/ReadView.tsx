@@ -1,6 +1,5 @@
 import css from "./ReadView.module.scss";
-import CloseIcon from "../../../assets/actions/icons8-close.svg?react";
-import BlockIcon from "../../../assets/status/icons8-cancel.svg?react";
+import { IconX as CloseIcon, IconBan as BlockIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
 import {

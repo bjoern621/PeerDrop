@@ -3,7 +3,7 @@ import Button from "../../../Button/Button";
 import DeviceDisplay from "../DeviceDisplay/DeviceDisplay";
 import css from "./DeviceList.module.scss";
 import { Device } from "../../../../types/device/Device";
-import PlusIcon from "../../../../assets/actions/icons8-plus.svg?react";
+import { IconPlus as PlusIcon } from "@tabler/icons-react";
 
 interface DeviceListProps {
     selectedUuid: string | null;

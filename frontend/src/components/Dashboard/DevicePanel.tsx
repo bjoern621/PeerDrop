@@ -1,8 +1,10 @@
 import { useRef } from "react";
 import css from "./DevicePanel.module.scss";
-import DevicesIcon from "../../assets/icons8-computers-connecting.svg?react";
-import QuestionIcon from "../../assets/icons8-question.svg?react";
-import CheckIcon from "../../assets/actions/check.svg?react";
+import {
+    IconDevices as DevicesIcon,
+    IconHelpCircle as QuestionIcon,
+    IconCheck as CheckIcon,
+} from "@tabler/icons-react";
 import { useLanPeers } from "../../hooks/useLanPeers";
 import useSettings from "../../hooks/useSettings";
 import { useSettingsDialog } from "../../context/SettingsDialogContext";

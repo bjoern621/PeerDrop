@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import css from "./TokenCard.module.scss";
-import ProfileIcon from "../../assets/icons8-name-tag.svg?react";
-import CopyIcon from "../../assets/actions/icons8-copy.svg?react";
-import CopyLinkIcon from "../../assets/actions/icons8-copy-link.svg?react";
-import CheckIcon from "../../assets/actions/check.svg?react";
+import {
+    IconId as ProfileIcon,
+    IconCopy as CopyIcon,
+    IconLink as CopyLinkIcon,
+    IconCheck as CheckIcon,
+} from "@tabler/icons-react";
 import errorAsValue from "../../util/ErrorAsValue";
 import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 import { useOwnToken } from "../../hooks/useOwnToken";

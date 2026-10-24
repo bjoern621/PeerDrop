@@ -1,6 +1,6 @@
 import Logo from "../Logo/Logo";
 import css from "./Footer.module.scss";
-import GitHubIcon from "../../assets/socials/icons8-github.svg?react";
+import { IconBrandGithub as GitHubIcon } from "@tabler/icons-react";
 import Anchor from "../Anchor/Anchor";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
 

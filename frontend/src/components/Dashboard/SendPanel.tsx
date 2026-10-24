@@ -1,12 +1,14 @@
 import { RefObject } from "react";
 import css from "./SendPanel.module.scss";
-import ConnectIcon from "../../assets/icons8-connect.svg?react";
-import ArrowLeftIcon from "../../assets/actions/arrow-left.svg?react";
-import KeyboardIcon from "../../assets/actions/keyboard.svg?react";
-import SendIcon from "../../assets/actions/send.svg?react";
-import ClockIcon from "../../assets/actions/clock.svg?react";
-import WarningIcon from "../../assets/actions/warning.svg?react";
-import LinesIcon from "../../assets/actions/lines.svg?react";
+import {
+    IconPlugConnected as ConnectIcon,
+    IconArrowLeft as ArrowLeftIcon,
+    IconKeyboard as KeyboardIcon,
+    IconSend as SendIcon,
+    IconClock as ClockIcon,
+    IconAlertTriangle as WarningIcon,
+    IconAlignLeft as LinesIcon,
+} from "@tabler/icons-react";
 import RecipientInput, {
     RecipientCheck,
 } from "./RecipientInput/RecipientInput";

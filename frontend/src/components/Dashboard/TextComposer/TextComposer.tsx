@@ -7,9 +7,11 @@ import {
     useState,
 } from "react";
 import css from "./TextComposer.module.scss";
-import SendIcon from "../../../assets/actions/send.svg?react";
-import ExpandIcon from "../../../assets/actions/expand.svg?react";
-import CollapseIcon from "../../../assets/actions/collapse.svg?react";
+import {
+    IconSend as SendIcon,
+    IconArrowsDiagonal as ExpandIcon,
+    IconArrowsDiagonalMinimize2 as CollapseIcon,
+} from "@tabler/icons-react";
 import { getSizeInHumanReadableFormat } from "../transferFormat";
 
 const BIG_MAX_WIDTH = 840;

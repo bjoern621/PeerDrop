@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import css from "./ActivityList.module.scss";
-import ArrowIcon from "../../../assets/actions/icons8-arrow-3.svg?react";
+import { IconChevronRight as ArrowIcon } from "@tabler/icons-react";
 import { useScrollShadows } from "../../../hooks/useScrollShadows";
 import { MessagingSnapshot } from "../../../services/MessagingService";
 import { TransferSnapshot } from "../../../services/TransferTracker";

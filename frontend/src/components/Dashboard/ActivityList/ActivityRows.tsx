@@ -1,15 +1,17 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import css from "./ActivityList.module.scss";
-import UploadIcon from "../../../assets/icons8-upload.svg?react";
-import DownloadIcon from "../../../assets/icons8-download.svg?react";
-import FolderIcon from "../../../assets/filesystem/icons8-folder.svg?react";
-import FileIcon from "../../../assets/filesystem/icons8-file.svg?react";
-import ChevronIcon from "../../../assets/actions/icons8-arrow-3.svg?react";
-import CloseIcon from "../../../assets/actions/icons8-close.svg?react";
-import BlockIcon from "../../../assets/status/icons8-cancel.svg?react";
-import RetryIcon from "../../../assets/actions/icons8-reload.svg?react";
-import PauseIcon from "../../../assets/actions/pause.svg?react";
-import LinesIcon from "../../../assets/actions/lines.svg?react";
+import {
+    IconUpload as UploadIcon,
+    IconDownload as DownloadIcon,
+    IconFolder as FolderIcon,
+    IconFile as FileIcon,
+    IconChevronRight as ChevronIcon,
+    IconX as CloseIcon,
+    IconBan as BlockIcon,
+    IconRefresh as RetryIcon,
+    IconPlayerPauseFilled as PauseIcon,
+    IconAlignLeft as LinesIcon,
+} from "@tabler/icons-react";
 import Badge from "../../Badge/Badge";
 import Tooltip from "../../Tooltip/Tooltip";
 import { useMessagingService } from "../../../context/connection/MessagingContext";

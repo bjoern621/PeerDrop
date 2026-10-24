@@ -50,7 +50,6 @@ $min-width: 725px;
     > svg {
         width: 14px;
         height: 14px;
-        fill: currentcolor;
         transition: transform 0.2s ease;
     }
 }
@@ -205,14 +204,12 @@ $min-width: 725px;
     flex: none;
     width: 20px;
     height: 20px;
-    fill: currentcolor;
 }
 
 .chevron {
     flex: none;
     width: 14px;
     height: 14px;
-    fill: currentcolor;
     transition: transform 0.2s ease;
 }
 
@@ -224,7 +221,6 @@ $min-width: 725px;
     flex: none;
     width: 18px;
     height: 18px;
-    fill: currentcolor;
 }
 
 .peer {

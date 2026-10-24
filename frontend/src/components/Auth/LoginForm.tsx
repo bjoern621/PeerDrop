@@ -5,8 +5,10 @@ import { useRef } from "react";
 import Button from "../Button/Button";
 import FormField from "../FormField/FormField";
 import css from "./AuthForms.module.scss";
-import ArrowIcon from "../../assets/actions/icons8-arrow-2.svg?react";
-import SwitchIcon from "../../assets/actions/icons8-reload.svg?react";
+import {
+    IconArrowRight as ArrowIcon,
+    IconRefresh as SwitchIcon,
+} from "@tabler/icons-react";
 import { loginSchema } from "./types";
 import loginCss from "./LoginForm.module.scss";
 
