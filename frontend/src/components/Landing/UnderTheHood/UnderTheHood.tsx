@@ -85,10 +85,7 @@ export default function UnderTheHood() {
                                 ausschließlich im Browser ausgehandelt und
                                 verlassen ihn nicht, unsere Server sehen nur das
                                 Minimum, das für die Vermittlung der Verbindung
-                                nötig ist. Texte verschlüsselt dein Browser mit
-                                einem eigenen Schlüssel je Gegenüber (ECDH P-256
-                                und AES-GCM), bevor sie über unseren Server
-                                laufen. Wir speichern weder Dateien noch
+                                nötig ist. Wir speichern weder Dateien noch
                                 Transferprotokolle; es gibt keinen Account,
                                 keine Cloud und keine Freigaben, die man später
                                 wieder entfernen müsste. Privacy ohne Aufwand

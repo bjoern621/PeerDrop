@@ -74,9 +74,7 @@ export default function Why() {
                             Verbindung für dich, um deine Daten sicher zu
                             übertragen. Dateien werden niemals auf einem Server
                             zwischengespeichert und können so von niemanden
-                            sonst gelesen werden. Texte verschlüsselt dein
-                            Browser, bevor sie über unseren Server gehen, der
-                            sie nicht lesen kann.
+                            sonst gelesen werden.
                         </p>
                     </div>
                 </div>
