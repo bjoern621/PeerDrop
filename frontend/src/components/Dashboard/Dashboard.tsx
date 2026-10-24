@@ -62,14 +62,17 @@ export default function Dashboard() {
     const complete =
         recipient.length === CLIENT_TOKEN_LENGTH && recipient !== ownToken;
 
+    const lock = messaging.lock;
+    // The server answers every lookup during the lock with the lock itself,
+    // so the check waits for its end and runs then.
+    const tokensLocked = lock?.reason === "tokens";
     useEffect(() => {
-        if (complete) {
+        if (complete && !tokensLocked) {
             messagingService.lookup(recipient);
         }
         // exhaustive-deps-exclude [messagingService]
-    }, [recipient, complete]);
+    }, [recipient, complete, tokensLocked]);
 
-    const lock = messaging.lock;
     useEffect(() => {
         if (!lock) {
             return;
