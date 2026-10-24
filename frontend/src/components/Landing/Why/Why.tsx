@@ -1,8 +1,10 @@
 import css from "./Why.module.scss";
-import EasyIcon from "../../../assets/icons8-easy.svg?react";
-import SecurityIcon from "../../../assets/icons8-security-shield.svg?react";
-import GiftIcon from "../../../assets/icons8-gift.svg?react";
-import SpeedIcon from "../../../assets/icons8-lightning.svg?react";
+import {
+    IconMoodSmile as EasyIcon,
+    IconShieldLock as SecurityIcon,
+    IconGift as GiftIcon,
+    IconBolt as SpeedIcon,
+} from "@tabler/icons-react";
 import { useRef } from "react";
 
 export default function Why() {
@@ -47,9 +49,8 @@ export default function Why() {
                             Vergiss das umständliche Hochladen in eine Cloud und
                             das Teilen von Links.
                             <br />
-                            Öffne PeerDrop im Browser, tausche einen 5-stelligen
-                            Code mit deinem Partner aus und klicke auf
-                            "Verbinden".
+                            Öffne PeerDrop im Browser, gib den 5-stelligen Token
+                            deines Partners ein und schicke los.
                         </p>
                     </div>
                 </div>

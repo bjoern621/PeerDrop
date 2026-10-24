@@ -9,8 +9,8 @@ import { useEffect } from "react";
  * devices, where the drop zone is intentionally disabled, as well as on
  * desktop when a file is dropped outside the drop zone.
  *
- * The dedicated drop zone (DragDropOverlay) stops propagation on its own
- * handlers, so intentional drops there are unaffected by this global guard.
+ * The drop zone of the send panel handles its drops before they bubble up
+ * here, so intentional drops there are unaffected by this global guard.
  */
 export function usePreventFileDropNavigation(): void {
     useEffect(() => {

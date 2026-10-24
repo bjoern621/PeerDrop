@@ -1,0 +1,29 @@
+.chip {
+    flex: none;
+    padding: var(--space-4) var(--space-8);
+    border-radius: var(--space-8);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+}
+
+.neutral {
+    background-color: var(--text-muted-10);
+    color: var(--text);
+}
+
+.success {
+    background-color: var(--success-20);
+    color: var(--success-text);
+}
+
+.warning {
+    background-color: var(--warning-20);
+    color: var(--warning-text);
+}
+
+.error {
+    background-color: var(--error-20);
+    color: var(--error-text);
+}

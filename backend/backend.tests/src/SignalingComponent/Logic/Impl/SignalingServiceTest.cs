@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using backend.ConnectionComponent.Dataaccess.Api;
 using backend.SignalingComponent.Common.Api.DTOs;
 using backend.SignalingComponent.Logic.Impl;
 using backend.WebSocketComponent.Logic.Api;
@@ -12,54 +13,20 @@ namespace backend.tests.SignalingComponent.Logic.Impl;
 public class SignalingServiceTest
 {
     private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IPairRepository> _mockPairRepository;
     private ISignalingService _service;
 
     [SetUp]
     public void Setup()
     {
         _mockHandler = new Mock<IWebSocketHandler>();
-        _service = new SignalingService(_mockHandler.Object, NullLogger<SignalingService>.Instance);
+        _mockPairRepository = new Mock<IPairRepository>();
+        _mockPairRepository.Setup(r => r.AreConnected("ABCDE", "BCDEF")).Returns(true);
+        _service = new SignalingService(_mockHandler.Object, _mockPairRepository.Object, NullLogger<SignalingService>.Instance);
     }
 
     [Test]
-    public async Task HandleRemoteTokenMessage_RemoteTokenNotFound_SendsErrorMessage()
-    {
-        var clientId = "ABCDE";
-        var requestId = "req1";
-        var remoteToken = "BCDEF";
-
-        _mockHandler.Setup(h => h.RemoteTokenExists(remoteToken)).Returns(false);
-
-        var message = new RemoteTokenMessage { RemoteToken = remoteToken, RequestId = requestId };
-
-        await _service.HandleRemoteTokenMessage(clientId, message);
-
-        _mockHandler.Verify(h => h.SendMessage(clientId,
-            It.Is<ErrorMessage>(m => m.RequestId == requestId && m.Description.Contains("does not exist"))));
-    }
-
-    [Test]
-    public async Task HandleRemoteTokenMessage_RemoteTokenFound_SendsSuccessAndResponse()
-    {
-        var clientId = "ABCDE";
-        var remoteToken = "BCDEF";
-        var requestId = "req42";
-
-        _mockHandler.Setup(h => h.RemoteTokenExists(remoteToken)).Returns(true);
-
-        var message = new RemoteTokenMessage { RemoteToken = remoteToken, RequestId = requestId };
-
-        await _service.HandleRemoteTokenMessage(clientId, message);
-
-        _mockHandler.Verify(h => h.SendMessage(clientId,
-            It.Is<SuccessMessage>(m => m.RequestId == requestId && m.Description.Contains("exists"))));
-
-        _mockHandler.Verify(h => h.SendMessage(remoteToken,
-            It.Is<RemoteTokenMessage>(m => m.RemoteToken == clientId && m.RequestId == requestId)));
-    }
-
-    [Test]
-    public async Task HandleIceCandidateMessage_ForwardsMessage()
+    public async Task HandleIceCandidateMessage_ConnectedPair_ForwardsMessage()
     {
         var clientId = "ABCDE";
         var remoteToken = "BCDEF";
@@ -92,7 +59,7 @@ public class SignalingServiceTest
     }
 
     [Test]
-    public async Task HandleSdpMessage_ForwardsMessage()
+    public async Task HandleSdpMessage_ConnectedPair_ForwardsMessage()
     {
         var clientId = "ABCDE";
         var remoteToken = "BCDEF";
@@ -121,5 +88,25 @@ public class SignalingServiceTest
                 JsonElement.DeepEquals(msg.Description, sdpElement)
             )
         ), Times.Once);
+    }
+
+    [Test]
+    public async Task HandleSdpMessage_NotConnected_DropsMessage()
+    {
+        using var doc = JsonDocument.Parse("""{"type": "offer", "sdp": "v=0"}""");
+
+        await _service.HandleSdpMessage("ABCDE", new SdpMessage { RemoteToken = "CDEFG", Description = doc.RootElement });
+
+        _mockHandler.Verify(h => h.SendMessage(It.IsAny<string>(), It.IsAny<SdpMessage>()), Times.Never);
+    }
+
+    [Test]
+    public async Task HandleIceCandidateMessage_NotConnected_DropsMessage()
+    {
+        using var doc = JsonDocument.Parse("""{"candidate": ""}""");
+
+        await _service.HandleIceCandidateMessage("ABCDE", new IceCandidateMessage { RemoteToken = "CDEFG", IceCandidate = doc.RootElement });
+
+        _mockHandler.Verify(h => h.SendMessage(It.IsAny<string>(), It.IsAny<IceCandidateMessage>()), Times.Never);
     }
 }

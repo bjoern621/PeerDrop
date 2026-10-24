@@ -1,0 +1,371 @@
+$columns: minmax(200px, 1fr) 300px 100px 140px;
+$min-width: 740px;
+
+.table {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.head {
+    position: relative;
+    z-index: 4;
+    flex: none;
+}
+
+.headRow {
+    min-width: $min-width;
+    display: grid;
+    grid-template-columns: $columns;
+    border: 1px solid var(--border);
+    border-radius: var(--space-16);
+    background-color: var(--background);
+    background-image: linear-gradient(var(--primary-10), var(--primary-10));
+    box-shadow: 0 4px 10px 2px var(--shadow);
+}
+
+.sortButton {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-8) var(--space-16);
+    border: none;
+    border-radius: var(--space-16);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-weight: var(--font-weight-medium);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--text-muted-10);
+    }
+
+    > svg {
+        flex: none;
+        width: 16px;
+        height: 16px;
+        transition: transform 0.15s ease-out;
+    }
+}
+
+.ascending {
+    transform: rotate(-90deg);
+}
+
+.descending {
+    transform: rotate(90deg);
+}
+
+.bodyFrame {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    margin: 0 calc(-1 * var(--space-12)) calc(-1 * var(--space-16));
+}
+
+.scroll {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    overflow: auto;
+    padding: var(--space-8) var(--space-12) var(--space-16);
+}
+
+.rows {
+    min-width: $min-width;
+    border: 1px solid var(--border);
+    border-radius: var(--space-16);
+    overflow: hidden;
+    background-color: var(--background);
+    box-shadow: 0 4px 10px 2px var(--shadow);
+}
+
+.empty {
+    padding: var(--space-16);
+    color: var(--text-muted);
+    font-weight: var(--font-weight-regular);
+}
+
+.shadowTop,
+.shadowBottom {
+    position: absolute;
+    z-index: 3;
+    left: var(--space-12);
+    height: 14px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.shadowTop {
+    top: 0;
+    background: linear-gradient(var(--shadow), transparent);
+}
+
+.shadowBottom {
+    bottom: 0;
+    background: linear-gradient(transparent, var(--shadow));
+}
+
+.visible {
+    opacity: 1;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: $columns;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background-color: var(--secondary-20);
+        color: var(--primary);
+
+        .name {
+            color: var(--primary);
+        }
+    }
+}
+
+.cell {
+    min-width: 0;
+    padding: var(--space-8) var(--space-16);
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    white-space: nowrap;
+}
+
+.nameCell {
+    @extend .cell;
+    overflow: hidden;
+}
+
+.progressCell {
+    @extend .cell;
+}
+
+.sizeCell {
+    @extend .cell;
+}
+
+.timeCell {
+    @extend .cell;
+}
+
+.name {
+    min-width: 0;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+    color: var(--text);
+}
+
+.iconName {
+    @extend .name;
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.nameButton {
+    @extend .iconName;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.textPreview {
+    min-width: 0;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+    font-family: "Roboto Mono", monospace;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+}
+
+.count {
+    flex: none;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+    font-weight: var(--font-weight-regular);
+}
+
+.icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+
+.chevron {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.15s ease-out;
+}
+
+.chevronOpen {
+    transform: rotate(90deg);
+}
+
+.direction {
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+
+.peer {
+    flex: none;
+    width: 52px;
+    font-family: "Roboto Mono", monospace;
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+    font-weight: var(--font-weight-semibold);
+}
+
+.status {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.progress {
+    flex: 1;
+    min-width: 0;
+}
+
+.progressInfo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8);
+    margin-bottom: var(--space-2);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+    font-weight: var(--font-weight-regular);
+
+    > span {
+        overflow-x: clip;
+        text-overflow: ellipsis;
+    }
+
+    > svg {
+        flex: none;
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.waitingLabel {
+    flex: 1;
+    min-width: 0;
+}
+
+.bar {
+    height: 10px;
+    border-radius: 100px;
+    background-color: var(--secondary);
+    overflow: hidden;
+}
+
+.barIdle {
+    @extend .bar;
+    background-color: var(--text-muted-10);
+}
+
+.barFill {
+    height: 100%;
+    border-radius: 100px;
+    background-color: var(--primary);
+}
+
+.time {
+    font-variant-numeric: tabular-nums;
+}
+
+.seconds {
+    font-size: var(--font-size-xxs);
+    font-weight: var(--font-weight-regular);
+    opacity: 0.75;
+}
+
+@media (width <= 760px) {
+    .table {
+        flex: none;
+    }
+
+    .head,
+    .shadowTop,
+    .shadowBottom {
+        display: none;
+    }
+
+    .bodyFrame,
+    .scroll {
+        flex: none;
+        position: static;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+    }
+
+    // Rows run to the screen edge, past the padding of the section around them.
+    .rows {
+        min-width: 0;
+        margin: 0 calc(-1 * var(--space-16));
+        border-width: 1px 0;
+        border-color: var(--text-muted-20);
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .row {
+        border-bottom-color: var(--text-muted-20);
+        grid-template-columns: auto 1fr;
+        grid-template-areas:
+            "name name"
+            "progress progress"
+            "size time";
+        padding: var(--space-4) 0;
+    }
+
+    .nameCell {
+        grid-area: name;
+    }
+
+    .progressCell {
+        grid-area: progress;
+    }
+
+    .sizeCell {
+        grid-area: size;
+        padding-top: 0;
+    }
+
+    .timeCell {
+        grid-area: time;
+        padding-top: 0;
+        padding-left: 0;
+    }
+
+    .sizeCell,
+    .timeCell {
+        font-size: var(--font-size-xs);
+        line-height: var(--line-height-xs);
+        font-weight: var(--font-weight-regular);
+    }
+}

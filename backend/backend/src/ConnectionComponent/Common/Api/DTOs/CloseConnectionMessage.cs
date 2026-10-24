@@ -10,9 +10,6 @@ public class CloseConnectionMessage : ITypedMessage
     [JsonIgnore]
     public string InstanceTypeString => TypeString;
 
-    [JsonPropertyName("requestID")]
-    public string? RequestId { get; set; }
-
     [JsonPropertyName("remoteToken")]
     public required string RemoteToken { get; set; }
 }

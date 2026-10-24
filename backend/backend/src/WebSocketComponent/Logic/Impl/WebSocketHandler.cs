@@ -14,6 +14,10 @@ using MessageType = string;
 
 public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHandler
 {
+    // Fits a text of 1 MiB as base64 ciphertext together with its envelope.
+    public const int MaxMessageBytes = 2 * 1024 * 1024;
+    private const int ReceiveBufferBytes = 16 * 1024;
+
     // String is the client token. Case-insensitive so tokens entered with any casing map to the same connection.
     private readonly ConcurrentDictionary<string, RuntimeClientInformation> ActiveConnections = new(StringComparer.OrdinalIgnoreCase);
     private readonly Random Random = new();
@@ -100,9 +104,11 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
             return false;
         }
 
+        var messageBytes = Encoding.UTF8.GetBytes(message.ToJson());
+
+        await runtimeInfo.SendLock.WaitAsync();
         try
         {
-            var messageBytes = Encoding.UTF8.GetBytes(message.ToJson());
             await runtimeInfo.WebSocket.SendAsync(
                 new ArraySegment<byte>(messageBytes),
                 WebSocketMessageType.Text,
@@ -113,6 +119,10 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         catch (Exception)
         {
             return false;
+        }
+        finally
+        {
+            runtimeInfo.SendLock.Release();
         }
     }
 
@@ -182,36 +192,20 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     /// </summary>
     private async Task ListenForMessages(WebSocket webSocket, string clientToken)
     {
-        var buffer = new byte[1024];
+        var buffer = new byte[ReceiveBufferBytes];
 
         while (webSocket.State == WebSocketState.Open)
         {
-            WebSocketReceiveResult result;
-            try
+            var (messageJson, closeStatus) = await ReceiveMessage(webSocket, buffer, MaxMessageBytes);
+
+            if (closeStatus != null)
             {
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            }
-            catch (OperationCanceledException)
-            {
-                // "The remote party closed the WebSocket connection without completing the close handshake."
-                return;
-            }
-            catch (WebSocketException)
-            {
-                // "The remote party closed the WebSocket connection without completing the close handshake."
+                CloseConnection(webSocket, closeStatus.Value);
                 return;
             }
 
-            if (!result.EndOfMessage)
-            {
-                CloseConnection(webSocket, WebSocketCloseStatus.MessageTooBig);
+            if (messageJson == null)
                 return;
-            }
-
-            if (result.MessageType == WebSocketMessageType.Close)
-                break;
-
-            var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
             try
             {
@@ -247,6 +241,48 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         }
 
         CloseConnection(webSocket);
+    }
+
+    /// <summary>
+    /// Receives one message, assembled from as many frames as it spans.
+    /// Returns the message text, or the status to close the connection with:
+    /// NormalClosure once the peer closes, MessageTooBig once the message exceeds <paramref name="maxMessageBytes"/>.
+    /// Returns neither if the peer dropped the connection without the close handshake.
+    /// </summary>
+    public static async Task<(string? Message, WebSocketCloseStatus? CloseStatus)> ReceiveMessage(
+        WebSocket webSocket, byte[] buffer, int maxMessageBytes)
+    {
+        using var message = new MemoryStream();
+
+        while (true)
+        {
+            WebSocketReceiveResult result;
+            try
+            {
+                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            }
+            catch (OperationCanceledException)
+            {
+                // "The remote party closed the WebSocket connection without completing the close handshake."
+                return (null, null);
+            }
+            catch (WebSocketException)
+            {
+                // "The remote party closed the WebSocket connection without completing the close handshake."
+                return (null, null);
+            }
+
+            if (result.MessageType == WebSocketMessageType.Close)
+                return (null, WebSocketCloseStatus.NormalClosure);
+
+            if (message.Length + result.Count > maxMessageBytes)
+                return (null, WebSocketCloseStatus.MessageTooBig);
+
+            message.Write(buffer, 0, result.Count);
+
+            if (result.EndOfMessage)
+                return (Encoding.UTF8.GetString(message.GetBuffer(), 0, (int)message.Length), null);
+        }
     }
 
     private void CloseConnection(WebSocket webSocket,
@@ -366,6 +402,31 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         }
 
         return null;
+    }
+
+    public bool AreSignedInWithSameAccount(string clientTokenA, string clientTokenB)
+    {
+        var userIdA = GetUserIdForClientToken(clientTokenA);
+
+        return userIdA != null && userIdA == GetUserIdForClientToken(clientTokenB);
+    }
+
+    public string? GetRemoteIpAddressForClientToken(string clientToken)
+    {
+        return ActiveConnections.TryGetValue(clientToken, out var runtimeInfo) ? runtimeInfo.RemoteIpAddress : null;
+    }
+
+    public void SetPublicKey(string clientToken, string publicKey)
+    {
+        if (ActiveConnections.TryGetValue(clientToken, out var runtimeInfo))
+        {
+            runtimeInfo.PublicKey = publicKey;
+        }
+    }
+
+    public string? GetPublicKeyForClientToken(string clientToken)
+    {
+        return ActiveConnections.TryGetValue(clientToken, out var runtimeInfo) ? runtimeInfo.PublicKey : null;
     }
 
     public (int SignedIn, int Anonymous) CountClients()

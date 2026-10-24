@@ -46,8 +46,18 @@
     --background-effect-color: var(--secondary-20);
     --info-text: oklch(57.586% 0.1191 242.306deg);
     --success-text: oklch(50.114% 0.1377 145.411deg);
-    --warning-text: oklch(76.251% 0.1571 82.014deg);
+    --warning-text: oklch(45% 0.09 80deg);
     --error-text: oklch(54.333% 0.174 29.681deg);
+
+    // Token colors in the transfer list, each at 4.5:1 or more on the background.
+    --peer-0: #1d5fc4;
+    --peer-1: #9c5700;
+    --peer-2: #2e7d32;
+    --peer-3: #a3199f;
+    --peer-4: #c2262e;
+    --peer-5: #6b3fd4;
+    --peer-6: #0b7468;
+    --peer-7: #696600;
 }
 
 @mixin dark {
@@ -66,6 +76,14 @@
     --success-text: var(--success);
     --warning-text: var(--warning);
     --error-text: var(--error);
+    --peer-0: #7fb2ff;
+    --peer-1: #ffb35c;
+    --peer-2: #7fd98a;
+    --peer-3: #f29cf0;
+    --peer-4: #ff8f8f;
+    --peer-5: #bba4ff;
+    --peer-6: #4fd8c4;
+    --peer-7: #d6d36a;
 }
 
 @mixin shades {

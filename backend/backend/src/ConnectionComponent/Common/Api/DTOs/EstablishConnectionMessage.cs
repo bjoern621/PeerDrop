@@ -16,4 +16,10 @@ public class EstablishConnectionMessage : ITypedMessage
 
     [JsonPropertyName("iceServers")]
     public required IReadOnlyList<IceServer> IceServers { get; set; }
+
+    /// <summary>
+    /// True if both peers are signed in with the same account.
+    /// </summary>
+    [JsonPropertyName("ownDevice")]
+    public required bool OwnDevice { get; set; }
 }

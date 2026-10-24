@@ -89,9 +89,10 @@
         }
 
         svg {
+            width: calc(var(--font-size-l) * var(--line-height-l));
             height: calc(var(--font-size-l) * var(--line-height-l));
             margin-left: var(--space-4);
-            fill: var(--accent);
+            color: var(--accent);
 
             vertical-align: top;
         }

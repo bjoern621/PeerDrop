@@ -10,6 +10,7 @@ using System.Diagnostics.Metrics;
 
 namespace backend.tests.TelemetryComponent.Logic.Impl;
 
+[Category("UnitTest")]
 public class UsageMetricsTest
 {
     private ServiceProvider _services;
@@ -95,6 +96,58 @@ public class UsageMetricsTest
         _metrics.RecordTransfer(new TransferReportMessage { Outcome = "completed", Route = "host", Bytes = reportedBytes });
 
         Assert.That(bytes.GetMeasurementSnapshot(), Is.Empty);
+    }
+
+    [TestCase("rate-limited", "rate_limited")]
+    [TestCase("too-large", "too_large")]
+    [TestCase("delivered", "delivered")]
+    public void TextHandled_CountsStatusAsSnakeCaseOutcome(string status, string outcome)
+    {
+        using var texts = Collect<long>("peerdrop.texts");
+
+        _metrics.TextHandled(status);
+
+        Assert.That(texts.GetMeasurementSnapshot().Single().Tags["outcome"], Is.EqualTo(outcome));
+    }
+
+    [Test]
+    public void TransferOffered_CountsStatusAsSnakeCaseOutcome()
+    {
+        using var offers = Collect<long>("peerdrop.transfer.offers");
+
+        _metrics.TransferOffered("rate-limited");
+
+        Assert.That(offers.GetMeasurementSnapshot().Single().Tags["outcome"], Is.EqualTo("rate_limited"));
+    }
+
+    [Test]
+    public void TokenLookedUp_CountsOutcome()
+    {
+        using var lookups = Collect<long>("peerdrop.token.lookups");
+
+        _metrics.TokenLookedUp("locked");
+
+        Assert.That(lookups.GetMeasurementSnapshot().Single().Tags["outcome"], Is.EqualTo("locked"));
+    }
+
+    [Test]
+    public void TransferAnswered_CountsAccepted()
+    {
+        using var answers = Collect<long>("peerdrop.transfer.answers");
+
+        _metrics.TransferAnswered(true);
+
+        Assert.That(answers.GetMeasurementSnapshot().Single().Tags["accepted"], Is.EqualTo(true));
+    }
+
+    [Test]
+    public void ConnectionInitiated_CountsPath()
+    {
+        using var connections = Collect<long>("peerdrop.connections.initiated");
+
+        _metrics.ConnectionInitiated("own_device");
+
+        Assert.That(connections.GetMeasurementSnapshot().Single().Tags["path"], Is.EqualTo("own_device"));
     }
 
     [Test]

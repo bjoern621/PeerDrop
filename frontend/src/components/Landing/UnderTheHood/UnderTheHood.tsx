@@ -46,8 +46,8 @@ export default function UnderTheHood() {
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
                             <p className={css.textBoxText}>
-                                Wenn du den Token eingibst und auf Verbinden
-                                klickst, startet im Hintergrund der
+                                Sobald du Dateien schickst und der Empfänger sie
+                                annimmt, startet im Hintergrund der
                                 Verbindungsaufbau: Unser Signaling-Server
                                 tauscht die Verbindungsdaten zwischen den Peers
                                 aus. Danach verbinden sich die Geräte direkt per

@@ -1,0 +1,82 @@
+@use "../card" as *;
+
+.overlay {
+    position: absolute;
+    z-index: 6;
+    inset: 0;
+    display: flex;
+}
+
+.dialog {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 3px solid var(--primary-60);
+    border-radius: var(--space-16);
+    background-color: var(--background);
+    overflow: hidden;
+}
+
+.bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    min-height: 48px;
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
+    border-bottom: 1px solid var(--text-muted-10);
+}
+
+.title {
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+}
+
+.meta {
+    flex: 1;
+    min-width: 0;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+    font-weight: var(--font-weight-regular);
+}
+
+.label {
+    @include visually-hidden;
+}
+
+// Margin rather than padding, so scrolled text stops short of the frame.
+.text {
+    flex: 1;
+    min-height: 0;
+    margin: var(--space-8) var(--space-12);
+    resize: none;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: "Roboto Mono", monospace;
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+    font-weight: var(--font-weight-regular);
+    white-space: pre;
+    overflow: auto;
+    tab-size: 4;
+
+    &:focus {
+        outline: none;
+    }
+}
+
+@media (width <= 760px) {
+    .overlay {
+        position: fixed;
+        z-index: 130;
+        padding: var(--space-16);
+        background-color: var(--background);
+    }
+}

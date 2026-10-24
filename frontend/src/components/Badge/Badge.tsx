@@ -9,6 +9,8 @@ const badgeVariants = cva(css.badge, {
             secondary: css.secondary,
             neutral: css.neutral,
             success: css.success,
+            warning: css.warning,
+            error: css.error,
         },
         clickable: {
             true: css.clickable,

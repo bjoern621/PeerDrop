@@ -1,19 +1,13 @@
-using backend.ConnectionComponent.Dataaccess.Api;
-
 namespace backend.ConnectionComponent.Logic.Api;
 
 public interface IConnectionInitiationService
 {
     /// <summary>
-    /// Raised after both clients have been told to establish their connection.
-    /// Arguments are the two client tokens. Handlers may be asynchronous and
-    /// are awaited.
+    /// Registers the two clients as a connected pair and tells both to establish a direct connection.
+    /// A client may hold connections to several partners, one per partner.
+    /// Returns false and sends nothing if the pair is already connected.
     /// </summary>
-    event Func<string, string, Task>? ConnectionEstablished;
-
-    /// <summary>
-    /// Initiates a direct connection between two clients, identified by their tokens.
-    /// All pending connection requests involving either client will be cancelled.
-    /// </summary>
-    Task InitiateConnection(string clientA, string clientB);
+    /// <param name="path">"offer" for an accepted transfer offer, "own_device" for two clients of one account,
+    /// "reconnect" for a pair that a permission allows.</param>
+    Task<bool> InitiateConnection(string clientA, string clientB, string path);
 }

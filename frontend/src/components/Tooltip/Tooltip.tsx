@@ -17,6 +17,8 @@ interface TooltipProps {
     disabled?: boolean;
     /** Keeps the tooltip open while hovered, so its content can be selected and clicked. */
     hoverable?: boolean;
+    /** Classes for the element around `children`, e.g. to let it shrink in a flex row. */
+    triggerClassName?: string;
 }
 
 export default function Tooltip({
@@ -27,6 +29,7 @@ export default function Tooltip({
     className = "",
     disabled = false,
     hoverable = false,
+    triggerClassName = "",
 }: TooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
     const hideTimeout = useRef<number | undefined>(undefined);
@@ -77,7 +80,7 @@ export default function Tooltip({
         <>
             <div
                 id={anchorId}
-                className={css.tooltipTrigger}
+                className={`${css.tooltipTrigger} ${triggerClassName}`}
                 style={
                     {
                         anchorName: anchorName,
