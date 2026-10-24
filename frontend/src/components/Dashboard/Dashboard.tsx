@@ -20,7 +20,7 @@ import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { useMessagingService } from "../../context/connection/MessagingContext";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
-import { MAX_TEXT_BYTES } from "../../services/MessagingService";
+import { LookupState, MAX_TEXT_BYTES } from "../../services/MessagingService";
 import { normalizeClientToken } from "../../services/WebSocketService";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { Device } from "../../types/device/Device";
@@ -28,6 +28,8 @@ import { ShareSelection } from "../../types/transfer/ShareSelection";
 import { CLIENT_TOKEN_LENGTH } from "../../util/Constants";
 
 const LOCK_TICK_MS = 250;
+// Shortest time the hint shows the online check, so it does not flash by.
+const MIN_CHECK_MS = 600;
 
 export default function Dashboard() {
     useDeviceHeartbeat({ status: DeviceStatus.ONLINE });
@@ -76,7 +78,10 @@ export default function Dashboard() {
         return () => window.clearInterval(tick);
     }, [lock]);
 
-    const lookup = complete ? messaging.lookups.get(recipient) : undefined;
+    const lookup = useSteadyLookup(
+        recipient,
+        complete ? messaging.lookups.get(recipient) : undefined
+    );
     const blocked = messaging.blocked.has(recipient);
     const ready = complete && lookup?.status === "online" && !blocked;
     const hasText = draft.trim().length > 0;
@@ -197,4 +202,30 @@ export default function Dashboard() {
             </div>
         </div>
     );
+}
+
+/** Reports a fresh lookup as still checking until MIN_CHECK_MS have passed. */
+function useSteadyLookup(
+    token: string,
+    lookup: LookupState | undefined
+): LookupState | undefined {
+    const [held, setHeld] = useState<string | null>(null);
+    const checking = lookup?.status === "checking";
+
+    useEffect(() => {
+        if (checking) {
+            setHeld(token);
+        }
+    }, [token, checking]);
+
+    // Keyed on the held token alone, so the lookup answering early keeps the timer.
+    useEffect(() => {
+        if (held === null) {
+            return;
+        }
+        const timer = window.setTimeout(() => setHeld(null), MIN_CHECK_MS);
+        return () => window.clearTimeout(timer);
+    }, [held]);
+
+    return held === token && lookup ? { status: "checking" } : lookup;
 }
