@@ -1,0 +1,63 @@
+@use "../../theme/shadows.scss" as *;
+
+.dashboard {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: var(--space-24);
+    padding: var(--space-24) 0;
+
+    @include background-effect;
+
+    --background-effect-size: 1100px;
+
+    &::after {
+        z-index: -1;
+    }
+}
+
+.left,
+.right {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+}
+
+.right {
+    position: relative;
+}
+
+@media (width <= 760px) {
+    .dashboard {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-16);
+        padding: var(--space-16) 0 120px;
+    }
+
+    // Token first, then Senden, then the devices, then the list.
+    .left,
+    .right {
+        display: contents;
+    }
+
+    .left > :first-child {
+        order: 1;
+    }
+
+    .right > :first-child {
+        order: 2;
+    }
+
+    .left > :nth-child(2) {
+        order: 3;
+    }
+
+    .right > :nth-child(2) {
+        order: 4;
+    }
+}

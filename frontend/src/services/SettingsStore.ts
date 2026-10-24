@@ -11,40 +11,20 @@ export interface AppSettings {
     autoSaveDownloads: boolean;
 
     /**
-     * Shows the security warning before every connection attempt when true;
-     * otherwise the connection is established right away.
-     */
-    showConnectWarning: boolean;
-
-    /**
      * Announces the device to other devices in the same network and lists them
      * when true; otherwise the device stays hidden and no devices are listed.
      */
     lanDiscovery: boolean;
-
-    /**
-     * Keeps the transfer screen open after the peer closed the connection, so
-     * the received files stay saveable; otherwise the screen is left right
-     * away.
-     */
-    stayAfterDisconnect: boolean;
 }
 
 const STORAGE_KEYS: Record<keyof AppSettings, string> = {
     autoSaveDownloads: "autoSaveDownloads",
-    showConnectWarning: "showConnectWarning",
     lanDiscovery: "lanDiscovery",
-    stayAfterDisconnect: "stayAfterDisconnect",
 };
-
-// Written by the warning dialog's "Nicht wieder anzeigen" before the setting existed.
-const LEGACY_HIDE_CONNECT_WARNING_KEY = "hideConnectWarning";
 
 const DEFAULT_SETTINGS: AppSettings = {
     autoSaveDownloads: true,
-    showConnectWarning: true,
     lanDiscovery: true,
-    stayAfterDisconnect: true,
 };
 
 function readBooleanSetting(key: string, defaultValue: boolean): boolean {
@@ -54,44 +34,14 @@ function readBooleanSetting(key: string, defaultValue: boolean): boolean {
     return defaultValue;
 }
 
-/**
- * Carries a dismissal made before the setting existed over to it, then drops
- * the old key. An explicit setting already stored wins.
- */
-function migrateLegacyConnectWarning(): void {
-    const dismissed = localStorage.getItem(LEGACY_HIDE_CONNECT_WARNING_KEY);
-    if (dismissed === null) {
-        return;
-    }
-
-    if (localStorage.getItem(STORAGE_KEYS.showConnectWarning) === null) {
-        localStorage.setItem(
-            STORAGE_KEYS.showConnectWarning,
-            String(dismissed !== "true")
-        );
-    }
-
-    localStorage.removeItem(LEGACY_HIDE_CONNECT_WARNING_KEY);
-}
-
-migrateLegacyConnectWarning();
-
 let settings: AppSettings = {
     autoSaveDownloads: readBooleanSetting(
         STORAGE_KEYS.autoSaveDownloads,
         DEFAULT_SETTINGS.autoSaveDownloads
     ),
-    showConnectWarning: readBooleanSetting(
-        STORAGE_KEYS.showConnectWarning,
-        DEFAULT_SETTINGS.showConnectWarning
-    ),
     lanDiscovery: readBooleanSetting(
         STORAGE_KEYS.lanDiscovery,
         DEFAULT_SETTINGS.lanDiscovery
-    ),
-    stayAfterDisconnect: readBooleanSetting(
-        STORAGE_KEYS.stayAfterDisconnect,
-        DEFAULT_SETTINGS.stayAfterDisconnect
     ),
 };
 

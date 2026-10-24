@@ -10,8 +10,33 @@ type FooterProps = {
 };
 
 export default function Footer({ compact = false }: FooterProps) {
+    if (compact) {
+        return (
+            <footer className={css.compactFooter}>
+                <span className={css.version}>
+                    Version: {import.meta.env.VITE_APP_VERSION}
+                </span>
+                <Anchor to="/inside" underline="none">
+                    Inside PeerDrop
+                </Anchor>
+                <Anchor to="/faq" underline="none">
+                    FAQ
+                </Anchor>
+                <Anchor
+                    to="https://github.com/bjoern621/PeerDrop"
+                    underline="none"
+                >
+                    GitHub
+                </Anchor>
+                <span className={css.compactTheme}>
+                    <ThemeToggle />
+                </span>
+            </footer>
+        );
+    }
+
     return (
-        <footer className={`${css.footer} ${compact ? css.compact : ""}`}>
+        <footer className={css.footer}>
             <div className={css.column}>
                 <Logo aria-hidden />
                 <div className={css.version}>

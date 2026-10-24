@@ -9,19 +9,23 @@ import Button from "../../../Button/Button";
 import Tooltip from "../../../Tooltip/Tooltip";
 import Anchor from "../../../Anchor/Anchor";
 import FakeButton from "../../../FakeButton/FakeButton";
+import CheckIcon from "../../../../assets/actions/check.svg?react";
 
 const MAX_DEVICE_NAME_LENGTH = 64; // Linked to the backend DisplayNameValidator
 
 interface DeviceDisplayProps {
     device: Device;
-    onConnect: (device: Device) => void;
+    /** Picks the device as recipient. */
+    onSelect: (device: Device) => void;
+    selected: boolean;
     onDelete: (device: Device) => void;
     onRename: (device: Device, newName: string) => void;
 }
 
 export default function DeviceDisplay({
     device,
-    onConnect,
+    onSelect,
+    selected,
     onDelete,
     onRename,
 }: DeviceDisplayProps) {
@@ -32,8 +36,6 @@ export default function DeviceDisplay({
         switch (device.status) {
             case DeviceStatus.ONLINE:
                 return css.deviceOnline;
-            case DeviceStatus.BUSY:
-                return css.deviceBusy;
             default:
                 return css.deviceOffline;
         }
@@ -42,11 +44,9 @@ export default function DeviceDisplay({
     const getTooltipContent = () => {
         switch (device.status) {
             case DeviceStatus.ONLINE:
-                return "Dieses Gerät ist bereit für eine Verbindung.";
-            case DeviceStatus.BUSY:
-                return "Dieses Gerät ist gerade beschäftigt.";
+                return "Dieses Gerät ist online.";
             default:
-                return "Dieses Gerät ist aktuell nicht verfügbar.";
+                return "Dieses Gerät ist nicht online.";
         }
     };
 
@@ -66,8 +66,9 @@ export default function DeviceDisplay({
 
     return (
         <FakeButton
-            className={css.deviceDisplay}
-            onClick={() => onConnect(device)}
+            className={`${css.deviceDisplay} ${selected ? css.selected : ""}`}
+            aria-pressed={selected}
+            onClick={() => onSelect(device)}
             disabled={device.status !== DeviceStatus.ONLINE || device.current}
         >
             <Tooltip
@@ -107,6 +108,7 @@ export default function DeviceDisplay({
                 <span className={css.deviceName}>{device.name}</span>
             )}
             {device.current && <Badge>DIESES GERÄT</Badge>}
+            {selected && <CheckIcon className={css.check} aria-hidden />}
             <Tooltip content={"Gerät umbenennen"}>
                 <Button
                     color_scheme={"neutral"}

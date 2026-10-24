@@ -4,6 +4,7 @@ import "./index.scss";
 import {
     createBrowserRouter,
     createRoutesFromElements,
+    Navigate,
     Route,
     RouterProvider,
 } from "react-router";
@@ -14,8 +15,7 @@ import Landing from "./components/Landing/Landing.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import Layout, { RouteHandle } from "./components/Layout/Layout.tsx";
-import Sharing from "./components/Sharing/Sharing.tsx";
-import Connection from "./components/Connection/Connection.tsx";
+import Dashboard from "./components/Dashboard/Dashboard.tsx";
 import { loadRuntimeEnvVars } from "./util/RuntimeEnvVars.ts";
 import { SettingsDialogProvider } from "./context/SettingsDialogContext.tsx";
 
@@ -31,12 +31,17 @@ const router = createBrowserRouter(
             errorElement={<PageNotFound />}
         >
             <Route path="/" element={<Landing />} />
+            <Route path="share" element={<Navigate to="/connect" replace />} />
             <Route
-                path="share"
-                element={<Sharing />}
-                handle={{ compactFooter: true } satisfies RouteHandle}
+                path="connect"
+                element={<Dashboard />}
+                handle={
+                    {
+                        compactFooter: true,
+                        fullHeight: true,
+                    } satisfies RouteHandle
+                }
             />
-            <Route path="connect" element={<Connection />} />
             <Route path="faq" element={<WorkInProgress />} />
             <Route path="inside" element={<WorkInProgress />} />
         </Route>

@@ -1,0 +1,113 @@
+@use "card" as *;
+
+.panel {
+    @include card;
+
+    flex: none;
+    background-color: var(--primary-5);
+}
+
+.header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8) var(--space-24);
+}
+
+.heading {
+    @include card-heading;
+
+    color: var(--primary);
+}
+
+.recipient {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+}
+
+.hint {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+    padding: var(--space-8) var(--space-16);
+    border-radius: 12px;
+    font-size: var(--font-size-m);
+    line-height: var(--line-height-m);
+    font-weight: var(--font-weight-medium);
+
+    > svg {
+        flex: none;
+        width: 24px;
+        height: 24px;
+    }
+}
+
+.info {
+    background-color: var(--info-20);
+    color: var(--info-text);
+}
+
+.warn {
+    background-color: var(--warning-20);
+    color: var(--warning-text);
+}
+
+.err {
+    background-color: var(--error-20);
+    color: var(--error-text);
+}
+
+.parts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: var(--space-16) var(--space-24);
+}
+
+.part {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+
+.partHeading {
+    margin: 0;
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+    font-weight: var(--font-weight-semibold);
+}
+
+@media (width <= 760px) {
+    .hint {
+        position: fixed;
+        z-index: 120;
+        left: var(--space-16);
+        right: var(--space-16);
+        bottom: var(--space-16);
+        font-size: var(--font-size-s);
+        line-height: var(--line-height-s);
+        background:
+            linear-gradient(var(--hint-tint), var(--hint-tint)),
+            var(--background);
+        box-shadow: 0 4px 10px 2px var(--shadow);
+    }
+
+    .info {
+        --hint-tint: var(--info-20);
+    }
+
+    .warn {
+        --hint-tint: var(--warning-20);
+    }
+
+    .err {
+        --hint-tint: var(--error-20);
+    }
+
+    .parts {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-24);
+    }
+}

@@ -7,13 +7,14 @@ import WarningIcon from "../../assets/status/icons8-error-3.svg?react";
 import InfoIcon from "../../assets/status/icons8-info-3.svg?react";
 import SuccessIcon from "../../assets/status/icons8-check-mark-3.svg?react";
 import ErrorIcon from "../../assets/status/icons8-high-priority-3.svg?react";
-import ConnectionOverlay from "../ConnectionOverlay/ConnectionOverlay";
 import { usePreventFileDropNavigation } from "../../hooks/usePreventFileDropNavigation";
 import { useLanDiscoveryState } from "../../hooks/useLanDiscoveryState";
 
 // Per-route layout options, read from the matched route's `handle`.
 export type RouteHandle = {
     compactFooter?: boolean;
+    /** The page fills the window and scrolls inside its own areas. */
+    fullHeight?: boolean;
 };
 
 export default function Layout() {
@@ -21,21 +22,23 @@ export default function Layout() {
     useLanDiscoveryState();
 
     const matches = useMatches();
-    const compactFooter = matches.some(
-        match => (match.handle as RouteHandle | undefined)?.compactFooter
+    const handles = matches.map(
+        match => match.handle as RouteHandle | undefined
     );
+    const compactFooter = handles.some(handle => handle?.compactFooter);
+    const fullHeight = handles.some(handle => handle?.fullHeight);
 
     return (
         <>
-            <div className="layout-container">
+            <div
+                className={`layout-container ${fullHeight ? "full-height" : ""}`}
+            >
                 <Heading />
                 <main>
                     <Outlet />
                 </main>
                 <Footer compact={compactFooter} />
             </div>
-
-            <ConnectionOverlay />
 
             <ToastContainer
                 position="top-right"

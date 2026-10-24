@@ -11,3 +11,18 @@ main {
     padding: 0 var(--space-24);
     width: 100%;
 }
+
+// Pages that fill the window keep header and footer in view and scroll inside.
+@media (width > 760px) {
+    .layout-container.full-height {
+        height: 100vh;
+        min-height: 720px;
+
+        main {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            max-width: 1440px;
+        }
+    }
+}

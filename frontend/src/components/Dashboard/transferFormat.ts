@@ -1,4 +1,4 @@
-/** Formatting helpers shared by the file and folder rows of the sharing table. */
+/** Formatting helpers shared by the rows of the transfer list. */
 
 import {
     TransferDirection,

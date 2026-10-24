@@ -14,7 +14,6 @@ import { DeviceChangedMessage } from "../types/device/DeviceChangedMessage";
 import { MessageHandler, WebSocketService } from "../services/WebSocketService";
 import { useWebSocketService } from "../context/connection/WebSocketContext";
 import { MessageType } from "../types/MessageType";
-import { QuickConnectMessage } from "../types/connection/QuickConnectMessage";
 import errorAsValue from "../util/ErrorAsValue";
 import { assert } from "../util/Assert";
 import { useDeviceHeartbeat } from "./useDeviceHeartbeat";
@@ -322,31 +321,6 @@ export const useDevices = () => {
         []
     );
 
-    /**
-     * Initiates a quick connect to another device.
-     */
-    const connectToDevice = useCallback(
-        (device: Device) => {
-            if (device.status !== DeviceStatus.ONLINE) {
-                toast.warn(
-                    `Dein Gerät ${device.name} ist nicht bereit für eine Verbindung.`,
-                    {
-                        toastId: "device-not-online-toast",
-                        updateId: "device-not-online-toast",
-                    }
-                );
-                return;
-            }
-
-            const msg = new QuickConnectMessage({
-                deviceUuid: device.uuid,
-            });
-
-            websocketService.sendMessage(msg);
-        },
-        [websocketService]
-    );
-
     useEffect(() => {
         void fetchDevices(setDevices);
 
@@ -373,6 +347,5 @@ export const useDevices = () => {
         registerCurrentDevice,
         deleteDevice,
         renameDevice,
-        connectToDevice,
     };
 };

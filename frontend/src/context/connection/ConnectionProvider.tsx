@@ -1,17 +1,17 @@
 import { WebSocketService } from "../../services/WebSocketService";
 import { PeerConnectionManager } from "../../services/PeerConnectionManager";
 import { PeerConnectionContext } from "./PeerConnectionContext";
-import { useNavigate } from "react-router";
 import { useRef, useState } from "react";
 import { ResetContext } from "./ResetContext";
 import { WebSocketContext } from "./WebSocketContext";
+import { MessagingService } from "../../services/MessagingService";
+import { MessagingContext } from "./MessagingContext";
 
 export function ConnectionProvider({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const navigate = useNavigate();
     const wsRef = useRef<WebSocketService | undefined>(undefined);
     if (!wsRef.current) {
         wsRef.current = new WebSocketService();
@@ -20,10 +20,14 @@ export function ConnectionProvider({
     const pcmRef = useRef<PeerConnectionManager | undefined>(undefined);
     if (!pcmRef.current) {
         pcmRef.current = new PeerConnectionManager(wsRef.current);
+    }
 
-        pcmRef.current.setOnConnectedCallback(() => {
-            void navigate("/share");
-        });
+    const messagingRef = useRef<MessagingService | undefined>(undefined);
+    if (!messagingRef.current) {
+        messagingRef.current = new MessagingService(
+            wsRef.current,
+            pcmRef.current
+        );
     }
 
     const [, forceUpdate] = useState(0);
@@ -46,9 +50,11 @@ export function ConnectionProvider({
     return (
         <WebSocketContext.Provider value={wsRef.current}>
             <PeerConnectionContext.Provider value={pcmRef.current}>
-                <ResetContext.Provider value={{ resetWebsocketConnection }}>
-                    {children}
-                </ResetContext.Provider>
+                <MessagingContext.Provider value={messagingRef.current}>
+                    <ResetContext.Provider value={{ resetWebsocketConnection }}>
+                        {children}
+                    </ResetContext.Provider>
+                </MessagingContext.Provider>
             </PeerConnectionContext.Provider>
         </WebSocketContext.Provider>
     );

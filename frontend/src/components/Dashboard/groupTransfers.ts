@@ -28,7 +28,7 @@ export interface FolderTransferItem extends FolderNode {
 export type TransferListItem = FileTransferItem | FolderTransferItem;
 
 /**
- * Groups transfer snapshots for the sharing table: files that share a
+ * Groups transfer snapshots for the transfer list: files that share a
  * folderId become one folder item with subfolder nodes derived from their
  * relative paths, everything else stays an individual file item. Order
  * follows the first appearance of each item.

@@ -1,0 +1,223 @@
+.zone {
+    flex: 1 1 auto;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: center;
+    gap: var(--space-12) var(--space-16);
+    padding: var(--space-12);
+    border: 3px dashed var(--primary-40);
+    border-radius: var(--space-16);
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+// Lifts the zone above the page and darkens everything around it.
+.dimming {
+    z-index: 150;
+    box-shadow: 0 0 0 200vmax rgb(0 0 0 / var(--a-50));
+}
+
+.shareButton {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.hint {
+    flex: 1 1 100%;
+    color: var(--text-muted);
+    font-weight: var(--font-weight-regular);
+    text-align: center;
+}
+
+.input {
+    display: none;
+}
+
+.overlay {
+    position: absolute;
+    z-index: 5;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-8);
+    padding: 0 var(--space-16);
+    border-radius: 13px;
+    text-align: center;
+    font-size: var(--font-size-m);
+    line-height: var(--line-height-m);
+    pointer-events: none;
+
+    > svg {
+        flex: none;
+        width: 28px;
+        height: 28px;
+    }
+}
+
+.drop {
+    background:
+        linear-gradient(var(--primary-20), var(--primary-20)), var(--background);
+    color: var(--primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.page {
+    background:
+        linear-gradient(var(--primary-5), var(--primary-5)), var(--background);
+    color: var(--primary);
+}
+
+.ok {
+    background:
+        linear-gradient(var(--success-20), var(--success-20)), var(--background);
+    color: var(--success-text);
+    font-weight: var(--font-weight-semibold);
+
+    > svg {
+        animation: pop 0.35s ease-out;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+}
+
+.warn {
+    background:
+        linear-gradient(var(--warning-20), var(--warning-20)), var(--background);
+    color: var(--warning-text);
+    font-weight: var(--font-weight-semibold);
+}
+
+.edgeDrop {
+    border-style: solid;
+    border-color: var(--primary);
+}
+
+.edgeOk {
+    border-style: solid;
+    border-color: var(--success-text);
+}
+
+.edgeWarn {
+    border-style: solid;
+    border-color: var(--warning-text);
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(0.4);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+// The fanning file icons and the opening folder of the share buttons.
+.fileButton {
+    .fileIconContainer {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .fileIcon1,
+    .fileIcon2,
+    .fileIcon3 {
+        position: absolute;
+        transition: all 0.3s ease;
+
+        --fill-0: var(--background);
+        --fill-1: currentcolor;
+    }
+
+    .fileIcon1 {
+        z-index: 3;
+    }
+
+    .fileIcon2 {
+        z-index: 2;
+    }
+
+    .fileIcon3 {
+        z-index: 1;
+    }
+
+    &:hover:not(:disabled) {
+        .fileIcon1 {
+            transform: translate(-20px, 2px) rotate(-10deg);
+        }
+
+        .fileIcon3 {
+            transform: translate(20px, 2px) rotate(10deg);
+        }
+    }
+}
+
+.folderButton {
+    .folderIconContainer {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 100px;
+    }
+
+    .folderClosed,
+    .folderOpen {
+        position: absolute;
+        max-width: 24px;
+        max-height: 24px;
+        fill: currentcolor;
+    }
+
+    .folderClosed {
+        opacity: 1;
+        transition:
+            opacity 0.2s ease,
+            transform 0.3s ease;
+    }
+
+    .folderOpen {
+        opacity: 0;
+        transform: translateY(-3px) rotateX(-15deg);
+        transition:
+            opacity 0.2s ease 0.1s,
+            transform 0.3s ease;
+    }
+
+    &:hover:not(:disabled) {
+        .folderClosed {
+            opacity: 0;
+            transform: translateY(3px) rotateX(15deg);
+        }
+
+        .folderOpen {
+            opacity: 1;
+            transform: translateY(0) rotateX(0deg);
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fileButton svg,
+    .folderButton svg {
+        transition: none !important;
+    }
+}

@@ -58,8 +58,20 @@
     background-color: var(--error);
 }
 
-.deviceBusy {
-    background-color: var(--warning);
+.selected {
+    background-color: var(--secondary);
+    color: var(--background);
+
+    &:hover:not([aria-disabled="true"]) {
+        background-color: var(--secondary);
+    }
+}
+
+.check {
+    width: 18px;
+    height: 18px;
+    margin-left: auto;
+    flex: none;
 }
 
 .deleteButton {
@@ -83,4 +95,16 @@
 
     font-size: inherit;
     font-family: inherit;
+}
+
+// The name gives way in a narrow column; badge and buttons keep their size.
+.deviceName {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.deviceDisplay > :not(.deviceName) {
+    flex: none;
 }

@@ -21,10 +21,6 @@
         grid-template-columns: 1fr;
     }
 
-    &.compact {
-        margin-top: var(--space-32);
-    }
-
     ul {
         padding-left: 0;
     }
@@ -70,4 +66,31 @@
 .heading {
     display: flex;
     align-items: flex-end;
+}
+
+.compactFooter {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: var(--space-8) var(--space-24);
+    border-top: 1px solid var(--text-muted-10);
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-24);
+
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+    font-weight: var(--font-weight-regular);
+    color: var(--text-muted);
+
+    a {
+        color: var(--text);
+    }
+}
+
+.compactTheme {
+    margin-left: auto;
 }

@@ -1,15 +1,12 @@
 .deviceList {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    min-height: 50px;
+    flex-direction: column;
+    gap: var(--space-8);
 
-    // Room for the chip hover lift + shadow, otherwise overflow-x clips them.
-    padding-block: var(--space-16);
-    margin-block: calc(-1 * var(--space-16));
-
-    overflow-x: auto;
+    > * {
+        width: 100%;
+        box-sizing: border-box;
+    }
 }
 
 .registerButton {

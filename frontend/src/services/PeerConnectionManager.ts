@@ -1,4 +1,3 @@
-import { assert } from "../util/Assert";
 import { FolderInfo, WebRTCConnection } from "./WebRTCConnection";
 import {
     MessageHandler,
@@ -7,452 +6,158 @@ import {
     normalizeClientToken,
 } from "./WebSocketService";
 import { MessageType } from "../types/MessageType";
-import { IObservable, Observable } from "../util/observer/Observable";
 import { Logger } from "../util/Logger";
-import { ConnectionRequestCancelledMessage } from "../types/connection/ConnectionRequestCancelledMessage";
-import { ConnectionStateMessage } from "../types/connection/ConnectionStateMessage";
-import { ConnectionRequestMessage } from "../types/connection/ConnectionRequestMessage";
-import { ConnectionResponseMessage } from "../types/connection//ConnectionResponseMessage";
-import { EstablishConnectionMessage } from "../types/connection//EstablishConnectionMessage";
-import { CloseConnectionMessage } from "../types/connection//CloseConnectionMessage";
-import { SessionLeftMessage } from "../types/connection/SessionLeftMessage";
+import { EstablishConnectionMessage } from "../types/connection/EstablishConnectionMessage";
+import { CloseConnectionMessage } from "../types/connection/CloseConnectionMessage";
+import { PeerConnectMessage } from "../types/messaging/PeerConnectMessage";
 import { TransferTracker } from "./TransferTracker";
 import { ReceivedFiles } from "./ReceivedFiles";
-import { CLIENT_TOKEN_LENGTH } from "../util/Constants";
 
-/**
- * Indicates who initiated the closing of the peer connection.
- */
-export type CloseInitiator = "local" | "remote";
+const CONNECT_TIMEOUT_MS = 10_000;
 
-/**
- * Reason a connection request was rejected locally before being sent.
- * `invalid-length`: the token does not have the required length.
- * `own-token`: the token is this client's own token.
- */
-export type ConnectError = "invalid-length" | "own-token";
-
-/** Outcome of a {@link PeerConnectionManager.connect} call. */
-export type ConnectResult = { ok: true } | { ok: false; error: ConnectError };
-
-/**
- * Server-pushed snapshot of this client's connection-request state. The
- * server sends a fresh snapshot on every change; the UI derives its display
- * from the latest one.
- */
-export interface ConnectionRequestState {
-    /** Token the client's own pending request is addressed to, or null. */
-    outgoingRequestTarget: ClientToken | null;
-    /** Tokens of peers with a pending request addressed to this client. */
-    incomingRequesters: ClientToken[];
+/** One file on its way to a peer. */
+export interface OutgoingFile {
+    file: File;
+    uuid: string;
+    folder?: FolderInfo;
 }
 
+interface PeerConnection {
+    connection: WebRTCConnection;
+    ownDevice: boolean;
+    connected: boolean;
+}
+
+interface QueuedFile extends OutgoingFile {
+    startedAt: Date;
+}
+
+/**
+ * Holds one WebRTC connection per peer. The server sets a connection up only
+ * between peers that may exchange files: after the receiver accepted an offer,
+ * or between two devices of the same account. Files for a peer without an open
+ * connection wait in a queue until it is connected.
+ */
 export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
     private readonly log = (...args: unknown[]) => this.logger.log(...args);
-    // Token of the peer of the current WebRTC connection. Set when
-    // establishment starts and cleared when the connection is torn down.
-    private connectedRemoteToken: ClientToken | undefined;
-    private webrtcConnection: WebRTCConnection | undefined;
 
-    private connectionRequestState: ConnectionRequestState = {
-        outgoingRequestTarget: null,
-        incomingRequesters: [],
-    };
-
-    private readonly onConnectionResponseReceivedObservable: IObservable<boolean> =
-        new Observable<boolean>(); // Boolean is true if the connection request was accepted, false otherwise.
-
-    /**
-     * Subscribes to responses to this client's own outgoing connection request.
-     * The boolean is true if the request was accepted, false if rejected.
-     * Rejections are transient and not part of the snapshot, so they are
-     * delivered as events. Supports multiple subscribers; each must
-     * unsubscribe itself.
-     */
-    public subscribeToConnectionResponse(
-        callback: (accepted: boolean) => void
-    ) {
-        this.onConnectionResponseReceivedObservable.subscribe(callback);
-    }
-
-    public unsubscribeFromConnectionResponse(
-        callback: (accepted: boolean) => void
-    ) {
-        this.onConnectionResponseReceivedObservable.unsubscribe(callback);
-    }
-
-    private readonly onConnectionRequestStateChangedObservable: IObservable<ConnectionRequestState> =
-        new Observable<ConnectionRequestState>();
-    private readonly onConnectionEstablishingObservable: IObservable<ClientToken> =
-        new Observable<ClientToken>(); // Notified with the remote token when the WebRTC connection setup starts.
-
-    /**
-     * Subscribes to server-pushed connection-request state snapshots.
-     * Supports multiple subscribers; each must unsubscribe itself.
-     */
-    public subscribeToConnectionRequestState(
-        callback: (state: ConnectionRequestState) => void
-    ) {
-        this.onConnectionRequestStateChangedObservable.subscribe(callback);
-    }
-
-    public unsubscribeFromConnectionRequestState(
-        callback: (state: ConnectionRequestState) => void
-    ) {
-        this.onConnectionRequestStateChangedObservable.unsubscribe(callback);
-    }
-
-    /**
-     * Returns the latest server-pushed connection-request state snapshot.
-     * The reference is stable until the next snapshot arrives.
-     */
-    public getConnectionRequestState(): ConnectionRequestState {
-        return this.connectionRequestState;
-    }
-
-    /**
-     * Subscribes to the start of the WebRTC connection setup (the server told
-     * both peers to establish a connection). Supports multiple subscribers.
-     */
-    public subscribeToConnectionEstablishing(
-        callback: (remoteToken: ClientToken) => void
-    ) {
-        this.onConnectionEstablishingObservable.subscribe(callback);
-    }
-
-    public unsubscribeFromConnectionEstablishing(
-        callback: (remoteToken: ClientToken) => void
-    ) {
-        this.onConnectionEstablishingObservable.unsubscribe(callback);
-    }
-
-    private readonly onConnectionClosedObservable: IObservable<CloseInitiator> =
-        new Observable<CloseInitiator>();
-
-    public subscribeToConnectionClosed(
-        callback: (initiator: CloseInitiator) => void
-    ) {
-        this.onConnectionClosedObservable.subscribe(callback);
-    }
-
-    public unsubscribeFromConnectionClosed(
-        callback: (initiator: CloseInitiator) => void
-    ) {
-        this.onConnectionClosedObservable.unsubscribe(callback);
-    }
-
-    private onConnectedCallback?: () => void;
+    private readonly peers = new Map<ClientToken, PeerConnection>();
+    private readonly queues = new Map<ClientToken, QueuedFile[]>();
+    // Peers asked for a connection that has not arrived yet, with the timer
+    // that gives up on them.
+    private readonly requested = new Map<
+        ClientToken,
+        ReturnType<typeof setTimeout>
+    >();
+    // Outgoing files kept for a restart after a failure.
+    private readonly sentFiles = new Map<
+        string,
+        OutgoingFile & { remoteToken: ClientToken }
+    >();
 
     /** Single source of truth for transfer progress, speed and status. */
     private readonly transferTracker = new TransferTracker();
 
-    // Held across a remote close so the files stay saveable on the transfer
-    // screen; released with the session.
     private readonly receivedFiles = new ReceivedFiles();
+
+    private incomingGate: (remoteToken: ClientToken) => boolean = () => false;
 
     public constructor(private readonly signaling: WebSocketService) {
         this.logger.setEnabled(false);
 
-        this.handleConnectionStateMessage();
-
-        this.handleConnectionEstablishmentMessage();
-
-        this.handleConnectionRequestMessage();
-
-        this.waitForCloseConnectionRequest();
-
-        this.handleConnectionResponseMessages();
-    }
-
-    private handleConnectionStateMessage() {
-        const onConnectionStateReceived = (message: ConnectionStateMessage) => {
-            this.connectionRequestState = {
-                outgoingRequestTarget: message.msg.outgoingRequestTarget
-                    ? normalizeClientToken(message.msg.outgoingRequestTarget)
-                    : null,
-                incomingRequesters:
-                    message.msg.incomingRequesters.map(normalizeClientToken),
-            };
-
-            this.onConnectionRequestStateChangedObservable.notify(
-                this.connectionRequestState
-            );
-        };
-
-        this.signaling.subscribeMessage(
-            MessageType.CONNECTION_STATE,
-            onConnectionStateReceived as MessageHandler
-        );
-    }
-
-    /**
-     * Asks the server to cancel the pending outgoing connection request. The
-     * server removes the request and pushes fresh state snapshots to both
-     * peers; the UI clears when the snapshot arrives.
-     */
-    public cancelConnectionRequest() {
-        const connectionRequestCancelMessage =
-            new ConnectionRequestCancelledMessage({});
-
-        this.signaling.sendMessage(connectionRequestCancelMessage);
-    }
-
-    private handleConnectionResponseMessages() {
-        const onConnectionResponseReceived = (
-            message: ConnectionResponseMessage
-        ) => {
-            // The server only sends responses for this client's own request, so
-            // no matching against local bookkeeping is needed.
-            this.onConnectionResponseReceivedObservable.notify(
-                message.msg.accepted
-            );
-        };
-
-        this.signaling.subscribeMessage(
-            MessageType.CONNECTION_RESPONSE,
-            onConnectionResponseReceived as MessageHandler
-        );
-    }
-
-    public acceptConnectionRequest(remoteToken: ClientToken) {
-        const connectionResponseMessage = new ConnectionResponseMessage({
-            accepted: true,
-            remoteToken: normalizeClientToken(remoteToken),
-        });
-
-        this.signaling.sendMessage(connectionResponseMessage);
-    }
-
-    public rejectConnectionRequest(remoteToken: ClientToken) {
-        const connectionResponseMessage = new ConnectionResponseMessage({
-            accepted: false,
-            remoteToken: normalizeClientToken(remoteToken),
-        });
-
-        this.signaling.sendMessage(connectionResponseMessage);
-    }
-
-    /**
-     * Guards against incoming connection requests while a WebRTC connection is
-     * already active: those are auto-rejected. This handler is only the
-     * WebRTC-level gate. The UI list of pending incoming requests is driven by
-     * the server-pushed snapshot (see {@link ConnectionRequestState}), not by
-     * this message.
-     */
-    private handleConnectionRequestMessage() {
-        const onConnectionRequestReceived = (
-            message: EstablishConnectionMessage
-        ) => {
-            if (this.webrtcConnection) {
-                this.log(
-                    "Received connection request while already in a WebRTC connection. Auto-rejecting."
-                );
-
-                const rejectMessage = new ConnectionResponseMessage({
-                    accepted: false,
-                    remoteToken: normalizeClientToken(message.msg.remoteToken),
-                });
-
-                this.signaling.sendMessage(rejectMessage);
-                return;
-            }
-
-            // Otherwise nothing to record: the pending incoming request is
-            // reflected in the server-pushed snapshot, and acceptance is driven
-            // from the UI via acceptConnectionRequest. The connected peer is
-            // recorded only once establishment starts.
-        };
-
-        this.signaling.subscribeMessage(
-            MessageType.CONNECTION_REQUEST,
-            onConnectionRequestReceived as MessageHandler
-        );
-    }
-
-    /**
-     * Instantly aborts the current WebRTC connection (if there is one) and establishes a new one with the remote peer.
-     */
-    private handleConnectionEstablishmentMessage() {
-        const onEstablishConnectionReceived = (
-            message: EstablishConnectionMessage
-        ) => {
-            this.closePeerConnection();
-
-            const establishToken = normalizeClientToken(
-                message.msg.remoteToken
-            );
-            this.connectedRemoteToken = establishToken;
-
-            this.transferTracker.clear();
-            this.receivedFiles.clear();
-            this.webrtcConnection = new WebRTCConnection(
-                this.signaling,
-                establishToken,
-                this.transferTracker,
-                this.receivedFiles,
-                message.msg.iceServers
-            );
-
-            this.setupListeners();
-
-            this.onConnectionEstablishingObservable.notify(establishToken);
-        };
-
         this.signaling.subscribeMessage(
             MessageType.ESTABLISH_CONNECTION,
-            onEstablishConnectionReceived as MessageHandler
+            (message => {
+                this.handleEstablishConnection(
+                    message as EstablishConnectionMessage
+                );
+            }) as MessageHandler
+        );
+        this.signaling.subscribeMessage(
+            MessageType.CLOSE_CONNECTION,
+            (message => {
+                const remoteToken = normalizeClientToken(
+                    (message as CloseConnectionMessage).msg.remoteToken
+                );
+                this.log("Peer closed the connection:", remoteToken);
+                this.dropPeer(remoteToken);
+            }) as MessageHandler
         );
     }
 
     /**
-     * Checks whether a connection request to the given token is allowed.
-     * Returns the reason it is not, or null if the token is valid. Pure: no
-     * side effects and no UI feedback.
+     * Decides whether a peer that is not an own device may send files here.
+     * Asked for every incoming data channel.
      */
-    public validateRemoteToken(remoteToken: ClientToken): ConnectError | null {
+    public setIncomingGate(gate: (remoteToken: ClientToken) => boolean) {
+        this.incomingGate = gate;
+    }
+
+    /**
+     * Sends files to a peer. They start right away on an open connection;
+     * otherwise they wait while the connection is set up.
+     */
+    public sendFiles(remoteToken: ClientToken, files: OutgoingFile[]) {
         remoteToken = normalizeClientToken(remoteToken);
-
-        if (remoteToken.length !== CLIENT_TOKEN_LENGTH) {
-            return "invalid-length";
-        }
-
-        if (this.signaling.getLocalClientToken() === remoteToken) {
-            return "own-token";
-        }
-
-        return null;
+        files.forEach(file =>
+            this.sentFiles.set(file.uuid, { ...file, remoteToken })
+        );
+        this.enqueue(
+            remoteToken,
+            files.map(file => ({ ...file, startedAt: new Date() }))
+        );
     }
 
-    /**
-     * Sends a connection request to the remote peer. Returns whether the
-     * request was sent, or the reason it was rejected locally. UI feedback for
-     * a rejection is the caller's responsibility.
-     */
-    public connect(remoteToken: ClientToken): ConnectResult {
-        remoteToken = normalizeClientToken(remoteToken);
-
-        const error = this.validateRemoteToken(remoteToken);
-        if (error) {
-            return { ok: false, error };
+    /** Restarts a failed outgoing transfer under its original row. */
+    public retryTransfer(uuid: string) {
+        const sent = this.sentFiles.get(uuid);
+        const snapshot = this.transferTracker.get(uuid);
+        if (!sent || !snapshot) {
+            return;
         }
-
-        const connectionRequestMessage = new ConnectionRequestMessage({
-            remoteToken: remoteToken,
-        });
-
-        this.signaling.sendMessage(connectionRequestMessage);
-
-        return { ok: true };
+        this.enqueue(sent.remoteToken, [
+            { ...sent, startedAt: snapshot.startedAt },
+        ]);
     }
 
-    /**
-     * Clears the current WebRTC connection.
-     */
-    private clearWebRTCConnection() {
-        this.webrtcConnection?.closeConnection();
-
-        this.webrtcConnection = undefined;
-        this.connectedRemoteToken = undefined;
-    }
-
-    /**
-     * Closes the current WebRTC connection, cleans up all related resources, and notifies observers about the connection closure.
-     * The connection may already be closed, in which case this method does nothing because all related resources are already cleaned up.
-     * Received files are released along with the connection, as the local user is leaving the session.
-     */
-    public closePeerConnection() {
-        if (!this.webrtcConnection) {
+    /** Stops a transfer in either direction, queued or running. */
+    public cancelTransfer(uuid: string) {
+        const snapshot = this.transferTracker.get(uuid);
+        if (!snapshot) {
             return;
         }
 
-        const connectedRemoteToken = this.connectedRemoteToken!;
+        const queue = this.queues.get(snapshot.remoteToken);
+        const queued = queue?.findIndex(file => file.uuid === uuid) ?? -1;
+        if (queue && queued >= 0) {
+            queue.splice(queued, 1);
+            this.transferTracker.setStatus(uuid, "canceled");
+            return;
+        }
 
-        const closeConnectionMessage = new CloseConnectionMessage({
-            remoteToken: connectedRemoteToken,
-        });
+        this.peers.get(snapshot.remoteToken)?.connection.cancelTransfer(uuid);
+    }
 
-        this.signaling.sendMessage(closeConnectionMessage);
-
-        this.clearWebRTCConnection();
-        this.receivedFiles.clear();
-
-        this.onConnectionClosedObservable.notify("local");
+    /** Closes the connection to a peer, e.g. after blocking it. */
+    public closePeer(remoteToken: ClientToken) {
+        remoteToken = normalizeClientToken(remoteToken);
+        if (!this.peers.has(remoteToken)) {
+            return;
+        }
+        this.signaling.sendMessage(new CloseConnectionMessage({ remoteToken }));
+        this.dropPeer(remoteToken);
     }
 
     /**
-     * Ends the session once the transfer screen is left: the server marks this
-     * client available again for the other devices in the network, and the
-     * files received in the session are released.
+     * Forgets every connection without telling the server, which already
+     * dropped them together with this client's previous token.
      */
-    public endSession() {
-        this.signaling.sendMessage(new SessionLeftMessage());
-        this.receivedFiles.clear();
-    }
-
-    /**
-     * Waits for a close connection request from the remote peer via a message of type `CLOSE_CONNECTION_MESSAGE_TYPE`.
-     *
-     * This method subscribes to messages of the specified type and, upon receiving a close connection request,
-     * closes the current connection and notifies observers about the connection closure.
-     * Received files stay held, so the transfer screen can keep offering them for saving.
-     *
-     * The subscription to the message type remains active to handle future close requests.
-     */
-    private waitForCloseConnectionRequest() {
-        const handleCloseConnectionRequest = () => {
-            assert(
-                this.webrtcConnection,
-                "No active connection to close. The server sent a CLOSE_CONNECTION message unexpectedly."
-            );
-
-            this.clearWebRTCConnection();
-
-            this.onConnectionClosedObservable.notify("remote");
-        };
-
-        this.signaling.subscribeMessage(
-            MessageType.CLOSE_CONNECTION,
-            handleCloseConnectionRequest as MessageHandler
-        );
-    }
-
-    // Sets up event listeners for WebRTCConnection and trigger corresponding callbacks
-    private setupListeners() {
-        assert(this.webrtcConnection, "PeerConnection is not initialized.");
-        this.webrtcConnection.subscribeTo("connectionstatechange", state => {
-            if (state === "connected") {
-                this.log(
-                    "PEERCONNECTIONMANAGER ::: state",
-                    state,
-                    "and onConnectedCallback is:",
-                    this.onConnectedCallback
-                );
-                assert(
-                    this.onConnectedCallback,
-                    "onConnectedCallback is not set."
-                );
-                this.onConnectedCallback();
-            } else if (state === "closed" || state === "disconnected") {
-                this.log("PEERCONNECTIONMANAGER ::: state:", state);
-            }
-        });
-    }
-
-    /**
-     * Sets a callback to be invoked when the peer connection is established and the state changes to "connected".
-     *
-     * This method allows external components to define a callback function that will be executed when the peer connection
-     * successfully transitions to the "connected" state, indicating that the connection is ready for communication.
-     *
-     * @param cb The callback function to be called when the connection is established.
-     */
-    public setOnConnectedCallback(cb: () => void) {
-        this.onConnectedCallback = cb;
-        this.log(
-            "PEERCONNECTIONMANAGER ::: Set OnConnectedCallback to:",
-            this.onConnectedCallback
-        );
+    public reset() {
+        Array.from(this.peers.keys()).forEach(token => this.dropPeer(token));
+        Array.from(this.queues.keys()).forEach(token => this.failQueue(token));
+        this.requested.forEach(timer => clearTimeout(timer));
+        this.requested.clear();
     }
 
     /** Central transfer state consumed by the UI. */
@@ -460,34 +165,9 @@ export class PeerConnectionManager {
         return this.transferTracker;
     }
 
-    public getConnection() {
-        return this.webrtcConnection;
-    }
-
-    public getRemoteToken() {
-        assert(
-            this.connectedRemoteToken,
-            "Remote token is not set. Ensure you have received the remote token."
-        );
-        return this.connectedRemoteToken;
-    }
-
     /**
-     * Sends a file to the remote peer using the underlying WebRTCConnection.
-     * Throws if no active connection exists.
-     * @param file The file to send.
-     * @param folder Folder membership when the file is part of a folder
-     * transfer.
-     */
-    public sendFile(file: File, uuid: string, folder?: FolderInfo) {
-        assert(this.webrtcConnection, "No active connection to send file.");
-        this.webrtcConnection.sendFileOverDataChannel(file, uuid, folder);
-    }
-
-    /**
-     * Saves a received file by UUID, with or without an active connection.
-     * @param uuid The UUID of the file to save.
-     * @returns true if the file was found and the download was triggered, false otherwise.
+     * Saves a received file by UUID.
+     * @returns true if the file was found and the download was triggered.
      */
     public redownloadFile(uuid: string): boolean {
         return this.receivedFiles.save(uuid);
@@ -495,12 +175,117 @@ export class PeerConnectionManager {
 
     /**
      * Saves all completed files of a received folder transfer, either into a
-     * user-picked directory (Chromium) or as individual downloads, with or
-     * without an active connection.
-     * @param folderId The folder ID of the transfer to save.
-     * @returns true if saving was started, false otherwise.
+     * user-picked directory (Chromium) or as individual downloads.
+     * @returns true if saving was started.
      */
     public async saveFolder(folderId: string): Promise<boolean> {
         return this.receivedFiles.saveFolder(folderId);
+    }
+
+    private enqueue(remoteToken: ClientToken, files: QueuedFile[]) {
+        files.forEach(file =>
+            this.transferTracker.start(file.uuid, {
+                name: file.file.name,
+                size: file.file.size,
+                direction: "up",
+                remoteToken,
+                folderId: file.folder?.folderId,
+                relativePath: file.folder?.relativePath,
+                startedAt: file.startedAt,
+            })
+        );
+
+        const queue = this.queues.get(remoteToken) ?? [];
+        queue.push(...files);
+        this.queues.set(remoteToken, queue);
+
+        const peer = this.peers.get(remoteToken);
+        if (peer?.connected) {
+            this.flushQueue(remoteToken);
+        } else if (!peer && !this.requested.has(remoteToken)) {
+            // The server ignores the request when the peer left or never
+            // allowed this client, so no connection ever arrives.
+            this.requested.set(
+                remoteToken,
+                setTimeout(() => {
+                    this.requested.delete(remoteToken);
+                    if (!this.peers.has(remoteToken)) {
+                        this.failQueue(remoteToken);
+                    }
+                }, CONNECT_TIMEOUT_MS)
+            );
+            this.signaling.sendMessage(
+                new PeerConnectMessage({ to: remoteToken })
+            );
+        }
+    }
+
+    private flushQueue(remoteToken: ClientToken) {
+        const peer = this.peers.get(remoteToken);
+        const queue = this.queues.get(remoteToken);
+        if (!peer || !queue) {
+            return;
+        }
+        this.queues.delete(remoteToken);
+        queue.forEach(file =>
+            peer.connection.sendFileOverDataChannel(
+                file.file,
+                file.uuid,
+                file.folder,
+                file.startedAt
+            )
+        );
+    }
+
+    private failQueue(remoteToken: ClientToken) {
+        this.queues
+            .get(remoteToken)
+            ?.forEach(file =>
+                this.transferTracker.setStatus(file.uuid, "failed")
+            );
+        this.queues.delete(remoteToken);
+    }
+
+    private handleEstablishConnection(message: EstablishConnectionMessage) {
+        const remoteToken = normalizeClientToken(message.msg.remoteToken);
+        clearTimeout(this.requested.get(remoteToken));
+        this.requested.delete(remoteToken);
+        this.peers.get(remoteToken)?.connection.closeConnection();
+
+        const ownDevice = message.msg.ownDevice;
+        const connection = new WebRTCConnection(
+            this.signaling,
+            remoteToken,
+            this.transferTracker,
+            this.receivedFiles,
+            message.msg.iceServers,
+            () => ownDevice || this.incomingGate(remoteToken)
+        );
+        const peer: PeerConnection = {
+            connection,
+            ownDevice,
+            connected: false,
+        };
+        this.peers.set(remoteToken, peer);
+
+        connection.subscribeTo("connectionstatechange", state => {
+            this.log("Connection to", remoteToken, "is", state);
+            if (state === "connected") {
+                peer.connected = true;
+                this.flushQueue(remoteToken);
+            } else if (
+                state === "failed" &&
+                this.peers.get(remoteToken) === peer
+            ) {
+                this.closePeer(remoteToken);
+            }
+        });
+    }
+
+    private dropPeer(remoteToken: ClientToken) {
+        const peer = this.peers.get(remoteToken);
+        this.peers.delete(remoteToken);
+        peer?.connection.closeConnection();
+        this.failQueue(remoteToken);
     }
 }
