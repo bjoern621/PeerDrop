@@ -32,8 +32,6 @@
     gap: var(--space-12);
     padding: var(--space-8) var(--space-16);
     border-radius: 12px;
-    font-size: var(--font-size-m);
-    line-height: var(--line-height-m);
     font-weight: var(--font-weight-medium);
 
     > svg {
@@ -86,8 +84,6 @@
         left: var(--space-16);
         right: var(--space-16);
         bottom: var(--space-16);
-        font-size: var(--font-size-s);
-        line-height: var(--line-height-s);
         background:
             linear-gradient(var(--hint-tint), var(--hint-tint)),
             var(--background);

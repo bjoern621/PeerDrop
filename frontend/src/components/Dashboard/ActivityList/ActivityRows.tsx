@@ -12,7 +12,6 @@ import {
     IconPlayerPauseFilled as PauseIcon,
     IconAlignLeft as LinesIcon,
 } from "@tabler/icons-react";
-import Badge from "../../Badge/Badge";
 import Tooltip from "../../Tooltip/Tooltip";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
@@ -62,21 +61,17 @@ export function TextRow({
         >
             {entry.direction === "up" ? (
                 entry.status === "sending" ? (
-                    <Badge size="m">Wird gesendet</Badge>
+                    <StatusChip tone="neutral">Wird gesendet</StatusChip>
                 ) : entry.status === "delivered" ? (
-                    <Badge color_scheme="success" size="m">
-                        Gesendet
-                    </Badge>
+                    <StatusChip tone="success">Gesendet</StatusChip>
                 ) : (
                     <Tooltip content="Versuche es später noch einmal.">
-                        <Badge color_scheme="error" size="m">
-                            Fehlgeschlagen
-                        </Badge>
+                        <StatusChip tone="error">Fehlgeschlagen</StatusChip>
                     </Tooltip>
                 )
             ) : (
                 <>
-                    <CopyBadge text={entry.text} />
+                    <CopyButton text={entry.text} />
                     {!blocked.has(entry.peer) && (
                         <BlockButton
                             onBlock={() => messaging.block(entry.peer)}
@@ -112,13 +107,9 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
             at={entry.at}
         >
             {entry.status === "declined" ? (
-                <Badge color_scheme="error" size="m">
-                    Abgelehnt
-                </Badge>
+                <StatusChip tone="error">Abgelehnt</StatusChip>
             ) : entry.status === "failed" ? (
-                <Badge color_scheme="error" size="m">
-                    Fehlgeschlagen
-                </Badge>
+                <StatusChip tone="error">Fehlgeschlagen</StatusChip>
             ) : entry.direction === "up" ? (
                 <>
                     <div className={css.progress}>
@@ -139,16 +130,16 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                 </>
             ) : (
                 <>
-                    <Badge
-                        color_scheme="primary"
-                        clickable
+                    <button
+                        type="button"
+                        className={css.accept}
                         title="Klicken, um die Übertragung anzunehmen"
                         onClick={() =>
                             messaging.answerOffer(entry.offerId, true)
                         }
                     >
                         ANNEHMEN
-                    </Badge>
+                    </button>
                     <IconButton
                         label="Ablehnen"
                         onClick={() =>
@@ -304,9 +295,7 @@ function TransferStatus({
     if (transfers.every(t => t.status === "done")) {
         return (
             <>
-                <Badge color_scheme="success" size="m">
-                    Fertig!
-                </Badge>
+                <StatusChip tone="success">Fertig!</StatusChip>
                 {top && direction === "down" && (
                     <Tooltip
                         content={
@@ -315,9 +304,13 @@ function TransferStatus({
                                 : `Klicken, um ${saveHint} zu speichern`
                         }
                     >
-                        <Badge clickable onClick={() => save(pcm)}>
+                        <button
+                            type="button"
+                            className={css.action}
+                            onClick={() => save(pcm)}
+                        >
                             SPEICHERN
-                        </Badge>
+                        </button>
                     </Tooltip>
                 )}
                 {block}
@@ -340,9 +333,7 @@ function TransferStatus({
                     <Tooltip
                         content={`Die Verbindung zu ${remoteToken.toUpperCase()} ist abgebrochen.`}
                     >
-                        <Badge color_scheme="error" size="m">
-                            Fehlgeschlagen
-                        </Badge>
+                        <StatusChip tone="error">Fehlgeschlagen</StatusChip>
                     </Tooltip>
                     {top && direction === "up" && (
                         <IconButton
@@ -361,9 +352,7 @@ function TransferStatus({
         return (
             <>
                 <Tooltip content="Die Übertragung wurde abgebrochen.">
-                    <Badge color_scheme="warning" size="m">
-                        Abgebrochen
-                    </Badge>
+                    <StatusChip tone="warning">Abgebrochen</StatusChip>
                 </Tooltip>
                 {block}
             </>
@@ -519,15 +508,16 @@ function BlockButton({ peer, onBlock }: { peer: string; onBlock: () => void }) {
     );
 }
 
-export function CopyBadge({ text }: { text: string }) {
+export function CopyButton({ text }: { text: string }) {
     const [copied, setCopied] = useState(false);
     const timer = useRef<number | undefined>(undefined);
 
     useEffect(() => () => window.clearTimeout(timer.current), []);
 
     return (
-        <Badge
-            clickable
+        <button
+            type="button"
+            className={css.action}
             title="Klicken, um den Text zu kopieren"
             onClick={() => {
                 void navigator.clipboard.writeText(text).then(() => {
@@ -541,6 +531,16 @@ export function CopyBadge({ text }: { text: string }) {
             }}
         >
             {copied ? "KOPIERT" : "KOPIEREN"}
-        </Badge>
+        </button>
     );
+}
+
+function StatusChip({
+    tone,
+    children,
+}: {
+    tone: "neutral" | "success" | "warning" | "error";
+    children: ReactNode;
+}) {
+    return <span className={`${css.chip} ${css[tone]}`}>{children}</span>;
 }

@@ -6,7 +6,7 @@ import {
     getSizeInHumanReadableFormat,
     getTimeInHumanReadableFormat,
 } from "../transferFormat";
-import { CopyBadge } from "./ActivityRows";
+import { CopyButton } from "./ActivityRows";
 
 /** Shows a whole text read-only over the transfer list. */
 export default function ReadView({
@@ -46,7 +46,7 @@ export default function ReadView({
                         )}{" "}
                         · {getTimeInHumanReadableFormat(entry.at)}
                     </span>
-                    <CopyBadge text={entry.text} />
+                    <CopyButton text={entry.text} />
                     {entry.direction === "down" && !blocked && (
                         <button
                             type="button"

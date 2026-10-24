@@ -79,7 +79,7 @@
     background-color: var(--text-muted-10);
     color: var(--text);
     cursor: pointer;
-    transition: opacity 0.2s ease;
+    transition: background-color 0.15s ease-out;
 
     > svg {
         width: 16px;
@@ -87,11 +87,35 @@
     }
 
     &:hover {
-        opacity: 0.8;
+        background-color: var(--text-muted-20);
     }
 
     &:active {
-        opacity: 0.6;
+        background-color: var(--text-muted-30);
+    }
+}
+
+/// Text button in a list row, e.g. SPEICHERN.
+@mixin row-text-button {
+    flex: none;
+    padding: var(--space-2) var(--space-8);
+    border: none;
+    border-radius: var(--space-4);
+    background-color: var(--text-muted-10);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--font-size-xxs);
+    line-height: var(--line-height-xxs);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: background-color 0.15s ease-out;
+
+    &:hover {
+        background-color: var(--text-muted-20);
+    }
+
+    &:active {
+        background-color: var(--text-muted-30);
     }
 }
 
