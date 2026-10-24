@@ -24,7 +24,6 @@ interface NextStepInput {
 export function nextStep(input: NextStepInput): Hint {
     const { recipient, lock, stacked } = input;
     const token = recipient.toUpperCase();
-    const devices = stacked ? "unter „Geräte“" : "links";
 
     if (lock?.reason === "tokens") {
         const minutes = Math.max(
@@ -81,7 +80,7 @@ export function nextStep(input: NextStepInput): Hint {
     if (input.lookup.status === "offline") {
         return {
             kind: "err",
-            text: `Kein Gerät mit dem Token ${token} ist online. Prüfe den Token oder wähle ${devices} ein Gerät.`,
+            text: `${token} ist nicht online. Bitte überprüfe den Token.`,
         };
     }
     if (input.tooBig) {
