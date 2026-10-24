@@ -1,3 +1,4 @@
+import { KeyboardEvent } from "react";
 import { OTPInput, SlotProps } from "input-otp";
 import css from "./RecipientInput.module.scss";
 import { normalizeClientToken } from "../../../services/WebSocketService";
@@ -19,6 +20,26 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
         </div>
     );
 };
+
+/**
+ * Ctrl+Backspace (Alt or Cmd on macOS) deletes everything before the caret.
+ * input-otp keeps the last slot selected in a full field.
+ * The browser would delete only that selection.
+ */
+function deleteWordBackward(
+    event: KeyboardEvent<HTMLInputElement>,
+    value: string,
+    onChange: (value: string) => void
+) {
+    if (
+        event.key !== "Backspace" ||
+        !(event.ctrlKey || event.altKey || event.metaKey)
+    ) {
+        return;
+    }
+    event.preventDefault();
+    onChange(value.slice(event.currentTarget.selectionEnd ?? value.length));
+}
 
 export default function RecipientInput({
     value,
@@ -43,6 +64,7 @@ export default function RecipientInput({
             data-lpignore="true"
             data-1p-ignore="true"
             onChange={value => onChange(normalizeClientToken(value))}
+            onKeyDown={event => deleteWordBackward(event, value, onChange)}
             render={({ slots }) => (
                 <div
                     className={`${css.slotsContainer} ${check === "online" ? css.online : ""} ${check === "offline" ? css.offline : ""}`}
