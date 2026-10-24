@@ -77,13 +77,14 @@ export class WebSocketService {
                 event.data
             ) as ITypedMessage;
 
-            // Notify all subscribers for this message type
-            const handlers = this.messageHandlers.get(typedMessage.type);
-            if (handlers) {
-                await Promise.allSettled(
-                    handlers.map(handler => handler(typedMessage))
-                );
-            }
+            // Notifies a copy of the subscribers, since a handler may
+            // unsubscribe itself while they run.
+            const handlers = [
+                ...(this.messageHandlers.get(typedMessage.type) ?? []),
+            ];
+            await Promise.allSettled(
+                handlers.map(handler => handler(typedMessage))
+            );
         };
     }
 
