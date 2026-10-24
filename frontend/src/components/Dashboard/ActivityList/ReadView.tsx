@@ -2,6 +2,7 @@ import css from "./ReadView.module.scss";
 import { IconX as CloseIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
+import { useEscapeKey } from "../../../hooks/useEscapeKey";
 import {
     getSizeInHumanReadableFormat,
     getTimeInHumanReadableFormat,
@@ -20,6 +21,7 @@ export default function ReadView({
     onClose: () => void;
 }) {
     const messaging = useMessagingService();
+    useEscapeKey(onClose);
     const peer = entry.peer.toUpperCase();
     const title =
         entry.direction === "down" ? `Text von ${peer}` : `Text an ${peer}`;
@@ -75,12 +77,6 @@ export default function ReadView({
                     autoFocus
                     spellCheck={false}
                     wrap="off"
-                    onKeyDown={event => {
-                        if (event.key === "Escape") {
-                            event.preventDefault();
-                            onClose();
-                        }
-                    }}
                 />
             </div>
         </div>

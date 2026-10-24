@@ -14,6 +14,7 @@ import {
     IconArrowsDiagonalMinimize2 as CollapseIcon,
 } from "@tabler/icons-react";
 import { getSizeInHumanReadableFormat } from "../transferFormat";
+import { useEscapeKey } from "../../../hooks/useEscapeKey";
 import Button from "../../Button/Button";
 import IconButton from "../../IconButton/IconButton";
 import Tooltip from "../../Tooltip/Tooltip";
@@ -115,6 +116,7 @@ export default function TextComposer({
         window.clearTimeout(closeTimer.current);
         closeTimer.current = window.setTimeout(() => setBig(null), GROW_MS);
     };
+    useEscapeKey(closeBig, big !== null);
 
     const lines = draft.length === 0 ? 0 : draft.split("\n").length;
     const meta =
@@ -219,14 +221,7 @@ export default function TextComposer({
                                 onChange={event =>
                                     onDraftChange(event.target.value)
                                 }
-                                onKeyDown={event => {
-                                    if (event.key === "Escape") {
-                                        event.preventDefault();
-                                        closeBig();
-                                        return;
-                                    }
-                                    handleKeyDown(event);
-                                }}
+                                onKeyDown={handleKeyDown}
                                 spellCheck={false}
                                 wrap="off"
                                 placeholder="Text oder Code einfügen"
