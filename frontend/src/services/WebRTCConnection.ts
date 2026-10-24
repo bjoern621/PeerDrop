@@ -461,6 +461,11 @@ export class WebRTCConnection {
 
                 state.earlyChunks.forEach(handleSequencedChunk);
                 state.earlyChunks.length = 0;
+
+                // An empty file announces no chunks, so no chunk completes it.
+                if (state.fileMeta.chunkCount === 0) {
+                    void this.finishDownload(state);
+                }
                 return;
             }
 
