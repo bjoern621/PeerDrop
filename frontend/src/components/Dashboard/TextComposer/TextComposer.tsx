@@ -1,5 +1,6 @@
 import {
     KeyboardEvent,
+    MouseEvent,
     RefObject,
     useEffect,
     useLayoutEffect,
@@ -156,17 +157,19 @@ export default function TextComposer({
                 <label htmlFor="text-draft" className={css.label}>
                     Text
                 </label>
-                <textarea
-                    id="text-draft"
-                    ref={textareaRef}
-                    className={css.textarea}
-                    value={draft}
-                    onChange={event => onDraftChange(event.target.value)}
-                    onKeyDown={handleKeyDown}
-                    spellCheck={false}
-                    wrap="off"
-                    placeholder="Text oder Code einfügen"
-                />
+                <div className={css.textBox} onMouseDown={focusFromFrame}>
+                    <textarea
+                        id="text-draft"
+                        ref={textareaRef}
+                        className={css.textarea}
+                        value={draft}
+                        onChange={event => onDraftChange(event.target.value)}
+                        onKeyDown={handleKeyDown}
+                        spellCheck={false}
+                        wrap="off"
+                        placeholder="Text oder Code einfügen"
+                    />
+                </div>
                 <div
                     className={`${css.fadeBottom} ${overflowing ? css.visible : ""}`}
                     aria-hidden
@@ -198,7 +201,10 @@ export default function TextComposer({
                         className={css.big}
                         style={rect}
                     >
-                        <div className={css.bigBody}>
+                        <div
+                            className={css.bigBody}
+                            onMouseDown={focusFromFrame}
+                        >
                             <label
                                 htmlFor="text-draft-big"
                                 className={css.label}
@@ -243,4 +249,23 @@ export default function TextComposer({
             )}
         </>
     );
+}
+
+/** A press on the padding around a textarea focuses it, with the caret at the end when it was not focused yet. */
+function focusFromFrame(event: MouseEvent<HTMLElement>) {
+    if (event.target !== event.currentTarget) {
+        return;
+    }
+    const textarea = event.currentTarget.querySelector("textarea");
+    if (!textarea) {
+        return;
+    }
+    event.preventDefault();
+    if (document.activeElement !== textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(
+            textarea.value.length,
+            textarea.value.length
+        );
+    }
 }

@@ -14,14 +14,23 @@
     @include visually-hidden;
 }
 
-// Margin rather than padding, so scrolled text stops short of the frame.
+// Padding outside the textarea, so scrolled text stops short of the border.
+// A press on it still reaches the textarea.
+.textBox {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-8) var(--space-12);
+    cursor: text;
+}
+
 .textarea {
     flex: 1 1 auto;
     display: block;
     min-width: 0;
     height: 72px;
     box-sizing: border-box;
-    margin: var(--space-8) var(--space-12);
+    margin: 0;
     resize: none;
     padding: 0;
     border: none;
@@ -141,4 +150,6 @@
     flex: 1 1 0;
     min-height: 0;
     display: flex;
+    padding: var(--space-8) var(--space-12);
+    cursor: text;
 }
