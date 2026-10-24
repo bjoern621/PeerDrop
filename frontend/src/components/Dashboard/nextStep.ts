@@ -1,14 +1,7 @@
 import { LookupState, SendLock } from "../../services/MessagingService";
 import { CLIENT_TOKEN_LENGTH } from "../../util/Constants";
 
-export type HintKind =
-    | "left"
-    | "type"
-    | "pick"
-    | "send"
-    | "wait"
-    | "warn"
-    | "err";
+export type HintKind = "left" | "type" | "pick" | "wait" | "warn" | "err";
 
 export interface Hint {
     kind: HintKind;
@@ -20,7 +13,6 @@ interface NextStepInput {
     ownToken: string | undefined;
     lookup: LookupState | undefined;
     blocked: boolean;
-    hasText: boolean;
     tooBig: boolean;
     lock: SendLock | null;
     now: number;
@@ -96,12 +88,6 @@ export function nextStep(input: NextStepInput): Hint {
         return {
             kind: "warn",
             text: "Der Text ist größer als 1 MB. Schicke ihn als Datei.",
-        };
-    }
-    if (input.hasText) {
-        return {
-            kind: "send",
-            text: `Schicke ${token} den Text mit „Text senden“ oder teile Dateien und Ordner.`,
         };
     }
     return {

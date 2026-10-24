@@ -90,7 +90,6 @@ export default function Dashboard() {
         ownToken,
         lookup,
         blocked,
-        hasText,
         tooBig,
         lock,
         now,
