@@ -10,6 +10,7 @@ import Badge from "../../../Badge/Badge";
 import IconButton from "../../../IconButton/IconButton";
 import Anchor from "../../../Anchor/Anchor";
 import DeviceTile from "../DeviceTile/DeviceTile";
+import TruncatedText from "../../../TruncatedText/TruncatedText";
 
 const MAX_DEVICE_NAME_LENGTH = 64; // Linked to the backend DisplayNameValidator
 
@@ -107,7 +108,9 @@ export default function DeviceDisplay({
                     onBlur={commitRename}
                 />
             ) : (
-                <span className={css.deviceName}>{device.name}</span>
+                <TruncatedText className={css.deviceName}>
+                    {device.name}
+                </TruncatedText>
             )}
             {device.current && <Badge>DIESES GERÄT</Badge>}
         </DeviceTile>

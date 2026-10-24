@@ -13,6 +13,7 @@ import {
     IconAlignLeft as LinesIcon,
 } from "@tabler/icons-react";
 import IconButton from "../../IconButton/IconButton";
+import TruncatedText from "../../TruncatedText/TruncatedText";
 import RowButton from "../RowButton/RowButton";
 import StatusChip from "../StatusChip/StatusChip";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
@@ -102,7 +103,9 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                     ) : (
                         <FileIcon className={css.icon} aria-hidden />
                     )}
-                    <span className={css.name}>{offerName(entry)}</span>
+                    <TruncatedText className={css.name}>
+                        {offerName(entry)}
+                    </TruncatedText>
                 </span>
             }
             count={folderName ? count : undefined}
@@ -120,9 +123,9 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                     <div className={css.progress}>
                         <div className={css.progressInfo}>
                             <PauseIcon aria-hidden />
-                            <span className={css.waitingLabel}>
+                            <TruncatedText className={css.waitingLabel}>
                                 Wartet auf Bestätigung
-                            </span>
+                            </TruncatedText>
                         </div>
                         <div className={css.barIdle} />
                     </div>
@@ -175,11 +178,12 @@ export function FileRow({
         <Row
             name={
                 <span
-                    className={css.name}
-                    title={transfer.name}
+                    className={css.iconName}
                     style={{ paddingLeft: depth * 24 }}
                 >
-                    {transfer.name}
+                    <TruncatedText className={css.name}>
+                        {transfer.name}
+                    </TruncatedText>
                 </span>
             }
             direction={transfer.direction}
@@ -228,7 +232,9 @@ export function FolderRow({
                             aria-hidden
                         />
                         <FolderIcon className={css.icon} aria-hidden />
-                        <span className={css.name}>{folder.name}</span>
+                        <TruncatedText className={css.name}>
+                            {folder.name}
+                        </TruncatedText>
                     </button>
                 }
                 count={transfers.length}
@@ -390,11 +396,11 @@ function TransferStatus({
             <div className={css.progress}>
                 <div className={css.progressInfo}>
                     {connecting ? (
-                        <span>Verbindet...</span>
+                        <TruncatedText>Verbindet...</TruncatedText>
                     ) : (
                         <>
                             <span>{Math.floor(progress * 100)} %</span>
-                            <span>{info}</span>
+                            <TruncatedText>{info}</TruncatedText>
                         </>
                     )}
                 </div>

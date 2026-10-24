@@ -1,0 +1,11 @@
+.trigger {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.text {
+    min-width: 0;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

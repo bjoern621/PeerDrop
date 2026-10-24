@@ -9,6 +9,7 @@ import { useScrollShadows } from "../../hooks/useScrollShadows";
 import { LanPeer } from "../../types/lan/LanPeer";
 import { Device } from "../../types/device/Device";
 import HelpTip from "../HelpTip/HelpTip";
+import TruncatedText from "../TruncatedText/TruncatedText";
 import Anchor from "../Anchor/Anchor";
 import CardHeading from "./CardHeading/CardHeading";
 import DeviceList from "./Devices/DeviceList/DeviceList";
@@ -143,7 +144,7 @@ function LanTile({
             onSelect={() => onPick(peer.token)}
         >
             <span className={css.tileToken}>{peer.token.toUpperCase()}</span>
-            <span className={css.tileInfo}>{deviceInfo}</span>
+            <TruncatedText className={css.tileInfo}>{deviceInfo}</TruncatedText>
         </DeviceTile>
     );
 }
