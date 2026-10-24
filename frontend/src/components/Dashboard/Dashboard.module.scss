@@ -14,8 +14,10 @@
 
     --background-effect-size: 1100px;
 
+    // The glow stays inside the dashboard, which would otherwise scroll the page past the footer.
     &::after {
         z-index: -1;
+        max-height: 100%;
     }
 }
 
