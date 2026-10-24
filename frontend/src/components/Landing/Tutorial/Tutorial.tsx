@@ -17,26 +17,24 @@ export default function Tutorial() {
                     <h3>Token teilen</h3>
                     <p className="text-muted">
                         Die Person, die etwas empfangen soll, gibt dir ihren
-                        Token. Im selben Netzwerk siehst du ihr Gerät direkt
-                        unter „Geräte“.
+                        Token. Im selben Netzwerk siehst du ihr Gerät auch unter
+                        „Geräte“.
                     </p>
                 </div>
                 <div className={css.card2}>
                     <div className={css.cardIcon}>2</div>
                     <h3>Text oder Dateien senden</h3>
                     <p className="text-muted">
-                        Gib den Token unter „An“ ein. Schreibe einen Text oder
-                        wähle Dateien und Ordner. Die Übertragung startet
-                        sofort.
+                        Gib den Token ein. Danach kannst du Texte, Dateien oder
+                        Ordner übertragen.
                     </p>
                 </div>
                 <div className={css.card3}>
                     <div className={css.cardIcon}>3</div>
                     <h3>Annehmen</h3>
                     <p className="text-muted">
-                        Deine erste Datei nimmt der Empfänger mit einem Klick
-                        an. Weitere Dateien und alle Texte kommen ohne erneute
-                        Nachfrage an.
+                        Deine erste Datei wartet auf eine Bestätigung vom Peer.
+                        Alle weiteren werden automatisch übertragen.
                     </p>
                 </div>
             </div>
