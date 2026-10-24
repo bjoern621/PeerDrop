@@ -48,13 +48,11 @@ export default function ReadView({
                         · {getTimeInHumanReadableFormat(entry.at)}
                     </span>
                     <CopyButton text={entry.text} />
-                    {entry.direction === "down" && !blocked && (
+                    {entry.direction === "down" && (
                         <BlockButton
                             peer={entry.peer}
-                            onBlock={() => {
-                                messaging.block(entry.peer);
-                                onClose();
-                            }}
+                            blocked={blocked}
+                            onBlock={() => messaging.block(entry.peer)}
                         />
                     )}
                     <IconButton

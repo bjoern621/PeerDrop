@@ -78,12 +78,11 @@ export function TextRow({
             ) : (
                 <>
                     <CopyButton text={entry.text} />
-                    {!blocked.has(entry.peer) && (
-                        <BlockButton
-                            onBlock={() => messaging.block(entry.peer)}
-                            peer={entry.peer}
-                        />
-                    )}
+                    <BlockButton
+                        peer={entry.peer}
+                        blocked={blocked.has(entry.peer)}
+                        onBlock={() => messaging.block(entry.peer)}
+                    />
                 </>
             )}
         </Row>
@@ -157,12 +156,11 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                     >
                         <CloseIcon aria-hidden />
                     </IconButton>
-                    {!blocked.has(entry.peer) && (
-                        <BlockButton
-                            onBlock={() => messaging.block(entry.peer)}
-                            peer={entry.peer}
-                        />
-                    )}
+                    <BlockButton
+                        peer={entry.peer}
+                        blocked={blocked.has(entry.peer)}
+                        onBlock={() => messaging.block(entry.peer)}
+                    />
                 </>
             )}
         </Row>
@@ -297,10 +295,11 @@ function TransferStatus({
     const { direction, remoteToken } = transfers[0];
 
     const block =
-        top && direction === "down" && !blocked.has(remoteToken) ? (
+        top && direction === "down" ? (
             <BlockButton
-                onBlock={() => messaging.block(remoteToken)}
                 peer={remoteToken}
+                blocked={blocked.has(remoteToken)}
+                onBlock={() => messaging.block(remoteToken)}
             />
         ) : null;
 
@@ -490,17 +489,31 @@ function Row({
     );
 }
 
+/** Blocks a sender until reload. Once blocked, it stays in red and does nothing. */
 export function BlockButton({
     peer,
+    blocked,
     onBlock,
 }: {
     peer: string;
+    blocked: boolean;
     onBlock: () => void;
 }) {
-    return (
+    const token = peer.toUpperCase();
+    return blocked ? (
         <IconButton
             variant="badge"
-            label={`${peer.toUpperCase()} blockieren`}
+            tone="error"
+            label={`${token} blockiert`}
+            tooltip={`${token} ist blockiert, bis du die Seite neu lädst`}
+            aria-disabled
+        >
+            <BlockIcon aria-hidden />
+        </IconButton>
+    ) : (
+        <IconButton
+            variant="badge"
+            label={`${token} blockieren`}
             onClick={onBlock}
         >
             <BlockIcon aria-hidden />

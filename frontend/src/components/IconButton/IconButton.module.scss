@@ -74,3 +74,12 @@
         background-color: var(--error-20);
     }
 }
+
+// A state shown as a button that takes no action, e.g. a sender already blocked.
+.iconButton[aria-disabled="true"] {
+    cursor: default;
+
+    &.badge.error {
+        background-color: var(--error-20);
+    }
+}
