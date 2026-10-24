@@ -7,10 +7,19 @@ namespace backend.TelemetryComponent.Logic.Api;
 /// </summary>
 public interface IUsageMetrics
 {
-    void ConnectionRequested(bool targetFound);
-    void ConnectionAnswered(bool accepted);
+    /// <param name="outcome">"online", "unknown" or "locked".</param>
+    void TokenLookedUp(string outcome);
 
-    /// <param name="path">"token" for an accepted request, "account" for a quick connect to an own device.</param>
+    /// <param name="status">The status sent in text-result: "delivered", "undelivered", "rate-limited", "too-large" or "unknown".</param>
+    void TextHandled(string status);
+
+    /// <param name="status">The status sent in transfer-offer-result: "delivered", "unknown" or "rate-limited".</param>
+    void TransferOffered(string status);
+
+    void TransferAnswered(bool accepted);
+
+    /// <param name="path">"offer" for an accepted transfer offer, "own_device" for two clients of one account,
+    /// "reconnect" for a pair that a permission allows.</param>
     void ConnectionInitiated(string path);
 
     /// <summary>

@@ -33,6 +33,29 @@ public interface IWebSocketHandler
     public int? GetUserIdForClientToken(string clientToken);
 
     /// <summary>
+    /// Returns true if both clients are connected and signed in with the same account, false otherwise.
+    /// </summary>
+    public bool AreSignedInWithSameAccount(string clientTokenA, string clientTokenB);
+
+    /// <summary>
+    /// Returns the remote IP address the client connected from.
+    /// Null if the client is not connected or the address could not be determined.
+    /// </summary>
+    public string? GetRemoteIpAddressForClientToken(string clientToken);
+
+    /// <summary>
+    /// Stores the public key the client announced, replacing an earlier one.
+    /// Nothing happens if the client is not connected.
+    /// </summary>
+    public void SetPublicKey(string clientToken, string publicKey);
+
+    /// <summary>
+    /// Returns the public key the client announced last.
+    /// Null if the client is not connected or has not sent a key.
+    /// </summary>
+    public string? GetPublicKeyForClientToken(string clientToken);
+
+    /// <summary>
     /// Connected clients, split by whether the client holds a session.
     /// </summary>
     public (int SignedIn, int Anonymous) CountClients();

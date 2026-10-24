@@ -1,56 +1,21 @@
+using backend.ConnectionComponent.Dataaccess.Api;
 using backend.SignalingComponent.Common.Api.DTOs;
 using backend.SignalingComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.SignalingComponent.Logic.Impl;
 
-public class SignalingService(IWebSocketHandler webSocketHandler, ILogger<SignalingService> logger) : ISignalingService
+public class SignalingService(IWebSocketHandler webSocketHandler, IPairRepository pairRepository, ILogger<SignalingService> logger) : ISignalingService
 {
     private readonly IWebSocketHandler _webSocketHandler = webSocketHandler;
-
-    public async Task HandleRemoteTokenMessage(string clientId, RemoteTokenMessage message)
-    {
-        logger.LogDebug($"from {clientId}: Local Token");
-        string remoteToken = message.RemoteToken;
-        string requestId = message.RequestId!;
-
-        if (!_webSocketHandler.RemoteTokenExists(remoteToken))
-        {
-            var exception = new ErrorMessage
-            {
-                RequestId = requestId,
-                Description = $"Remote token {remoteToken} does not exist"
-            };
-
-            await _webSocketHandler.SendMessage(clientId, exception);
-            logger.LogDebug($"to {clientId}: Remote token {remoteToken} does not exist");
-        }
-        else
-        {
-            var success = new SuccessMessage
-            {
-                RequestId = requestId,
-                Description = $"Token {remoteToken} exists, OK"
-            };
-
-            var response = new RemoteTokenMessage
-            {
-                RequestId = requestId,
-                RemoteToken = clientId
-            };
-
-            await _webSocketHandler.SendMessage(clientId, success);
-            logger.LogDebug($"to {clientId}: SUCCESS: Remote token {remoteToken} exists");
-
-            await _webSocketHandler.SendMessage(remoteToken, response);
-            logger.LogDebug($"to {remoteToken}: Remote Token");
-        }
-    }
 
     public async Task HandleIceCandidateMessage(string clientId, IceCandidateMessage message)
     {
         logger.LogTrace($"from {clientId}: Local ICE Candidate");
         string remoteToken = message.RemoteToken;
+
+        if (!IsConnectedPair(clientId, remoteToken))
+            return;
 
         var response = new IceCandidateMessage
         {
@@ -67,6 +32,9 @@ public class SignalingService(IWebSocketHandler webSocketHandler, ILogger<Signal
         logger.LogTrace($"from {clientId}: Local SDP");
         string remoteToken = message.RemoteToken;
 
+        if (!IsConnectedPair(clientId, remoteToken))
+            return;
+
         var response = new SdpMessage
         {
             RemoteToken = clientId,
@@ -75,5 +43,14 @@ public class SignalingService(IWebSocketHandler webSocketHandler, ILogger<Signal
 
         await _webSocketHandler.SendMessage(remoteToken, response);
         logger.LogTrace($"to {remoteToken}: Remote SDP");
+    }
+
+    private bool IsConnectedPair(string clientId, string? remoteToken)
+    {
+        if (!string.IsNullOrEmpty(remoteToken) && pairRepository.AreConnected(clientId, remoteToken))
+            return true;
+
+        logger.LogDebug($"Signaling from {clientId} to {remoteToken}, but they are not connected. Dropping message.");
+        return false;
     }
 }

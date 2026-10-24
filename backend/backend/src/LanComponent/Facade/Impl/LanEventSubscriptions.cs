@@ -1,5 +1,3 @@
-using backend.ConnectionComponent.Common.Api.DTOs;
-using backend.ConnectionComponent.Logic.Api;
 using backend.LanComponent.Common.Api.DTOs;
 using backend.LanComponent.Facade.Api;
 using backend.LanComponent.Logic.Api;
@@ -9,7 +7,6 @@ namespace backend.LanComponent.Facade.Impl;
 
 public class LanEventSubscriptions(
     IWebSocketHandler _webSocketHandler,
-    IConnectionInitiationService _connectionInitiationService,
     ILanDiscoveryService _lanDiscoveryService) : ILanEventSubscriptions
 {
     public void SubscribeToEvents()
@@ -22,20 +19,5 @@ public class LanEventSubscriptions(
 
         _webSocketHandler.SubscribeToMessageType<LanDiscoveryStateMessage>(
             LanDiscoveryStateMessage.TypeString, _lanDiscoveryService.HandleLanDiscoveryState);
-
-        // Busy tracking: a peer connection starts when the server tells two
-        // clients to establish one. The closing client leaves the session with
-        // its close message, the client staying on the transfer screen with a
-        // session-left message (a plain disconnect is covered by
-        // ClientDisconnected above).
-        _connectionInitiationService.ConnectionEstablished += _lanDiscoveryService.HandleConnectionEstablished;
-
-        _webSocketHandler.SubscribeToMessageType<CloseConnectionMessage>(
-            CloseConnectionMessage.TypeString,
-            (clientToken, _) => _lanDiscoveryService.HandleSessionLeft(clientToken));
-
-        _webSocketHandler.SubscribeToMessageType<SessionLeftMessage>(
-            SessionLeftMessage.TypeString,
-            (clientToken, _) => _lanDiscoveryService.HandleSessionLeft(clientToken));
     }
 }
