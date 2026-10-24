@@ -14,7 +14,7 @@ public interface IDeviceService
 
     /// <summary>
     /// Gets the status of a device by its UUID.
-    /// Returns either "offline", "online", or "busy".
+    /// Returns either "offline" or "online".
     /// </summary>
     string GetDeviceStatus(Guid deviceUuid);
 
