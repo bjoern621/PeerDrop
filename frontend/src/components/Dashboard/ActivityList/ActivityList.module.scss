@@ -169,11 +169,15 @@ $min-width: 740px;
     color: var(--text);
 }
 
-.nameButton {
+.iconName {
     @extend .name;
     display: flex;
     align-items: center;
     gap: var(--space-8);
+}
+
+.nameButton {
+    @extend .iconName;
     padding: 0;
     border: none;
     background: none;

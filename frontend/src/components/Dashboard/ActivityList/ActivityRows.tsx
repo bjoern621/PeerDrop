@@ -96,13 +96,13 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
     return (
         <Row
             name={
-                <span className={css.name}>
+                <span className={css.iconName}>
                     {folderName ? (
                         <FolderIcon className={css.icon} aria-hidden />
                     ) : (
                         <FileIcon className={css.icon} aria-hidden />
-                    )}{" "}
-                    {offerName(entry)}
+                    )}
+                    <span className={css.name}>{offerName(entry)}</span>
                 </span>
             }
             count={folderName ? count : undefined}
@@ -474,9 +474,11 @@ function Row({
             <div role="cell" className={css.sizeCell}>
                 {getSizeInHumanReadableFormat(size)}
             </div>
-            <div role="cell" className={`${css.timeCell} ${css.time}`}>
-                {time.slice(0, 5)}
-                <span className={css.seconds}>{time.slice(5)}</span>
+            <div role="cell" className={css.timeCell}>
+                <span className={css.time}>
+                    {time.slice(0, 5)}
+                    <span className={css.seconds}>{time.slice(5)}</span>
+                </span>
             </div>
         </div>
     );
