@@ -96,7 +96,7 @@ export default function ActivityList({
                         {items.length === 0 && (
                             <div role="row">
                                 <div role="cell" className={css.empty}>
-                                    Keine Übertragungen.
+                                    Keine Übertragungen
                                 </div>
                             </div>
                         )}

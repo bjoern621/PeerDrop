@@ -82,7 +82,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
             return;
         }
         if (!recipient) {
-            showFlash({ kind: "warn", text: "Wähle zuerst einen Empfänger." });
+            showFlash({ kind: "warn", text: "Wähle zuerst einen Empfänger" });
             return;
         }
         onSelection(selection);
@@ -90,10 +90,10 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
             kind: "ok",
             text:
                 selection.folders.length === 1 && selection.files.length === 0
-                    ? `Ordner „${selection.folders[0].name}“ wird gesendet.`
+                    ? `Ordner „${selection.folders[0].name}“ wird gesendet`
                     : count === 1
-                      ? "1 Datei wird gesendet."
-                      : `${count} Dateien werden gesendet.`,
+                      ? "1 Datei wird gesendet"
+                      : `${count} Dateien werden gesendet`,
         });
     };
 
@@ -155,10 +155,10 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
     const dimming = (overZone || pageDrag) && !flash;
 
     const hint = !recipient
-        ? "Wähle zuerst einen Empfänger."
+        ? "Wähle zuerst einen Empfänger"
         : isTouchDevice
-          ? "Wähle Dateien oder einen Ordner."
-          : "Wähle Dateien oder einen Ordner oder ziehe sie hierher.";
+          ? "Wähle Dateien oder einen Ordner"
+          : "Wähle Dateien oder einen Ordner oder ziehe sie hierher";
 
     return (
         <div
