@@ -28,7 +28,7 @@
     border-radius: var(--space-4);
     border: 1px solid var(--border);
     z-index: 999;
-    text-wrap: nowrap;
+    text-wrap: wrap;
 
     position: fixed;
     position-anchor: --tooltip-anchor; // Will be replaced dynamically
@@ -36,6 +36,8 @@
     // Placement region can be narrower than the text, and shrink-to-fit would
     // clamp the box to it.
     width: max-content;
+    max-width: calc(100vw - 2 * var(--space-16));
+    box-sizing: border-box;
 
     // Gap to the trigger, on whichever side the placement lands on.
     margin: var(--space-8);

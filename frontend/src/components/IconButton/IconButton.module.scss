@@ -1,0 +1,76 @@
+.iconButton {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    transition: background-color 0.15s ease-out;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: default;
+    }
+}
+
+.ghost {
+    border-radius: 50%;
+    background-color: transparent;
+
+    > svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    &:hover:not(:disabled) {
+        background-color: var(--text-muted-10);
+    }
+
+    &:active:not(:disabled) {
+        background-color: var(--text-muted-20);
+    }
+}
+
+.l {
+    width: 44px;
+    height: 44px;
+}
+
+.m {
+    width: 32px;
+    height: 32px;
+}
+
+.badge {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--space-4);
+    background-color: var(--text-muted-10);
+
+    > svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    &:hover:not(:disabled) {
+        background-color: var(--text-muted-20);
+    }
+
+    &:active:not(:disabled) {
+        background-color: var(--text-muted-30);
+    }
+}
+
+.error {
+    color: var(--error-text);
+
+    &:hover:not(:disabled) {
+        background-color: var(--error-10);
+    }
+
+    &:active:not(:disabled) {
+        background-color: var(--error-20);
+    }
+}

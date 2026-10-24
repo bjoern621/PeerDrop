@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import css from "./SettingsMenu.module.scss";
-import SettingsIcon from "../../assets/icons8-settings.svg?react";
+import { IconSettings as SettingsIcon } from "@tabler/icons-react";
 import Button from "../Button/Button";
 import { useThemeContext } from "../../context/ThemeContext";
 import useSettings from "../../hooks/useSettings";
@@ -23,16 +23,9 @@ export default function SettingsMenu() {
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const { isOpen, openSettings, closeSettings } = useSettingsDialog();
     const { themePreference, setThemePreference } = useThemeContext();
-    const {
-        autoSaveDownloads,
-        showConnectWarning,
-        lanDiscovery,
-        stayAfterDisconnect,
-    } = useSettings();
+    const { autoSaveDownloads, lanDiscovery } = useSettings();
     const autoSaveId = useId();
-    const connectWarningId = useId();
     const lanDiscoveryId = useId();
-    const stayAfterDisconnectId = useId();
 
     // showModal() throws on an already open dialog and close() on an already
     // closed one, so both calls go through the element's own open flag.
@@ -133,29 +126,7 @@ export default function SettingsMenu() {
                     </div>
 
                     <div className={css.section}>
-                        <div className={css.sectionTitle}>Verbindung</div>
-                        <div className={css.toggleRow}>
-                            <label htmlFor={connectWarningId}>
-                                Sicherheitshinweis anzeigen
-                            </label>
-                            <input
-                                id={connectWarningId}
-                                type="checkbox"
-                                className={css.switch}
-                                checked={showConnectWarning}
-                                onChange={event =>
-                                    updateSettings({
-                                        showConnectWarning:
-                                            event.target.checked,
-                                    })
-                                }
-                            />
-                        </div>
-                        <p className={css.hint}>
-                            Der Hinweis erscheint vor jedem Verbindungsaufbau zu
-                            einem anderen Gerät.
-                        </p>
-
+                        <div className={css.sectionTitle}>Netzwerk</div>
                         <div className={css.toggleRow}>
                             <label htmlFor={lanDiscoveryId}>
                                 Geräte im Netzwerk finden
@@ -175,29 +146,6 @@ export default function SettingsMenu() {
                         <p className={css.hint}>
                             Dein Gerät erscheint dann bei anderen Geräten im
                             selben Netzwerk und zeigt sie dir an.
-                        </p>
-
-                        <div className={css.toggleRow}>
-                            <label htmlFor={stayAfterDisconnectId}>
-                                Nach Trennung auf der Seite bleiben
-                            </label>
-                            <input
-                                id={stayAfterDisconnectId}
-                                type="checkbox"
-                                className={css.switch}
-                                checked={stayAfterDisconnect}
-                                onChange={event =>
-                                    updateSettings({
-                                        stayAfterDisconnect:
-                                            event.target.checked,
-                                    })
-                                }
-                            />
-                        </div>
-                        <p className={css.hint}>
-                            Trennt der Peer die Verbindung, bleiben empfangene
-                            Dateien auf der Übertragungsseite zum Speichern.
-                            Wenn deaktiviert, wird die Seite sofort verlassen.
                         </p>
                     </div>
                 </div>

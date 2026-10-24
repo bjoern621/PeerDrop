@@ -1,0 +1,16 @@
+.deviceList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+
+    > * {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+.registerButton {
+    border-radius: var(--space-16);
+    padding: var(--space-8) var(--space-16);
+    border-color: var(--text-muted);
+}

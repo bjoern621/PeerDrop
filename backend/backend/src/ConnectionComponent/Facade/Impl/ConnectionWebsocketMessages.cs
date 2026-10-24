@@ -5,20 +5,14 @@ using backend.WebSocketComponent.Logic.Api;
 
 namespace backend.ConnectionComponent.Facade.Impl;
 
-public class ConnectionWebsocketMessages(IWebSocketHandler _webSocketHandler, ITokenConnectService _tokenConnectService, IQuickConnectService _quickConnectService) : IConnectionWebsocketMessages
+public class ConnectionWebsocketMessages(IWebSocketHandler _webSocketHandler, IPeerConnectionService _peerConnectionService) : IConnectionWebsocketMessages
 {
     public void SubscribeToMessageHandlers()
     {
-        _webSocketHandler.SubscribeToMessageType<CloseConnectionMessage>(CloseConnectionMessage.TypeString, _tokenConnectService.HandleCloseConnection);
+        _webSocketHandler.SubscribeToMessageType<CloseConnectionMessage>(CloseConnectionMessage.TypeString, _peerConnectionService.HandleCloseConnection);
 
-        _webSocketHandler.SubscribeToMessageType<ConnectionRequestMessage>(ConnectionRequestMessage.TypeString, _tokenConnectService.HandleConnectionRequest);
+        _webSocketHandler.SubscribeToMessageType<PeerConnectMessage>(PeerConnectMessage.TypeString, _peerConnectionService.HandlePeerConnect);
 
-        _webSocketHandler.SubscribeToMessageType<ConnectionResponseMessage>(ConnectionResponseMessage.TypeString, _tokenConnectService.HandleConnectionResponse);
-
-        _webSocketHandler.SubscribeToMessageType<ConnectionRequestCancelledMessage>(ConnectionRequestCancelledMessage.TypeString, _tokenConnectService.HandleConnectionRequestCancelled);
-
-        _webSocketHandler.SubscribeToMessageType<QuickConnectMessage>(QuickConnectMessage.TypeString, _quickConnectService.HandleQuickConnectMessage);
-
-        _webSocketHandler.ClientDisconnected += _tokenConnectService.HandleClientDisconnected;
+        _webSocketHandler.ClientDisconnected += _peerConnectionService.HandleClientDisconnected;
     }
 }

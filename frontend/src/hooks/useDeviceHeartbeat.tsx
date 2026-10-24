@@ -23,12 +23,12 @@ interface UseDeviceHeartbeatOptions {
  *
  * @example
  * ```tsx
- * // Simple usage with BUSY status
- * useDeviceHeartbeat({ status: DeviceStatus.BUSY });
+ * // Simple usage
+ * useDeviceHeartbeat({ status: DeviceStatus.ONLINE });
  *
  * // Conditionally enable heartbeats
  * useDeviceHeartbeat({
- *   status: DeviceStatus.BUSY,
+ *   status: DeviceStatus.ONLINE,
  *   enabled: isConnected
  * });
  * ```

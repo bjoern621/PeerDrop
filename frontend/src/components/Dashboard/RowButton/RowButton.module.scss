@@ -1,0 +1,44 @@
+.rowButton {
+    flex: none;
+    height: 24px;
+    padding: 0 var(--space-8);
+    border: none;
+    border-radius: var(--space-4);
+    background-color: var(--text-muted-10);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--font-size-xxs);
+    line-height: var(--line-height-xxs);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: background-color 0.15s ease-out;
+
+    &:hover {
+        background-color: var(--text-muted-20);
+    }
+
+    &:active {
+        background-color: var(--text-muted-30);
+    }
+}
+
+.primary {
+    background-color: var(--primary);
+    color: var(--background);
+
+    &:hover {
+        background-color: color-mix(
+            in oklab,
+            var(--primary) 85%,
+            var(--background)
+        );
+    }
+
+    &:active {
+        background-color: color-mix(
+            in oklab,
+            var(--primary) 70%,
+            var(--background)
+        );
+    }
+}

@@ -7,9 +7,6 @@ namespace backend.LanComponent.Logic.Api;
 /// Tracks connected clients grouped by the public IP address they connected
 /// from and pushes the resulting peer list to every client in a network as it
 /// changes. Clients sharing a public IP are treated as being on the same LAN.
-/// A peer is reported as "busy" from the start of a peer connection until it
-/// reports leaving the session, which outlasts the connection on the side that
-/// keeps the transfer screen.
 /// A client stays out of every peer list until it reports discovery as switched on.
 /// </summary>
 public interface ILanDiscoveryService
@@ -22,8 +19,7 @@ public interface ILanDiscoveryService
 
     /// <summary>
     /// Removes a disconnected client and notifies its former network of the
-    /// change. Its connection partner keeps the files it received and stays
-    /// busy until it reports leaving the session.
+    /// change.
     /// </summary>
     public Task HandleClientDisconnected(string clientToken);
 
@@ -39,17 +35,4 @@ public interface ILanDiscoveryService
     /// Switching it on shows the client and fills its peer list, without a reconnect.
     /// </summary>
     public Task HandleLanDiscoveryState(string clientToken, LanDiscoveryStateMessage message);
-
-    /// <summary>
-    /// Marks both clients as busy and notifies their networks.
-    /// </summary>
-    public Task HandleConnectionEstablished(string clientTokenA, string clientTokenB);
-
-    /// <summary>
-    /// Marks the client as available again and notifies its network. Its
-    /// former partner stays busy until it reports leaving the session as well,
-    /// as it keeps the received files on the transfer screen. Ignored if the
-    /// client is not in a tracked peer connection.
-    /// </summary>
-    public Task HandleSessionLeft(string clientToken);
 }

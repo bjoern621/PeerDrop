@@ -7,21 +7,11 @@ namespace backend.LanComponent.Logic.Impl;
 
 public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<LanDiscoveryService> _logger) : ILanDiscoveryService
 {
-    private const string STATUS_ONLINE = "online";
-    private const string STATUS_BUSY = "busy";
-
     // Maps client token to its network membership. Clients without a resolvable
     // IP address are not tracked and do not take part in discovery.
-    // DiscoveryEnabled false keeps the entry for busy tracking while hiding the
-    // client from every peer list, its own included. A fresh entry starts
-    // hidden and the client's own report opens it up.
+    // DiscoveryEnabled false hides the client from every peer list, its own
+    // included. A fresh entry starts hidden and the client's own report opens it up.
     private readonly Dictionary<string, (string RemoteIpAddress, string? Os, string? Browser, bool DiscoveryEnabled)> _peers = new();
-
-    // Maps a client token to the token of its current peer connection partner.
-    // Both directions are stored, and each side leaves on its own.
-    // A client in this dictionary counts as "busy".
-    // The peer that keeps the transfer screen after a close stays busy until it leaves the session itself.
-    private readonly Dictionary<string, string> _sessionPartners = new();
 
     private readonly Lock _lock = new();
 
@@ -57,10 +47,6 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
                 remoteIpAddress = entry.RemoteIpAddress;
                 _peers.Remove(clientToken);
             }
-
-            // A disconnect ends the session for this client.
-            // The partner holds the files it received and stays busy until it leaves the session itself.
-            _sessionPartners.Remove(clientToken);
         }
 
         if (remoteIpAddress != null)
@@ -104,43 +90,6 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
         await NotifyNetwork(remoteIpAddress);
     }
 
-    public async Task HandleConnectionEstablished(string clientTokenA, string clientTokenB)
-    {
-        string? ipA = null;
-        string? ipB = null;
-
-        lock (_lock)
-        {
-            _sessionPartners[clientTokenA] = clientTokenB;
-            _sessionPartners[clientTokenB] = clientTokenA;
-
-            if (_peers.TryGetValue(clientTokenA, out var entryA))
-                ipA = entryA.RemoteIpAddress;
-            if (_peers.TryGetValue(clientTokenB, out var entryB))
-                ipB = entryB.RemoteIpAddress;
-        }
-
-        await NotifyNetworks(ipA, ipB);
-    }
-
-    public async Task HandleSessionLeft(string clientToken)
-    {
-        string? remoteIpAddress = null;
-
-        lock (_lock)
-        {
-            // A client outside a session leaves every peer list as it was.
-            if (!_sessionPartners.Remove(clientToken))
-                return;
-
-            if (_peers.TryGetValue(clientToken, out var entry))
-                remoteIpAddress = entry.RemoteIpAddress;
-        }
-
-        if (remoteIpAddress != null)
-            await NotifyNetwork(remoteIpAddress);
-    }
-
     /// <summary>
     /// Builds the peer list for one network, excluding the recipient itself.
     /// Must be called under _lock.
@@ -156,20 +105,7 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
                 Token = kvp.Key,
                 Os = kvp.Value.Os,
                 Browser = kvp.Value.Browser,
-                Status = _sessionPartners.ContainsKey(kvp.Key) ? STATUS_BUSY : STATUS_ONLINE,
             })];
-    }
-
-    /// <summary>
-    /// Notifies up to two networks, skipping nulls and duplicates.
-    /// </summary>
-    private async Task NotifyNetworks(string? remoteIpAddressA, string? remoteIpAddressB)
-    {
-        if (remoteIpAddressA != null)
-            await NotifyNetwork(remoteIpAddressA);
-
-        if (remoteIpAddressB != null && remoteIpAddressB != remoteIpAddressA)
-            await NotifyNetwork(remoteIpAddressB);
     }
 
     /// <summary>

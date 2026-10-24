@@ -20,8 +20,10 @@ public class UsageMetrics : IUsageMetrics
     private const long MaxTransferBytes = 1L << 40;
 
     private readonly ILogger<UsageMetrics> _logger;
-    private readonly Counter<long> _connectionRequests;
-    private readonly Counter<long> _connectionResponses;
+    private readonly Counter<long> _tokenLookups;
+    private readonly Counter<long> _texts;
+    private readonly Counter<long> _transferOffers;
+    private readonly Counter<long> _transferAnswers;
     private readonly Counter<long> _connectionsInitiated;
     private readonly Counter<long> _peerConnections;
     private readonly Histogram<double> _peerConnectionSetup;
@@ -53,14 +55,22 @@ public class UsageMetrics : IUsageMetrics
             unit: "{device}",
             description: "Devices registered with at least one account");
 
-        _connectionRequests = meter.CreateCounter<long>(
-            "peerdrop.connection.requests",
-            unit: "{request}",
-            description: "Connection requests by token, by whether the token belonged to a connected client");
-        _connectionResponses = meter.CreateCounter<long>(
-            "peerdrop.connection.responses",
-            unit: "{response}",
-            description: "Answers to a forwarded connection request");
+        _tokenLookups = meter.CreateCounter<long>(
+            "peerdrop.token.lookups",
+            unit: "{lookup}",
+            description: "Lookups of a token, by whether it belonged to a connected client or the requester was locked out");
+        _texts = meter.CreateCounter<long>(
+            "peerdrop.texts",
+            unit: "{text}",
+            description: "Texts sent to a token, by whether the server forwarded or rejected them");
+        _transferOffers = meter.CreateCounter<long>(
+            "peerdrop.transfer.offers",
+            unit: "{offer}",
+            description: "Transfer offers sent to a token, by whether the server forwarded or rejected them");
+        _transferAnswers = meter.CreateCounter<long>(
+            "peerdrop.transfer.answers",
+            unit: "{answer}",
+            description: "Answers of the receiver to a forwarded transfer offer");
         _connectionsInitiated = meter.CreateCounter<long>(
             "peerdrop.connections.initiated",
             unit: "{connection}",
@@ -84,11 +94,17 @@ public class UsageMetrics : IUsageMetrics
             description: "Bytes sent in ended file transfers, as reported by the sender");
     }
 
-    public void ConnectionRequested(bool targetFound) =>
-        _connectionRequests.Add(1, new KeyValuePair<string, object?>("outcome", targetFound ? "forwarded" : "unknown_token"));
+    public void TokenLookedUp(string outcome) =>
+        _tokenLookups.Add(1, new KeyValuePair<string, object?>("outcome", outcome));
 
-    public void ConnectionAnswered(bool accepted) =>
-        _connectionResponses.Add(1, new KeyValuePair<string, object?>("accepted", accepted));
+    public void TextHandled(string status) =>
+        _texts.Add(1, new KeyValuePair<string, object?>("outcome", ToAttributeValue(status)));
+
+    public void TransferOffered(string status) =>
+        _transferOffers.Add(1, new KeyValuePair<string, object?>("outcome", ToAttributeValue(status)));
+
+    public void TransferAnswered(bool accepted) =>
+        _transferAnswers.Add(1, new KeyValuePair<string, object?>("accepted", accepted));
 
     public void ConnectionInitiated(string path) =>
         _connectionsInitiated.Add(1, new KeyValuePair<string, object?>("path", path));
@@ -124,6 +140,9 @@ public class UsageMetrics : IUsageMetrics
     }
 
     private static bool IsValidRoute(string? route) => route == null || Routes.Contains(route);
+
+    // Attribute values follow the OpenTelemetry snake_case convention, the wire statuses kebab-case.
+    private static string ToAttributeValue(string status) => status.Replace('-', '_');
 
     private static IEnumerable<Measurement<int>> MeasureClients(IWebSocketHandler webSocketHandler)
     {

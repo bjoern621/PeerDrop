@@ -7,7 +7,7 @@ namespace backend.LanComponent.Common.Api.DTOs;
 /// </summary>
 public class LanPeerDTO
 {
-    /// <summary>Connection token of the peer, used to request a connection.</summary>
+    /// <summary>Client token of the peer, used to send to it.</summary>
     [JsonPropertyName("token")]
     public required string Token { get; set; }
 
@@ -18,8 +18,4 @@ public class LanPeerDTO
     /// <summary>Browser derived from the peer's user agent, e.g. "Chrome". Null if not recognized.</summary>
     [JsonPropertyName("browser")]
     public string? Browser { get; set; }
-
-    /// <summary>"online" if the peer is available, "busy" if it is currently in a peer connection.</summary>
-    [JsonPropertyName("status")]
-    public required string Status { get; set; }
 }

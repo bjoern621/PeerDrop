@@ -50,6 +50,16 @@
     color: var(--success-text);
 }
 
+.warning {
+    background-color: var(--warning-20);
+    color: var(--warning-text);
+}
+
+.error {
+    background-color: var(--error-20);
+    color: var(--error-text);
+}
+
 .clickable {
     cursor: pointer;
     transition: opacity 0.2s ease;

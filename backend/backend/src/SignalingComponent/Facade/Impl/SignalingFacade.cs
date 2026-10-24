@@ -18,8 +18,6 @@ public class SignalingFacade : ISignalingFacade
 
     public void SubscribeToMessageHandlers()
     {
-        _webSocketHandler.SubscribeToMessageType<RemoteTokenMessage>(RemoteTokenMessage.TypeString, _signalingService.HandleRemoteTokenMessage);
-
         _webSocketHandler.SubscribeToMessageType<IceCandidateMessage>(IceCandidateMessage.TypeString, _signalingService.HandleIceCandidateMessage);
 
         _webSocketHandler.SubscribeToMessageType<SdpMessage>(SdpMessage.TypeString, _signalingService.HandleSdpMessage);

@@ -1,0 +1,45 @@
+.slots-container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.otp-slot {
+    width: 44px;
+    height: 56px;
+    box-sizing: border-box;
+
+    border: 3px solid var(--primary-60);
+    border-radius: 10px;
+    background-color: var(--background);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: var(--font-size-xl);
+    line-height: 1;
+    font-family: "Roboto Mono", monospace;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.otpSlotActive {
+    border-color: var(--primary);
+    border-width: 4px;
+}
+
+.online .otp-slot {
+    border-color: var(--success-text);
+    background-color: var(--success-20);
+    color: var(--success-text);
+}
+
+.offline .otp-slot {
+    border-color: var(--error-text);
+    background-color: var(--error-20);
+    color: var(--error-text);
+}

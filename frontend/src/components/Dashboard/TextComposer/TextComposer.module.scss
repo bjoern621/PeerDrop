@@ -1,0 +1,143 @@
+@use "../card" as *;
+
+.field {
+    flex: 1 1 auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 3px solid var(--primary-60);
+    border-radius: var(--space-16);
+    background-color: var(--background);
+}
+
+.label {
+    @include visually-hidden;
+}
+
+.textarea {
+    flex: 1 1 auto;
+    display: block;
+    width: 100%;
+    height: 88px;
+    box-sizing: border-box;
+    resize: none;
+    padding: var(--space-8) var(--space-12);
+    border: none;
+    border-radius: 13px 13px 0 0;
+    background: transparent;
+    color: var(--text);
+    font-family: "Roboto Mono", monospace;
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+    font-weight: var(--font-weight-regular);
+    white-space: pre;
+    overflow: hidden;
+    tab-size: 4;
+
+    &:focus {
+        outline: none;
+    }
+}
+
+.bigTextarea {
+    @extend .textarea;
+    flex: 1 1 0;
+    height: auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.fadeBottom {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    bottom: 41px;
+    height: 14px;
+    pointer-events: none;
+    background: linear-gradient(transparent, var(--shadow));
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.visible {
+    opacity: 1;
+}
+
+.bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
+    border-top: 1px solid var(--text-muted-10);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+}
+
+.meta {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-muted);
+    font-weight: var(--font-weight-regular);
+    white-space: nowrap;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+}
+
+.send {
+    position: relative;
+    overflow: hidden;
+
+    &:disabled {
+        background-color: var(--text-muted-10);
+        color: var(--text-muted);
+        cursor: default;
+    }
+}
+
+.sendContent {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background-color: var(--primary-20);
+    transition: width 0.25s linear;
+}
+
+.overlay {
+    position: absolute;
+    z-index: 20;
+    inset: 0;
+}
+
+.big {
+    position: absolute;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    border: 3px solid var(--primary-60);
+    border-radius: var(--space-16);
+    background-color: var(--background);
+    overflow: hidden;
+    transition:
+        width 0.2s ease-out,
+        height 0.2s ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+.bigBody {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+}

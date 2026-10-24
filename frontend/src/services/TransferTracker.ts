@@ -21,7 +21,9 @@ export type TransferStatus =
      */
     | "finalizing"
     | "done"
-    | "failed";
+    | "failed"
+    /** Stopped on purpose by either side. */
+    | "canceled";
 
 /** Immutable view of one transfer, rebuilt on every notification. */
 export interface TransferSnapshot {
@@ -29,6 +31,8 @@ export interface TransferSnapshot {
     name: string;
     size: number;
     direction: TransferDirection;
+    /** Token of the peer on the other end. */
+    remoteToken: string;
     /** Groups files that belong to the same folder transfer. */
     folderId?: string;
     /** Folder display name, derived from the first segment of relativePath. */
@@ -51,6 +55,7 @@ interface TransferEntry {
     name: string;
     size: number;
     direction: TransferDirection;
+    remoteToken: string;
     folderId?: string;
     relativePath?: string;
     startedAt: Date;
@@ -60,10 +65,13 @@ interface TransferEntry {
     samples: { time: number; bytes: number }[];
 }
 
-/** A transfer that reached done or failed, handed once to each ended listener. */
+type EndedStatus = "done" | "failed" | "canceled";
+
+/** A transfer that reached done, failed or canceled, handed once to each ended listener. */
 export interface EndedTransfer {
+    remoteToken: string;
     direction: TransferDirection;
-    status: "done" | "failed";
+    status: EndedStatus;
     bytesTransferred: number;
 }
 
@@ -89,8 +97,11 @@ export class TransferTracker {
             name: string;
             size: number;
             direction: TransferDirection;
+            remoteToken: string;
             folderId?: string;
             relativePath?: string;
+            /** Keeps the original time when a failed transfer restarts. */
+            startedAt?: Date;
         }
     ) {
         this.entries.set(uuid, {
@@ -98,9 +109,10 @@ export class TransferTracker {
             name: info.name,
             size: info.size,
             direction: info.direction,
+            remoteToken: info.remoteToken,
             folderId: info.folderId,
             relativePath: info.relativePath,
-            startedAt: new Date(),
+            startedAt: info.startedAt ?? new Date(),
             bytesTransferred: 0,
             status: "waiting",
             samples: [],
@@ -139,8 +151,8 @@ export class TransferTracker {
     public setStatus(uuid: string, status: TransferStatus) {
         const entry = this.entries.get(uuid);
         if (!entry || entry.status === status) return;
-        // done and failed end a transfer; a later report cannot revive it.
-        if (entry.status === "done" || entry.status === "failed") return;
+        // An ended transfer stays ended; a later report cannot revive it.
+        if (isEnded(entry.status)) return;
 
         entry.status = status;
         // Both states follow the last byte, while the last sample can lag.
@@ -149,16 +161,16 @@ export class TransferTracker {
         }
         this.notify();
         this.syncInterval();
-        if (status === "done" || status === "failed") {
-            this.notifyEnded(entry, status);
+        if (isEnded(status)) {
+            this.notifyEnded(entry, status as EndedStatus);
         }
     }
 
-    /** Marks every transfer still in flight as failed, e.g. when the connection closes. */
-    public failUnfinished() {
+    /** Marks every transfer with the peer still in flight as failed, e.g. when its connection closes. */
+    public failUnfinished(remoteToken: string) {
         const failed: TransferEntry[] = [];
         for (const entry of this.entries.values()) {
-            if (entry.status === "done" || entry.status === "failed") {
+            if (entry.remoteToken !== remoteToken || isEnded(entry.status)) {
                 continue;
             }
             entry.status = "failed";
@@ -180,11 +192,9 @@ export class TransferTracker {
         };
     }
 
-    /** Removes all transfers, e.g. when a new peer session starts. */
-    public clear() {
-        this.entries.clear();
-        this.notify();
-        this.syncInterval();
+    public get(uuid: string): TransferSnapshot | undefined {
+        const entry = this.entries.get(uuid);
+        return entry && this.buildSnapshot(entry);
     }
 
     public subscribe(listener: () => void): () => void {
@@ -217,6 +227,7 @@ export class TransferTracker {
             name: entry.name,
             size: entry.size,
             direction: entry.direction,
+            remoteToken: entry.remoteToken,
             folderId: entry.folderId,
             folderName: entry.relativePath?.split("/")[0],
             relativePath: entry.relativePath,
@@ -261,6 +272,7 @@ export class TransferTracker {
 
     private notifyEnded(entry: TransferEntry, status: EndedTransfer["status"]) {
         const ended: EndedTransfer = {
+            remoteToken: entry.remoteToken,
             direction: entry.direction,
             status,
             bytesTransferred: entry.bytesTransferred,
@@ -289,4 +301,8 @@ export class TransferTracker {
             this.intervalId = null;
         }
     }
+}
+
+function isEnded(status: TransferStatus): boolean {
+    return status === "done" || status === "failed" || status === "canceled";
 }

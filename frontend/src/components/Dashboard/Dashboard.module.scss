@@ -1,0 +1,88 @@
+@use "../../theme/shadows.scss" as *;
+@use "card" as *;
+
+.dashboard {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: var(--space-24);
+    padding: var(--space-24) 0;
+
+    @include background-effect;
+
+    --background-effect-size: 1100px;
+
+    &::after {
+        z-index: -1;
+    }
+}
+
+.left,
+.right {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+}
+
+.right {
+    position: relative;
+}
+
+// The table head titles the list on wide screens. The phone stacks the rows in a card of its own.
+.transfers {
+    display: contents;
+}
+
+.transfers > .transfersHeading {
+    display: none;
+}
+
+@media (width <= 760px) {
+    .dashboard {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding: var(--space-16) 0 120px;
+    }
+
+    // Token first, then Senden, then the devices, then the list.
+    .left,
+    .right {
+        display: contents;
+    }
+
+    .left > :first-child {
+        order: 1;
+    }
+
+    .right > :first-child {
+        order: 2;
+    }
+
+    .left > :nth-child(2) {
+        order: 3;
+    }
+
+    .right > :nth-child(2) {
+        order: 4;
+    }
+
+    .transfers {
+        @include card;
+
+        flex: none;
+    }
+
+    // The last section needs no band below it.
+    .right > .transfers {
+        border-bottom: none;
+    }
+
+    .transfers > .transfersHeading {
+        display: flex;
+    }
+}

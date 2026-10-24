@@ -1,7 +1,12 @@
 import { assert } from "../util/Assert";
 import errorAsValue, { errorAsValueSync } from "../util/ErrorAsValue";
-import { ClientToken, WebSocketService } from "./WebSocketService";
+import {
+    ClientToken,
+    MessageHandler,
+    WebSocketService,
+} from "./WebSocketService";
 import { MessageType } from "../types/MessageType";
+import { ITypedMessage } from "../types/ITypedMessage";
 import { Logger } from "../util/Logger";
 import { Observable } from "../util/observer/Observable";
 import { IceCandidateMessage } from "../types/rtc/IceCandidateMessage";
@@ -47,6 +52,11 @@ interface AckMessage {
     ack: string;
 }
 
+/** Either side stops the transfer of the file on its channel. */
+interface CancelMessage {
+    cancel: string;
+}
+
 /** Reassembly state of one incoming file transfer. */
 interface ReceiveState {
     /** Channel the file arrives on; carries the acknowledgement back. */
@@ -78,6 +88,11 @@ export class WebRTCConnection {
 
     // Reassembly state of incoming transfers, keyed by file UUID (= channel label).
     private readonly incomingTransfers: Map<string, ReceiveState> = new Map();
+    // Channels of outgoing transfers still running, keyed by file UUID.
+    private readonly outgoingChannels: Map<string, RTCDataChannel> = new Map();
+    // Transfers stopped on purpose; their channel close is no failure.
+    private readonly canceledTransfers: Set<string> = new Set();
+    private readonly signalingHandlers: [MessageType, MessageHandler][] = [];
 
     // Perfect Negotiation Pattern variables
     private makingOffer: boolean = false;
@@ -90,7 +105,9 @@ export class WebRTCConnection {
         remoteToken: ClientToken,
         private readonly transferTracker: TransferTracker,
         private readonly receivedFiles: ReceivedFiles,
-        iceServers: RTCIceServer[]
+        iceServers: RTCIceServer[],
+        // Whether this peer may send files here; asked for every incoming channel.
+        private readonly acceptsIncoming: () => boolean
     ) {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
         this.remoteToken = remoteToken;
@@ -106,7 +123,11 @@ export class WebRTCConnection {
         );
         this.unsubscribeTransferEnded = transferTracker.subscribeEnded(
             ended => {
-                if (ended.direction === "up") {
+                if (
+                    ended.remoteToken === this.remoteToken &&
+                    ended.direction === "up" &&
+                    ended.status !== "canceled"
+                ) {
                     this.usageReporter.reportTransfer(
                         ended.status === "done" ? "completed" : "failed",
                         ended.bytesTransferred
@@ -164,7 +185,8 @@ export class WebRTCConnection {
     public sendFileOverDataChannel(
         file: File,
         uuid: string,
-        folder?: FolderInfo
+        folder?: FolderInfo,
+        startedAt?: Date
     ) {
         this.log(
             `File is ${[
@@ -179,13 +201,16 @@ export class WebRTCConnection {
             name: file.name,
             size: file.size,
             direction: "up",
+            remoteToken: this.remoteToken,
             folderId: folder?.folderId,
             relativePath: folder?.relativePath,
+            startedAt,
         });
 
         const dataChannel = this.peerConnection.createDataChannel(uuid, {
             ordered: false,
         });
+        this.outgoingChannels.set(uuid, dataChannel);
         dataChannel.binaryType = "arraybuffer";
         dataChannel.bufferedAmountLowThreshold = LOW_WATER_MARK;
 
@@ -310,6 +335,11 @@ export class WebRTCConnection {
             if (typeof event.data !== "string") {
                 return;
             }
+            if (readCanceledUuid(event.data) === uuid) {
+                this.markCanceled(uuid);
+                dataChannel.close();
+                return;
+            }
             if (readAckedUuid(event.data) !== uuid) {
                 return;
             }
@@ -327,7 +357,8 @@ export class WebRTCConnection {
 
         dataChannel.onclose = () => {
             if (progressInterval) clearInterval(progressInterval);
-            if (!acknowledged) {
+            this.outgoingChannels.delete(uuid);
+            if (!acknowledged && !this.canceledTransfers.has(uuid)) {
                 this.transferTracker.setStatus(uuid, "failed");
             }
             this.transferStats.release();
@@ -362,6 +393,12 @@ export class WebRTCConnection {
      */
     private handleIncomingDataChannel(dataChannel: RTCDataChannel) {
         if (dataChannel.label === "init") {
+            return;
+        }
+
+        if (!this.acceptsIncoming()) {
+            this.log("Refused data channel from", this.remoteToken);
+            dataChannel.close();
             return;
         }
 
@@ -417,6 +454,7 @@ export class WebRTCConnection {
                     name: state.fileMeta.name,
                     size: state.fileMeta.size,
                     direction: "down",
+                    remoteToken: this.remoteToken,
                     folderId: state.fileMeta.folderId,
                     relativePath: state.fileMeta.relativePath,
                 });
@@ -432,6 +470,12 @@ export class WebRTCConnection {
                 } else {
                     handleSequencedChunk(event.data);
                 }
+            } else if (
+                state.fileMeta &&
+                typeof event.data === "string" &&
+                readCanceledUuid(event.data) === state.fileMeta.uuid
+            ) {
+                this.abortIncoming(state);
             } else {
                 this.log("Unbekannter Nachrichtentyp:", event.data);
             }
@@ -446,7 +490,11 @@ export class WebRTCConnection {
                 this.transferStats.release();
                 statsAcquired = false;
             }
-            if (state.fileMeta && !state.finished) {
+            if (
+                state.fileMeta &&
+                !state.finished &&
+                !this.canceledTransfers.has(state.fileMeta.uuid)
+            ) {
                 this.transferTracker.setStatus(state.fileMeta.uuid, "failed");
             }
         };
@@ -552,6 +600,46 @@ export class WebRTCConnection {
     }
 
     /**
+     * Stops a running transfer in either direction. The other side learns it
+     * on the file's channel and shows the transfer as canceled, too.
+     */
+    public cancelTransfer(uuid: string) {
+        const channel =
+            this.outgoingChannels.get(uuid) ??
+            this.incomingTransfers.get(uuid)?.dataChannel;
+        if (!channel) {
+            return;
+        }
+
+        this.markCanceled(uuid);
+        if (channel.readyState === "open") {
+            channel.send(JSON.stringify({ cancel: uuid } as CancelMessage));
+        }
+
+        const incoming = this.incomingTransfers.get(uuid);
+        if (incoming) {
+            this.abortIncoming(incoming);
+        } else {
+            channel.close();
+        }
+    }
+
+    private markCanceled(uuid: string) {
+        this.canceledTransfers.add(uuid);
+        this.transferTracker.setStatus(uuid, "canceled");
+    }
+
+    private abortIncoming(state: ReceiveState) {
+        if (state.fileMeta) {
+            this.markCanceled(state.fileMeta.uuid);
+            this.incomingTransfers.delete(state.fileMeta.uuid);
+        }
+        state.finished = true;
+        void state.opfsWriter?.abort();
+        state.dataChannel.close();
+    }
+
+    /**
      * To trigger the negotiationneeded event, we create a data channel.
      * After that, the WebRTC Connection is goint to start (handshake).
      */
@@ -561,69 +649,78 @@ export class WebRTCConnection {
         }
     }
 
-    private handleRemoteICECandidates() {
-        this.signalingChannel.subscribeMessage(
-            MessageType.ICE_CANDIDATE,
-            async message => {
-                const iceCandidateMessage = message as IceCandidateMessage;
-                const candidate = iceCandidateMessage.msg.iceCandidate;
-
-                const [, err] = await errorAsValue(
-                    this.peerConnection.addIceCandidate(candidate)
-                );
-
-                if (err && !this.ignoreOffer) {
-                    this.log("Failed to add ICE candidate:", err);
-                }
+    /** Subscribes to signaling messages of this connection's peer only. */
+    private subscribeSignaling(
+        type: MessageType,
+        handler: (message: ITypedMessage) => Promise<void>
+    ) {
+        const scoped: MessageHandler = message => {
+            const from = (message.msg as { remoteToken?: string }).remoteToken;
+            if (from?.toLowerCase() !== this.remoteToken) {
+                return;
             }
-        );
+            return handler(message);
+        };
+        this.signalingHandlers.push([type, scoped]);
+        this.signalingChannel.subscribeMessage(type, scoped);
+    }
+
+    private handleRemoteICECandidates() {
+        this.subscribeSignaling(MessageType.ICE_CANDIDATE, async message => {
+            const iceCandidateMessage = message as IceCandidateMessage;
+            const candidate = iceCandidateMessage.msg.iceCandidate;
+
+            const [, err] = await errorAsValue(
+                this.peerConnection.addIceCandidate(candidate)
+            );
+
+            if (err && !this.ignoreOffer) {
+                this.log("Failed to add ICE candidate:", err);
+            }
+        });
     }
 
     private handleSDPPackage() {
-        this.signalingChannel.subscribeMessage(
-            MessageType.SDP,
-            async message => {
-                const sdpMessage = message as SdpMessage;
-                const description = sdpMessage.msg.description;
+        this.subscribeSignaling(MessageType.SDP, async message => {
+            const sdpMessage = message as SdpMessage;
+            const description = sdpMessage.msg.description;
 
-                this.log("Received SDP ", description.type, " message");
+            this.log("Received SDP ", description.type, " message");
 
-                const readyForOffer =
-                    !this.makingOffer &&
-                    (this.peerConnection.signalingState === "stable" ||
-                        this.isSettingRemoteAnswerPending);
+            const readyForOffer =
+                !this.makingOffer &&
+                (this.peerConnection.signalingState === "stable" ||
+                    this.isSettingRemoteAnswerPending);
 
-                const offerCollision =
-                    description.type === "offer" && !readyForOffer;
+            const offerCollision =
+                description.type === "offer" && !readyForOffer;
 
-                // ignoreOffer is true, if offerCollision occurs and if this peer is impolite (ignoring SDP and all incoming ICE candidates)
-                this.ignoreOffer = !this.polite && offerCollision;
-                if (this.ignoreOffer) {
-                    this.log(
-                        "IGNORING offer, because this peer is impolite and offerCollision occurred"
-                    );
-                    return;
-                }
-
-                this.isSettingRemoteAnswerPending =
-                    description.type === "answer";
-
-                const [,] = await errorAsValue(
-                    this.peerConnection.setRemoteDescription(description)
+            // ignoreOffer is true, if offerCollision occurs and if this peer is impolite (ignoring SDP and all incoming ICE candidates)
+            this.ignoreOffer = !this.polite && offerCollision;
+            if (this.ignoreOffer) {
+                this.log(
+                    "IGNORING offer, because this peer is impolite and offerCollision occurred"
                 );
-                this.isSettingRemoteAnswerPending = false;
-
-                if (description.type === "offer") {
-                    await this.peerConnection.setLocalDescription();
-                    this.signalingChannel.sendMessage(
-                        new SdpMessage({
-                            remoteToken: this.remoteToken,
-                            description: this.peerConnection.localDescription!,
-                        })
-                    );
-                }
+                return;
             }
-        );
+
+            this.isSettingRemoteAnswerPending = description.type === "answer";
+
+            const [,] = await errorAsValue(
+                this.peerConnection.setRemoteDescription(description)
+            );
+            this.isSettingRemoteAnswerPending = false;
+
+            if (description.type === "offer") {
+                await this.peerConnection.setLocalDescription();
+                this.signalingChannel.sendMessage(
+                    new SdpMessage({
+                        remoteToken: this.remoteToken,
+                        description: this.peerConnection.localDescription!,
+                    })
+                );
+            }
+        });
     }
 
     private handleNegotiationNeeded() {
@@ -672,35 +769,17 @@ export class WebRTCConnection {
             void state.opfsWriter?.abort();
         });
         this.incomingTransfers.clear();
-        this.transferTracker.failUnfinished();
+        this.outgoingChannels.clear();
+        this.transferTracker.failUnfinished(this.remoteToken);
         this.unsubscribeTransferEnded();
 
         this.transferStats.stop();
         this.peerConnection.close();
 
-        const iceHandlers = this.signalingChannel.getHandlers(
-            MessageType.ICE_CANDIDATE
+        this.signalingHandlers.forEach(([type, handler]) =>
+            this.signalingChannel.unsubscribeMessage(type, handler)
         );
-
-        if (iceHandlers) {
-            iceHandlers.forEach(handler =>
-                this.signalingChannel.unsubscribeMessage(
-                    MessageType.ICE_CANDIDATE,
-                    handler
-                )
-            );
-        }
-
-        const sdpHandlers = this.signalingChannel.getHandlers(MessageType.SDP);
-
-        if (sdpHandlers) {
-            sdpHandlers.forEach(handler =>
-                this.signalingChannel.unsubscribeMessage(
-                    MessageType.SDP,
-                    handler
-                )
-            );
-        }
+        this.signalingHandlers.length = 0;
 
         assert(this.peerConnection.connectionState === "closed");
         this.emitEvent("connectionstatechange", "closed");
@@ -752,4 +831,13 @@ function readAckedUuid(data: string): string | null {
     );
 
     return typeof message?.ack === "string" ? message.ack : null;
+}
+
+/** UUID a cancellation names, null for every other string on the channel. */
+function readCanceledUuid(data: string): string | null {
+    const [message] = errorAsValueSync(
+        () => JSON.parse(data) as Partial<CancelMessage> | null
+    );
+
+    return typeof message?.cancel === "string" ? message.cancel : null;
 }

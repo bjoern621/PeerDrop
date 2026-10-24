@@ -5,7 +5,7 @@ import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
 import { useAuth } from "../../context/AuthContext";
-import ExitIcon from "../../assets/actions/icons8-close-2.svg?react";
+import { IconX as ExitIcon } from "@tabler/icons-react";
 import Button from "../Button/Button";
 
 type AuthForm = "login" | "register";
