@@ -93,7 +93,6 @@ export default function Dashboard() {
         tooBig,
         lock,
         now,
-        stacked,
     });
 
     const pickToken = (token: string) => {

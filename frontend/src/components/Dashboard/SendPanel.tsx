@@ -2,7 +2,6 @@ import { RefObject } from "react";
 import css from "./SendPanel.module.scss";
 import {
     IconPlugConnected as ConnectIcon,
-    IconArrowLeft as ArrowLeftIcon,
     IconKeyboard as KeyboardIcon,
     IconClock as ClockIcon,
     IconAlertTriangle as WarningIcon,
@@ -35,7 +34,6 @@ interface SendPanelProps {
 }
 
 const HINT_ICONS = {
-    left: ArrowLeftIcon,
     type: KeyboardIcon,
     pick: LinesIcon,
     wait: ClockIcon,

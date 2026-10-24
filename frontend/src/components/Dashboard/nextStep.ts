@@ -1,7 +1,7 @@
 import { LookupState, SendLock } from "../../services/MessagingService";
 import { CLIENT_TOKEN_LENGTH } from "../../util/Constants";
 
-export type HintKind = "left" | "type" | "pick" | "wait" | "warn" | "err";
+export type HintKind = "type" | "pick" | "wait" | "warn" | "err";
 
 export interface Hint {
     kind: HintKind;
@@ -16,13 +16,11 @@ interface NextStepInput {
     tooBig: boolean;
     lock: SendLock | null;
     now: number;
-    /** On the phone the devices sit below, not to the left. */
-    stacked: boolean;
 }
 
 /** The one thing to do next in the send panel, from the current state. */
 export function nextStep(input: NextStepInput): Hint {
-    const { recipient, lock, stacked } = input;
+    const { recipient, lock } = input;
     const token = recipient.toUpperCase();
 
     if (lock?.reason === "tokens") {
@@ -42,15 +40,10 @@ export function nextStep(input: NextStepInput): Hint {
         };
     }
     if (recipient.length === 0) {
-        return stacked
-            ? {
-                  kind: "type",
-                  text: "Gib den Token des Empfängers ein oder wähle unter „Geräte“ ein Gerät.",
-              }
-            : {
-                  kind: "left",
-                  text: "Wähle links ein Gerät oder gib oben den Token des Empfängers ein.",
-              };
+        return {
+            kind: "type",
+            text: "Gib den Token des Empfängers ein oder wähle unter „Geräte“ einen aus.",
+        };
     }
     const missing = CLIENT_TOKEN_LENGTH - recipient.length;
     if (missing > 0) {
