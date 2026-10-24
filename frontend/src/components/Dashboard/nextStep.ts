@@ -101,7 +101,7 @@ export function nextStep(input: NextStepInput): Hint {
     if (input.hasText) {
         return {
             kind: "send",
-            text: `Schicke ${token} den Text mit „Text senden“ oder Strg+Enter, oder teile Dateien und Ordner.`,
+            text: `Schicke ${token} den Text mit „Text senden“ oder teile Dateien und Ordner.`,
         };
     }
     return {
