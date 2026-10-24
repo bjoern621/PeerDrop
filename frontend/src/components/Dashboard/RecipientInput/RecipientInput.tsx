@@ -62,6 +62,12 @@ function deleteForward(
     window.setTimeout(() => input.setSelectionRange(start, start + 1));
 }
 
+/** A pasted token link (".../connect?token=abcde") gives its token. Other text drops its whitespace. */
+function tokenFromPaste(text: string): string {
+    const link = /[?&]token=([^&#\s]+)/.exec(text);
+    return normalizeClientToken(link ? link[1] : text.replace(/\s+/g, ""));
+}
+
 export default function RecipientInput({
     value,
     onChange,
@@ -85,6 +91,7 @@ export default function RecipientInput({
             data-lpignore="true"
             data-1p-ignore="true"
             onChange={value => onChange(normalizeClientToken(value))}
+            pasteTransformer={tokenFromPaste}
             onKeyDown={event => {
                 deleteWordBackward(event, value, onChange);
                 deleteForward(event, value, onChange);
