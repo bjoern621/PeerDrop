@@ -98,7 +98,7 @@
 /// Text button in a list row, e.g. SPEICHERN.
 @mixin row-text-button {
     flex: none;
-    padding: var(--space-2) var(--space-8);
+    padding: var(--space-4) var(--space-8);
     border: none;
     border-radius: var(--space-4);
     background-color: var(--text-muted-10);
