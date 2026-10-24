@@ -25,8 +25,8 @@
     line-height: var(--line-height-l);
 
     > svg {
-        width: calc(var(--font-size-l) * var(--line-height-l));
-        height: calc(var(--font-size-l) * var(--line-height-l));
+        width: var(--font-size-l);
+        height: var(--font-size-l);
     }
 }
 
