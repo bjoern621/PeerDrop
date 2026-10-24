@@ -316,6 +316,7 @@ $min-width: 740px;
 
     .bodyFrame,
     .scroll {
+        flex: none;
         position: static;
         margin: 0;
         padding: 0;

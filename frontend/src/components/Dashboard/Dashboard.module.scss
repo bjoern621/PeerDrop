@@ -1,4 +1,5 @@
 @use "../../theme/shadows.scss" as *;
+@use "card" as *;
 
 .dashboard {
     position: relative;
@@ -31,6 +32,15 @@
     position: relative;
 }
 
+// The table head titles the list on wide screens. The phone stacks the rows in a card of its own.
+.transfers {
+    display: contents;
+}
+
+.transfers > .transfersHeading {
+    display: none;
+}
+
 @media (width <= 760px) {
     .dashboard {
         display: flex;
@@ -59,5 +69,16 @@
 
     .right > :nth-child(2) {
         order: 4;
+    }
+
+    .transfers {
+        @include card;
+
+        flex: none;
+        background-color: var(--primary-5);
+    }
+
+    .transfers > .transfersHeading {
+        display: flex;
     }
 }

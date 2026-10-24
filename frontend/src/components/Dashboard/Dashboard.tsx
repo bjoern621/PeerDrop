@@ -11,6 +11,8 @@ import TokenCard from "./TokenCard";
 import DevicePanel from "./DevicePanel";
 import SendPanel from "./SendPanel";
 import ActivityList from "./ActivityList/ActivityList";
+import CardHeading from "./CardHeading/CardHeading";
+import { IconArrowsTransferUpDown as TransferIcon } from "@tabler/icons-react";
 import { nextStep } from "./nextStep";
 import { useMessaging } from "../../hooks/useMessaging";
 import { useOwnToken } from "../../hooks/useOwnToken";
@@ -174,7 +176,20 @@ export default function Dashboard() {
                     // The phone layout dissolves the column box.
                     boundsRef={stacked ? dashboardRef : rightRef}
                 />
-                <ActivityList messaging={messaging} transfers={transfers} />
+                <section
+                    className={css.transfers}
+                    aria-labelledby="transfers-heading"
+                >
+                    <CardHeading
+                        id="transfers-heading"
+                        icon={TransferIcon}
+                        tone="primary"
+                        className={css.transfersHeading}
+                    >
+                        Übertragungen
+                    </CardHeading>
+                    <ActivityList messaging={messaging} transfers={transfers} />
+                </section>
             </div>
         </div>
     );

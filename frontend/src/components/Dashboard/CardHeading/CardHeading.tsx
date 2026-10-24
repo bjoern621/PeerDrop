@@ -7,16 +7,18 @@ export default function CardHeading({
     id,
     icon: HeadingIcon,
     tone,
+    className = "",
     children,
 }: {
     /** Target of the card's `aria-labelledby`. */
     id: string;
     icon: Icon;
     tone: "primary" | "secondary";
+    className?: string;
     children: ReactNode;
 }) {
     return (
-        <h2 id={id} className={`${css.heading} ${css[tone]}`}>
+        <h2 id={id} className={`${css.heading} ${css[tone]} ${className}`}>
             <HeadingIcon aria-hidden />
             {children}
         </h2>
