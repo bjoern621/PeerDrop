@@ -157,8 +157,8 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
     const hint = !recipient
         ? "Wähle zuerst einen Empfänger"
         : isTouchDevice
-          ? "Wähle Dateien oder einen Ordner"
-          : "Wähle Dateien oder einen Ordner oder ziehe sie hierher";
+          ? "Wähle Dateien oder Ordner"
+          : "Wähle Dateien oder Ordner oder ziehe sie hierher";
 
     return (
         <div
