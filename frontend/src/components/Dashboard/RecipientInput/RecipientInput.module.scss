@@ -43,3 +43,13 @@
     background-color: var(--error-20);
     color: var(--error-text);
 }
+
+// The field draws its own slots, so the search box keeps no clear button or decoration.
+.input {
+    appearance: none;
+
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-decoration {
+        appearance: none;
+    }
+}

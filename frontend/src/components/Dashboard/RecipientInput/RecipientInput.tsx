@@ -34,6 +34,11 @@ export default function RecipientInput({
             maxLength={CLIENT_TOKEN_LENGTH}
             value={value}
             inputMode="text"
+            // Bitwarden reads "totp" in the data-input-otp attributes and offers a code.
+            // It never collects search fields.
+            type="search"
+            enterKeyHint="done"
+            className={css.input}
             data-bwignore="true"
             data-lpignore="true"
             data-1p-ignore="true"
