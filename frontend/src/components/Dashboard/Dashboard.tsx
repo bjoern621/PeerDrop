@@ -96,12 +96,18 @@ export default function Dashboard() {
     });
 
     const pickToken = (token: string) => {
+        const picked = normalizeClientToken(token);
         setSelectedDeviceUuid(null);
-        setRecipient(normalizeClientToken(token));
+        setRecipient(picked === recipient ? "" : picked);
     };
 
     const pickDevice = (device: Device) => {
         if (device.status !== DeviceStatus.ONLINE || device.current) {
+            return;
+        }
+        if (device.uuid === selectedDeviceUuid) {
+            setSelectedDeviceUuid(null);
+            setRecipient("");
             return;
         }
         void messagingService.lookupDevice(device.uuid).then(token => {
