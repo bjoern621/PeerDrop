@@ -1,12 +1,13 @@
 import css from "./ReadView.module.scss";
-import { IconX as CloseIcon, IconBan as BlockIcon } from "@tabler/icons-react";
+import { IconX as CloseIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
 import {
     getSizeInHumanReadableFormat,
     getTimeInHumanReadableFormat,
 } from "../transferFormat";
-import { CopyButton } from "./ActivityRows";
+import { BlockButton, CopyButton } from "./ActivityRows";
+import IconButton from "../../IconButton/IconButton";
 
 /** Shows a whole text read-only over the transfer list. */
 export default function ReadView({
@@ -48,28 +49,22 @@ export default function ReadView({
                     </span>
                     <CopyButton text={entry.text} />
                     {entry.direction === "down" && !blocked && (
-                        <button
-                            type="button"
-                            className={css.iconButton}
-                            aria-label={`${peer} blockieren`}
-                            title={`${peer} blockieren`}
-                            onClick={() => {
+                        <BlockButton
+                            peer={entry.peer}
+                            onBlock={() => {
                                 messaging.block(entry.peer);
                                 onClose();
                             }}
-                        >
-                            <BlockIcon aria-hidden />
-                        </button>
+                        />
                     )}
-                    <button
-                        type="button"
-                        className={css.close}
-                        aria-label="Text schließen"
-                        title="Schließen (Esc)"
+                    <IconButton
+                        label="Text schließen"
+                        tooltip="Schließen (Esc)"
+                        size="m"
                         onClick={onClose}
                     >
                         <CloseIcon aria-hidden />
-                    </button>
+                    </IconButton>
                 </div>
                 <label htmlFor="read-text" className={css.label}>
                     {title}

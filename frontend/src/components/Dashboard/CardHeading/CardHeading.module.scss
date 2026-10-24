@@ -1,0 +1,25 @@
+.heading {
+    flex: none;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    font-family: Atma, sans-serif;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-l);
+    line-height: var(--line-height-l);
+
+    > svg {
+        flex: none;
+        width: var(--font-size-l);
+        height: var(--font-size-l);
+    }
+}
+
+.primary {
+    color: var(--primary);
+}
+
+.secondary {
+    color: var(--secondary);
+}

@@ -36,23 +36,13 @@
 .meta {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
+    overflow-x: clip;
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--text-muted);
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
     font-weight: var(--font-weight-regular);
-}
-
-.iconButton {
-    @include row-icon-button;
-}
-
-.close {
-    @include ghost-icon-button(32px);
-
-    border-radius: var(--space-8);
 }
 
 .label {
@@ -67,7 +57,7 @@
     border: none;
     background: transparent;
     color: var(--text);
-    font-family: Consolas, "Courier New", Cousine, monospace;
+    font-family: "Roboto Mono", monospace;
     font-size: var(--font-size-s);
     line-height: var(--line-height-s);
     font-weight: var(--font-weight-regular);

@@ -98,3 +98,15 @@
     flex-direction: column;
     gap: 0;
 }
+
+.small {
+    padding: var(--space-8) var(--space-12);
+    border-radius: var(--space-8);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+
+    svg {
+        width: auto;
+        height: calc(var(--font-size-xs) * var(--line-height-xs));
+    }
+}

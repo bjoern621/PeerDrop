@@ -9,6 +9,8 @@ import {
 import errorAsValue from "../../util/ErrorAsValue";
 import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 import { useOwnToken } from "../../hooks/useOwnToken";
+import IconButton from "../IconButton/IconButton";
+import CardHeading from "./CardHeading/CardHeading";
 
 const COPIED_MS = 2000;
 
@@ -40,49 +42,34 @@ export default function TokenCard() {
         );
     };
 
+    const tokenLabel = copied === "token" ? "Token kopiert" : "Token kopieren";
+    const linkLabel =
+        copied === "link" ? "Link kopiert" : "Token als Link kopieren";
+
     return (
         <section className={css.tokenCard} aria-labelledby="own-token">
-            <h2 id="own-token" className={css.heading}>
-                <ProfileIcon aria-hidden />
+            <CardHeading id="own-token" icon={ProfileIcon} tone="secondary">
                 Dein Token
-            </h2>
+            </CardHeading>
             <div className={css.tokenBox}>
                 {token?.toUpperCase() ?? "_____"}
             </div>
             <div className={css.shareRow}>
                 <p className={css.shareText}>Teile diesen Token mit anderen</p>
-                <button
-                    type="button"
-                    className={css.iconButton}
+                <IconButton
+                    label={tokenLabel}
                     disabled={!token}
-                    aria-label={
-                        copied === "token" ? "Token kopiert" : "Token kopieren"
-                    }
-                    title={
-                        copied === "token" ? "Token kopiert" : "Token kopieren"
-                    }
                     onClick={() => void copy("token")}
                 >
                     {copied === "token" ? <CheckIcon /> : <CopyIcon />}
-                </button>
-                <button
-                    type="button"
-                    className={css.iconButton}
+                </IconButton>
+                <IconButton
+                    label={linkLabel}
                     disabled={!token}
-                    aria-label={
-                        copied === "link"
-                            ? "Link kopiert"
-                            : "Token als Link kopieren"
-                    }
-                    title={
-                        copied === "link"
-                            ? "Link kopiert"
-                            : "Token als Link kopieren"
-                    }
                     onClick={() => void copy("link")}
                 >
                     {copied === "link" ? <CheckIcon /> : <CopyLinkIcon />}
-                </button>
+                </IconButton>
             </div>
         </section>
     );

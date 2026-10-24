@@ -12,7 +12,9 @@ import {
     IconPlayerPauseFilled as PauseIcon,
     IconAlignLeft as LinesIcon,
 } from "@tabler/icons-react";
-import Tooltip from "../../Tooltip/Tooltip";
+import IconButton from "../../IconButton/IconButton";
+import RowButton from "../RowButton/RowButton";
+import StatusChip from "../StatusChip/StatusChip";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import useSettings from "../../../hooks/useSettings";
@@ -65,9 +67,12 @@ export function TextRow({
                 ) : entry.status === "delivered" ? (
                     <StatusChip tone="success">Gesendet</StatusChip>
                 ) : (
-                    <Tooltip content="Versuche es später noch einmal.">
-                        <StatusChip tone="error">Fehlgeschlagen</StatusChip>
-                    </Tooltip>
+                    <StatusChip
+                        tone="error"
+                        tooltip="Versuche es später noch einmal"
+                    >
+                        Fehlgeschlagen
+                    </StatusChip>
                 )
             ) : (
                 <>
@@ -122,6 +127,7 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                         <div className={css.barIdle} />
                     </div>
                     <IconButton
+                        variant="badge"
                         label="Abbrechen"
                         onClick={() => messaging.cancelOffer(entry.offerId)}
                     >
@@ -130,17 +136,17 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                 </>
             ) : (
                 <>
-                    <button
-                        type="button"
-                        className={css.accept}
-                        title="Klicken, um die Übertragung anzunehmen"
+                    <RowButton
+                        primary
+                        tooltip="Klicken, um die Übertragung anzunehmen"
                         onClick={() =>
                             messaging.answerOffer(entry.offerId, true)
                         }
                     >
                         ANNEHMEN
-                    </button>
+                    </RowButton>
                     <IconButton
+                        variant="badge"
                         label="Ablehnen"
                         onClick={() =>
                             messaging.answerOffer(entry.offerId, false)
@@ -297,21 +303,16 @@ function TransferStatus({
             <>
                 <StatusChip tone="success">Fertig!</StatusChip>
                 {top && direction === "down" && (
-                    <Tooltip
-                        content={
+                    <RowButton
+                        tooltip={
                             autoSaveDownloads
                                 ? `Klicken, um ${saveHint} erneut zu speichern`
                                 : `Klicken, um ${saveHint} zu speichern`
                         }
+                        onClick={() => save(pcm)}
                     >
-                        <button
-                            type="button"
-                            className={css.action}
-                            onClick={() => save(pcm)}
-                        >
-                            SPEICHERN
-                        </button>
-                    </Tooltip>
+                        SPEICHERN
+                    </RowButton>
                 )}
                 {block}
             </>
@@ -330,13 +331,15 @@ function TransferStatus({
         if (failed.length > 0) {
             return (
                 <>
-                    <Tooltip
-                        content={`Die Verbindung zu ${remoteToken.toUpperCase()} ist abgebrochen.`}
+                    <StatusChip
+                        tone="error"
+                        tooltip={`Die Verbindung zu ${remoteToken.toUpperCase()} ist abgebrochen`}
                     >
-                        <StatusChip tone="error">Fehlgeschlagen</StatusChip>
-                    </Tooltip>
+                        Fehlgeschlagen
+                    </StatusChip>
                     {top && direction === "up" && (
                         <IconButton
+                            variant="badge"
                             label="Erneut senden"
                             onClick={() =>
                                 failed.forEach(t => pcm.retryTransfer(t.uuid))
@@ -351,9 +354,12 @@ function TransferStatus({
         }
         return (
             <>
-                <Tooltip content="Die Übertragung wurde abgebrochen.">
-                    <StatusChip tone="warning">Abgebrochen</StatusChip>
-                </Tooltip>
+                <StatusChip
+                    tone="warning"
+                    tooltip="Die Übertragung wurde abgebrochen"
+                >
+                    Abgebrochen
+                </StatusChip>
                 {block}
             </>
         );
@@ -403,6 +409,7 @@ function TransferStatus({
             </div>
             {top && (
                 <IconButton
+                    variant="badge"
                     label="Abbrechen"
                     onClick={() =>
                         running.forEach(t => pcm.cancelTransfer(t.uuid))
@@ -475,31 +482,16 @@ function Row({
     );
 }
 
-function IconButton({
-    label,
-    onClick,
-    children,
+export function BlockButton({
+    peer,
+    onBlock,
 }: {
-    label: string;
-    onClick: () => void;
-    children: ReactNode;
+    peer: string;
+    onBlock: () => void;
 }) {
     return (
-        <button
-            type="button"
-            className={css.iconButton}
-            aria-label={label}
-            title={label}
-            onClick={onClick}
-        >
-            {children}
-        </button>
-    );
-}
-
-function BlockButton({ peer, onBlock }: { peer: string; onBlock: () => void }) {
-    return (
         <IconButton
+            variant="badge"
             label={`${peer.toUpperCase()} blockieren`}
             onClick={onBlock}
         >
@@ -515,10 +507,8 @@ export function CopyButton({ text }: { text: string }) {
     useEffect(() => () => window.clearTimeout(timer.current), []);
 
     return (
-        <button
-            type="button"
-            className={css.action}
-            title="Klicken, um den Text zu kopieren"
+        <RowButton
+            tooltip="Klicken, um den Text zu kopieren"
             onClick={() => {
                 void navigator.clipboard.writeText(text).then(() => {
                     setCopied(true);
@@ -531,16 +521,6 @@ export function CopyButton({ text }: { text: string }) {
             }}
         >
             {copied ? "KOPIERT" : "KOPIEREN"}
-        </button>
+        </RowButton>
     );
-}
-
-function StatusChip({
-    tone,
-    children,
-}: {
-    tone: "neutral" | "success" | "warning" | "error";
-    children: ReactNode;
-}) {
-    return <span className={`${css.chip} ${css[tone]}`}>{children}</span>;
 }

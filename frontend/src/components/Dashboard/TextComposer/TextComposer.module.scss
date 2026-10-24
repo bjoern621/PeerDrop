@@ -26,7 +26,7 @@
     border-radius: 13px 13px 0 0;
     background: transparent;
     color: var(--text);
-    font-family: Consolas, "Courier New", Cousine, monospace;
+    font-family: "Roboto Mono", monospace;
     font-size: var(--font-size-s);
     line-height: var(--line-height-s);
     font-weight: var(--font-weight-regular);
@@ -52,7 +52,7 @@
     z-index: 3;
     left: 0;
     right: 0;
-    bottom: 39px;
+    bottom: 41px;
     height: 14px;
     pointer-events: none;
     background: linear-gradient(transparent, var(--shadow));
@@ -68,8 +68,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-8);
-    min-height: 38px;
-    padding: 0 var(--space-4) 0 var(--space-12);
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
     border-top: 1px solid var(--text-muted-10);
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
@@ -81,58 +80,15 @@
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
     white-space: nowrap;
-    overflow: hidden;
+    overflow-x: clip;
     text-overflow: ellipsis;
-}
-
-.sizeButton {
-    flex: none;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: none;
-    border-radius: var(--space-8);
-    background: transparent;
-    color: var(--primary);
-    cursor: pointer;
-    transition: background-color 0.15s ease-out;
-
-    > svg {
-        width: 18px;
-        height: 18px;
-    }
-
-    &:hover {
-        background-color: var(--primary-10);
-    }
-
-    &:active {
-        background-color: var(--primary-20);
-    }
 }
 
 .send {
     position: relative;
     overflow: hidden;
-    flex: none;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    padding: 0 var(--space-12);
-    border: 1px solid var(--primary);
-    border-radius: var(--space-8);
-    background-color: var(--primary);
-    color: var(--background);
-    font: inherit;
-    font-size: var(--font-size-xs);
-    white-space: nowrap;
-    cursor: pointer;
 
     &:disabled {
-        border-color: var(--text-muted);
         background-color: var(--text-muted-10);
         color: var(--text-muted);
         cursor: default;
@@ -143,12 +99,7 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: 6px;
-
-    > svg {
-        width: 16px;
-        height: 16px;
-    }
+    gap: var(--space-4);
 }
 
 .fill {

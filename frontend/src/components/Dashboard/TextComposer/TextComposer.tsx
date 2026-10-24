@@ -13,6 +13,9 @@ import {
     IconArrowsDiagonalMinimize2 as CollapseIcon,
 } from "@tabler/icons-react";
 import { getSizeInHumanReadableFormat } from "../transferFormat";
+import Button from "../../Button/Button";
+import IconButton from "../../IconButton/IconButton";
+import Tooltip from "../../Tooltip/Tooltip";
 
 const BIG_MAX_WIDTH = 840;
 const BIG_MAX_HEIGHT = 600;
@@ -119,29 +122,30 @@ export default function TextComposer({
             : `${lines} ${lines === 1 ? "Zeile" : "Zeilen"} · ${getSizeInHumanReadableFormat(new Blob([draft]).size)}`;
 
     const sendButton = (
-        <button
-            type="button"
-            className={css.send}
-            disabled={!canSend}
-            title="Strg+Enter"
-            aria-busy={pauseProgress !== null}
-            onClick={() => {
-                onSend();
-                closeBig();
-            }}
-        >
-            {pauseProgress !== null && (
-                <span
-                    className={css.fill}
-                    style={{ width: `${Math.round(pauseProgress * 100)}%` }}
-                    aria-hidden
-                />
-            )}
-            <span className={css.sendContent}>
-                <SendIcon aria-hidden />
-                Text senden
-            </span>
-        </button>
+        <Tooltip content="Strg+Enter">
+            <Button
+                size="small"
+                className={css.send}
+                disabled={!canSend}
+                aria-busy={pauseProgress !== null}
+                onClick={() => {
+                    onSend();
+                    closeBig();
+                }}
+            >
+                {pauseProgress !== null && (
+                    <span
+                        className={css.fill}
+                        style={{ width: `${Math.round(pauseProgress * 100)}%` }}
+                        aria-hidden
+                    />
+                )}
+                <span className={css.sendContent}>
+                    <SendIcon aria-hidden />
+                    Text senden
+                </span>
+            </Button>
+        </Tooltip>
     );
 
     const rect = big && (grown ? big.to : big.from);
@@ -169,15 +173,13 @@ export default function TextComposer({
                 />
                 <div className={css.bar}>
                     <span className={css.meta}>{meta}</span>
-                    <button
-                        type="button"
-                        className={css.sizeButton}
-                        aria-label="Großes Textfeld öffnen"
-                        title="Großes Textfeld öffnen"
+                    <IconButton
+                        label="Großes Textfeld öffnen"
+                        size="m"
                         onClick={openBig}
                     >
                         <ExpandIcon aria-hidden />
-                    </button>
+                    </IconButton>
                     {sendButton}
                 </div>
             </div>
@@ -226,15 +228,14 @@ export default function TextComposer({
                         </div>
                         <div className={css.bar}>
                             <span className={css.meta}>{meta}</span>
-                            <button
-                                type="button"
-                                className={css.sizeButton}
-                                aria-label="Textfeld verkleinern"
-                                title="Textfeld verkleinern (Esc)"
+                            <IconButton
+                                label="Textfeld verkleinern"
+                                tooltip="Textfeld verkleinern (Esc)"
+                                size="m"
                                 onClick={closeBig}
                             >
                                 <CollapseIcon aria-hidden />
-                            </button>
+                            </IconButton>
                             {sendButton}
                         </div>
                     </div>

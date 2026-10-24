@@ -1,10 +1,6 @@
 import { useRef } from "react";
 import css from "./DevicePanel.module.scss";
-import {
-    IconDevices as DevicesIcon,
-    IconHelpCircle as QuestionIcon,
-    IconCheck as CheckIcon,
-} from "@tabler/icons-react";
+import { IconDevices as DevicesIcon } from "@tabler/icons-react";
 import { useLanPeers } from "../../hooks/useLanPeers";
 import useSettings from "../../hooks/useSettings";
 import { useSettingsDialog } from "../../context/SettingsDialogContext";
@@ -12,9 +8,11 @@ import { useAuth } from "../../context/AuthContext";
 import { useScrollShadows } from "../../hooks/useScrollShadows";
 import { LanPeer } from "../../types/lan/LanPeer";
 import { Device } from "../../types/device/Device";
-import Tooltip from "../Tooltip/Tooltip";
+import HelpTip from "../HelpTip/HelpTip";
 import Anchor from "../Anchor/Anchor";
+import CardHeading from "./CardHeading/CardHeading";
 import DeviceList from "./Devices/DeviceList/DeviceList";
+import DeviceTile from "./Devices/DeviceTile/DeviceTile";
 
 interface DevicePanelProps {
     recipient: string;
@@ -39,17 +37,17 @@ export default function DevicePanel({
 
     return (
         <aside className={css.panel} aria-labelledby="devices-heading">
-            <h2 id="devices-heading" className={css.heading}>
-                <DevicesIcon aria-hidden />
+            <CardHeading id="devices-heading" icon={DevicesIcon} tone="primary">
                 Geräte
-            </h2>
+            </CardHeading>
             <div className={css.scrollFrame}>
                 <div ref={scrollRef} className={css.scroll}>
                     <span className={css.label}>
                         In deinem Netzwerk
-                        <Tooltip content="Geräte im selben Netzwerk erscheinen hier automatisch">
-                            <QuestionIcon className={css.help} aria-hidden />
-                        </Tooltip>
+                        <HelpTip>
+                            Geräte im selben Netzwerk erscheinen hier
+                            automatisch
+                        </HelpTip>
                     </span>
                     {lanDiscovery ? (
                         <>
@@ -94,22 +92,12 @@ export default function DevicePanel({
                             ) : (
                                 <span className={css.signIn}>
                                     Melde dich an, um Geräte zu registrieren
-                                    <Tooltip
-                                        content={
-                                            <>
-                                                Zu FAQ wechseln:{" "}
-                                                <Anchor to="/faq#device-management">
-                                                    Geräteverwaltung
-                                                </Anchor>
-                                            </>
-                                        }
-                                        hoverable
-                                    >
-                                        <QuestionIcon
-                                            className={css.help}
-                                            aria-hidden
-                                        />
-                                    </Tooltip>
+                                    <HelpTip hoverable>
+                                        Zu FAQ wechseln:{" "}
+                                        <Anchor to="/faq#device-management">
+                                            Geräteverwaltung
+                                        </Anchor>
+                                    </HelpTip>
                                 </span>
                             )}
                         </>
@@ -149,16 +137,13 @@ function LanTile({
             : peer.browser || peer.os || "Unbekanntes Gerät";
 
     return (
-        <button
-            type="button"
-            className={css.tile}
-            aria-pressed={selected}
-            onClick={() => onPick(peer.token)}
+        <DeviceTile
+            online
+            selected={selected}
+            onSelect={() => onPick(peer.token)}
         >
-            <span className={css.online} aria-hidden />
             <span className={css.tileToken}>{peer.token.toUpperCase()}</span>
             <span className={css.tileInfo}>{deviceInfo}</span>
-            {selected && <CheckIcon className={css.check} aria-hidden />}
-        </button>
+        </DeviceTile>
     );
 }

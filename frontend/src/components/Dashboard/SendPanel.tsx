@@ -14,6 +14,7 @@ import RecipientInput, {
 } from "./RecipientInput/RecipientInput";
 import TextComposer from "./TextComposer/TextComposer";
 import DropZone from "./DropZone/DropZone";
+import CardHeading from "./CardHeading/CardHeading";
 import { Hint } from "./nextStep";
 import { ShareSelection } from "../../types/transfer/ShareSelection";
 
@@ -56,10 +57,13 @@ export default function SendPanel(props: SendPanelProps) {
     return (
         <section className={css.panel} aria-labelledby="send-heading">
             <div className={css.header}>
-                <h2 id="send-heading" className={css.heading}>
-                    <ConnectIcon aria-hidden />
+                <CardHeading
+                    id="send-heading"
+                    icon={ConnectIcon}
+                    tone="primary"
+                >
                     Senden
-                </h2>
+                </CardHeading>
                 <div className={css.recipient}>
                     <span>An</span>
                     <RecipientInput

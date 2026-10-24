@@ -1,7 +1,5 @@
-@use "../card" as *;
-
-$columns: minmax(200px, 1fr) 300px 100px 125px;
-$min-width: 725px;
+$columns: minmax(200px, 1fr) 300px 100px 140px;
+$min-width: 740px;
 
 .table {
     position: relative;
@@ -48,9 +46,10 @@ $min-width: 725px;
     }
 
     > svg {
-        width: 14px;
-        height: 14px;
-        transition: transform 0.2s ease;
+        flex: none;
+        width: 16px;
+        height: 16px;
+        transition: transform 0.15s ease-out;
     }
 }
 
@@ -165,7 +164,7 @@ $min-width: 725px;
 
 .name {
     min-width: 0;
-    overflow: hidden;
+    overflow-x: clip;
     text-overflow: ellipsis;
     color: var(--text);
 }
@@ -185,9 +184,9 @@ $min-width: 725px;
 
 .textPreview {
     min-width: 0;
-    overflow: hidden;
+    overflow-x: clip;
     text-overflow: ellipsis;
-    font-family: Consolas, "Courier New", Cousine, monospace;
+    font-family: "Roboto Mono", monospace;
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
 }
@@ -208,9 +207,9 @@ $min-width: 725px;
 
 .chevron {
     flex: none;
-    width: 14px;
-    height: 14px;
-    transition: transform 0.2s ease;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.15s ease-out;
 }
 
 .chevronOpen {
@@ -219,8 +218,8 @@ $min-width: 725px;
 
 .direction {
     flex: none;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
 }
 
 .peer {
@@ -256,14 +255,14 @@ $min-width: 725px;
     font-weight: var(--font-weight-regular);
 
     > span {
-        overflow: hidden;
+        overflow-x: clip;
         text-overflow: ellipsis;
     }
 
     > svg {
         flex: none;
-        width: 12px;
-        height: 12px;
+        width: 16px;
+        height: 16px;
     }
 }
 
@@ -288,67 +287,6 @@ $min-width: 725px;
     height: 100%;
     border-radius: 100px;
     background-color: var(--primary);
-}
-
-.iconButton {
-    @include row-icon-button;
-}
-
-.action {
-    @include row-text-button;
-}
-
-// The one filled button of a row: accepting an offer.
-.accept {
-    @include row-text-button;
-
-    background-color: var(--primary);
-    color: var(--background);
-
-    &:hover {
-        background-color: color-mix(
-            in oklab,
-            var(--primary) 85%,
-            var(--background)
-        );
-    }
-
-    &:active {
-        background-color: color-mix(
-            in oklab,
-            var(--primary) 70%,
-            var(--background)
-        );
-    }
-}
-
-.chip {
-    flex: none;
-    padding: var(--space-4) var(--space-8);
-    border-radius: var(--space-8);
-    font-size: var(--font-size-xs);
-    line-height: var(--line-height-xs);
-    font-weight: var(--font-weight-medium);
-}
-
-.neutral {
-    background-color: var(--text-muted-10);
-    color: var(--text);
-}
-
-.success {
-    background-color: var(--success-20);
-    color: var(--success-text);
-}
-
-.warning {
-    background-color: var(--warning-20);
-    color: var(--warning-text);
-}
-
-.error {
-    background-color: var(--error-20);
-    color: var(--error-text);
 }
 
 .time {

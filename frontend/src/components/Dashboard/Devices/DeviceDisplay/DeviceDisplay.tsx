@@ -5,13 +5,11 @@ import css from "./DeviceDisplay.module.scss";
 import {
     IconTrash as TrashIcon,
     IconPencil as EditIcon,
-    IconCheck as CheckIcon,
 } from "@tabler/icons-react";
 import Badge from "../../../Badge/Badge";
-import Button from "../../../Button/Button";
-import Tooltip from "../../../Tooltip/Tooltip";
+import IconButton from "../../../IconButton/IconButton";
 import Anchor from "../../../Anchor/Anchor";
-import FakeButton from "../../../FakeButton/FakeButton";
+import DeviceTile from "../DeviceTile/DeviceTile";
 
 const MAX_DEVICE_NAME_LENGTH = 64; // Linked to the backend DisplayNameValidator
 
@@ -33,24 +31,7 @@ export default function DeviceDisplay({
 }: DeviceDisplayProps) {
     const [editing, setEditing] = useState(false);
     const [editedName, setEditedName] = useState("");
-
-    const getDeviceStatusClass = () => {
-        switch (device.status) {
-            case DeviceStatus.ONLINE:
-                return css.deviceOnline;
-            default:
-                return css.deviceOffline;
-        }
-    };
-
-    const getTooltipContent = () => {
-        switch (device.status) {
-            case DeviceStatus.ONLINE:
-                return "Dieses Gerät ist online.";
-            default:
-                return "Dieses Gerät ist nicht online.";
-        }
-    };
+    const online = device.status === DeviceStatus.ONLINE;
 
     const startEditing = () => {
         setEditedName(device.name);
@@ -67,26 +48,45 @@ export default function DeviceDisplay({
     };
 
     return (
-        <FakeButton
-            className={`${css.deviceDisplay} ${selected ? css.selected : ""}`}
-            aria-pressed={selected}
-            onClick={() => onSelect(device)}
-            disabled={device.status !== DeviceStatus.ONLINE || device.current}
+        <DeviceTile
+            online={online}
+            statusTooltip={
+                <>
+                    {online
+                        ? "Dieses Gerät ist online."
+                        : "Dieses Gerät ist nicht online."}{" "}
+                    <Anchor to={"/faq#device-status"}>Mehr erfahren</Anchor>
+                </>
+            }
+            selected={selected}
+            disabled={!online || device.current}
+            onSelect={() => onSelect(device)}
+            actions={
+                <>
+                    <IconButton
+                        label="Gerät umbenennen"
+                        size="m"
+                        onClick={e => {
+                            e.stopPropagation();
+                            startEditing();
+                        }}
+                    >
+                        <EditIcon aria-hidden />
+                    </IconButton>
+                    <IconButton
+                        label="Gerät aus registrierten Geräten entfernen"
+                        size="m"
+                        tone="error"
+                        onClick={e => {
+                            e.stopPropagation();
+                            onDelete(device);
+                        }}
+                    >
+                        <TrashIcon aria-hidden />
+                    </IconButton>
+                </>
+            }
         >
-            <Tooltip
-                content={
-                    <>
-                        {getTooltipContent()}{" "}
-                        <Anchor to={"/faq#device-status"}>Mehr erfahren</Anchor>
-                    </>
-                }
-                showArrow={true}
-                hoverable
-            >
-                <div
-                    className={`${css.statusIndicator} ${getDeviceStatusClass()}`}
-                />
-            </Tooltip>
             {editing ? (
                 <input
                     className={css.nameInput}
@@ -110,31 +110,6 @@ export default function DeviceDisplay({
                 <span className={css.deviceName}>{device.name}</span>
             )}
             {device.current && <Badge>DIESES GERÄT</Badge>}
-            {selected && <CheckIcon className={css.check} aria-hidden />}
-            <Tooltip content={"Gerät umbenennen"}>
-                <Button
-                    color_scheme={"neutral"}
-                    className={css.renameButton}
-                    onClick={e => {
-                        e.stopPropagation();
-                        startEditing();
-                    }}
-                >
-                    <EditIcon />
-                </Button>
-            </Tooltip>
-            <Tooltip content={"Gerät aus registrierten Geräten entfernen"}>
-                <Button
-                    color_scheme={"error"}
-                    className={css.deleteButton}
-                    onClick={e => {
-                        e.stopPropagation();
-                        onDelete(device);
-                    }}
-                >
-                    <TrashIcon />
-                </Button>
-            </Tooltip>
-        </FakeButton>
+        </DeviceTile>
     );
 }

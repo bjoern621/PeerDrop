@@ -8,13 +8,6 @@
     background-color: var(--primary-5);
 }
 
-.heading {
-    @include card-heading;
-
-    flex: none;
-    color: var(--primary);
-}
-
 .scrollFrame {
     position: relative;
     flex: 1 1 0;
@@ -70,74 +63,6 @@
     font-weight: var(--font-weight-regular);
 }
 
-.help {
-    height: 20px;
-    cursor: help;
-}
-
-.tile {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: var(--space-8);
-    padding: var(--space-8) var(--space-12);
-    border: 1px solid var(--border);
-    border-radius: var(--space-16);
-    background-color: var(--background);
-    color: var(--text);
-    text-align: left;
-    font: inherit;
-    cursor: pointer;
-    transition:
-        transform 0.15s ease-out,
-        box-shadow 0.15s ease-out,
-        background-color 0.15s ease-out,
-        border-color 0.15s ease-out;
-
-    &:hover:not([aria-pressed="true"]) {
-        transform: translateY(-2px);
-        background-color: var(--primary-20);
-        border-color: var(--primary-40);
-        box-shadow: 0 4px 10px 2px var(--shadow);
-    }
-
-    &:active {
-        transform: translateY(0);
-        background-color: var(--primary-30);
-    }
-
-    &[aria-pressed="true"] {
-        border-color: var(--primary);
-        background-color: var(--primary);
-        color: var(--background);
-
-        .tileInfo {
-            color: inherit;
-            opacity: 0.8;
-        }
-
-        .online {
-            box-shadow: 0 0 0 2px var(--background);
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        transition: none;
-
-        &:hover:not([aria-pressed="true"]) {
-            transform: none;
-        }
-    }
-}
-
-.online {
-    flex: none;
-    width: var(--space-16);
-    height: var(--space-16);
-    border-radius: 50%;
-    background-color: var(--success);
-}
-
 .tileToken {
     font-family: "Roboto Mono", monospace;
     font-weight: var(--font-weight-semibold);
@@ -146,17 +71,16 @@
 .tileInfo {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
+    overflow-x: clip;
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
-}
 
-.check {
-    flex: none;
-    width: 18px;
-    height: 18px;
+    [aria-pressed="true"] & {
+        color: inherit;
+        opacity: 0.8;
+    }
 }
 
 .searching {

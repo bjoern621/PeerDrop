@@ -1,0 +1,102 @@
+@use "../../../../theme/shadows.scss" as *;
+
+.tile {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-4) var(--space-8) var(--space-4) var(--space-12);
+    border: 1px solid var(--border);
+    border-radius: var(--space-16);
+    background-color: var(--background);
+    color: var(--text);
+    white-space: nowrap;
+    transition:
+        transform 0.15s ease-out,
+        box-shadow 0.15s ease-out,
+        background-color 0.15s ease-out,
+        border-color 0.15s ease-out;
+
+    > * {
+        flex: none;
+    }
+
+    &:hover:not([aria-pressed="true"], [aria-disabled="true"]) {
+        transform: translateY(-2px);
+        background-color: var(--primary-20);
+        border-color: var(--primary-40);
+
+        @include elevated-shadow-no-highlight;
+
+        .online {
+            box-shadow: 0 0 0 var(--space-4) var(--success-20);
+        }
+    }
+
+    &:active:not([aria-disabled="true"]) {
+        transform: translateY(0);
+        background-color: var(--primary-30);
+    }
+
+    &[aria-pressed="true"] {
+        border-color: var(--primary);
+        background-color: var(--primary);
+        color: var(--background);
+
+        .online {
+            box-shadow: 0 0 0 2px var(--background);
+        }
+    }
+
+    &[aria-disabled="true"] {
+        opacity: 0.6;
+        cursor: not-allowed !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+
+        &:hover:not([aria-pressed="true"], [aria-disabled="true"]) {
+            transform: none;
+        }
+    }
+}
+
+.status {
+    display: block;
+    width: var(--space-16);
+    height: var(--space-16);
+    border-radius: 50%;
+    transition: box-shadow 0.15s ease-out;
+}
+
+.online {
+    background-color: var(--success);
+}
+
+.offline {
+    background-color: var(--error);
+}
+
+// The content gives way in a narrow column. Dot, check and actions keep their size.
+.content {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    overflow-x: clip;
+}
+
+.check {
+    width: 20px;
+    height: 20px;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
