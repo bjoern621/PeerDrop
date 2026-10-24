@@ -49,9 +49,8 @@ export default function Why() {
                             Vergiss das umständliche Hochladen in eine Cloud und
                             das Teilen von Links.
                             <br />
-                            Öffne PeerDrop im Browser, tausche einen 5-stelligen
-                            Code mit deinem Partner aus und klicke auf
-                            "Verbinden".
+                            Öffne PeerDrop im Browser, gib den 5-stelligen Token
+                            deines Partners ein und schicke los.
                         </p>
                     </div>
                 </div>
@@ -75,7 +74,9 @@ export default function Why() {
                             Verbindung für dich, um deine Daten sicher zu
                             übertragen. Dateien werden niemals auf einem Server
                             zwischengespeichert und können so von niemanden
-                            sonst gelesen werden.
+                            sonst gelesen werden. Texte verschlüsselt dein
+                            Browser, bevor sie über unseren Server gehen, der
+                            sie nicht lesen kann.
                         </p>
                     </div>
                 </div>

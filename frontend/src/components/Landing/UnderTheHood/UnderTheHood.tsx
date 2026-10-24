@@ -46,8 +46,8 @@ export default function UnderTheHood() {
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
                             <p className={css.textBoxText}>
-                                Wenn du den Token eingibst und auf Verbinden
-                                klickst, startet im Hintergrund der
+                                Sobald du Dateien schickst und der Empfänger sie
+                                annimmt, startet im Hintergrund der
                                 Verbindungsaufbau: Unser Signaling-Server
                                 tauscht die Verbindungsdaten zwischen den Peers
                                 aus. Danach verbinden sich die Geräte direkt per
@@ -85,7 +85,10 @@ export default function UnderTheHood() {
                                 ausschließlich im Browser ausgehandelt und
                                 verlassen ihn nicht, unsere Server sehen nur das
                                 Minimum, das für die Vermittlung der Verbindung
-                                nötig ist. Wir speichern weder Dateien noch
+                                nötig ist. Texte verschlüsselt dein Browser mit
+                                einem eigenen Schlüssel je Gegenüber (ECDH P-256
+                                und AES-GCM), bevor sie über unseren Server
+                                laufen. Wir speichern weder Dateien noch
                                 Transferprotokolle; es gibt keinen Account,
                                 keine Cloud und keine Freigaben, die man später
                                 wieder entfernen müsste. Privacy ohne Aufwand
