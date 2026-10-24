@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useState } from "react";
 import css from "./ActivityList.module.scss";
 import {
     IconUpload as UploadIcon,
@@ -19,6 +19,7 @@ import StatusChip from "../StatusChip/StatusChip";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
 import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import useSettings from "../../../hooks/useSettings";
+import { useCopyToClipboard } from "../../../hooks/useCopyToClipboard";
 import { OfferEntry, TextEntry } from "../../../services/MessagingService";
 import { TransferSnapshot } from "../../../services/TransferTracker";
 import { peerColor } from "../../../util/peerColor";
@@ -29,8 +30,6 @@ import {
     getTimeInHumanReadableFormat,
     getTransferInfo,
 } from "../transferFormat";
-
-const COPIED_MS = 2000;
 
 interface RowProps {
     blocked: ReadonlySet<string>;
@@ -522,24 +521,12 @@ export function BlockButton({
 }
 
 export function CopyButton({ text }: { text: string }) {
-    const [copied, setCopied] = useState(false);
-    const timer = useRef<number | undefined>(undefined);
-
-    useEffect(() => () => window.clearTimeout(timer.current), []);
+    const [copied, copy] = useCopyToClipboard();
 
     return (
         <RowButton
             tooltip="Klicken, um den Text zu kopieren"
-            onClick={() => {
-                void navigator.clipboard.writeText(text).then(() => {
-                    setCopied(true);
-                    window.clearTimeout(timer.current);
-                    timer.current = window.setTimeout(
-                        () => setCopied(false),
-                        COPIED_MS
-                    );
-                });
-            }}
+            onClick={() => void copy(text)}
         >
             {copied ? "KOPIERT" : "KOPIEREN"}
         </RowButton>
