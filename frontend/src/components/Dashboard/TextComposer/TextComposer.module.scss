@@ -14,16 +14,17 @@
     @include visually-hidden;
 }
 
+// Margin rather than padding, so scrolled text stops short of the frame.
 .textarea {
     flex: 1 1 auto;
     display: block;
-    width: 100%;
-    height: 88px;
+    min-width: 0;
+    height: 72px;
     box-sizing: border-box;
+    margin: var(--space-8) var(--space-12);
     resize: none;
-    padding: var(--space-8) var(--space-12);
+    padding: 0;
     border: none;
-    border-radius: 13px 13px 0 0;
     background: transparent;
     color: var(--text);
     font-family: "Roboto Mono", monospace;

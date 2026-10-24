@@ -49,11 +49,13 @@
     @include visually-hidden;
 }
 
+// Margin rather than padding, so scrolled text stops short of the frame.
 .text {
     flex: 1;
     min-height: 0;
+    margin: var(--space-8) var(--space-12);
     resize: none;
-    padding: var(--space-8) var(--space-12);
+    padding: 0;
     border: none;
     background: transparent;
     color: var(--text);
