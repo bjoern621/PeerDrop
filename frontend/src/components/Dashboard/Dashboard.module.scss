@@ -45,7 +45,7 @@
     .dashboard {
         display: flex;
         flex-direction: column;
-        gap: var(--space-16);
+        gap: 0;
         padding: var(--space-16) 0 120px;
     }
 
@@ -75,7 +75,11 @@
         @include card;
 
         flex: none;
-        background-color: var(--primary-5);
+    }
+
+    // The last section needs no band below it.
+    .right > .transfers {
+        border-bottom: none;
     }
 
     .transfers > .transfersHeading {

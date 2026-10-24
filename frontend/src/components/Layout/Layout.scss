@@ -26,3 +26,10 @@ main {
         }
     }
 }
+
+// The dashboard sections run to the screen edge on the phone.
+@media (width <= 760px) {
+    .layout-container.full-height main {
+        padding: 0;
+    }
+}
