@@ -28,7 +28,7 @@
     border-radius: var(--space-4);
     border: 1px solid var(--border);
     z-index: 999;
-    text-wrap: balance;
+    text-wrap: wrap;
 
     position: fixed;
     position-anchor: --tooltip-anchor; // Will be replaced dynamically
