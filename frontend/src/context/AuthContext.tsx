@@ -8,9 +8,11 @@ import {
 } from "react";
 import { AuthService } from "../services/AuthService";
 
+const LOGGED_IN_KEY = "loggedIn";
+
 interface AuthContextType {
     isLoggedIn: boolean;
-    isLoading: boolean;
+    isStatusKnown: boolean;
     login: (username: string, password: string) => Promise<boolean>;
     register: (username: string, password: string) => Promise<boolean>;
     logout: () => Promise<boolean>;
@@ -27,20 +29,28 @@ export function useAuth() {
     return context;
 }
 
+// The first render shows the last known status while the status request runs.
+function rememberedLoginStatus(): boolean | null {
+    const stored = localStorage.getItem(LOGGED_IN_KEY);
+    return stored === null ? null : stored === "true";
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [status, setIsLoggedIn] = useState(rememberedLoginStatus);
 
     const refreshStatus = async () => {
-        setIsLoading(true);
-        const status = await AuthService.getLoggedInStatus();
-        setIsLoggedIn(status);
-        setIsLoading(false);
+        setIsLoggedIn(await AuthService.getLoggedInStatus());
     };
 
     useEffect(() => {
         void refreshStatus();
     }, []);
+
+    useEffect(() => {
+        if (status !== null) {
+            localStorage.setItem(LOGGED_IN_KEY, String(status));
+        }
+    }, [status]);
 
     const login = async (
         username: string,
@@ -73,8 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const value: AuthContextType = {
-        isLoggedIn,
-        isLoading,
+        isLoggedIn: status === true,
+        isStatusKnown: status !== null,
         login,
         register,
         logout,

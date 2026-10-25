@@ -36,6 +36,20 @@ function isThemePreference(value: unknown): value is ThemePreference {
     return isColorScheme(value) || value === "system";
 }
 
+function storedColorScheme(): ColorScheme {
+    const storedPreference = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (isColorScheme(storedPreference)) {
+        return storedPreference;
+    }
+    return prefersDarkMediaQuery.matches ? "dark" : "light";
+}
+
+// Layout effects of children read styles before the ThemeProvider sets the
+// theme, and every color transition would then fire on page load.
+export function applyStoredColorScheme() {
+    document.documentElement.setAttribute("data-theme", storedColorScheme());
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [themePreference, setThemePreferenceState] =
         useState<ThemePreference>(() => {
@@ -46,13 +60,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             return "system";
         });
 
-    const [colorScheme, setColorScheme] = useState<ColorScheme>(() => {
-        const storedPreference = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (isColorScheme(storedPreference)) {
-            return storedPreference;
-        }
-        return prefersDarkMediaQuery.matches ? "dark" : "light";
-    });
+    const [colorScheme, setColorScheme] =
+        useState<ColorScheme>(storedColorScheme);
 
     useLayoutEffect(() => {
         const handleChange = () => {

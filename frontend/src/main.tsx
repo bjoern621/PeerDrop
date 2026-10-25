@@ -13,7 +13,10 @@ import { PageNotFound } from "./components/PageNotFound/PageNotFound.tsx";
 import { WorkInProgress } from "./components/WorkInProgress/WorkInProgress.tsx";
 import { ConnectionProvider } from "./context/connection/ConnectionProvider.tsx";
 import Landing from "./components/Landing/Landing.tsx";
-import { ThemeProvider } from "./context/ThemeContext.tsx";
+import {
+    applyStoredColorScheme,
+    ThemeProvider,
+} from "./context/ThemeContext.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import Layout, { RouteHandle } from "./components/Layout/Layout.tsx";
 import Dashboard from "./components/Dashboard/Dashboard.tsx";
@@ -48,6 +51,8 @@ const router = createBrowserRouter(
         </Route>
     )
 );
+
+applyStoredColorScheme();
 
 void loadRuntimeEnvVars().then(() => {
     createRoot(document.getElementById("root")!).render(

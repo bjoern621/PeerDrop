@@ -3,11 +3,12 @@ import { useTranslation } from "react-i18next";
 import Button from "../Button/Button";
 import AuthDialog from "./AuthDialog";
 import { useAuth } from "../../context/AuthContext";
+import css from "./AuthButton.module.scss";
 
 export default function AuthButton() {
     const { t } = useTranslation("auth");
     const dialogRef = useRef<HTMLDialogElement>(null!);
-    const { isLoggedIn, isLoading, logout } = useAuth();
+    const { isLoggedIn, isStatusKnown, logout } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const handleDialogClose = () => {
@@ -18,10 +19,6 @@ export default function AuthButton() {
         setIsDialogOpen(true);
         dialogRef.current.showModal();
     };
-
-    if (isLoading) {
-        return null;
-    }
 
     return (
         <>
@@ -36,6 +33,7 @@ export default function AuthButton() {
                 </Button>
             ) : (
                 <Button
+                    className={isStatusKnown ? undefined : css.pending}
                     onClick={() => openDialog()}
                     color_scheme={"neutral"}
                     variant={"outline"}
