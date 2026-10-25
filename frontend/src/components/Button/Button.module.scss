@@ -97,6 +97,7 @@
 .vertical {
     flex-direction: column;
     gap: 0;
+    padding-inline: var(--space-12);
 }
 
 .small {
