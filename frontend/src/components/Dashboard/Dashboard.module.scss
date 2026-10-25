@@ -43,6 +43,35 @@
     display: none;
 }
 
+// The list runs below both columns, which leave it too little width beside each other.
+@media (760px < width <= 1120px) {
+    .dashboard {
+        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-areas:
+            "left send"
+            "transfers transfers";
+    }
+
+    .left {
+        grid-area: left;
+    }
+
+    .right {
+        display: contents;
+    }
+
+    .right > :first-child {
+        grid-area: send;
+    }
+
+    .transfers {
+        grid-area: transfers;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
 @media (width <= 760px) {
     .dashboard {
         display: flex;

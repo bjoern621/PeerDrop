@@ -8,6 +8,71 @@
     background-color: var(--primary-5);
 }
 
+.toggleCard {
+    @include card;
+
+    position: relative;
+    anchor-name: --devices-toggle;
+    background-color: var(--primary-5);
+
+    &:hover {
+        background-color: var(--primary-10);
+    }
+}
+
+// The button covers the whole card, its icon included.
+.toggle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+    }
+}
+
+.chevron {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    transition: rotate 0.15s ease-out;
+}
+
+.chevronOpen {
+    rotate: 180deg;
+}
+
+// Opens below the toggle card, over the list, and ends above the bottom of the dashboard.
+.floating {
+    position: absolute;
+    z-index: 10;
+    position-anchor: --devices-toggle;
+    inset: calc(anchor(bottom) + var(--space-8)) anchor(right) var(--space-24)
+        anchor(left);
+    height: fit-content;
+    background:
+        linear-gradient(var(--primary-5), var(--primary-5)), var(--background);
+
+    .scrollFrame,
+    .scroll {
+        flex-basis: auto;
+    }
+}
+
+.closed {
+    display: none;
+}
+
 .scrollFrame {
     position: relative;
     flex: 1 1 0;

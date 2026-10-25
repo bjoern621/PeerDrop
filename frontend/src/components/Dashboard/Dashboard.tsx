@@ -45,6 +45,8 @@ export default function Dashboard() {
     );
     const ownToken = useOwnToken();
     const stacked = useMediaQuery("(width <= 760px)");
+    // Below this width the activity table no longer fits beside the left column.
+    const compact = useMediaQuery("(760px < width <= 1120px)");
     const [searchParams] = useSearchParams();
 
     const [recipient, setRecipient] = useState(() =>
@@ -154,6 +156,7 @@ export default function Dashboard() {
                     selectedDeviceUuid={selectedDeviceUuid}
                     onPickToken={pickToken}
                     onPickDevice={pickDevice}
+                    floating={compact}
                 />
             </div>
             <div ref={rightRef} className={css.right}>
@@ -190,8 +193,8 @@ export default function Dashboard() {
                     onSendText={sendText}
                     filesRecipient={ready ? recipient.toUpperCase() : null}
                     onSelection={sendSelection}
-                    // The phone layout dissolves the column box.
-                    boundsRef={stacked ? dashboardRef : rightRef}
+                    // The phone and compact layouts dissolve the column box.
+                    boundsRef={stacked || compact ? dashboardRef : rightRef}
                 />
                 <section
                     className={css.transfers}
