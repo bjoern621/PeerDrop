@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Link, NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
 import { IconMenu2 as MenuIcon, IconX as CloseIcon } from "@tabler/icons-react";
@@ -11,20 +11,13 @@ import { LanguageFlagButton } from "../LanguageToggle/LanguageToggle";
 import IconButton from "../IconButton/IconButton";
 
 /**
- * On narrow screens, navigation and account controls sit in a popover menu
- * opened from the right. On wide screens, the popover stays closed and shows
- * its content inline.
+ * On narrow screens, language, settings and account controls sit in a popover
+ * menu opened from the right. On wide screens, the popover stays closed and
+ * shows its content inline.
  */
 export default function Heading() {
     const { t } = useTranslation();
-    const menuRef = useRef<HTMLDivElement>(null!);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const closeMenu = () => {
-        if (menuRef.current.matches(":popover-open")) {
-            menuRef.current.hidePopover();
-        }
-    };
 
     return (
         <header className={css.header}>
@@ -32,6 +25,24 @@ export default function Heading() {
                 <Link to="/" aria-label={t("header.homeLink")}>
                     <Logo aria-hidden />
                 </Link>
+
+                <nav
+                    className={css.navigation}
+                    aria-label={t("header.navigation")}
+                >
+                    <NavLink to="/" aria-label={t("header.howItWorksLink")}>
+                        <StableText
+                            text={t("header.howItWorks")}
+                            fontWeight={"var(--font-weight-semibold)"}
+                        />
+                    </NavLink>
+                    <NavLink to="/connect" aria-label={t("header.shareLink")}>
+                        <StableText
+                            text={t("header.share")}
+                            fontWeight={"var(--font-weight-semibold)"}
+                        />
+                    </NavLink>
+                </nav>
 
                 <IconButton
                     className={css.menuButton}
@@ -47,7 +58,6 @@ export default function Heading() {
             </div>
 
             <div
-                ref={menuRef}
                 id="header-menu"
                 className={css.menu}
                 popover="auto"
@@ -58,32 +68,6 @@ export default function Heading() {
                     }
                 }}
             >
-                <nav
-                    className={css.navigation}
-                    aria-label={t("header.navigation")}
-                >
-                    <NavLink
-                        to="/"
-                        aria-label={t("header.howItWorksLink")}
-                        onClick={closeMenu}
-                    >
-                        <StableText
-                            text={t("header.howItWorks")}
-                            fontWeight={"var(--font-weight-semibold)"}
-                        />
-                    </NavLink>
-                    <NavLink
-                        to="/connect"
-                        aria-label={t("header.shareLink")}
-                        onClick={closeMenu}
-                    >
-                        <StableText
-                            text={t("header.share")}
-                            fontWeight={"var(--font-weight-semibold)"}
-                        />
-                    </NavLink>
-                </nav>
-
                 <div className={css.authSection}>
                     <LanguageFlagButton />
                     <SettingsMenu />
