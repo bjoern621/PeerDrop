@@ -66,6 +66,7 @@ export default function Heading() {
                             : css.menuButton
                     }
                     label={t("header.menu")}
+                    tooltip={false}
                     popoverTarget="header-menu"
                 >
                     {isMenuOpen ? (

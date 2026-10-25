@@ -6,6 +6,7 @@ interface IconButtonProps
     extends Omit<ComponentPropsWithRef<"button">, "children"> {
     /** Accessible name, shown as tooltip unless `tooltip` is given. */
     label: string;
+    /** `false` shows no tooltip. */
     tooltip?: ReactNode;
     /** `ghost`: round, no background until hovered. `badge`: small square on a tint, for list rows. */
     variant?: "ghost" | "badge";
@@ -36,16 +37,15 @@ export default function IconButton({
         .filter(Boolean)
         .join(" ");
 
-    return (
-        <Tooltip content={tooltip ?? label}>
-            <button
-                type="button"
-                className={classes}
-                aria-label={label}
-                {...props}
-            >
-                {children}
-            </button>
-        </Tooltip>
+    const button = (
+        <button type="button" className={classes} aria-label={label} {...props}>
+            {children}
+        </button>
     );
+
+    if (tooltip === false) {
+        return button;
+    }
+
+    return <Tooltip content={tooltip ?? label}>{button}</Tooltip>;
 }
