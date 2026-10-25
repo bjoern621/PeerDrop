@@ -20,6 +20,8 @@
     font-size: var(--font-size-xl);
     line-height: 1;
     font-family: "Roboto Mono", monospace;
+
+    transition: border-color 0.2s ease;
 }
 
 .otpSlotActive {
