@@ -1,3 +1,5 @@
+@use "sass:math";
+
 @font-face {
     font-family: "Roboto Mono";
     src: url("assets/Fonts/Roboto_Mono/RobotoMono-VariableFont_wght.woff2");
@@ -38,18 +40,24 @@
     src: url("assets/Fonts/Atma/Atma-Bold.woff2");
 }
 
+// Window width from which a fluid size reaches its maximum.
+$fluid-full-width: 25rem; // 400px
+
+/// Shrinks linearly with the window below $fluid-full-width, down to $min.
+@function fluid-size($min, $max) {
+    @return clamp($min, math.div($max, $fluid-full-width) * 100vw, $max);
+}
+
 @mixin sizes {
     --font-size-xxs: 0.75rem; // 12px
     --font-size-xs: 0.875rem; // 14px
     --font-size-s: 1rem; // 16px
-
-    // Full size from a 400px wide window, shrinking with the window below it.
-    --font-size-m: clamp(1rem, 5vw, 1.25rem); // 16px to 20px
-    --font-size-l: clamp(1.25rem, 6vw, 1.5rem); // 20px to 24px
-    --font-size-xl: clamp(1.5rem, 8vw, 2rem); // 24px to 32px
-    --font-size-2xl: clamp(1.5rem, 10vw, 2.5rem); // 24px to 40px
-    --font-size-3xl: clamp(2rem, 12vw, 3rem); // 32px to 48px
-    --font-size-4xl: clamp(2.5rem, 14vw, 3.5rem); // 40px to 56px
+    --font-size-m: #{fluid-size(1rem, 1.25rem)}; // 16px to 20px
+    --font-size-l: #{fluid-size(1.25rem, 1.5rem)}; // 20px to 24px
+    --font-size-xl: #{fluid-size(1.5rem, 2rem)}; // 24px to 32px
+    --font-size-2xl: #{fluid-size(1.5rem, 2.5rem)}; // 24px to 40px
+    --font-size-3xl: #{fluid-size(2rem, 3rem)}; // 32px to 48px
+    --font-size-4xl: #{fluid-size(2.5rem, 3.5rem)}; // 40px to 56px
     --line-height-xxs: 1.333; // 16px / 12px = 1.333
     --line-height-xs: 1.143; // 16px / 14px = 1.143
     --line-height-s: 1.5; // 24px / 16px = 1.5
