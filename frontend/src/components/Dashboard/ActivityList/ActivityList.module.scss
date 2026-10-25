@@ -9,10 +9,14 @@ $min-width: 740px;
     flex-direction: column;
 }
 
+// Clips at the same edges as the scrolling rows below, which it follows sideways.
 .head {
     position: relative;
     z-index: 4;
     flex: none;
+    margin: 0 calc(-1 * var(--space-12));
+    padding: 0 var(--space-12);
+    overflow-x: clip;
 }
 
 .headRow {
