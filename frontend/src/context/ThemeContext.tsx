@@ -53,8 +53,6 @@ export function applyStoredColorScheme() {
     document.documentElement.setAttribute("data-theme", storedColorScheme());
 }
 
-// Color transitions serve state changes such as a token turning online, and
-// would otherwise fade single elements apart from the rest of the page.
 function applyColorSchemeWithoutTransitions(colorScheme: ColorScheme) {
     const root = document.documentElement;
     root.setAttribute("data-theme-switching", "");
