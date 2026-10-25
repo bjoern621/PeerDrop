@@ -57,7 +57,7 @@ function applyColorSchemeWithoutTransitions(colorScheme: ColorScheme) {
     const root = document.documentElement;
     root.setAttribute("data-theme-switching", "");
     root.setAttribute("data-theme", colorScheme);
-    // Reading a computed style recalculates the page while transitions are off.
+    // Forces the style recalculation while transitions are still off.
     void getComputedStyle(root).color;
     root.removeAttribute("data-theme-switching");
 }
@@ -77,8 +77,8 @@ function swallowInputEvent(event: Event) {
     event.preventDefault();
 }
 
-// Presses during a view transition target the root element, and an open
-// dialog would take them for a press outside and close.
+// Presses during a view transition target the root element.
+// An open dialog would take them for a press outside and close.
 function blockInputUntil(done: Promise<unknown>) {
     for (const type of blockedInputEvents) {
         window.addEventListener(type, swallowInputEvent, { capture: true });
@@ -93,8 +93,6 @@ function blockInputUntil(done: Promise<unknown>) {
     done.then(unblock, unblock);
 }
 
-// The view transition crossfades a snapshot of the page, so gradients and SVG
-// fade as well, which element transitions leave out.
 function switchColorScheme(colorScheme: ColorScheme) {
     if (document.documentElement.getAttribute("data-theme") === colorScheme) {
         return;

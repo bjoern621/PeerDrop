@@ -180,8 +180,8 @@ html {
     @include light;
 }
 
-// Color transitions serve state changes such as a token turning online. On a
-// theme switch they would fade single elements apart from the page crossfade.
+// Color transitions serve state changes such as a token turning online.
+// On a theme switch they would run beside the crossfade of the whole page.
 [data-theme-switching],
 [data-theme-switching] *,
 [data-theme-switching] *::before,
