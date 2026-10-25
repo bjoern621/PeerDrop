@@ -47,10 +47,19 @@
     flex: none;
     width: 20px;
     height: 20px;
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition: rotate 0.2s ease-out;
+    }
 }
 
+// The panel turns its chevron up as it appears. The card below turns its own back down as the panel goes.
 .chevronOpen {
     rotate: 180deg;
+
+    @starting-style {
+        rotate: 0deg;
+    }
 }
 
 // Covers the toggle card and runs over the list down to the bottom of the dashboard.

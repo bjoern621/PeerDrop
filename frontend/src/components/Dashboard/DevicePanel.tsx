@@ -88,7 +88,7 @@ export default function DevicePanel({
                 <div className={css.toggleCard} inert={isOpen}>
                     <DevicesToggleHeading
                         id="devices-heading"
-                        open={false}
+                        open={isOpen}
                         buttonRef={openButtonRef}
                         onToggle={() => setOpen(true)}
                     />
