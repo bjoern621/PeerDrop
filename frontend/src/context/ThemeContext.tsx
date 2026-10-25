@@ -11,6 +11,9 @@ const LOCAL_STORAGE_KEY = "theme";
 type ColorScheme = "light" | "dark";
 type ThemePreference = ColorScheme | "system";
 const prefersDarkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+const prefersReducedMotionQuery = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+);
 
 interface ThemeContextType {
     themePreference: ThemePreference;
@@ -50,6 +53,60 @@ export function applyStoredColorScheme() {
     document.documentElement.setAttribute("data-theme", storedColorScheme());
 }
 
+function applyColorSchemeWithoutTransitions(colorScheme: ColorScheme) {
+    const root = document.documentElement;
+    root.setAttribute("data-theme-switching", "");
+    root.setAttribute("data-theme", colorScheme);
+    // Forces the style recalculation while transitions are still off.
+    void getComputedStyle(root).color;
+    root.removeAttribute("data-theme-switching");
+}
+
+const blockedInputEvents = [
+    "pointerdown",
+    "pointerup",
+    "mousedown",
+    "mouseup",
+    "click",
+    "dblclick",
+    "contextmenu",
+] as const;
+
+function swallowInputEvent(event: Event) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+}
+
+// Presses during a view transition target the root element.
+// An open dialog would take them for a press outside and close.
+function blockInputUntil(done: Promise<unknown>) {
+    for (const type of blockedInputEvents) {
+        window.addEventListener(type, swallowInputEvent, { capture: true });
+    }
+    const unblock = () => {
+        for (const type of blockedInputEvents) {
+            window.removeEventListener(type, swallowInputEvent, {
+                capture: true,
+            });
+        }
+    };
+    done.then(unblock, unblock);
+}
+
+function switchColorScheme(colorScheme: ColorScheme) {
+    if (document.documentElement.getAttribute("data-theme") === colorScheme) {
+        return;
+    }
+    if (!document.startViewTransition || prefersReducedMotionQuery.matches) {
+        applyColorSchemeWithoutTransitions(colorScheme);
+        return;
+    }
+    const transition = document.startViewTransition(() =>
+        applyColorSchemeWithoutTransitions(colorScheme)
+    );
+    blockInputUntil(transition.finished);
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [themePreference, setThemePreferenceState] =
         useState<ThemePreference>(() => {
@@ -78,7 +135,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, [themePreference]);
 
     useLayoutEffect(() => {
-        document.documentElement.setAttribute("data-theme", colorScheme);
+        switchColorScheme(colorScheme);
     }, [colorScheme]);
 
     const setThemePreference = (newPreference: ThemePreference) => {
