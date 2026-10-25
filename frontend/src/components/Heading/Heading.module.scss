@@ -61,6 +61,9 @@
 // Narrow screens show the popover as a panel below the header, styled like
 // the settings and auth dialogs.
 .menu {
+    // Replaces the CanvasText of a popover, which the dialogs inside inherit.
+    color: var(--text);
+
     @media (width > #{$header-breakpoint}) {
         display: contents;
     }
@@ -75,7 +78,6 @@
 
         width: min(360px, 100%);
 
-        color: var(--text);
         background-color: var(--background);
 
         @include elevated-shadow-no-highlight;
