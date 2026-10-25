@@ -20,7 +20,8 @@ public class SignalingService(IWebSocketHandler webSocketHandler, IPairRepositor
         var response = new IceCandidateMessage
         {
             RemoteToken = clientId,
-            IceCandidate = message.IceCandidate
+            IceCandidate = message.IceCandidate,
+            Lane = message.Lane
         };
 
         await _webSocketHandler.SendMessage(remoteToken, response);
@@ -38,7 +39,8 @@ public class SignalingService(IWebSocketHandler webSocketHandler, IPairRepositor
         var response = new SdpMessage
         {
             RemoteToken = clientId,
-            Description = message.Description
+            Description = message.Description,
+            Lane = message.Lane
         };
 
         await _webSocketHandler.SendMessage(remoteToken, response);

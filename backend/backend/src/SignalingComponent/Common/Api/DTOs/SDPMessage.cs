@@ -18,4 +18,9 @@ public class SdpMessage : ITypedMessage
     [JsonPropertyName("description")]
 
     public JsonElement Description { get; set; }
+
+    /// <summary>Peer connection between the two clients. Absent for clients without lanes, so the receiver can tell them apart.</summary>
+    [JsonPropertyName("lane")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? Lane { get; set; }
 }

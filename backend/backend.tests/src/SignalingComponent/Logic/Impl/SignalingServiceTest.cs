@@ -91,6 +91,46 @@ public class SignalingServiceTest
     }
 
     [Test]
+    public async Task HandleSdpMessage_WithLane_ForwardsLane()
+    {
+        using var doc = JsonDocument.Parse("""{"type": "offer", "sdp": "v=0"}""");
+
+        await _service.HandleSdpMessage("ABCDE", new SdpMessage { RemoteToken = "BCDEF", Description = doc.RootElement, Lane = 2 });
+
+        _mockHandler.Verify(h => h.SendMessage("BCDEF", It.Is<SdpMessage>(msg => msg.Lane == 2)), Times.Once);
+    }
+
+    [Test]
+    public async Task HandleIceCandidateMessage_WithLane_ForwardsLane()
+    {
+        using var doc = JsonDocument.Parse("""{"candidate": ""}""");
+
+        await _service.HandleIceCandidateMessage("ABCDE", new IceCandidateMessage { RemoteToken = "BCDEF", IceCandidate = doc.RootElement, Lane = 3 });
+
+        _mockHandler.Verify(h => h.SendMessage("BCDEF", It.Is<IceCandidateMessage>(msg => msg.Lane == 3)), Times.Once);
+    }
+
+    [Test]
+    public async Task HandleSdpMessage_WithoutLane_ForwardsNoLane()
+    {
+        using var doc = JsonDocument.Parse("""{"type": "offer", "sdp": "v=0"}""");
+
+        await _service.HandleSdpMessage("ABCDE", new SdpMessage { RemoteToken = "BCDEF", Description = doc.RootElement });
+
+        _mockHandler.Verify(h => h.SendMessage("BCDEF", It.Is<SdpMessage>(msg => msg.Lane == null)), Times.Once);
+    }
+
+    [Test]
+    public void SdpMessage_WithoutLane_SerializesWithoutLaneProperty()
+    {
+        using var doc = JsonDocument.Parse("""{"type": "offer", "sdp": "v=0"}""");
+
+        var json = JsonSerializer.Serialize(new SdpMessage { RemoteToken = "ABCDE", Description = doc.RootElement });
+
+        Assert.That(json, Does.Not.Contain("\"lane\""));
+    }
+
+    [Test]
     public async Task HandleSdpMessage_NotConnected_DropsMessage()
     {
         using var doc = JsonDocument.Parse("""{"type": "offer", "sdp": "v=0"}""");
