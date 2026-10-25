@@ -60,7 +60,11 @@ export default function Heading() {
                 </nav>
 
                 <IconButton
-                    className={css.menuButton}
+                    className={
+                        isMenuOpen
+                            ? `${css.menuButton} ${css.open}`
+                            : css.menuButton
+                    }
                     label={t("header.menu")}
                     popoverTarget="header-menu"
                 >
