@@ -85,8 +85,8 @@
 
 .searching {
     display: flex;
-    align-items: center;
-    gap: var(--space-8);
+    align-items: flex-start;
+    gap: var(--space-12);
     padding-left: var(--space-12);
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
@@ -109,6 +109,7 @@
     flex: none;
     width: var(--space-12);
     height: var(--space-12);
+    margin-top: calc((1lh - var(--space-12)) / 2);
     border-radius: 50%;
     background-color: var(--primary);
 
