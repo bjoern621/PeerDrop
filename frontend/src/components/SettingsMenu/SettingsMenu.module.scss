@@ -26,7 +26,11 @@
     padding: var(--space-24);
     border-bottom-left-radius: var(--space-16);
 
+    // Starts below the header like the backdrop of the header menu.
     &::backdrop {
+        position-anchor: --heading;
+        top: anchor(bottom);
+
         background-color: transparent;
 
         @media (prefers-reduced-motion: no-preference) {
@@ -73,8 +77,18 @@
     gap: var(--space-16);
 }
 
+.panelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .panelTitle {
     font-weight: var(--font-weight-medium);
+}
+
+.closeButton {
+    padding: var(--space-8);
 }
 
 .section {

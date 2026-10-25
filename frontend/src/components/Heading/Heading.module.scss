@@ -4,9 +4,13 @@
 .header {
     width: 100%;
 
-    position: sticky;
+    position: relative;
     z-index: 100;
-    top: 0;
+
+    // Reserves the scrollbar gutter of the page below, so both centre alike.
+    overflow: hidden;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
 
     border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
     background-color: var(--background);
@@ -31,8 +35,105 @@
 
     @media (max-width: $header-breakpoint) {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
         align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.headerContent .menuButton {
+    @media (width > #{$header-breakpoint}) {
+        display: none;
+    }
+
+    // Colours of the auth dialog's close button.
+    &.open {
+        color: var(--error-text);
+        background-color: var(--error-20);
+
+        &:hover:not(:disabled) {
+            background-color: var(--error-30);
+        }
+
+        &:active:not(:disabled) {
+            background-color: var(--error-40);
+        }
+    }
+}
+
+// Wide screens lay out the children as if the popover were absent.
+// Narrow screens show the popover as a panel below the header, styled like
+// the settings and auth dialogs.
+.menu {
+    // Replaces the CanvasText of a popover, which the dialogs inside inherit.
+    color: var(--text);
+
+    @media (width > #{$header-breakpoint}) {
+        display: contents;
+    }
+
+    @media (max-width: $header-breakpoint) {
+        position-anchor: --heading;
+        position: fixed;
+        inset: auto;
+        top: anchor(bottom);
+        right: 0;
+        margin: 0;
+
+        width: min(360px, 100%);
+
+        background-color: var(--background);
+
+        @include elevated-shadow-no-highlight;
+        border: 1px solid var(--border);
+        padding: var(--space-24);
+        border-bottom-left-radius: var(--space-16);
+
+        &:popover-open {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-24);
+        }
+
+        // Starts below the header to keep the close button undimmed.
+        &::backdrop {
+            position-anchor: --heading;
+            top: anchor(bottom);
+
+            background-color: transparent;
+
+            @media (prefers-reduced-motion: no-preference) {
+                transition: background-color 0.1s;
+            }
+        }
+
+        &:popover-open::backdrop {
+            background-color: var(--backdrop);
+
+            @starting-style {
+                background-color: transparent;
+            }
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            transition-property: opacity, scale, display, overlay;
+            transition-duration: 0.1s;
+            transition-behavior: allow-discrete;
+
+            opacity: 0;
+            scale: 0.9;
+            transform-origin: top;
+
+            &:popover-open {
+                opacity: 1;
+                scale: 1;
+
+                @starting-style {
+                    opacity: 0;
+                    scale: 0.9;
+                }
+            }
+        }
     }
 }
 
@@ -46,11 +147,50 @@
     align-items: center;
     gap: var(--space-8);
 
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    > li {
+        display: flex;
+    }
+
     @media (max-width: $header-breakpoint) {
         position: static;
         transform: none;
-        justify-content: center;
-        margin-top: var(--space-8);
+
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-16);
+
+        > li > button {
+            flex-grow: 1;
+        }
+    }
+
+    // Nested to outweigh the footer styles of the language toggle.
+    .menuItem {
+        display: flex;
+        align-items: center;
+        gap: var(--space-12);
+
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--text);
+        font: inherit;
+        font-weight: var(--font-weight-regular);
+        cursor: pointer;
+        text-underline-position: under;
+
+        > svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        &:hover:not(:disabled) {
+            text-decoration: underline;
+        }
     }
 }
 
@@ -79,9 +219,13 @@
         }
     }
 
-    @media (max-width: $header-breakpoint) {
+    @media (max-width: $nav-row-breakpoint) {
         position: static;
         transform: none;
-        margin-top: var(--space-8);
+
+        order: 1;
+        flex-basis: 100%;
+        justify-content: center;
+        margin-top: var(--space-16);
     }
 }

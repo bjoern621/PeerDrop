@@ -36,10 +36,12 @@ export default function Layout() {
                 className={`layout-container ${fullHeight ? "full-height" : ""}`}
             >
                 <Heading />
-                <main>
-                    <Outlet />
-                </main>
-                <Footer compact={compactFooter} />
+                <div className="layout-scroll">
+                    <main>
+                        <Outlet />
+                    </main>
+                    <Footer compact={compactFooter} />
+                </div>
             </div>
 
             <ToastContainer

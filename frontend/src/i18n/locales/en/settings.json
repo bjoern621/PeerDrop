@@ -1,5 +1,6 @@
 {
     "title": "Settings",
+    "close": "Close settings",
     "theme": "Theme",
     "receivedFiles": {
         "title": "Received files",

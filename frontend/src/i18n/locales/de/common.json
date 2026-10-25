@@ -5,7 +5,8 @@
         "howItWorksLink": "Zur Hauptseite navigieren",
         "howItWorks": "So funktioniert's",
         "shareLink": "Zur Dateifreigabe navigieren",
-        "share": "Dateien teilen"
+        "share": "Dateien teilen",
+        "menu": "Menü"
     },
     "footer": {
         "version": "Version:",

@@ -47,14 +47,18 @@ export function LanguageFlagButton() {
     );
 }
 
-/** Footer link showing flag and name of the current language. */
-export default function LanguageToggle() {
+/** Link-styled button showing flag and name of the current language. */
+export default function LanguageToggle({
+    className = "",
+}: {
+    className?: string;
+}) {
     const { language, name, Flag, switchLanguage } = useLanguageToggle();
 
     return (
         <button
             type="button"
-            className={css.languageToggle}
+            className={`${css.languageToggle} ${className}`}
             onClick={switchLanguage}
         >
             <Flag className={css.flag} aria-hidden />

@@ -1,12 +1,17 @@
 import { useEffect, useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import css from "./SettingsMenu.module.scss";
-import { IconSettings as SettingsIcon } from "@tabler/icons-react";
+import {
+    IconSettings as SettingsIcon,
+    IconX as CloseIcon,
+} from "@tabler/icons-react";
+import Button from "../Button/Button";
 import IconButton from "../IconButton/IconButton";
 import { useThemeContext } from "../../context/ThemeContext";
 import useSettings from "../../hooks/useSettings";
 import { updateSettings } from "../../services/SettingsStore";
 import { useSettingsDialog } from "../../context/SettingsDialogContext";
+import { useDialogOutsidePress } from "../../hooks/useDialogOutsidePress";
 
 const THEME_OPTIONS = ["light", "dark", "system"] as const;
 
@@ -15,8 +20,17 @@ const THEME_OPTIONS = ["light", "dark", "system"] as const;
  * anchored below the header like the auth dialog and closes on Escape and
  * on clicks outside of it. The open state comes from the settings dialog
  * context, so other components can open the dialog as well.
+ *
+ * With `labelled`, the gear sits beside the title in a text button carrying
+ * `labelClassName`.
  */
-export default function SettingsMenu() {
+export default function SettingsMenu({
+    labelled = false,
+    labelClassName = "",
+}: {
+    labelled?: boolean;
+    labelClassName?: string;
+}) {
     const { t } = useTranslation(["settings", "common"]);
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const { isOpen, openSettings, closeSettings } = useSettingsDialog();
@@ -28,42 +42,66 @@ export default function SettingsMenu() {
     // closed one, so both calls go through the element's own open flag.
     useEffect(() => {
         if (isOpen && !dialogRef.current.open) {
+            // On narrow screens the dialog sits in the closed header menu,
+            // whose hidden popover would leave the dialog without a box.
+            const menu = dialogRef.current.closest<HTMLElement>("[popover]");
+            if (menu && getComputedStyle(menu).display === "none") {
+                menu.showPopover();
+            }
             dialogRef.current.showModal();
         } else if (!isOpen && dialogRef.current.open) {
             dialogRef.current.close();
         }
     }, [isOpen]);
 
-    const handleBackdropClick = (event: React.MouseEvent) => {
-        // Clicks on the backdrop target the dialog element itself.
-        if (event.target === dialogRef.current) {
-            closeSettings();
-        }
-    };
+    useDialogOutsidePress(dialogRef, closeSettings);
 
     return (
         <>
-            <IconButton
-                className={css.gearButton}
-                size={"m"}
-                label={t("title")}
-                aria-haspopup="dialog"
-                aria-expanded={isOpen}
-                disabled={isOpen}
-                onClick={() => openSettings()}
-            >
-                <SettingsIcon aria-hidden />
-            </IconButton>
+            {labelled ? (
+                <button
+                    type="button"
+                    className={labelClassName}
+                    aria-haspopup="dialog"
+                    aria-expanded={isOpen}
+                    disabled={isOpen}
+                    onClick={() => openSettings()}
+                >
+                    <SettingsIcon aria-hidden />
+                    {t("title")}
+                </button>
+            ) : (
+                <IconButton
+                    className={css.gearButton}
+                    size={"m"}
+                    label={t("title")}
+                    aria-haspopup="dialog"
+                    aria-expanded={isOpen}
+                    disabled={isOpen}
+                    onClick={() => openSettings()}
+                >
+                    <SettingsIcon aria-hidden />
+                </IconButton>
+            )}
 
             <dialog
                 ref={dialogRef}
                 className={css.dialog}
                 aria-label={t("title")}
                 onClose={() => closeSettings()}
-                onClick={handleBackdropClick}
             >
                 <div className={css.panelContent}>
-                    <div className={css.panelTitle}>{t("title")}</div>
+                    <div className={css.panelHeader}>
+                        <div className={css.panelTitle}>{t("title")}</div>
+                        <Button
+                            className={css.closeButton}
+                            color_scheme={"error"}
+                            aria-label={t("close")}
+                            onClick={() => closeSettings()}
+                        >
+                            <CloseIcon aria-hidden />
+                        </Button>
+                    </div>
 
                     <div className={css.section}>
                         <div className={css.sectionTitle}>{t("theme")}</div>
