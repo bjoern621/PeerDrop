@@ -22,8 +22,6 @@ export default function SettingsMenu() {
     const { isOpen, openSettings, closeSettings } = useSettingsDialog();
     const { themePreference, setThemePreference } = useThemeContext();
     const { autoSaveDownloads, lanDiscovery } = useSettings();
-    const autoSaveId = useId();
-    const lanDiscoveryId = useId();
 
     // showModal() throws on an already open dialog and close() on an already
     // closed one, so both calls go through the element's own open flag.
@@ -97,53 +95,61 @@ export default function SettingsMenu() {
                         <div className={css.sectionTitle}>
                             {t("receivedFiles.title")}
                         </div>
-                        <div className={css.toggleRow}>
-                            <label htmlFor={autoSaveId}>
-                                {t("receivedFiles.autoSave")}
-                            </label>
-                            <input
-                                id={autoSaveId}
-                                type="checkbox"
-                                className={css.switch}
-                                checked={autoSaveDownloads}
-                                onChange={event =>
-                                    updateSettings({
-                                        autoSaveDownloads: event.target.checked,
-                                    })
-                                }
-                            />
-                        </div>
-                        <p className={css.hint}>
-                            {t("receivedFiles.autoSaveHint")}
-                        </p>
+                        <SettingToggle
+                            label={t("receivedFiles.autoSave")}
+                            hint={t("receivedFiles.autoSaveHint")}
+                            checked={autoSaveDownloads}
+                            onChange={checked =>
+                                updateSettings({ autoSaveDownloads: checked })
+                            }
+                        />
                     </div>
 
                     <div className={css.section}>
                         <div className={css.sectionTitle}>
                             {t("network.title")}
                         </div>
-                        <div className={css.toggleRow}>
-                            <label htmlFor={lanDiscoveryId}>
-                                {t("network.lanDiscovery")}
-                            </label>
-                            <input
-                                id={lanDiscoveryId}
-                                type="checkbox"
-                                className={css.switch}
-                                checked={lanDiscovery}
-                                onChange={event =>
-                                    updateSettings({
-                                        lanDiscovery: event.target.checked,
-                                    })
-                                }
-                            />
-                        </div>
-                        <p className={css.hint}>
-                            {t("network.lanDiscoveryHint")}
-                        </p>
+                        <SettingToggle
+                            label={t("network.lanDiscovery")}
+                            hint={t("network.lanDiscoveryHint")}
+                            checked={lanDiscovery}
+                            onChange={checked =>
+                                updateSettings({ lanDiscovery: checked })
+                            }
+                        />
                     </div>
                 </div>
             </dialog>
+        </>
+    );
+}
+
+/** One on/off setting: label and switch in a row, the hint below. */
+function SettingToggle({
+    label,
+    hint,
+    checked,
+    onChange,
+}: {
+    label: string;
+    hint: string;
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+}) {
+    const id = useId();
+    return (
+        <>
+            <div className={css.toggleRow}>
+                <label htmlFor={id}>{label}</label>
+                <input
+                    id={id}
+                    type="checkbox"
+                    className={css.switch}
+                    checked={checked}
+                    onChange={event => onChange(event.target.checked)}
+                />
+            </div>
+            <p className={css.hint}>{hint}</p>
         </>
     );
 }
