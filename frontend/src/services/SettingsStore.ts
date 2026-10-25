@@ -18,6 +18,12 @@ export interface AppSettings {
      */
     lanDiscovery: boolean;
 
+    /**
+     * Spreads each outgoing file over several peer connections when true.
+     * Faster over Wi-Fi, at the cost of more CPU on both peers.
+     */
+    parallelTransfers: boolean;
+
     /** Language of the interface. Follows the browser until the user picks one. */
     language: Language;
 }
@@ -25,12 +31,14 @@ export interface AppSettings {
 const STORAGE_KEYS: Record<keyof AppSettings, string> = {
     autoSaveDownloads: "autoSaveDownloads",
     lanDiscovery: "lanDiscovery",
+    parallelTransfers: "parallelTransfers",
     language: "language",
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
     autoSaveDownloads: true,
     lanDiscovery: true,
+    parallelTransfers: false,
     language: detectLanguage(),
 };
 
@@ -54,6 +62,10 @@ let settings: AppSettings = {
     lanDiscovery: readBooleanSetting(
         STORAGE_KEYS.lanDiscovery,
         DEFAULT_SETTINGS.lanDiscovery
+    ),
+    parallelTransfers: readBooleanSetting(
+        STORAGE_KEYS.parallelTransfers,
+        DEFAULT_SETTINGS.parallelTransfers
     ),
     language: readLanguageSetting(
         STORAGE_KEYS.language,

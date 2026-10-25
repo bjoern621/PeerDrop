@@ -5,3 +5,9 @@ export const CLIENT_TOKEN_LENGTH = 5;
 
 /** Characters of a chosen token, in any order. */
 export const CLIENT_TOKEN_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"; // Linked to the backend ClientTokenFormat
+
+/** Peer connections that one outgoing file spreads over while the parallelTransfers setting is on. */
+export const PARALLEL_TRANSFER_LANES = 4;
+
+/** Peer connections accepted from one peer; lane indexes from 0 up to this bound (exclusive). */
+export const MAX_TRANSFER_LANES = 8;

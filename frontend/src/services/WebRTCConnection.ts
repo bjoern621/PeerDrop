@@ -17,6 +17,8 @@ import { TransferTracker } from "./TransferTracker";
 import { ReceivedFiles } from "./ReceivedFiles";
 import { getSettings } from "./SettingsStore";
 import { UsageReporter } from "./UsageReporter";
+import { PeerLane } from "./PeerLane";
+import { MAX_TRANSFER_LANES, PARALLEL_TRANSFER_LANES } from "../util/Constants";
 
 /** Bytes of the little-endian chunk sequence number prefixing each binary message. */
 const SEQUENCE_HEADER_BYTES = 4;
@@ -59,8 +61,13 @@ interface CancelMessage {
 
 /** Reassembly state of one incoming file transfer. */
 interface ReceiveState {
-    /** Channel the file arrives on; carries the acknowledgement back. */
-    dataChannel: RTCDataChannel;
+    /**
+     * Channel on lane 0; carries the metadata and the acknowledgement back.
+     * Null while only chunks on further lanes have arrived.
+     */
+    dataChannel: RTCDataChannel | null;
+    /** Channels of the same file on further lanes; they carry chunks only. */
+    laneChannels: RTCDataChannel[];
     fileMeta: FileMeta | null;
     /** In-memory chunks; only used when OPFS is unavailable. */
     receivedChunks: ArrayBuffer[];
@@ -94,10 +101,14 @@ export class WebRTCConnection {
     private readonly canceledTransfers: Set<string> = new Set();
     private readonly signalingHandlers: [MessageType, MessageHandler][] = [];
 
-    // Perfect Negotiation Pattern variables
-    private makingOffer: boolean = false;
-    private ignoreOffer: boolean = false;
-    private isSettingRemoteAnswerPending: boolean = false;
+    // Peer connections to the remote peer by lane index. Lane 0 carries the
+    // connection state, metadata and acknowledgements; further lanes carry
+    // chunks of parallel transfers.
+    private readonly lanes: Map<number, PeerLane> = new Map();
+    private readonly iceServers: RTCIceServer[];
+    // Set once a signaling message from the peer names its lane; peers
+    // without lane support never get a second lane.
+    private remoteSupportsLanes = false;
     private readonly polite: boolean;
 
     public constructor(
@@ -114,7 +125,8 @@ export class WebRTCConnection {
         this.signalingChannel = signalingChannel;
         this.polite =
             signalingChannel.getLocalClientToken()! < this.remoteToken;
-        this.peerConnection = new RTCPeerConnection({ iceServers });
+        this.iceServers = iceServers;
+        this.peerConnection = this.createLane(0).peerConnection;
         this.transferStats = new TransferStatsMonitor(this.peerConnection);
         this.usageReporter = new UsageReporter(
             this.peerConnection,
@@ -146,12 +158,6 @@ export class WebRTCConnection {
             );
         };
 
-        this.peerConnection.ondatachannel = event => {
-            this.handleIncomingDataChannel(event.channel);
-        };
-
-        this.handleNegotiationNeeded();
-        this.handleIncomingICECandidates();
         this.handleSDPPackage();
         this.handleRemoteICECandidates();
 
@@ -161,21 +167,27 @@ export class WebRTCConnection {
     }
 
     /**
-     * Sends a file to the remote peer over a dedicated RTCDataChannel.
+     * Sends a file to the remote peer over dedicated RTCDataChannels.
      *
-     * The channel is reliable but unordered, which avoids SCTP head-of-line
+     * The channels are reliable but unordered, which avoids SCTP head-of-line
      * blocking. Each binary message carries a 4-byte little-endian sequence
      * number followed by the payload; the receiver reassembles chunks by
      * sequence number and completes when all chunks announced in the metadata
-     * have arrived. It then acknowledges the file on the same channel, and
-     * the sender closes the channel. A channel that closes before the
-     * acknowledgement fails the transfer on the sender's side.
+     * have arrived. It then acknowledges the file on the lane 0 channel, and
+     * the sender closes all channels of the file. A channel that closes before
+     * the acknowledgement fails the transfer on the sender's side.
+     *
+     * With the parallelTransfers setting on and a peer that supports lanes,
+     * the file gets one channel on each of PARALLEL_TRANSFER_LANES peer
+     * connections. Metadata, acknowledgement and cancellation stay on lane 0.
+     * Each chunk goes to the open channel with the fewest buffered bytes, so
+     * lanes that are still connecting join the transfer once they open.
      *
      * The file is read in READ_SIZE slices via Blob.arrayBuffer() and sent in
      * messages as large as the negotiated SCTP maximum message size allows,
      * capped at 256 KB (16 KB fallback when the limit is unknown). Sending
-     * pauses when more than HIGH_WATER_MARK bytes are buffered and resumes
-     * once the buffer drains to LOW_WATER_MARK.
+     * pauses while every open channel buffers more than HIGH_WATER_MARK bytes
+     * and resumes once one of them drains to LOW_WATER_MARK.
      *
      * @param file The file to be sent to the remote peer.
      * @param folder Folder membership when the file is part of a folder
@@ -207,30 +219,28 @@ export class WebRTCConnection {
             startedAt,
         });
 
-        const dataChannel = this.peerConnection.createDataChannel(uuid, {
-            ordered: false,
-        });
+        const dataChannel = createTransferChannel(this.peerConnection, uuid);
         this.outgoingChannels.set(uuid, dataChannel);
-        dataChannel.binaryType = "arraybuffer";
-        dataChannel.bufferedAmountLowThreshold = LOW_WATER_MARK;
+        const laneChannels = this.transferLanes().map(lane =>
+            createTransferChannel(lane.peerConnection, uuid)
+        );
+        const channels = [dataChannel, ...laneChannels];
+        // Lane channels that carried chunks; losing one loses its chunks.
+        const usedLaneChannels = new Set<RTCDataChannel>();
 
-        // Bytes handed to the channel so far; the progress interval reads it.
+        // Bytes handed to the channels so far; the progress interval reads it.
         let offset = 0;
         let progressInterval: ReturnType<typeof setInterval> | null = null;
         let acknowledged = false;
 
-        // Resolves when the send buffer drains to LOW_WATER_MARK or the
-        // channel closes, whichever comes first.
-        const waitForBufferedAmountLow = () =>
-            new Promise<void>(resolve => {
-                const done = () => {
-                    dataChannel.removeEventListener("bufferedamountlow", done);
-                    dataChannel.removeEventListener("close", done);
-                    resolve();
-                };
-                dataChannel.addEventListener("bufferedamountlow", done);
-                dataChannel.addEventListener("close", done);
-            });
+        const bufferedBytes = () =>
+            channels.reduce(
+                (sum, channel) =>
+                    channel.readyState === "open"
+                        ? sum + channel.bufferedAmount
+                        : sum,
+                0
+            );
 
         const pump = async () => {
             // The SCTP maximum message size is negotiated per connection.
@@ -277,8 +287,10 @@ export class WebRTCConnection {
                     chunkStart < buffer.byteLength;
                     chunkStart += payloadSize
                 ) {
-                    if (dataChannel.bufferedAmount > HIGH_WATER_MARK) {
-                        await waitForBufferedAmountLow();
+                    let channel = leastBufferedChannel(channels);
+                    if (channel.bufferedAmount > HIGH_WATER_MARK) {
+                        await waitForBufferedAmountLow(channels);
+                        channel = leastBufferedChannel(channels);
                     }
                     if (dataChannel.readyState !== "open") {
                         this.log("Data channel closed during transfer:", uuid);
@@ -296,7 +308,10 @@ export class WebRTCConnection {
                     new Uint8Array(message, SEQUENCE_HEADER_BYTES).set(
                         new Uint8Array(buffer, chunkStart, length)
                     );
-                    dataChannel.send(message);
+                    channel.send(message);
+                    if (channel !== dataChannel) {
+                        usedLaneChannels.add(channel);
+                    }
                     sequence++;
                     offset += length;
                 }
@@ -306,7 +321,7 @@ export class WebRTCConnection {
 
             // A drained buffer means handed to the local transport. The
             // receiver's acknowledgement marks the file as delivered.
-            while (dataChannel.bufferedAmount > 0) {
+            while (bufferedBytes() > 0) {
                 if (dataChannel.readyState !== "open") {
                     this.log("Data channel closed during transfer:", uuid);
                     return;
@@ -358,22 +373,30 @@ export class WebRTCConnection {
         dataChannel.onclose = () => {
             if (progressInterval) clearInterval(progressInterval);
             this.outgoingChannels.delete(uuid);
+            laneChannels.forEach(channel => channel.close());
             if (!acknowledged && !this.canceledTransfers.has(uuid)) {
                 this.transferTracker.setStatus(uuid, "failed");
             }
             this.transferStats.release();
         };
 
+        // The chunks a closed lane still buffered never arrive, so the
+        // receiver would wait forever. Closing lane 0 fails the transfer.
+        laneChannels.forEach(channel => {
+            channel.onclose = () => {
+                if (usedLaneChannels.has(channel) && !acknowledged) {
+                    dataChannel.close();
+                }
+            };
+        });
+
         dataChannel.onopen = () => {
             this.transferStats.acquire();
 
-            // Samples the bytes actually sent (handed to the channel minus
+            // Samples the bytes actually sent (handed to the channels minus
             // what is still buffered) for the transfer tracker.
             progressInterval = setInterval(() => {
-                const sentBytes = Math.max(
-                    offset - dataChannel.bufferedAmount,
-                    0
-                );
+                const sentBytes = Math.max(offset - bufferedBytes(), 0);
                 this.transferTracker.updateBytes(uuid, sentBytes);
             }, 100);
 
@@ -386,12 +409,59 @@ export class WebRTCConnection {
     }
 
     /**
-     * Handles a data channel opened by the remote peer. The reassembly state
-     * is keyed by the channel label (the file UUID). The "init" channel used
-     * to kick off negotiation is ignored. The sender closes the channel once
-     * the file is acknowledged; a close before that fails the transfer.
+     * Lanes besides lane 0 that an outgoing file spreads over. Opens the
+     * missing ones on first use. Empty while the parallelTransfers setting is
+     * off or the peer has not shown lane support.
      */
-    private handleIncomingDataChannel(dataChannel: RTCDataChannel) {
+    private transferLanes(): PeerLane[] {
+        if (!getSettings().parallelTransfers || !this.remoteSupportsLanes) {
+            return [];
+        }
+        const lanes: PeerLane[] = [];
+        for (let index = 1; index < PARALLEL_TRANSFER_LANES; index++) {
+            lanes.push(this.lanes.get(index) ?? this.createLane(index));
+        }
+        return lanes;
+    }
+
+    /**
+     * Opens the peer connection of a lane. Lane 0 reports its state to the
+     * subscribers of this connection; channels the peer opens on any lane
+     * reach handleIncomingDataChannel.
+     */
+    private createLane(index: number): PeerLane {
+        assert(
+            Number.isInteger(index) && index >= 0 && index < MAX_TRANSFER_LANES,
+            `lane must be an integer in [0, ${MAX_TRANSFER_LANES})`
+        );
+        assert(!this.lanes.has(index), `lane ${index} exists already`);
+
+        const lane = new PeerLane(
+            index,
+            this.signalingChannel,
+            this.remoteToken,
+            this.polite,
+            this.iceServers
+        );
+        lane.peerConnection.ondatachannel = event => {
+            this.handleIncomingDataChannel(event.channel, index);
+        };
+        this.lanes.set(index, lane);
+        return lane;
+    }
+
+    /**
+     * Handles a data channel opened by the remote peer. The reassembly state
+     * is keyed by the channel label (the file UUID) and shared by the
+     * channels of one file on all lanes. The "init" channel used to kick off
+     * negotiation is ignored. The sender closes the channels once the file is
+     * acknowledged; a close of the lane 0 channel before that fails the
+     * transfer. The sender closes lane 0 as well when another lane fails.
+     */
+    private handleIncomingDataChannel(
+        dataChannel: RTCDataChannel,
+        lane: number
+    ) {
         if (dataChannel.label === "init") {
             return;
         }
@@ -402,37 +472,24 @@ export class WebRTCConnection {
             return;
         }
 
-        this.log("Received data channel", dataChannel.label);
+        this.log("Received data channel", dataChannel.label, "on lane", lane);
         dataChannel.binaryType = "arraybuffer";
 
-        const state = this.getOrCreateReceiveState(dataChannel);
+        const state = this.getOrCreateReceiveState(dataChannel.label);
+        if (lane === 0) {
+            this.attachMainChannel(state, dataChannel);
+        } else {
+            this.attachLaneChannel(state, dataChannel);
+        }
+    }
+
+    /** Wires the lane 0 channel of an incoming file: metadata, chunks, cancellation. */
+    private attachMainChannel(
+        state: ReceiveState,
+        dataChannel: RTCDataChannel
+    ) {
+        state.dataChannel = dataChannel;
         let statsAcquired = false;
-
-        const handleSequencedChunk = (data: ArrayBuffer) => {
-            const sequence = new DataView(data).getUint32(0, true);
-            const payload = data.slice(SEQUENCE_HEADER_BYTES);
-            if (state.opfsWriter) {
-                state.opfsWriter.write(
-                    sequence * state.fileMeta!.chunkSize,
-                    payload
-                );
-            } else {
-                state.receivedChunks[sequence] = payload;
-            }
-            state.receivedBytes += payload.byteLength;
-            state.receivedChunkCount++;
-            this.transferTracker.updateBytes(
-                state.fileMeta!.uuid,
-                state.receivedBytes
-            );
-
-            if (
-                !state.finished &&
-                state.receivedChunkCount === state.fileMeta?.chunkCount
-            ) {
-                void this.finishDownload(state);
-            }
-        };
 
         dataChannel.onmessage = event => {
             if (state.fileMeta === null && typeof event.data === "string") {
@@ -459,7 +516,9 @@ export class WebRTCConnection {
                     relativePath: state.fileMeta.relativePath,
                 });
 
-                state.earlyChunks.forEach(handleSequencedChunk);
+                state.earlyChunks.forEach(chunk =>
+                    this.storeChunk(state, chunk)
+                );
                 state.earlyChunks.length = 0;
 
                 // An empty file announces no chunks, so no chunk completes it.
@@ -470,11 +529,7 @@ export class WebRTCConnection {
             }
 
             if (event.data instanceof ArrayBuffer) {
-                if (state.fileMeta === null) {
-                    state.earlyChunks.push(event.data);
-                } else {
-                    handleSequencedChunk(event.data);
-                }
+                this.receiveChunk(state, event.data);
             } else if (
                 state.fileMeta &&
                 typeof event.data === "string" &&
@@ -508,12 +563,71 @@ export class WebRTCConnection {
         };
     }
 
-    private getOrCreateReceiveState(dataChannel: RTCDataChannel): ReceiveState {
-        const uuid = dataChannel.label;
+    /** Wires a channel of an incoming file on a further lane; it carries chunks only. */
+    private attachLaneChannel(state: ReceiveState, channel: RTCDataChannel) {
+        state.laneChannels.push(channel);
+        channel.onmessage = event => {
+            if (event.data instanceof ArrayBuffer) {
+                this.receiveChunk(state, event.data);
+            }
+        };
+        // A file whose lane 0 channel never arrived leaves no state behind.
+        channel.onclose = () => {
+            if (
+                state.dataChannel === null &&
+                this.incomingTransfers.get(channel.label) === state
+            ) {
+                this.incomingTransfers.delete(channel.label);
+            }
+        };
+    }
+
+    /** Stores a chunk, or holds it back until the metadata arrives. */
+    private receiveChunk(state: ReceiveState, data: ArrayBuffer) {
+        if (state.fileMeta === null) {
+            state.earlyChunks.push(data);
+        } else {
+            this.storeChunk(state, data);
+        }
+    }
+
+    /**
+     * Places a chunk by its sequence number and finishes the download with
+     * the last one. Requires the metadata.
+     */
+    private storeChunk(state: ReceiveState, data: ArrayBuffer) {
+        assert(state.fileMeta, "chunks get stored after the metadata");
+        const sequence = new DataView(data).getUint32(0, true);
+        const payload = data.slice(SEQUENCE_HEADER_BYTES);
+        if (state.opfsWriter) {
+            state.opfsWriter.write(
+                sequence * state.fileMeta.chunkSize,
+                payload
+            );
+        } else {
+            state.receivedChunks[sequence] = payload;
+        }
+        state.receivedBytes += payload.byteLength;
+        state.receivedChunkCount++;
+        this.transferTracker.updateBytes(
+            state.fileMeta.uuid,
+            state.receivedBytes
+        );
+
+        if (
+            !state.finished &&
+            state.receivedChunkCount === state.fileMeta.chunkCount
+        ) {
+            void this.finishDownload(state);
+        }
+    }
+
+    private getOrCreateReceiveState(uuid: string): ReceiveState {
         let state = this.incomingTransfers.get(uuid);
         if (!state) {
             state = {
-                dataChannel,
+                dataChannel: null,
+                laneChannels: [],
                 fileMeta: null,
                 receivedChunks: [],
                 opfsWriter: null,
@@ -541,6 +655,8 @@ export class WebRTCConnection {
      */
     private async finishDownload(state: ReceiveState) {
         state.finished = true;
+        const dataChannel = state.dataChannel;
+        assert(dataChannel, "the metadata arrives on the lane 0 channel");
 
         const uuid = state.fileMeta!.uuid;
         const filename = state.fileMeta?.name ?? "received-file";
@@ -558,7 +674,7 @@ export class WebRTCConnection {
                     err
                 );
                 this.transferTracker.setStatus(uuid, "failed");
-                state.dataChannel.close();
+                dataChannel.close();
                 return;
             }
             blob = file;
@@ -567,8 +683,8 @@ export class WebRTCConnection {
         }
 
         this.transferTracker.setStatus(uuid, "done");
-        if (state.dataChannel.readyState === "open") {
-            state.dataChannel.send(JSON.stringify({ ack: uuid } as AckMessage));
+        if (dataChannel.readyState === "open") {
+            dataChannel.send(JSON.stringify({ ack: uuid } as AckMessage));
         }
 
         this.receivedFiles.add(uuid, {
@@ -641,7 +757,8 @@ export class WebRTCConnection {
         }
         state.finished = true;
         void state.opfsWriter?.abort();
-        state.dataChannel.close();
+        state.dataChannel?.close();
+        state.laneChannels.forEach(channel => channel.close());
     }
 
     /**
@@ -672,96 +789,37 @@ export class WebRTCConnection {
 
     private handleRemoteICECandidates() {
         this.subscribeSignaling(MessageType.ICE_CANDIDATE, async message => {
-            const iceCandidateMessage = message as IceCandidateMessage;
-            const candidate = iceCandidateMessage.msg.iceCandidate;
-
-            const [, err] = await errorAsValue(
-                this.peerConnection.addIceCandidate(candidate)
-            );
-
-            if (err && !this.ignoreOffer) {
-                this.log("Failed to add ICE candidate:", err);
-            }
+            const { iceCandidate, lane } = (message as IceCandidateMessage).msg;
+            await this.laneFor(lane)?.handleRemoteCandidate(iceCandidate);
         });
     }
 
     private handleSDPPackage() {
         this.subscribeSignaling(MessageType.SDP, async message => {
-            const sdpMessage = message as SdpMessage;
-            const description = sdpMessage.msg.description;
-
-            this.log("Received SDP ", description.type, " message");
-
-            const readyForOffer =
-                !this.makingOffer &&
-                (this.peerConnection.signalingState === "stable" ||
-                    this.isSettingRemoteAnswerPending);
-
-            const offerCollision =
-                description.type === "offer" && !readyForOffer;
-
-            // ignoreOffer is true, if offerCollision occurs and if this peer is impolite (ignoring SDP and all incoming ICE candidates)
-            this.ignoreOffer = !this.polite && offerCollision;
-            if (this.ignoreOffer) {
-                this.log(
-                    "IGNORING offer, because this peer is impolite and offerCollision occurred"
-                );
-                return;
-            }
-
-            this.isSettingRemoteAnswerPending = description.type === "answer";
-
-            const [,] = await errorAsValue(
-                this.peerConnection.setRemoteDescription(description)
-            );
-            this.isSettingRemoteAnswerPending = false;
-
-            if (description.type === "offer") {
-                await this.peerConnection.setLocalDescription();
-                this.signalingChannel.sendMessage(
-                    new SdpMessage({
-                        remoteToken: this.remoteToken,
-                        description: this.peerConnection.localDescription!,
-                    })
-                );
-            }
+            const { description, lane } = (message as SdpMessage).msg;
+            await this.laneFor(lane)?.handleRemoteDescription(description);
         });
     }
 
-    private handleNegotiationNeeded() {
-        this.peerConnection.onnegotiationneeded = async () => {
-            this.makingOffer = true;
-
-            const [, err] = await errorAsValue(
-                this.peerConnection.setLocalDescription()
-            );
-
-            if (!err) {
-                this.signalingChannel.sendMessage(
-                    new SdpMessage({
-                        remoteToken: this.remoteToken,
-                        description: this.peerConnection.localDescription!,
-                    })
-                );
-            } else {
-                this.log("Error during setting local description: ", err);
-            }
-
-            this.makingOffer = false;
-        };
-    }
-
-    private handleIncomingICECandidates() {
-        this.peerConnection.onicecandidate = event => {
-            if (event.candidate) {
-                this.signalingChannel.sendMessage(
-                    new IceCandidateMessage({
-                        remoteToken: this.remoteToken,
-                        iceCandidate: event.candidate,
-                    })
-                );
-            }
-        };
+    /**
+     * Lane a signaling message of the peer names, opened on first mention.
+     * A message without a lane belongs to lane 0 and comes from a peer
+     * without lane support. Null for an index outside MAX_TRANSFER_LANES.
+     */
+    private laneFor(index: number | undefined): PeerLane | null {
+        if (index === undefined || index === null) {
+            return this.lanes.get(0)!;
+        }
+        this.remoteSupportsLanes = true;
+        if (
+            !Number.isInteger(index) ||
+            index < 0 ||
+            index >= MAX_TRANSFER_LANES
+        ) {
+            this.log("Dropped signaling for unknown lane", index);
+            return null;
+        }
+        return this.lanes.get(index) ?? this.createLane(index);
     }
 
     /**
@@ -779,7 +837,8 @@ export class WebRTCConnection {
         this.unsubscribeTransferEnded();
 
         this.transferStats.stop();
-        this.peerConnection.close();
+        this.lanes.forEach(lane => lane.close());
+        this.lanes.clear();
 
         this.signalingHandlers.forEach(([type, handler]) =>
             this.signalingChannel.unsubscribeMessage(type, handler)
@@ -845,4 +904,49 @@ function readCanceledUuid(data: string): string | null {
     );
 
     return typeof message?.cancel === "string" ? message.cancel : null;
+}
+
+/** Opens the reliable, unordered channel of one outgoing file on a peer connection. */
+function createTransferChannel(
+    peerConnection: RTCPeerConnection,
+    uuid: string
+): RTCDataChannel {
+    const channel = peerConnection.createDataChannel(uuid, { ordered: false });
+    channel.binaryType = "arraybuffer";
+    channel.bufferedAmountLowThreshold = LOW_WATER_MARK;
+    return channel;
+}
+
+/**
+ * Open channel with the fewest buffered bytes. The first channel counts as
+ * open whenever no channel is, so the caller finds it closed and stops.
+ */
+function leastBufferedChannel(channels: RTCDataChannel[]): RTCDataChannel {
+    const open = channels.filter(channel => channel.readyState === "open");
+    if (open.length === 0) {
+        return channels[0];
+    }
+    return open.reduce((least, channel) =>
+        channel.bufferedAmount < least.bufferedAmount ? channel : least
+    );
+}
+
+/**
+ * Resolves when the send buffer of any of the channels drains to
+ * LOW_WATER_MARK or any of them closes, whichever comes first.
+ */
+function waitForBufferedAmountLow(channels: RTCDataChannel[]) {
+    return new Promise<void>(resolve => {
+        const done = () => {
+            channels.forEach(channel => {
+                channel.removeEventListener("bufferedamountlow", done);
+                channel.removeEventListener("close", done);
+            });
+            resolve();
+        };
+        channels.forEach(channel => {
+            channel.addEventListener("bufferedamountlow", done);
+            channel.addEventListener("close", done);
+        });
+    });
 }

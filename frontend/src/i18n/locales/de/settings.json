@@ -9,6 +9,8 @@
     "network": {
         "title": "Netzwerk",
         "lanDiscovery": "Geräte im Netzwerk finden",
-        "lanDiscoveryHint": "Dein Gerät erscheint dann bei anderen Geräten im selben Netzwerk und zeigt sie dir an."
+        "lanDiscoveryHint": "Dein Gerät erscheint dann bei anderen Geräten im selben Netzwerk und zeigt sie dir an.",
+        "parallelTransfers": "Über mehrere Verbindungen senden",
+        "parallelTransfersHint": "Teilt jede gesendete Datei auf mehrere Verbindungen auf. Im WLAN geht das oft schneller, braucht aber mehr Rechenleistung."
     }
 }

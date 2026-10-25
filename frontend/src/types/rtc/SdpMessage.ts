@@ -6,11 +6,14 @@ export class SdpMessage implements ITypedMessage {
     public msg: {
         remoteToken: string;
         description: RTCSessionDescription;
+        /** Peer connection between the two clients. Peers without lanes leave it out. */
+        lane?: number;
     };
 
     public constructor(msg: {
         remoteToken: string;
         description: RTCSessionDescription;
+        lane?: number;
     }) {
         this.msg = msg;
     }
