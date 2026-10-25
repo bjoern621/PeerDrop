@@ -152,12 +152,12 @@ public class AccountRepositoryTest
     {
         var id = await _accountRepository.SaveAsync(new Account("testuser", "testpassword"));
 
-        var updated = await _accountRepository.SetChosenClientTokenAsync(id, "kuras");
+        var updated = await _accountRepository.SetChosenClientTokenAsync(id, "c0de9");
 
         Assert.Multiple(async () =>
         {
             Assert.That(updated, Is.EqualTo(1));
-            Assert.That(await _accountRepository.GetChosenClientTokenAsync(id), Is.EqualTo("kuras"));
+            Assert.That(await _accountRepository.GetChosenClientTokenAsync(id), Is.EqualTo("c0de9"));
         });
     }
 
@@ -168,10 +168,10 @@ public class AccountRepositoryTest
     }
 
     [Test]
-    public async Task SetChosenClientTokenAsync_Outside_Proquint_Letters_Throws_PostgresException()
+    public async Task SetChosenClientTokenAsync_Outside_Letters_And_Digits_Throws_PostgresException()
     {
         var id = await _accountRepository.SaveAsync(new Account("testuser", "testpassword"));
 
-        Assert.ThrowsAsync<PostgresException>(() => _accountRepository.SetChosenClientTokenAsync(id, "kurae"));
+        Assert.ThrowsAsync<PostgresException>(() => _accountRepository.SetChosenClientTokenAsync(id, "kur-s"));
     }
 }

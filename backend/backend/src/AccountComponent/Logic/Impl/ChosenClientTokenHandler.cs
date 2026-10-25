@@ -31,7 +31,7 @@ public class ChosenClientTokenHandler(IAccountRepository repo, IWebSocketHandler
         var token = dto.Token.ToLowerInvariant();
         if (!ClientTokenFormat.IsValidChosenToken(token))
             return Results.BadRequest(
-                $"A token takes {ClientTokenFormat.Length} letters from \"{ClientTokenFormat.ProquintConsonants}{ClientTokenFormat.ProquintVowels}\".");
+                $"A token takes {ClientTokenFormat.Length} characters from a-z and 0-9.");
 
         var updated = await repo.SetChosenClientTokenAsync(accountId, token);
         if (updated == 0)

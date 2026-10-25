@@ -55,18 +55,20 @@ public class ChosenClientTokenHandlerTest
         _repo.Verify(r => r.SetChosenClientTokenAsync(AccountId, "kuras"), Times.Once);
     }
 
-    [Test]
-    public async Task SetChosenClientToken_LettersInAnyOrder_IsStored()
+    [TestCase("aaaaa")]
+    [TestCase("c0de9")]
+    [TestCase("12345")]
+    public async Task SetChosenClientToken_LettersAndDigits_IsStored(string token)
     {
-        var result = await _handler.HandleSetChosenClientToken(CreateRequest("aaaaa"));
+        var result = await _handler.HandleSetChosenClientToken(CreateRequest(token));
 
         Assert.That(result, Is.InstanceOf<Ok<ChosenClientTokenResponse>>());
     }
 
-    [TestCase("kurae")]
+    [TestCase("kur-s")]
     [TestCase("kura")]
     [TestCase("kurass")]
-    [TestCase("kur4s")]
+    [TestCase("kuräs")]
     public async Task SetChosenClientToken_OutsideFormat_ReturnsBadRequest(string token)
     {
         var result = await _handler.HandleSetChosenClientToken(CreateRequest(token));

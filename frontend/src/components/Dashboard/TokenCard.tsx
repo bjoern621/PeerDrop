@@ -16,7 +16,7 @@ import { AuthService } from "../../services/AuthService";
 import { normalizeClientToken } from "../../services/WebSocketService";
 import {
     CLIENT_TOKEN_LENGTH,
-    CLIENT_TOKEN_LETTERS,
+    CLIENT_TOKEN_CHARACTERS,
 } from "../../util/Constants";
 import IconButton from "../IconButton/IconButton";
 import CardHeading from "./CardHeading/CardHeading";
@@ -124,10 +124,10 @@ export default function TokenCard() {
     );
 }
 
-/** Keeps the token letters of the input, lowercased, up to the token length. */
+/** Keeps the token characters of the input, lowercased, up to the token length. */
 function chosenTokenFromInput(value: string): string {
     return [...normalizeClientToken(value)]
-        .filter(letter => CLIENT_TOKEN_LETTERS.includes(letter))
+        .filter(character => CLIENT_TOKEN_CHARACTERS.includes(character))
         .join("")
         .slice(0, CLIENT_TOKEN_LENGTH);
 }
@@ -138,7 +138,7 @@ function shareText(
     token: string | undefined
 ): string {
     if (editing) {
-        return `Wähle ${CLIENT_TOKEN_LENGTH} Buchstaben aus BDFGHJKLMNPRSTVZ und AIOU.`;
+        return `Wähle ${CLIENT_TOKEN_LENGTH} Zeichen aus A bis Z und 0 bis 9.`;
     }
     if (inUseToken && inUseToken !== token) {
         return `${inUseToken.toUpperCase()} ist gerade belegt. Lade die Seite später neu, um den Token zu bekommen.`;
