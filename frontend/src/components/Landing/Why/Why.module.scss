@@ -77,7 +77,7 @@
     }
 
     h3 {
-        font-size: clamp(var(--font-size-m), 6vw, var(--font-size-l));
+        font-size: var(--font-size-fluid-l);
         line-height: var(--line-height-l);
         font-weight: var(--font-weight-medium);
         text-align: center;

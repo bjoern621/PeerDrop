@@ -58,9 +58,14 @@
     --line-height-3xl: 1.167; // 56px / 48px = 1.167
     --line-height-4xl: 1.143; // 64px / 56px = 1.143
 
-    @media (width <= 450px) {
-        --font-size-2xl: var(--font-size-l);
-    }
+    // Full size from a 400px wide window, shrinking with the window below it.
+    --font-size-fluid-m: clamp(var(--font-size-s), 5vw, var(--font-size-m));
+    --font-size-fluid-l: clamp(var(--font-size-m), 6vw, var(--font-size-l));
+    --font-size-fluid-2xl: clamp(
+        var(--font-size-l),
+        10vw,
+        var(--font-size-2xl)
+    );
 }
 
 @mixin weights {
