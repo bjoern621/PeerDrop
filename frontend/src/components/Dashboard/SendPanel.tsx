@@ -1,4 +1,4 @@
-import { RefObject } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import css from "./SendPanel.module.scss";
 import {
@@ -51,6 +51,8 @@ export default function SendPanel(props: SendPanelProps) {
             : props.hint.kind === "err"
               ? css.err
               : css.info;
+    const hintRef = useRef<HTMLDivElement>(null);
+    usePublishHeight(hintRef, "--send-hint-height");
 
     return (
         <section className={css.panel} aria-labelledby="send-heading">
@@ -72,7 +74,7 @@ export default function SendPanel(props: SendPanelProps) {
                 </div>
             </div>
 
-            <div role="status" className={`${css.hint} ${tone}`}>
+            <div ref={hintRef} role="status" className={`${css.hint} ${tone}`}>
                 <HintIcon aria-hidden />
                 <span>{props.hint.text}</span>
             </div>
@@ -99,4 +101,24 @@ export default function SendPanel(props: SendPanelProps) {
             </div>
         </section>
     );
+}
+
+/** Keeps the height of `ref`, in px, in the custom property `name` on the root element. */
+function usePublishHeight(ref: RefObject<HTMLElement | null>, name: string) {
+    useEffect(() => {
+        const element = ref.current;
+        if (!element) {
+            return;
+        }
+
+        const root = document.documentElement;
+        const observer = new ResizeObserver(() =>
+            root.style.setProperty(name, `${element.offsetHeight}px`)
+        );
+        observer.observe(element);
+        return () => {
+            observer.disconnect();
+            root.style.removeProperty(name);
+        };
+    }, [ref, name]);
 }

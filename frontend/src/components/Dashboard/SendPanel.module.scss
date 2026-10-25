@@ -86,6 +86,11 @@
         box-shadow: 0 4px 10px 2px var(--shadow);
     }
 
+    // Lets the page scroll its footer clear of the hint above it.
+    :global(.layout-scroll):has(.hint) {
+        padding-bottom: calc(var(--send-hint-height) + 2 * var(--space-16));
+    }
+
     .info {
         --hint-tint: var(--info-20);
     }
