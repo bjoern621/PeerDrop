@@ -73,15 +73,17 @@ export default function ReadView({
                 <label htmlFor="read-text" className={css.label}>
                     {title}
                 </label>
-                <textarea
-                    id="read-text"
-                    className={css.text}
-                    value={entry.text}
-                    readOnly
-                    autoFocus
-                    spellCheck={false}
-                    wrap="off"
-                />
+                <div className={css.scroller}>
+                    <textarea
+                        id="read-text"
+                        className={css.text}
+                        value={entry.text}
+                        readOnly
+                        autoFocus
+                        spellCheck={false}
+                        wrap="off"
+                    />
+                </div>
             </div>
         </div>
     );

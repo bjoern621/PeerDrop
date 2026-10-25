@@ -68,6 +68,10 @@
     flex: 1 1 0;
     height: auto;
     min-height: 0;
+
+    // Browsers ignore right padding at the end of a horizontal scroll.
+    // A scrolling wrapper as in the read view would break PageUp and PageDown.
+    padding-bottom: var(--space-8);
     overflow: auto;
 }
 
