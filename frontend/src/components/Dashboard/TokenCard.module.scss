@@ -33,3 +33,19 @@
     line-height: var(--line-height-xs);
     font-weight: var(--font-weight-regular);
 }
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+}
+
+.tokenInput {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    background-color: transparent;
+    color: var(--text);
+    text-transform: uppercase;
+}

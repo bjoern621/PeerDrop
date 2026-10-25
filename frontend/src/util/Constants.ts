@@ -2,3 +2,6 @@ export const HEARTBEAT_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO T
 
 /** Number of characters in a client token. */
 export const CLIENT_TOKEN_LENGTH = 5;
+
+/** Proquint consonants and vowels, the letters of a chosen token in any order. */
+export const CLIENT_TOKEN_LETTERS = "bdfghjklmnprstvzaiou"; // Linked to the backend ClientTokenFormat

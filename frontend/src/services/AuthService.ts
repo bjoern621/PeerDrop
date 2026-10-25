@@ -2,6 +2,7 @@ import { toast } from "react-toastify/unstyled";
 import errorAsValue from "../util/ErrorAsValue";
 import { UserLoginDto } from "../util/dtos/UserLoginDto";
 import { StatusResponse } from "../util/dtos/StatusResponse";
+import { ChosenClientTokenResponse } from "../util/dtos/ChosenClientTokenResponse";
 import { assert } from "../util/Assert";
 import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
 
@@ -152,5 +153,61 @@ export class AuthService {
         );
 
         return statusData.status;
+    }
+
+    /**
+     * Stores the token that the signed-in account receives on every connect.
+     * Returns null and shows a toast if the server could not store it.
+     */
+    public static async setChosenClientToken(
+        token: string
+    ): Promise<ChosenClientTokenResponse | null> {
+        const [response, err] = await errorAsValue(
+            fetch(`${getRuntimeEnvVars().backendUrl}/me/client-token`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ token }),
+            })
+        );
+
+        if (err) {
+            toast.error(
+                "Der Token konnte nicht geändert werden. Bitte versuche es später erneut."
+            );
+            console.error("Fehler beim Ändern des Tokens:", err);
+            return null;
+        }
+
+        if (!response.ok) {
+            toast.error(
+                "Der Token konnte nicht geändert werden. Bitte versuche es später erneut."
+            );
+            console.error(
+                "Fehler beim Ändern des Tokens:",
+                response.statusText
+            );
+            return null;
+        }
+
+        const [responseBody, parseError] = await errorAsValue(response.json());
+
+        if (parseError) {
+            toast.error(
+                "Der Token konnte nicht geändert werden. Bitte versuche es später erneut."
+            );
+            console.error("Fehler beim Parsen der Antwort:", parseError);
+            return null;
+        }
+
+        const tokenData = responseBody as ChosenClientTokenResponse;
+        assert(
+            tokenData && typeof tokenData.inUse === "boolean",
+            "Invalid chosen client token response"
+        );
+
+        return tokenData;
     }
 }
