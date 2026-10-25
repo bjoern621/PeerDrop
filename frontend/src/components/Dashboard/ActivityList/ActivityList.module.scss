@@ -1,5 +1,5 @@
-$columns: minmax(200px, 1fr) 300px 100px 140px;
-$min-width: 740px;
+$columns: minmax(200px, 1fr) minmax(240px, 300px) 100px 140px;
+$min-width: 680px;
 
 .table {
     position: relative;
