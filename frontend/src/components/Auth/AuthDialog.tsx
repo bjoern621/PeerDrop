@@ -7,6 +7,7 @@ import LoginForm from "./LoginForm";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
 import { useAuth } from "../../context/AuthContext";
 import { IconX as ExitIcon } from "@tabler/icons-react";
+import { useDialogOutsidePress } from "../../hooks/useDialogOutsidePress";
 import Button from "../Button/Button";
 
 type AuthForm = "login" | "register";
@@ -110,12 +111,7 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
         ref.current.close();
     };
 
-    const handleBackdropClick = (event: React.MouseEvent) => {
-        // Clicks on the backdrop target the dialog element itself.
-        if (event.target === ref.current) {
-            closeDialog();
-        }
-    };
+    useDialogOutsidePress(ref, closeDialog);
 
     const resetForm = () => {
         setMode(initialFormMode);
@@ -125,12 +121,7 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
     };
 
     return (
-        <dialog
-            ref={ref}
-            className={css.dialog}
-            onClose={() => onClose?.()}
-            onClick={handleBackdropClick}
-        >
+        <dialog ref={ref} className={css.dialog} onClose={() => onClose?.()}>
             <Button
                 className={css.closeButton}
                 onClick={() => closeDialog()}

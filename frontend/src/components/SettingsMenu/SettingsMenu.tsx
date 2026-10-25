@@ -11,6 +11,7 @@ import { useThemeContext } from "../../context/ThemeContext";
 import useSettings from "../../hooks/useSettings";
 import { updateSettings } from "../../services/SettingsStore";
 import { useSettingsDialog } from "../../context/SettingsDialogContext";
+import { useDialogOutsidePress } from "../../hooks/useDialogOutsidePress";
 
 const THEME_OPTIONS = ["light", "dark", "system"] as const;
 
@@ -47,12 +48,7 @@ export default function SettingsMenu({
         }
     }, [isOpen]);
 
-    const handleBackdropClick = (event: React.MouseEvent) => {
-        // Clicks on the backdrop target the dialog element itself.
-        if (event.target === dialogRef.current) {
-            closeSettings();
-        }
-    };
+    useDialogOutsidePress(dialogRef, closeSettings);
 
     return (
         <>
@@ -87,7 +83,6 @@ export default function SettingsMenu({
                 className={css.dialog}
                 aria-label={t("title")}
                 onClose={() => closeSettings()}
-                onClick={handleBackdropClick}
             >
                 <div className={css.panelContent}>
                     <div className={css.panelHeader}>
