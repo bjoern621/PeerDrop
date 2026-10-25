@@ -42,9 +42,8 @@
         display: none;
     }
 
-    // Matches the close button of the auth dialog.
+    // Colours of the auth dialog's close button.
     &.open {
-        border-radius: var(--space-4);
         color: var(--error-text);
         background-color: var(--error-20);
 
