@@ -34,6 +34,7 @@ Bei Pull Requests mit Frontend-Änderungen sollten mindestens folgende Punkte ü
 -   **Code-Qualität:**
     -   Gibt es keine console.log() oder **Debug**-Code im finalen PR?
     -   Werden (ausschließlich) Variablen genutzt?
+    -   Steht jeder neue Text in den Sprachdateien unter `frontend/src/i18n/locales/`, in jeder Sprache?
     -   Sind neue **Dependencies** absolut notwendig?
     -   Wurden Änderungen an **gemeinsam genutzten Dateien** (z.B. `index.scss`, `colors.scss`, `Tooltip.tsx`) mit besonderer Sorgfalt geprüft, da diese Auswirkungen auf die gesamte Anwendung haben können?
 -   **Responsiveness:**

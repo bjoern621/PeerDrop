@@ -4,6 +4,7 @@ import css from "./Footer.module.scss";
 import { IconBrandGithub as GitHubIcon } from "@tabler/icons-react";
 import Anchor from "../Anchor/Anchor";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
+import LanguageToggle from "../LanguageToggle/LanguageToggle";
 
 type FooterProps = {
     // Set by pages whose content needs the vertical space.
@@ -31,7 +32,8 @@ export default function Footer({ compact = false }: FooterProps) {
                 >
                     GitHub
                 </Anchor>
-                <span className={css.compactTheme}>
+                <span className={css.compactSettings}>
+                    <LanguageToggle />
                     <ThemeToggle />
                 </span>
             </footer>
@@ -70,6 +72,9 @@ export default function Footer({ compact = false }: FooterProps) {
                 <div className={css.heading}>{t("footer.information")}</div>
                 <nav>
                     <ul>
+                        <li>
+                            <LanguageToggle />
+                        </li>
                         <li>
                             <ThemeToggle />
                         </li>

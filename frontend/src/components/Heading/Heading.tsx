@@ -5,6 +5,7 @@ import css from "./Heading.module.scss";
 import StableText from "../StableText/StableText";
 import AuthButton from "../Auth/AuthButton";
 import SettingsMenu from "../SettingsMenu/SettingsMenu";
+import { LanguageFlagButton } from "../LanguageToggle/LanguageToggle";
 
 export default function Heading() {
     const { t } = useTranslation();
@@ -35,6 +36,7 @@ export default function Heading() {
             </div>
 
             <div className={css.authSection}>
+                <LanguageFlagButton />
                 <SettingsMenu />
                 <AuthButton />
             </div>

@@ -88,3 +88,17 @@ Beim Erstellen der Datenbank wird das aktuelle Schema aus `<base_dir>/database/d
 
 Jetzt ist die Entwicklungsumgebung komplett eingerichtet.
 
+## Übersetzungen
+
+Die Oberfläche übersetzt ihre Texte mit [i18next](https://www.i18next.com/) und [react-i18next](https://react.i18next.com/).
+Jeder Text auf dem Bildschirm steht in einer Sprachdatei unter `frontend/src/i18n/locales/<sprache>/`, je eine Datei pro Bereich wie `common`, `landing` oder `dashboard`.
+Komponenten holen ihre Texte mit `useTranslation()`.
+Code außerhalb von React ruft `i18n.t()` aus `frontend/src/i18n/i18n.ts` auf.
+Die deutschen Dateien legen die Schlüssel fest: `frontend/src/i18n/resources.ts` lässt den Typecheck scheitern, sobald einer anderen Sprache ein Schlüssel fehlt.
+
+Eine neue Sprache kommt so hinzu:
+
+1. Kopiere `locales/de/` nach `locales/<code>/` und übersetze die Texte.
+2. Trage die Sprache in `LANGUAGES` in `frontend/src/i18n/languages.ts` ein, mit ihrem Namen in der eigenen Sprache.
+3. Binde ihre Dateien in `frontend/src/i18n/resources.ts` ein.
+4. Ordne ihr in `frontend/src/components/LanguageToggle/LanguageToggle.tsx` eine Flagge aus `country-flag-icons` zu.
