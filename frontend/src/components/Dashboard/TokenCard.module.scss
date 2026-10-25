@@ -28,6 +28,7 @@
 .shareText {
     flex: 1;
     min-width: 0;
+    max-width: none;
     color: var(--text-muted);
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
