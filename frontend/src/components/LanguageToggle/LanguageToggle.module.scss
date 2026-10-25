@@ -1,6 +1,9 @@
+// A flag leaves its black areas unfilled, so a fill inherited from a button
+// would recolour them.
 .flag {
     flex-shrink: 0;
     border-radius: 2px;
+    fill: initial;
 }
 
 .flagButton {
