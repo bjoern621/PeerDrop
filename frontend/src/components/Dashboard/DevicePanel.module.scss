@@ -12,6 +12,7 @@
 .toggleCard {
     @include card;
 
+    flex: 1 1 auto;
     position: relative;
     anchor-name: --devices-toggle;
     background-color: var(--primary-5);
@@ -21,7 +22,6 @@
     }
 }
 
-// The button covers the whole card, its icon included.
 .toggle {
     flex: 1;
     display: flex;
@@ -33,41 +33,34 @@
     color: inherit;
     font: inherit;
     cursor: pointer;
+}
 
-    &::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-    }
+// The button covers the whole toggle card, its icon included.
+.toggleCard .toggle::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
 }
 
 .chevron {
     flex: none;
     width: 20px;
     height: 20px;
-    transition: rotate 0.15s ease-out;
 }
 
 .chevronOpen {
     rotate: 180deg;
 }
 
-// Opens below the toggle card, over the list, and ends above the bottom of the dashboard.
+// Covers the toggle card and runs over the list down to the bottom of the dashboard.
 .floating {
     position: absolute;
     z-index: 10;
     position-anchor: --devices-toggle;
-    inset: calc(anchor(bottom) + var(--space-8)) anchor(right)
-        $dashboard-padding anchor(left);
-    height: fit-content;
+    inset: anchor(top) anchor(right) $dashboard-padding anchor(left);
     background:
         linear-gradient(var(--primary-5), var(--primary-5)), var(--background);
-
-    .scrollFrame,
-    .scroll {
-        flex-basis: auto;
-    }
 }
 
 .closed {

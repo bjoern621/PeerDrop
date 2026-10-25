@@ -44,21 +44,38 @@ export default function DevicePanel({
     const pending = isStatusKnown ? "" : css.pending;
     const scrollRef = useRef<HTMLDivElement>(null);
     const shadows = useScrollShadows(scrollRef);
-    const toggleRef = useRef<HTMLDivElement>(null);
     const panelRef = useRef<HTMLElement>(null);
+    const openButtonRef = useRef<HTMLButtonElement>(null);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
     const [open, setOpen] = useState(false);
-    const close = () => setOpen(false);
+    const isOpen = floating && open;
+    // A close by keyboard or by a pick inside the panel hands focus back to the card below it.
+    const returnFocus = useRef(false);
 
-    useDismiss(floating && open, close, toggleRef, panelRef);
+    const close = (focusCard: boolean) => {
+        returnFocus.current = focusCard;
+        setOpen(false);
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            closeButtonRef.current?.focus();
+        } else if (returnFocus.current) {
+            returnFocus.current = false;
+            openButtonRef.current?.focus();
+        }
+    }, [isOpen]);
+
+    useDismiss(isOpen, close, panelRef);
 
     const pickToken = (token: string) => {
         onPickToken(token);
-        close();
+        close(true);
     };
 
     const pickDevice = (device: Device) => {
         onPickDevice(device);
-        close();
+        close(true);
     };
 
     const panelState = floating
@@ -68,35 +85,31 @@ export default function DevicePanel({
     return (
         <>
             {floating && (
-                <div ref={toggleRef} className={css.toggleCard}>
-                    <CardHeading
+                <div className={css.toggleCard} inert={isOpen}>
+                    <DevicesToggleHeading
                         id="devices-heading"
-                        icon={DevicesIcon}
-                        tone="primary"
-                    >
-                        <button
-                            type="button"
-                            className={css.toggle}
-                            aria-expanded={open}
-                            aria-controls="devices-panel"
-                            onClick={() => setOpen(current => !current)}
-                        >
-                            {t("devices.title")}
-                            <ChevronIcon
-                                className={`${css.chevron} ${open ? css.chevronOpen : ""}`}
-                                aria-hidden
-                            />
-                        </button>
-                    </CardHeading>
+                        open={false}
+                        buttonRef={openButtonRef}
+                        onToggle={() => setOpen(true)}
+                    />
                 </div>
             )}
             <aside
                 ref={panelRef}
                 id="devices-panel"
                 className={`${css.panel} ${panelState}`}
-                aria-labelledby="devices-heading"
+                aria-labelledby={
+                    floating ? "devices-panel-heading" : "devices-heading"
+                }
             >
-                {!floating && (
+                {floating ? (
+                    <DevicesToggleHeading
+                        id="devices-panel-heading"
+                        open
+                        buttonRef={closeButtonRef}
+                        onToggle={() => close(true)}
+                    />
+                ) : (
                     <CardHeading
                         id="devices-heading"
                         icon={DevicesIcon}
@@ -189,10 +202,47 @@ export default function DevicePanel({
     );
 }
 
-/** Calls `close` on Escape and on a press outside the given elements while `open`. */
+/** Card heading as a button that opens or closes the floating panel. */
+function DevicesToggleHeading({
+    id,
+    open,
+    buttonRef,
+    onToggle,
+}: {
+    id: string;
+    open: boolean;
+    buttonRef: RefObject<HTMLButtonElement | null>;
+    onToggle: () => void;
+}) {
+    const { t } = useTranslation("dashboard");
+
+    return (
+        <CardHeading id={id} icon={DevicesIcon} tone="primary">
+            <button
+                ref={buttonRef}
+                type="button"
+                className={css.toggle}
+                aria-expanded={open}
+                aria-controls="devices-panel"
+                onClick={onToggle}
+            >
+                {t("devices.title")}
+                <ChevronIcon
+                    className={`${css.chevron} ${open ? css.chevronOpen : ""}`}
+                    aria-hidden
+                />
+            </button>
+        </CardHeading>
+    );
+}
+
+/**
+ * Calls `close` while `open` on Escape, asking for focus back, and on a press
+ * outside the given elements, leaving focus where the press put it.
+ */
 function useDismiss(
     open: boolean,
-    close: () => void,
+    close: (returnFocus: boolean) => void,
     ...insideRefs: RefObject<HTMLElement | null>[]
 ) {
     const latest = useRef({ close, insideRefs });
@@ -212,12 +262,12 @@ function useDismiss(
                 ref.current?.contains(target)
             );
             if (!inside) {
-                latest.current.close();
+                latest.current.close(false);
             }
         };
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
-                latest.current.close();
+                latest.current.close(true);
             }
         };
 
