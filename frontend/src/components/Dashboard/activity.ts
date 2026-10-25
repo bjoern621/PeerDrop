@@ -1,3 +1,4 @@
+import { TFunction } from "i18next";
 import { OfferEntry, TextEntry } from "../../services/MessagingService";
 import { TransferSnapshot } from "../../services/TransferTracker";
 import {
@@ -24,13 +25,15 @@ export type ActivityItem =
 
 /**
  * Merges texts, offers and transfers into one list in the given order. Ties
- * fall back to the newest first.
+ * fall back to the newest first. Names compare by the rules of `locale`.
  */
 export function buildActivity(
     texts: TextEntry[],
     offers: OfferEntry[],
     transfers: TransferSnapshot[],
-    sort: Sort
+    sort: Sort,
+    t: TFunction<"dashboard">,
+    locale: string
 ): ActivityItem[] {
     const items: ActivityItem[] = [
         ...texts.map(entry => ({
@@ -54,7 +57,7 @@ export function buildActivity(
     const compare = (a: ActivityItem, b: ActivityItem): number => {
         switch (sort.key) {
             case "name":
-                return nameOf(a).localeCompare(nameOf(b), "de");
+                return nameOf(a, t).localeCompare(nameOf(b, t), locale);
             case "size":
                 return bytesOf(a) - bytesOf(b);
             case "progress":
@@ -74,19 +77,22 @@ export function itemTransfers(item: ActivityItem): TransferSnapshot[] {
 }
 
 /** Display name of an offer: its folder, its single file or a file count. */
-export function offerName(entry: OfferEntry): string {
+export function offerName(
+    entry: OfferEntry,
+    t: TFunction<"dashboard">
+): string {
     const { folderName, fileName, count } = entry.summary;
     if (folderName) return folderName;
     if (count === 1 && fileName) return fileName;
-    return `${count} Dateien`;
+    return t("files", { count });
 }
 
-function nameOf(item: ActivityItem): string {
+function nameOf(item: ActivityItem, t: TFunction<"dashboard">): string {
     switch (item.kind) {
         case "text":
             return item.entry.text;
         case "offer":
-            return offerName(item.entry);
+            return offerName(item.entry, t);
         case "file":
             return item.transfer.name;
         case "folder":

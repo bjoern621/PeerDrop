@@ -1,4 +1,5 @@
 import { RefObject } from "react";
+import { useTranslation } from "react-i18next";
 import css from "./SendPanel.module.scss";
 import {
     IconPlugConnected as ConnectIcon,
@@ -42,6 +43,7 @@ const HINT_ICONS = {
 };
 
 export default function SendPanel(props: SendPanelProps) {
+    const { t } = useTranslation("dashboard");
     const HintIcon = HINT_ICONS[props.hint.kind];
     const tone =
         props.hint.kind === "warn"
@@ -58,10 +60,10 @@ export default function SendPanel(props: SendPanelProps) {
                     icon={ConnectIcon}
                     tone="primary"
                 >
-                    Senden
+                    {t("send.title")}
                 </CardHeading>
                 <div className={css.recipient}>
-                    <span>An</span>
+                    <span>{t("send.to")}</span>
                     <RecipientInput
                         value={props.recipient}
                         onChange={props.onRecipientChange}
@@ -77,7 +79,7 @@ export default function SendPanel(props: SendPanelProps) {
 
             <div className={css.parts}>
                 <div className={css.part}>
-                    <h3 className={css.partHeading}>Text</h3>
+                    <h3 className={css.partHeading}>{t("send.text")}</h3>
                     <TextComposer
                         draft={props.draft}
                         onDraftChange={props.onDraftChange}
@@ -88,7 +90,7 @@ export default function SendPanel(props: SendPanelProps) {
                     />
                 </div>
                 <div className={css.part}>
-                    <h3 className={css.partHeading}>Dateien und Ordner</h3>
+                    <h3 className={css.partHeading}>{t("send.files")}</h3>
                     <DropZone
                         recipient={props.filesRecipient}
                         onSelection={props.onSelection}

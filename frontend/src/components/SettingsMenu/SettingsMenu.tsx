@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import css from "./SettingsMenu.module.scss";
 import { IconSettings as SettingsIcon } from "@tabler/icons-react";
 import Button from "../Button/Button";
@@ -7,11 +8,7 @@ import useSettings from "../../hooks/useSettings";
 import { updateSettings } from "../../services/SettingsStore";
 import { useSettingsDialog } from "../../context/SettingsDialogContext";
 
-const THEME_OPTIONS = [
-    { value: "light", label: "Hell" },
-    { value: "dark", label: "Dunkel" },
-    { value: "system", label: "System" },
-] as const;
+const THEME_OPTIONS = ["light", "dark", "system"] as const;
 
 /**
  * Gear button in the header that opens a settings dialog. The dialog is
@@ -20,6 +17,7 @@ const THEME_OPTIONS = [
  * context, so other components can open the dialog as well.
  */
 export default function SettingsMenu() {
+    const { t } = useTranslation(["settings", "common"]);
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const { isOpen, openSettings, closeSettings } = useSettingsDialog();
     const { themePreference, setThemePreference } = useThemeContext();
@@ -50,7 +48,7 @@ export default function SettingsMenu() {
                 className={css.gearButton}
                 color_scheme={"neutral"}
                 variant={"outline"}
-                aria-label="Einstellungen"
+                aria-label={t("title")}
                 aria-haspopup="dialog"
                 aria-expanded={isOpen}
                 disabled={isOpen}
@@ -62,38 +60,34 @@ export default function SettingsMenu() {
             <dialog
                 ref={dialogRef}
                 className={css.dialog}
-                aria-label="Einstellungen"
+                aria-label={t("title")}
                 onClose={() => closeSettings()}
                 onClick={handleBackdropClick}
             >
                 <div className={css.panelContent}>
-                    <div className={css.panelTitle}>Einstellungen</div>
+                    <div className={css.panelTitle}>{t("title")}</div>
 
                     <div className={css.section}>
-                        <div className={css.sectionTitle}>Design</div>
+                        <div className={css.sectionTitle}>{t("theme")}</div>
                         <div
                             className={css.themeOptions}
                             role="radiogroup"
-                            aria-label="Design"
+                            aria-label={t("theme")}
                         >
                             {THEME_OPTIONS.map(option => (
                                 <button
-                                    key={option.value}
+                                    key={option}
                                     type="button"
                                     role="radio"
-                                    aria-checked={
-                                        themePreference === option.value
-                                    }
+                                    aria-checked={themePreference === option}
                                     className={
-                                        themePreference === option.value
+                                        themePreference === option
                                             ? `${css.themeOption} ${css.active}`
                                             : css.themeOption
                                     }
-                                    onClick={() =>
-                                        setThemePreference(option.value)
-                                    }
+                                    onClick={() => setThemePreference(option)}
                                 >
-                                    {option.label}
+                                    {t(`common:theme.${option}`)}
                                 </button>
                             ))}
                         </div>
@@ -101,11 +95,11 @@ export default function SettingsMenu() {
 
                     <div className={css.section}>
                         <div className={css.sectionTitle}>
-                            Empfangene Dateien
+                            {t("receivedFiles.title")}
                         </div>
                         <div className={css.toggleRow}>
                             <label htmlFor={autoSaveId}>
-                                Automatisch speichern
+                                {t("receivedFiles.autoSave")}
                             </label>
                             <input
                                 id={autoSaveId}
@@ -120,16 +114,17 @@ export default function SettingsMenu() {
                             />
                         </div>
                         <p className={css.hint}>
-                            Wenn deaktiviert, wird eine empfangene Datei erst
-                            nach einem Klick auf SPEICHERN gespeichert.
+                            {t("receivedFiles.autoSaveHint")}
                         </p>
                     </div>
 
                     <div className={css.section}>
-                        <div className={css.sectionTitle}>Netzwerk</div>
+                        <div className={css.sectionTitle}>
+                            {t("network.title")}
+                        </div>
                         <div className={css.toggleRow}>
                             <label htmlFor={lanDiscoveryId}>
-                                Geräte im Netzwerk finden
+                                {t("network.lanDiscovery")}
                             </label>
                             <input
                                 id={lanDiscoveryId}
@@ -144,8 +139,7 @@ export default function SettingsMenu() {
                             />
                         </div>
                         <p className={css.hint}>
-                            Dein Gerät erscheint dann bei anderen Geräten im
-                            selben Netzwerk und zeigt sie dir an.
+                            {t("network.lanDiscoveryHint")}
                         </p>
                     </div>
                 </div>

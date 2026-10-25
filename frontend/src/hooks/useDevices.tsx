@@ -6,6 +6,7 @@ import {
     useState,
 } from "react";
 import { toast } from "react-toastify/unstyled";
+import i18n from "../i18n/i18n";
 import { Device } from "../types/device/Device";
 import { DeviceResponse } from "../util/dtos/DeviceResponse";
 import { DeviceStatus } from "../types/device/DeviceStatus";
@@ -41,15 +42,11 @@ const fetchDevices = async (setDevices: Dispatch<SetStateAction<Device[]>>) => {
     );
 
     if (err) {
-        toast.error(
-            "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut."
-        );
+        toast.error(i18n.t("dashboard:devices.toast.fetchFailed"));
         console.error("Error fetching devices:", err);
         return;
     } else if (!response.ok) {
-        toast.error(
-            "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut."
-        );
+        toast.error(i18n.t("dashboard:devices.toast.fetchFailed"));
         console.error("Error fetching devices:", response.statusText);
         return;
     }
@@ -57,9 +54,7 @@ const fetchDevices = async (setDevices: Dispatch<SetStateAction<Device[]>>) => {
     const [responseBody, parseError] = await errorAsValue(response.json());
 
     if (parseError) {
-        toast.error(
-            "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut."
-        );
+        toast.error(i18n.t("dashboard:devices.toast.fetchFailed"));
         console.error("Error parsing device names:", parseError);
         return;
     }
@@ -206,15 +201,11 @@ export const useDevices = () => {
         );
 
         if (err) {
-            toast.error(
-                "Fehler beim Registrieren des Geräts. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("dashboard:devices.toast.registerFailed"));
             console.error("Error registering device:", err);
             return;
         } else if (!response.ok) {
-            toast.error(
-                "Fehler beim Registrieren des Geräts. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("dashboard:devices.toast.registerFailed"));
             console.error("Error registering device:", response.statusText);
             return;
         }
@@ -238,7 +229,7 @@ export const useDevices = () => {
             return [
                 ...prevDevices,
                 {
-                    name: "Dieses Gerät",
+                    name: i18n.t("dashboard:devices.currentName"),
                     current: true,
                     status: DeviceStatus.ONLINE,
                     uuid: currentDeviceUuid,
@@ -265,15 +256,11 @@ export const useDevices = () => {
         );
 
         if (err) {
-            toast.error(
-                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("dashboard:devices.toast.deleteFailed"));
             console.error("Error deleting device:", err);
             return;
         } else if (!response.ok) {
-            toast.error(
-                "Fehler beim Löschen des Geräts. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("dashboard:devices.toast.deleteFailed"));
             console.error("Error deleting device:", response.statusText);
             return;
         }
@@ -299,15 +286,11 @@ export const useDevices = () => {
             );
 
             if (err) {
-                toast.error(
-                    "Fehler beim Umbenennen des Geräts. Bitte versuche es später erneut."
-                );
+                toast.error(i18n.t("dashboard:devices.toast.renameFailed"));
                 console.error("Error renaming device:", err);
                 return;
             } else if (!response.ok) {
-                toast.error(
-                    "Fehler beim Umbenennen des Geräts. Bitte versuche es später erneut."
-                );
+                toast.error(i18n.t("dashboard:devices.toast.renameFailed"));
                 console.error("Error renaming device:", response.statusText);
                 return;
             }

@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import css from "./Hero.module.scss";
 import { IconArrowRight as Arrow } from "@tabler/icons-react";
 import Illustration from "../../../assets/illustrations/hero_illustration.svg?react";
@@ -5,21 +6,24 @@ import Link from "../../Button/Link";
 import { TUTORIAL_ID } from "../Tutorial/Tutorial";
 
 export default function Hero() {
+    const { t } = useTranslation("landing");
+
     return (
         <section className={css.container}>
             <Illustration aria-hidden />
             <h1>
-                Sichere P2P-Dateiübertragung <br />
-                <span className="text-highlight">direkt im Browser</span>
+                <Trans
+                    t={t}
+                    i18nKey="hero.heading"
+                    components={{
+                        highlight: <span className="text-highlight" />,
+                    }}
+                />
             </h1>
-            <p className="text-muted">
-                PeerDrop ermöglicht es dir, Dateien sicher und digital souverän
-                zwischen Geräten zu teilen. Keine Server, keine Speicherung,
-                super einfach.
-            </p>
+            <p className="text-muted">{t("hero.text")}</p>
             <div className={css.actions}>
                 <Link to="/connect">
-                    Sofort loslegen
+                    {t("hero.start")}
                     <Arrow aria-hidden />
                 </Link>
                 <Link
@@ -31,7 +35,7 @@ export default function Hero() {
                         });
                     }}
                 >
-                    Wie funktioniert's ?
+                    {t("hero.howItWorks")}
                 </Link>
             </div>
         </section>

@@ -1,0 +1,64 @@
+{
+    "hero": {
+        "heading": "Sichere P2P-Dateiübertragung <br/><highlight>direkt im Browser</highlight>",
+        "text": "PeerDrop ermöglicht es dir, Dateien sicher und digital souverän zwischen Geräten zu teilen. Keine Server, keine Speicherung, super einfach.",
+        "start": "Sofort loslegen",
+        "howItWorks": "Wie funktioniert's ?"
+    },
+    "tutorial": {
+        "heading": "<highlight>So einfach</highlight> geht’s",
+        "text": "Es braucht nur drei Schritte für eine sichere Dateiübertragung",
+        "shareToken": {
+            "title": "Token teilen",
+            "text": "Die Person, die etwas empfangen soll, gibt dir ihren Token. Im selben Netzwerk siehst du ihr Gerät auch unter „Geräte“."
+        },
+        "send": {
+            "title": "Text oder Dateien senden",
+            "text": "Gib den Token ein. Danach kannst du Texte, Dateien oder Ordner übertragen."
+        },
+        "accept": {
+            "title": "Annehmen",
+            "text": "Deine erste Datei wartet auf eine Bestätigung vom Peer. Alle weiteren werden automatisch übertragen."
+        }
+    },
+    "why": {
+        "heading": "<highlight>Warum</highlight> PeerDrop?",
+        "easy": {
+            "title": "Super <noWrap>einfach</noWrap>",
+            "text": "Vergiss das umständliche Hochladen in eine Cloud und das Teilen von Links.<br/>Öffne PeerDrop im Browser, gib den 5-stelligen Token deines Partners ein und schicke los."
+        },
+        "control": {
+            "title": "Deine Daten, deine <noWrap>Kontrolle</noWrap>",
+            "text": "Wir öffnen eine verschlüsselte Peer-to-Peer Verbindung für dich, um deine Daten sicher zu übertragen. Dateien werden niemals auf einem Server zwischengespeichert und können so von niemanden sonst gelesen werden."
+        },
+        "free": {
+            "title": "Keine Anmeldung, keine Werbung, Open <noWrap>Source</noWrap>",
+            "text": "Sende eine einzelne Datei oder deine gesamte Fotosammlung. Alles ohne Registrierung und ohne nervige Werbung. <br/>PeerDrop ist vollständig Open Source."
+        },
+        "speed": {
+            "title": "Maximale <noWrap>Geschwindigkeit</noWrap>",
+            "text": "Du zahlst für eine schnelle Internetverbindung, nutz’ sie auch!<br/>Die direkte Verbindung ist der kürzeste Weg für deine Daten und macht den Austausch spürbar schneller als bei herkömmlichen Diensten."
+        }
+    },
+    "underTheHood": {
+        "heading": "Die <highlight>technischen</highlight> Details",
+        "connection": {
+            "title": "P2P Verbindungsaufbau",
+            "text": "Sobald du Dateien schickst und der Empfänger sie annimmt, startet im Hintergrund der Verbindungsaufbau: Unser Signaling-Server tauscht die Verbindungsdaten zwischen den Peers aus. Danach verbinden sich die Geräte direkt per WebRTC. Angebot und Antwort, also Offer und Answer, sowie ICE-Kandidaten werden in Sekunden verhandelt. Dabei werden alle Verbindungswege priorisiert: zuerst lokale Verbindungen, dann über das Internet. Der perfekte Pfad wird automatisch ausgewählt. Router- und Firewall-Hürden werden automatisch umgangen, ganz ohne VPN und ohne gemeinsames WLAN. Weil nichts auf Server hochgeladen wird, geht es schneller los als bei Upload-Diensten. Und im Gegensatz zu reinen LAN-Tools funktioniert PeerDrop zuverlässig auch quer durchs Internet."
+        },
+        "encryption": {
+            "title": "Ende-zu-Ende-Verschlüsselung by Design",
+            "text": "Die Ende-zu-Ende-Verschlüsselung ist fest eingebaut und funktioniert ohne zusätzliches Setup. Deine Daten laufen über DTLS-verschlüsselte WebRTC DataChannel direkt von Gerät zu Gerät, ohne Umwege über Drittserver und ohne, dass Inhalte zwischengespeichert oder entschlüsselt werden. Die Schlüssel werden ausschließlich im Browser ausgehandelt und verlassen ihn nicht, unsere Server sehen nur das Minimum, das für die Vermittlung der Verbindung nötig ist. Wir speichern weder Dateien noch Transferprotokolle; es gibt keinen Account, keine Cloud und keine Freigaben, die man später wieder entfernen müsste. Privacy ohne Aufwand automatisch und standardmäßig. Du kannst die Ende-zu-Ende-Verschlüsselung selbst nachvollziehen, wir sind <sourceLink>Open Source</sourceLink>."
+        },
+        "transfer": {
+            "title": "Optimierter Dateitransfer",
+            "text": "Hinter den Kulissen zerlegt PeerDrop Dateien in kleine Blöcke und passt den Fluss automatisch an die verfügbare Bandbreite an. So bleiben Übertragungen stabil, auch wenn das Netz schwankt, und sie sind trotzdem schnell. Ordner werden vor dem Senden automatisch komprimiert, mehrere Dateien laufen parallel in einer wartenden Pipeline. Abgebrochene Übertragungen setzt PeerDrop nahtlos fort und bestätigt am Ende die Integrität jeder Datei. Ergebnis: spürbar weniger Wartezeit als bei Upload- Download-Lösungen und keine Limits fremder Server. Du kannst den Fortschritt der Übertragung pro Datei in Echtzeit sehen."
+        },
+        "more": "Du willst noch mehr über die Technik hinter PeerDrop erfahren? Schau dir unser <insideLink>Inside PeerDrop</insideLink> an!"
+    },
+    "callToAction": {
+        "heading": "Bereit für sichere Dateiübertragung?",
+        "text": "Dann verbinde dich auf dem direktesten Weg und teile, was du willst.",
+        "start": "Jetzt loslegen"
+    }
+}

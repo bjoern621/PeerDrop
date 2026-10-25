@@ -1,5 +1,6 @@
 /** Formatting helpers shared by the rows of the transfer list. */
 
+import { TFunction } from "i18next";
 import {
     TransferDirection,
     TransferStatus,
@@ -54,20 +55,23 @@ const formatRemainingTime = (seconds: number): string => {
 };
 
 /** Speed and remaining time line shown next to a running progress bar. */
-export const getTransferInfo = (transfer: {
-    status: TransferStatus;
-    direction: TransferDirection;
-    speedBps: number | null;
-    etaSeconds: number | null;
-}): string => {
+export const getTransferInfo = (
+    transfer: {
+        status: TransferStatus;
+        direction: TransferDirection;
+        speedBps: number | null;
+        etaSeconds: number | null;
+    },
+    t: TFunction<"dashboard">
+): string => {
     if (transfer.status === "finalizing") {
         // The sender waits for the acknowledgement, the receiver stores the file.
         return transfer.direction === "up"
-            ? "Warte auf Bestätigung..."
-            : "Speichern...";
+            ? t("transfers.status.awaitingAck")
+            : t("transfers.status.storing");
     }
     if (transfer.speedBps === null || transfer.speedBps <= 0) {
-        return "Berechne...";
+        return t("transfers.status.measuring");
     }
 
     const speedText = getSpeedInHumanReadableFormat(transfer.speedBps);

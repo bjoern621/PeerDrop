@@ -1,0 +1,36 @@
+{
+    "header": {
+        "homeLink": "Zur Startseite navigieren",
+        "navigation": "Hauptnavigation",
+        "howItWorksLink": "Zur Hauptseite navigieren",
+        "howItWorks": "So funktioniert's",
+        "shareLink": "Zur Dateifreigabe navigieren",
+        "share": "Dateien teilen"
+    },
+    "footer": {
+        "version": "Version:",
+        "insidePeerDrop": "Inside PeerDrop",
+        "faq": "FAQ",
+        "furtherLinks": "Weiterführende Links",
+        "information": "Information",
+        "elsewhere": "Auch hier"
+    },
+    "theme": {
+        "toggle": "Design: {{theme}}",
+        "light": "Hell",
+        "dark": "Dunkel",
+        "system": "System",
+        "systemResolved": "System ({{scheme}})"
+    },
+    "pages": {
+        "backHome": "Zurück zur Startseite",
+        "notFound": {
+            "heading": "Seite <highlight>nicht gefunden</highlight>",
+            "text": "Die von dir gesuchte Seite existiert leider nicht. Vielleicht hast du dich vertippt oder die Seite wurde verschoben."
+        },
+        "workInProgress": {
+            "heading": "Seite <highlight>in Arbeit</highlight>",
+            "text": "Diese Seite befindet sich noch in der Entwicklung. Sie sollte bald verfügbar sein."
+        }
+    }
+}

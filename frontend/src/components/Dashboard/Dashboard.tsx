@@ -6,6 +6,7 @@ import {
     useSyncExternalStore,
 } from "react";
 import { useSearchParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import css from "./Dashboard.module.scss";
 import TokenCard from "./TokenCard";
 import DevicePanel from "./DevicePanel";
@@ -34,6 +35,7 @@ const MIN_CHECK_MS = 600;
 export default function Dashboard() {
     useDeviceHeartbeat({ status: DeviceStatus.ONLINE });
 
+    const { t } = useTranslation("dashboard");
     const messagingService = useMessagingService();
     const messaging = useMessaging();
     const transferTracker = usePeerConnectionManager().getTransferTracker();
@@ -93,15 +95,18 @@ export default function Dashboard() {
         [draft]
     );
 
-    const hint = nextStep({
-        recipient,
-        ownToken,
-        lookup,
-        blocked,
-        tooBig,
-        lock,
-        now,
-    });
+    const hint = nextStep(
+        {
+            recipient,
+            ownToken,
+            lookup,
+            blocked,
+            tooBig,
+            lock,
+            now,
+        },
+        t
+    );
 
     const pickToken = (token: string) => {
         const picked = normalizeClientToken(token);
@@ -198,7 +203,7 @@ export default function Dashboard() {
                         tone="primary"
                         className={css.transfersHeading}
                     >
-                        Übertragungen
+                        {t("transfers.title")}
                     </CardHeading>
                     <ActivityList messaging={messaging} transfers={transfers} />
                 </section>

@@ -23,7 +23,7 @@ const anchorVariants = cva(css.anchor, {
 });
 
 interface AnchorProps extends LinkProps, VariantProps<typeof anchorVariants> {
-    children: ReactNode;
+    children?: ReactNode;
     className?: string;
 }
 

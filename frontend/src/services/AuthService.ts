@@ -1,4 +1,5 @@
 import { toast } from "react-toastify/unstyled";
+import i18n from "../i18n/i18n";
 import errorAsValue from "../util/ErrorAsValue";
 import { UserLoginDto } from "../util/dtos/UserLoginDto";
 import { StatusResponse } from "../util/dtos/StatusResponse";
@@ -28,19 +29,17 @@ export class AuthService {
         );
 
         if (err) {
-            toast.error(
-                "Fehler beim Einloggen. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.loginUnreachable"));
             console.error("Fehler beim Einloggen:", err);
             return false;
         }
 
         if (!response.ok) {
-            toast.error("Ungültiger Benutzername oder Passwort.");
+            toast.error(i18n.t("auth:toast.credentialsRejected"));
             return false;
         }
 
-        toast.success("Erfolgreich eingeloggt!");
+        toast.success(i18n.t("auth:toast.loggedIn"));
         return true;
     }
 
@@ -65,24 +64,22 @@ export class AuthService {
         );
 
         if (err) {
-            toast.error(
-                "Fehler beim Registrieren. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.registerUnreachable"));
             console.error("Fehler beim Registrieren:", err);
             return false;
         }
 
         if (response.status === 409) {
-            toast.error("Benutzername bereits vergeben.");
+            toast.error(i18n.t("auth:toast.usernameTaken"));
             return false;
         }
 
         if (!response.ok) {
-            toast.error("Ungültiger Benutzername oder Passwort.");
+            toast.error(i18n.t("auth:toast.credentialsRejected"));
             return false;
         }
 
-        toast.success("Erfolgreich registriert!");
+        toast.success(i18n.t("auth:toast.registered"));
         return true;
     }
 
@@ -95,22 +92,18 @@ export class AuthService {
         );
 
         if (err) {
-            toast.error(
-                "Fehler beim Ausloggen. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.logoutFailed"));
             console.error("Fehler beim Ausloggen:", err);
             return false;
         }
 
         if (!response.ok) {
-            toast.error(
-                "Fehler beim Ausloggen. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.logoutFailed"));
             console.error("Fehler beim Ausloggen:", response.statusText);
             return false;
         }
 
-        toast.success("Erfolgreich ausgeloggt");
+        toast.success(i18n.t("auth:toast.loggedOut"));
         return true;
     }
 
@@ -123,25 +116,19 @@ export class AuthService {
         );
 
         if (err) {
-            toast.error(
-                "Fehler beim Abrufen des Login-Status. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.statusFailed"));
             return false;
         }
 
         if (!response.ok) {
-            toast.error(
-                "Fehler beim Abrufen des Login-Status. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.statusFailed"));
             return false;
         }
 
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
-            toast.error(
-                "Fehler beim Abrufen des Login-Status. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.statusFailed"));
             console.error("Fehler beim Parsen der Antwort:", parseError);
             return false;
         }
@@ -174,17 +161,13 @@ export class AuthService {
         );
 
         if (err) {
-            toast.error(
-                "Der Token konnte nicht geändert werden. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.tokenChangeFailed"));
             console.error("Fehler beim Ändern des Tokens:", err);
             return null;
         }
 
         if (!response.ok) {
-            toast.error(
-                "Der Token konnte nicht geändert werden. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.tokenChangeFailed"));
             console.error(
                 "Fehler beim Ändern des Tokens:",
                 response.statusText
@@ -195,9 +178,7 @@ export class AuthService {
         const [responseBody, parseError] = await errorAsValue(response.json());
 
         if (parseError) {
-            toast.error(
-                "Der Token konnte nicht geändert werden. Bitte versuche es später erneut."
-            );
+            toast.error(i18n.t("auth:toast.tokenChangeFailed"));
             console.error("Fehler beim Parsen der Antwort:", parseError);
             return null;
         }

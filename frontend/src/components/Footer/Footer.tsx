@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import Logo from "../Logo/Logo";
 import css from "./Footer.module.scss";
 import { IconBrandGithub as GitHubIcon } from "@tabler/icons-react";
@@ -10,17 +11,19 @@ type FooterProps = {
 };
 
 export default function Footer({ compact = false }: FooterProps) {
+    const { t } = useTranslation();
+
     if (compact) {
         return (
             <footer className={css.compactFooter}>
                 <span className={css.version}>
-                    Version: {import.meta.env.VITE_APP_VERSION}
+                    {t("footer.version")} {import.meta.env.VITE_APP_VERSION}
                 </span>
                 <Anchor to="/inside" underline="none">
-                    Inside PeerDrop
+                    {t("footer.insidePeerDrop")}
                 </Anchor>
                 <Anchor to="/faq" underline="none">
-                    FAQ
+                    {t("footer.faq")}
                 </Anchor>
                 <Anchor
                     to="https://github.com/bjoern621/PeerDrop"
@@ -40,31 +43,31 @@ export default function Footer({ compact = false }: FooterProps) {
             <div className={css.column}>
                 <Logo aria-hidden />
                 <div className={css.version}>
-                    Version: <br />
+                    {t("footer.version")} <br />
                     {import.meta.env.VITE_APP_VERSION}
                 </div>
             </div>
             <div className={css.column}>
-                <div className={css.heading}>Weiterführende Links</div>
+                <div className={css.heading}>{t("footer.furtherLinks")}</div>
                 <nav>
                     <ul>
                         <li>
                             <Anchor to="/inside" underline="none">
-                                Inside PeerDrop
+                                {t("footer.insidePeerDrop")}
                             </Anchor>
                         </li>
                         {/* <li>Preise</li> */} {/* TODO */}
                         {/* <li>Entstehung</li> */}
                         <li>
                             <Anchor to="/faq" underline="none">
-                                FAQ
+                                {t("footer.faq")}
                             </Anchor>
                         </li>
                     </ul>
                 </nav>
             </div>
             <div className={css.column}>
-                <div className={css.heading}>Information</div>
+                <div className={css.heading}>{t("footer.information")}</div>
                 <nav>
                     <ul>
                         <li>
@@ -79,7 +82,7 @@ export default function Footer({ compact = false }: FooterProps) {
                 </nav>
             </div>
             <div className={css.column}>
-                <div className={css.heading}>Auch hier</div>
+                <div className={css.heading}>{t("footer.elsewhere")}</div>
                 <nav>
                     <ul className={css.socials}>
                         <li>

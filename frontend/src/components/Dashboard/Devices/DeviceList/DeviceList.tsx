@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useDevices } from "../../../../hooks/useDevices";
 import Button from "../../../Button/Button";
 import DeviceDisplay from "../DeviceDisplay/DeviceDisplay";
@@ -14,6 +15,7 @@ export default function DeviceList({
     selectedUuid,
     onSelect,
 }: DeviceListProps) {
+    const { t } = useTranslation("dashboard");
     const {
         devices,
         currentDeviceRegistered,
@@ -32,7 +34,7 @@ export default function DeviceList({
                     onClick={() => void registerCurrentDevice()}
                 >
                     <PlusIcon />
-                    Gerät registrieren
+                    {t("devices.register")}
                 </Button>
             )}
             {devices.map(device => (

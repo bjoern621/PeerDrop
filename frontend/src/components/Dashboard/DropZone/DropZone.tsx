@@ -1,4 +1,5 @@
 import { DragEvent, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import css from "./DropZone.module.scss";
 import Button from "../../Button/Button";
 import {
@@ -33,6 +34,7 @@ interface DropZoneProps {
 type Flash = { kind: "ok" | "warn"; text: string };
 
 export default function DropZone({ recipient, onSelection }: DropZoneProps) {
+    const { t } = useTranslation("dashboard");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
     const isTouchDevice = useIsTouchDevice();
@@ -82,7 +84,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
             return;
         }
         if (!recipient) {
-            showFlash({ kind: "warn", text: "Wähle zuerst einen Empfänger" });
+            showFlash({ kind: "warn", text: t("dropZone.pickRecipient") });
             return;
         }
         onSelection(selection);
@@ -90,10 +92,10 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
             kind: "ok",
             text:
                 selection.folders.length === 1 && selection.files.length === 0
-                    ? `Ordner „${selection.folders[0].name}“ wird gesendet`
-                    : count === 1
-                      ? "1 Datei wird gesendet"
-                      : `${count} Dateien werden gesendet`,
+                    ? t("dropZone.sendingFolder", {
+                          name: selection.folders[0].name,
+                      })
+                    : t("dropZone.sendingFiles", { count }),
         });
     };
 
@@ -140,25 +142,25 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
                       className: css.drop,
                       edge: css.edgeDrop,
                       text: recipient
-                          ? `Loslassen, um an ${recipient} zu senden`
-                          : "Loslassen",
+                          ? t("dropZone.releaseTo", { token: recipient })
+                          : t("dropZone.release"),
                       icon: "drop",
                   }
                 : pageDrag
                   ? {
                         className: css.page,
                         edge: css.edgeDrop,
-                        text: "Hier ablegen",
+                        text: t("dropZone.dropHere"),
                         icon: "drop",
                     }
                   : null;
     const dimming = (overZone || pageDrag) && !flash;
 
     const hint = !recipient
-        ? "Wähle zuerst einen Empfänger"
+        ? t("dropZone.pickRecipient")
         : isTouchDevice
-          ? "Wähle Dateien oder Ordner"
-          : "Wähle Dateien oder Ordner oder ziehe sie hierher";
+          ? t("dropZone.pick")
+          : t("dropZone.pickOrDrag");
 
     return (
         <div
@@ -196,7 +198,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
                     <ImageFileIcon className={css.fileIcon2} />
                     <ZipFileIcon className={css.fileIcon3} />
                 </div>
-                Datei teilen
+                {t("dropZone.shareFile")}
             </Button>
             <input
                 type="file"
@@ -220,7 +222,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
                     <FolderIcon className={css.folderClosed} />
                     <FolderOpenIcon className={css.folderOpen} />
                 </div>
-                Ordner teilen
+                {t("dropZone.shareFolder")}
             </Button>
             <span className={css.hint}>{hint}</span>
             {overlay && (

@@ -1,4 +1,5 @@
 import { KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { OTPInput, SlotProps } from "input-otp";
 import css from "./RecipientInput.module.scss";
 import { normalizeClientToken } from "../../../services/WebSocketService";
@@ -77,6 +78,8 @@ export default function RecipientInput({
     onChange: (value: string) => void;
     check: RecipientCheck;
 }) {
+    const { t } = useTranslation("dashboard");
+
     return (
         <OTPInput
             maxLength={CLIENT_TOKEN_LENGTH}
@@ -106,7 +109,7 @@ export default function RecipientInput({
                 </div>
             )}
             autoComplete="off"
-            aria-label="Token des Empfängers"
+            aria-label={t("send.recipientToken")}
             name="recipient-token"
         ></OTPInput>
     );

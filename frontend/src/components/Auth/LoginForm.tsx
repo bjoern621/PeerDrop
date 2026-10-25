@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "../Button/Button";
 import FormField from "../FormField/FormField";
 import css from "./AuthForms.module.scss";
@@ -9,7 +10,7 @@ import {
     IconArrowRight as ArrowIcon,
     IconRefresh as SwitchIcon,
 } from "@tabler/icons-react";
-import { loginSchema } from "./types";
+import { loginSchema, ValidationMessage } from "./types";
 import loginCss from "./LoginForm.module.scss";
 
 type LoginFormFields = z.infer<typeof loginSchema>;
@@ -31,6 +32,7 @@ export default function LoginForm({
     initialPassword,
     onPasswordChange,
 }: LoginFormProps) {
+    const { t } = useTranslation("auth");
     const {
         register,
         handleSubmit,
@@ -44,15 +46,17 @@ export default function LoginForm({
         },
     });
 
-    const lastUsernameError = useRef<string>("");
-    const lastPasswordError = useRef<string>("");
+    const lastUsernameError = useRef<ValidationMessage | null>(null);
+    const lastPasswordError = useRef<ValidationMessage | null>(null);
 
     // Update cached error messages when there's a new error
     if (errors.username?.message) {
-        lastUsernameError.current = errors.username.message;
+        lastUsernameError.current = errors.username
+            .message as ValidationMessage;
     }
     if (errors.password?.message) {
-        lastPasswordError.current = errors.password.message;
+        lastPasswordError.current = errors.password
+            .message as ValidationMessage;
     }
 
     const onSubmitForm = (data: LoginFormFields) => {
@@ -86,13 +90,17 @@ export default function LoginForm({
             onKeyDown={handleKeyDown}
             className={css.form}
         >
-            <h2 className={`${css.title} ${loginCss.title}`}>Anmelden</h2>
+            <h2 className={`${css.title} ${loginCss.title}`}>{t("login")}</h2>
 
             <FormField
                 type="text"
-                label="Benutzername"
+                label={t("username")}
                 autoComplete="username"
-                error={lastUsernameError.current}
+                error={
+                    lastUsernameError.current
+                        ? t(lastUsernameError.current)
+                        : undefined
+                }
                 showError={shouldShowError("username")}
                 {...register("username", {
                     onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -102,9 +110,13 @@ export default function LoginForm({
 
             <FormField
                 type="password"
-                label="Passwort"
+                label={t("password")}
                 autoComplete="current-password"
-                error={lastPasswordError.current}
+                error={
+                    lastPasswordError.current
+                        ? t(lastPasswordError.current)
+                        : undefined
+                }
                 showError={shouldShowError("password")}
                 {...register("password", {
                     onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -114,7 +126,7 @@ export default function LoginForm({
 
             <div className={css.buttonContainer}>
                 <Button type="submit" className={css.primaryButton}>
-                    Anmelden
+                    {t("login")}
                     <ArrowIcon aria-hidden />
                 </Button>
                 <Button
@@ -123,7 +135,7 @@ export default function LoginForm({
                     onClick={onSwitchToRegister}
                 >
                     <SwitchIcon aria-hidden />
-                    Registrieren
+                    {t("register")}
                 </Button>
             </div>
         </form>

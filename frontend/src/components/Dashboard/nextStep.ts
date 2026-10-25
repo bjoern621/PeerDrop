@@ -1,3 +1,4 @@
+import { TFunction } from "i18next";
 import { LookupState, SendLock } from "../../services/MessagingService";
 import { CLIENT_TOKEN_LENGTH } from "../../util/Constants";
 
@@ -19,7 +20,10 @@ interface NextStepInput {
 }
 
 /** The one thing to do next in the send panel, from the current state. */
-export function nextStep(input: NextStepInput): Hint {
+export function nextStep(
+    input: NextStepInput,
+    t: TFunction<"dashboard">
+): Hint {
     const { recipient, lock } = input;
     const token = recipient.toUpperCase();
 
@@ -30,60 +34,36 @@ export function nextStep(input: NextStepInput): Hint {
         );
         return {
             kind: "warn",
-            text: `Du hast zu oft einen unbekannten Token eingegeben. Bitte warte ${minutes} ${minutes === 1 ? "Minute" : "Minuten"}.`,
+            text: t("hint.tokensLocked", { count: minutes }),
         };
     }
     if (lock) {
-        return {
-            kind: "warn",
-            text: "Du schickst zu viele Texte. Bitte warte ein paar Sekunden.",
-        };
+        return { kind: "warn", text: t("hint.textsLocked") };
     }
     if (recipient.length === 0) {
-        return {
-            kind: "type",
-            text: "Gib den Token des Empfängers ein oder wähle unter „Geräte“ einen aus.",
-        };
+        return { kind: "type", text: t("hint.enterToken") };
     }
     const missing = CLIENT_TOKEN_LENGTH - recipient.length;
     if (missing > 0) {
         return {
             kind: "type",
-            text:
-                missing === 1
-                    ? "Gib das letzte Zeichen des Tokens ein."
-                    : `Gib die restlichen ${missing} Zeichen des Tokens ein.`,
+            text: t("hint.missingChars", { count: missing }),
         };
     }
     if (recipient === input.ownToken) {
-        return {
-            kind: "warn",
-            text: `${token} ist dein eigener Token. Gib den Token eines anderen Geräts ein.`,
-        };
+        return { kind: "warn", text: t("hint.ownToken", { token }) };
     }
     if (input.blocked) {
-        return {
-            kind: "warn",
-            text: `Du hast ${token} blockiert, bis du die Seite neu lädst.`,
-        };
+        return { kind: "warn", text: t("hint.blocked", { token }) };
     }
     if (!input.lookup || input.lookup.status === "checking") {
-        return { kind: "wait", text: `Prüfe, ob ${token} online ist...` };
+        return { kind: "wait", text: t("hint.checking", { token }) };
     }
     if (input.lookup.status === "offline") {
-        return {
-            kind: "err",
-            text: `${token} ist nicht online. Bitte überprüfe den Token.`,
-        };
+        return { kind: "err", text: t("hint.offline", { token }) };
     }
     if (input.tooBig) {
-        return {
-            kind: "warn",
-            text: "Der Text ist größer als 1 MB. Schicke ihn als Datei.",
-        };
+        return { kind: "warn", text: t("hint.tooBig") };
     }
-    return {
-        kind: "pick",
-        text: `Schreibe einen Text an ${token} oder teile Dateien und Ordner.`,
-    };
+    return { kind: "pick", text: t("hint.ready", { token }) };
 }

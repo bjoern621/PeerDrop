@@ -7,6 +7,7 @@ import {
     useRef,
     useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import css from "./TextComposer.module.scss";
 import {
     IconSend as SendIcon,
@@ -54,6 +55,7 @@ export default function TextComposer({
     onSend,
     boundsRef,
 }: TextComposerProps) {
+    const { t } = useTranslation("dashboard");
     const fieldRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [overflowing, setOverflowing] = useState(false);
@@ -122,10 +124,10 @@ export default function TextComposer({
     const meta =
         draft.length === 0
             ? ""
-            : `${lines} ${lines === 1 ? "Zeile" : "Zeilen"} · ${getSizeInHumanReadableFormat(new Blob([draft]).size)}`;
+            : `${t("lines", { count: lines })} · ${getSizeInHumanReadableFormat(new Blob([draft]).size)}`;
 
     const sendButton = (
-        <Tooltip content="Strg+Enter">
+        <Tooltip content={t("composer.sendShortcut")}>
             <Button
                 size="small"
                 className={css.send}
@@ -145,7 +147,7 @@ export default function TextComposer({
                 )}
                 <span className={css.sendContent}>
                     <SendIcon aria-hidden />
-                    Text senden
+                    {t("composer.send")}
                 </span>
             </Button>
         </Tooltip>
@@ -157,7 +159,7 @@ export default function TextComposer({
         <>
             <div ref={fieldRef} className={css.field}>
                 <label htmlFor="text-draft" className={css.label}>
-                    Text
+                    {t("composer.label")}
                 </label>
                 <div className={css.textBox} onMouseDown={focusFromFrame}>
                     <textarea
@@ -169,7 +171,7 @@ export default function TextComposer({
                         onKeyDown={handleKeyDown}
                         spellCheck={false}
                         wrap="off"
-                        placeholder="Text oder Code einfügen"
+                        placeholder={t("composer.placeholder")}
                     />
                 </div>
                 <div
@@ -179,7 +181,7 @@ export default function TextComposer({
                 <div className={css.bar}>
                     <span className={css.meta}>{meta}</span>
                     <IconButton
-                        label="Großes Textfeld öffnen"
+                        label={t("composer.expand")}
                         size="m"
                         onClick={openBig}
                     >
@@ -199,7 +201,7 @@ export default function TextComposer({
                     <div
                         role="dialog"
                         aria-modal="true"
-                        aria-label="Text"
+                        aria-label={t("composer.label")}
                         className={css.big}
                         style={rect}
                     >
@@ -211,7 +213,7 @@ export default function TextComposer({
                                 htmlFor="text-draft-big"
                                 className={css.label}
                             >
-                                Text
+                                {t("composer.label")}
                             </label>
                             <textarea
                                 id="text-draft-big"
@@ -224,14 +226,14 @@ export default function TextComposer({
                                 onKeyDown={handleKeyDown}
                                 spellCheck={false}
                                 wrap="off"
-                                placeholder="Text oder Code einfügen"
+                                placeholder={t("composer.placeholder")}
                             />
                         </div>
                         <div className={css.bar}>
                             <span className={css.meta}>{meta}</span>
                             <IconButton
-                                label="Textfeld verkleinern"
-                                tooltip="Textfeld verkleinern (Esc)"
+                                label={t("composer.collapse")}
+                                tooltip={t("composer.collapseShortcut")}
                                 size="m"
                                 onClick={closeBig}
                             >

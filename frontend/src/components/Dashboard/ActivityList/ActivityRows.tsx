@@ -1,4 +1,5 @@
 import { ReactNode, useState } from "react";
+import { useTranslation } from "react-i18next";
 import css from "./ActivityList.module.scss";
 import {
     IconUpload as UploadIcon,
@@ -35,11 +36,23 @@ interface RowProps {
     blocked: ReadonlySet<string>;
 }
 
+const SAVE_TOOLTIPS = {
+    file: {
+        first: "transfers.status.saveFile",
+        again: "transfers.status.saveFileAgain",
+    },
+    folder: {
+        first: "transfers.status.saveFolder",
+        again: "transfers.status.saveFolderAgain",
+    },
+} as const;
+
 export function TextRow({
     entry,
     blocked,
     onOpen,
 }: RowProps & { entry: TextEntry; onOpen: () => void }) {
+    const { t } = useTranslation("dashboard");
     const messaging = useMessagingService();
     const preview = entry.text.replace(/\s+/g, " ").trim();
 
@@ -49,7 +62,7 @@ export function TextRow({
                 <button
                     type="button"
                     className={css.nameButton}
-                    title="Klicken, um den ganzen Text zu lesen"
+                    title={t("transfers.text.open")}
                     onClick={onOpen}
                 >
                     <LinesIcon className={css.icon} aria-hidden />
@@ -63,15 +76,19 @@ export function TextRow({
         >
             {entry.direction === "up" ? (
                 entry.status === "sending" ? (
-                    <StatusChip tone="neutral">Wird gesendet</StatusChip>
+                    <StatusChip tone="neutral">
+                        {t("transfers.text.sending")}
+                    </StatusChip>
                 ) : entry.status === "delivered" ? (
-                    <StatusChip tone="success">Gesendet</StatusChip>
+                    <StatusChip tone="success">
+                        {t("transfers.text.delivered")}
+                    </StatusChip>
                 ) : (
                     <StatusChip
                         tone="error"
-                        tooltip="Versuche es später noch einmal"
+                        tooltip={t("transfers.text.failedHint")}
                     >
-                        Fehlgeschlagen
+                        {t("transfers.notDelivered")}
                     </StatusChip>
                 )
             ) : (
@@ -89,6 +106,7 @@ export function TextRow({
 }
 
 export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
+    const { t } = useTranslation("dashboard");
     const messaging = useMessagingService();
     const { folderName, count } = entry.summary;
 
@@ -102,7 +120,7 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                         <FileIcon className={css.icon} aria-hidden />
                     )}
                     <TruncatedText className={css.name}>
-                        {offerName(entry)}
+                        {offerName(entry, t)}
                     </TruncatedText>
                 </span>
             }
@@ -113,23 +131,27 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
             at={entry.at}
         >
             {entry.status === "declined" ? (
-                <StatusChip tone="error">Abgelehnt</StatusChip>
+                <StatusChip tone="error">
+                    {t("transfers.offer.declined")}
+                </StatusChip>
             ) : entry.status === "failed" ? (
-                <StatusChip tone="error">Fehlgeschlagen</StatusChip>
+                <StatusChip tone="error">
+                    {t("transfers.notDelivered")}
+                </StatusChip>
             ) : entry.direction === "up" ? (
                 <>
                     <div className={css.progress}>
                         <div className={css.progressInfo}>
                             <PauseIcon aria-hidden />
                             <TruncatedText className={css.waitingLabel}>
-                                Wartet auf Bestätigung
+                                {t("transfers.offer.waiting")}
                             </TruncatedText>
                         </div>
                         <div className={css.barIdle} />
                     </div>
                     <IconButton
                         variant="badge"
-                        label="Abbrechen"
+                        label={t("transfers.cancel")}
                         onClick={() => messaging.cancelOffer(entry.offerId)}
                     >
                         <CloseIcon aria-hidden />
@@ -139,16 +161,16 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                 <>
                     <RowButton
                         primary
-                        tooltip="Klicken, um die Übertragung anzunehmen"
+                        tooltip={t("transfers.offer.acceptHint")}
                         onClick={() =>
                             messaging.answerOffer(entry.offerId, true)
                         }
                     >
-                        ANNEHMEN
+                        {t("transfers.offer.accept")}
                     </RowButton>
                     <IconButton
                         variant="badge"
-                        label="Ablehnen"
+                        label={t("transfers.offer.decline")}
                         onClick={() =>
                             messaging.answerOffer(entry.offerId, false)
                         }
@@ -193,7 +215,7 @@ export function FileRow({
                 top={depth === 0}
                 blocked={blocked}
                 save={pcm => pcm.redownloadFile(transfer.uuid)}
-                saveHint="die Datei"
+                saveTarget="file"
             />
         </Row>
     );
@@ -247,7 +269,7 @@ export function FolderRow({
                     save={pcm =>
                         folderId ? void pcm.saveFolder(folderId) : undefined
                     }
-                    saveHint="den Ordner"
+                    saveTarget="folder"
                 />
             </Row>
             {expanded && (
@@ -280,14 +302,15 @@ function TransferStatus({
     top,
     blocked,
     save,
-    saveHint,
+    saveTarget,
 }: {
     transfers: TransferSnapshot[];
     top: boolean;
     blocked: ReadonlySet<string>;
     save: (pcm: ReturnType<typeof usePeerConnectionManager>) => unknown;
-    saveHint: string;
+    saveTarget: "file" | "folder";
 }) {
+    const { t } = useTranslation("dashboard");
     const pcm = usePeerConnectionManager();
     const messaging = useMessagingService();
     const { autoSaveDownloads } = useSettings();
@@ -302,20 +325,22 @@ function TransferStatus({
             />
         ) : null;
 
-    if (transfers.every(t => t.status === "done")) {
+    if (transfers.every(transfer => transfer.status === "done")) {
         return (
             <>
-                <StatusChip tone="success">Fertig!</StatusChip>
+                <StatusChip tone="success">
+                    {t("transfers.status.done")}
+                </StatusChip>
                 {top && direction === "down" && (
                     <RowButton
-                        tooltip={
-                            autoSaveDownloads
-                                ? `Klicken, um ${saveHint} erneut zu speichern`
-                                : `Klicken, um ${saveHint} zu speichern`
-                        }
+                        tooltip={t(
+                            SAVE_TOOLTIPS[saveTarget][
+                                autoSaveDownloads ? "again" : "first"
+                            ]
+                        )}
                         onClick={() => save(pcm)}
                     >
-                        SPEICHERN
+                        {t("transfers.status.save")}
                     </RowButton>
                 )}
                 {block}
@@ -324,12 +349,12 @@ function TransferStatus({
     }
 
     const running = transfers.filter(
-        t =>
-            t.status === "waiting" ||
-            t.status === "active" ||
-            t.status === "finalizing"
+        transfer =>
+            transfer.status === "waiting" ||
+            transfer.status === "active" ||
+            transfer.status === "finalizing"
     );
-    const failed = transfers.filter(t => t.status === "failed");
+    const failed = transfers.filter(transfer => transfer.status === "failed");
 
     if (running.length === 0) {
         if (failed.length > 0) {
@@ -337,16 +362,20 @@ function TransferStatus({
                 <>
                     <StatusChip
                         tone="error"
-                        tooltip={`Die Verbindung zu ${remoteToken.toUpperCase()} ist abgebrochen`}
+                        tooltip={t("transfers.status.connectionLost", {
+                            token: remoteToken.toUpperCase(),
+                        })}
                     >
-                        Fehlgeschlagen
+                        {t("transfers.status.interrupted")}
                     </StatusChip>
                     {top && direction === "up" && (
                         <IconButton
                             variant="badge"
-                            label="Erneut senden"
+                            label={t("transfers.status.retry")}
                             onClick={() =>
-                                failed.forEach(t => pcm.retryTransfer(t.uuid))
+                                failed.forEach(transfer =>
+                                    pcm.retryTransfer(transfer.uuid)
+                                )
                             }
                         >
                             <RetryIcon aria-hidden />
@@ -360,41 +389,50 @@ function TransferStatus({
             <>
                 <StatusChip
                     tone="warning"
-                    tooltip="Die Übertragung wurde abgebrochen"
+                    tooltip={t("transfers.status.canceledHint")}
                 >
-                    Abgebrochen
+                    {t("transfers.status.canceled")}
                 </StatusChip>
                 {block}
             </>
         );
     }
 
-    const size = transfers.reduce((sum, t) => sum + t.size, 0);
-    const bytes = transfers.reduce((sum, t) => sum + t.bytesTransferred, 0);
+    const size = transfers.reduce((sum, transfer) => sum + transfer.size, 0);
+    const bytes = transfers.reduce(
+        (sum, transfer) => sum + transfer.bytesTransferred,
+        0
+    );
     const progress = size > 0 ? Math.min(bytes / size, 1) : 0;
-    const connecting = running.every(t => t.status === "waiting");
+    const connecting = running.every(transfer => transfer.status === "waiting");
     const speedBps = running.reduce<number | null>(
-        (sum, t) => (t.speedBps !== null ? (sum ?? 0) + t.speedBps : sum),
+        (sum, transfer) =>
+            transfer.speedBps !== null ? (sum ?? 0) + transfer.speedBps : sum,
         null
     );
-    const info = getTransferInfo({
-        status: running.some(t => t.status === "active")
-            ? "active"
-            : running[0].status,
-        direction,
-        speedBps,
-        etaSeconds:
-            speedBps !== null && speedBps > 0
-                ? Math.max(size - bytes, 0) / speedBps
-                : null,
-    });
+    const info = getTransferInfo(
+        {
+            status: running.some(transfer => transfer.status === "active")
+                ? "active"
+                : running[0].status,
+            direction,
+            speedBps,
+            etaSeconds:
+                speedBps !== null && speedBps > 0
+                    ? Math.max(size - bytes, 0) / speedBps
+                    : null,
+        },
+        t
+    );
 
     return (
         <>
             <div className={css.progress}>
                 <div className={css.progressInfo}>
                     {connecting ? (
-                        <TruncatedText>Verbindet...</TruncatedText>
+                        <TruncatedText>
+                            {t("transfers.status.connecting")}
+                        </TruncatedText>
                     ) : (
                         <>
                             <span>{Math.floor(progress * 100)} %</span>
@@ -414,9 +452,11 @@ function TransferStatus({
             {top && (
                 <IconButton
                     variant="badge"
-                    label="Abbrechen"
+                    label={t("transfers.cancel")}
                     onClick={() =>
-                        running.forEach(t => pcm.cancelTransfer(t.uuid))
+                        running.forEach(transfer =>
+                            pcm.cancelTransfer(transfer.uuid)
+                        )
                     }
                 >
                     <CloseIcon aria-hidden />
@@ -444,6 +484,7 @@ function Row({
     at: Date;
     children: ReactNode;
 }) {
+    const { t } = useTranslation("dashboard");
     const time = getTimeInHumanReadableFormat(at);
 
     return (
@@ -451,9 +492,7 @@ function Row({
             <div role="cell" className={css.nameCell}>
                 {name}
                 {count !== undefined && (
-                    <span className={css.count}>
-                        {count === 1 ? "1 Datei" : `${count} Dateien`}
-                    </span>
+                    <span className={css.count}>{t("files", { count })}</span>
                 )}
             </div>
             <div role="cell" className={css.progressCell}>
@@ -461,13 +500,13 @@ function Row({
                     <UploadIcon
                         className={css.direction}
                         role="img"
-                        aria-label="Gesendet"
+                        aria-label={t("transfers.sent")}
                     />
                 ) : (
                     <DownloadIcon
                         className={css.direction}
                         role="img"
-                        aria-label="Empfangen"
+                        aria-label={t("transfers.received")}
                     />
                 )}
                 <span className={css.peer} style={{ color: peerColor(peer) }}>
@@ -498,13 +537,14 @@ export function BlockButton({
     blocked: boolean;
     onBlock: () => void;
 }) {
+    const { t } = useTranslation("dashboard");
     const token = peer.toUpperCase();
     return blocked ? (
         <IconButton
             variant="badge"
             tone="error"
-            label={`${token} blockiert`}
-            tooltip={`${token} ist blockiert, bis du die Seite neu lädst`}
+            label={t("transfers.block.blocked", { token })}
+            tooltip={t("transfers.block.blockedHint", { token })}
             aria-disabled
         >
             <BlockIcon aria-hidden />
@@ -512,7 +552,7 @@ export function BlockButton({
     ) : (
         <IconButton
             variant="badge"
-            label={`${token} blockieren`}
+            label={t("transfers.block.block", { token })}
             onClick={onBlock}
         >
             <BlockIcon aria-hidden />
@@ -521,14 +561,15 @@ export function BlockButton({
 }
 
 export function CopyButton({ text }: { text: string }) {
+    const { t } = useTranslation("dashboard");
     const [copied, copy] = useCopyToClipboard();
 
     return (
         <RowButton
-            tooltip="Klicken, um den Text zu kopieren"
+            tooltip={t("transfers.copy.hint")}
             onClick={() => void copy(text)}
         >
-            {copied ? "KOPIERT" : "KOPIEREN"}
+            {copied ? t("transfers.copy.copied") : t("transfers.copy.copy")}
         </RowButton>
     );
 }

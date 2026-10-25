@@ -1,13 +1,23 @@
 import css from "./Why.module.scss";
 import {
+    Icon,
     IconMoodSmile as EasyIcon,
     IconShieldLock as SecurityIcon,
     IconGift as GiftIcon,
     IconBolt as SpeedIcon,
 } from "@tabler/icons-react";
-import { useRef } from "react";
+import { ReactNode, useRef } from "react";
+import { Trans, useTranslation } from "react-i18next";
+
+const CARDS = [
+    { key: "easy", icon: EasyIcon },
+    { key: "control", icon: SecurityIcon },
+    { key: "free", icon: GiftIcon },
+    { key: "speed", icon: SpeedIcon },
+] as const;
 
 export default function Why() {
+    const { t } = useTranslation("landing");
     const cardsRef = useRef<HTMLDivElement[]>([]);
 
     const handleCardMouseMove = (card: HTMLDivElement, e: React.MouseEvent) => {
@@ -27,106 +37,57 @@ export default function Why() {
     return (
         <section>
             <h2>
-                <span className="text-highlight">Warum</span> PeerDrop?
+                <Trans
+                    t={t}
+                    i18nKey="why.heading"
+                    components={{
+                        highlight: <span className="text-highlight" />,
+                    }}
+                />
             </h2>
             <div className={css.cardContainer} onMouseMove={onMouseMove}>
-                <div
-                    className={css.card}
-                    ref={el => {
-                        if (el) cardsRef.current.push(el);
-                    }}
-                >
-                    <div className={css.cardBorder}></div>
-                    <div className={css.cardContent}>
-                        <h3>
-                            Super{" "}
-                            <span className={css.noWrap}>
-                                einfach
-                                <EasyIcon aria-hidden />
-                            </span>
-                        </h3>
-                        <p className="text-muted">
-                            Vergiss das umständliche Hochladen in eine Cloud und
-                            das Teilen von Links.
-                            <br />
-                            Öffne PeerDrop im Browser, gib den 5-stelligen Token
-                            deines Partners ein und schicke los.
-                        </p>
+                {CARDS.map(card => (
+                    <div
+                        key={card.key}
+                        className={css.card}
+                        ref={el => {
+                            if (el) cardsRef.current.push(el);
+                        }}
+                    >
+                        <div className={css.cardBorder}></div>
+                        <div className={css.cardContent}>
+                            <h3>
+                                <Trans
+                                    t={t}
+                                    i18nKey={`why.${card.key}.title`}
+                                    components={{
+                                        noWrap: <NoWrap icon={card.icon} />,
+                                    }}
+                                />
+                            </h3>
+                            <p className="text-muted">
+                                <Trans t={t} i18nKey={`why.${card.key}.text`} />
+                            </p>
+                        </div>
                     </div>
-                </div>
-                <div
-                    className={css.card}
-                    ref={el => {
-                        if (el) cardsRef.current.push(el);
-                    }}
-                >
-                    <div className={css.cardBorder}></div>
-                    <div className={css.cardContent}>
-                        <h3>
-                            Deine Daten, deine{" "}
-                            <span className={css.noWrap}>
-                                Kontrolle
-                                <SecurityIcon aria-hidden />
-                            </span>
-                        </h3>
-                        <p className="text-muted">
-                            Wir öffnen eine verschlüsselte Peer-to-Peer
-                            Verbindung für dich, um deine Daten sicher zu
-                            übertragen. Dateien werden niemals auf einem Server
-                            zwischengespeichert und können so von niemanden
-                            sonst gelesen werden.
-                        </p>
-                    </div>
-                </div>
-                <div
-                    className={css.card}
-                    ref={el => {
-                        if (el) cardsRef.current.push(el);
-                    }}
-                >
-                    <div className={css.cardBorder}></div>
-                    <div className={css.cardContent}>
-                        <h3>
-                            Keine Anmeldung, keine Werbung, Open{" "}
-                            <span className={css.noWrap}>
-                                Source
-                                <GiftIcon aria-hidden />
-                            </span>
-                        </h3>
-                        <p className="text-muted">
-                            Sende eine einzelne Datei oder deine gesamte
-                            Fotosammlung. Alles ohne Registrierung und ohne
-                            nervige Werbung. <br />
-                            PeerDrop ist vollständig Open Source.
-                        </p>
-                    </div>
-                </div>
-                <div
-                    className={css.card}
-                    ref={el => {
-                        if (el) cardsRef.current.push(el);
-                    }}
-                >
-                    <div className={css.cardBorder}></div>
-                    <div className={css.cardContent}>
-                        <h3>
-                            Maximale{" "}
-                            <span className={css.noWrap}>
-                                Geschwindigkeit
-                                <SpeedIcon aria-hidden />
-                            </span>
-                        </h3>
-                        <p className={"text-muted"}>
-                            Du zahlst für eine schnelle Internetverbindung,
-                            nutz&#x2019; sie auch!
-                            <br />
-                            Die direkte Verbindung ist der kürzeste Weg für
-                            deine Daten und macht den Austausch spürbar
-                            schneller als bei herkömmlichen Diensten.
-                        </p>
-                    </div>
-                </div>
+                ))}
             </div>
         </section>
+    );
+}
+
+/** Keeps the last word of a card title on one line with the card's icon. */
+function NoWrap({
+    icon: CardIcon,
+    children,
+}: {
+    icon: Icon;
+    children?: ReactNode;
+}) {
+    return (
+        <span className={css.noWrap}>
+            {children}
+            <CardIcon aria-hidden />
+        </span>
     );
 }

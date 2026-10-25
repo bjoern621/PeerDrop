@@ -1,0 +1,147 @@
+{
+    "token": {
+        "title": "Dein Token",
+        "share": "Teile diesen Token mit anderen",
+        "change": "Token ändern",
+        "newToken": "Neuer Token",
+        "pickCharacters": "Wähle {{length}} Zeichen aus A bis Z und 0 bis 9.",
+        "inUse": "{{token}} ist gerade belegt. Lade die Seite später neu, um den Token zu bekommen.",
+        "copy": "Token kopieren",
+        "copied": "Token kopiert",
+        "copyLink": "Token als Link kopieren",
+        "linkCopied": "Link kopiert"
+    },
+    "devices": {
+        "title": "Geräte",
+        "network": "In deinem Netzwerk",
+        "networkHelp": "Geräte im selben Netzwerk erscheinen hier automatisch",
+        "searching": "Suche nach Geräten in deinem Netzwerk...",
+        "searchingMore": "Suche weiter...",
+        "discoveryOff": "Die Suche nach Geräten im Netzwerk ist abgeschaltet. Schalte sie <settingsLink>in den Einstellungen</settingsLink> wieder ein.",
+        "own": "Deine Geräte",
+        "loginToRegister": "Melde dich an, um Geräte zu registrieren",
+        "faqHint": "Zu FAQ wechseln: <faqLink>Geräteverwaltung</faqLink>",
+        "unknown": "Unbekanntes Gerät",
+        "online": "Dieses Gerät ist online.",
+        "offline": "Dieses Gerät ist nicht online.",
+        "learnMore": "Mehr erfahren",
+        "rename": "Gerät umbenennen",
+        "remove": "Gerät aus registrierten Geräten entfernen",
+        "currentBadge": "DIESES GERÄT",
+        "currentName": "Dieses Gerät",
+        "register": "Gerät registrieren",
+        "toast": {
+            "fetchFailed": "Fehler beim Abrufen der registrierten Geräte. Bitte versuche es später erneut.",
+            "registerFailed": "Fehler beim Registrieren des Geräts. Bitte versuche es später erneut.",
+            "deleteFailed": "Fehler beim Löschen des Geräts. Bitte versuche es später erneut.",
+            "renameFailed": "Fehler beim Umbenennen des Geräts. Bitte versuche es später erneut."
+        }
+    },
+    "send": {
+        "title": "Senden",
+        "to": "An",
+        "recipientToken": "Token des Empfängers",
+        "text": "Text",
+        "files": "Dateien und Ordner"
+    },
+    "hint": {
+        "tokensLocked_one": "Du hast zu oft einen unbekannten Token eingegeben. Bitte warte {{count}} Minute.",
+        "tokensLocked_other": "Du hast zu oft einen unbekannten Token eingegeben. Bitte warte {{count}} Minuten.",
+        "textsLocked": "Du schickst zu viele Texte. Bitte warte ein paar Sekunden.",
+        "enterToken": "Gib den Token des Empfängers ein oder wähle unter „Geräte“ einen aus.",
+        "missingChars_one": "Gib das letzte Zeichen des Tokens ein.",
+        "missingChars_other": "Gib die restlichen {{count}} Zeichen des Tokens ein.",
+        "ownToken": "{{token}} ist dein eigener Token. Gib den Token eines anderen Geräts ein.",
+        "blocked": "Du hast {{token}} blockiert, bis du die Seite neu lädst.",
+        "checking": "Prüfe, ob {{token}} online ist...",
+        "offline": "{{token}} ist nicht online. Bitte überprüfe den Token.",
+        "tooBig": "Der Text ist größer als 1 MB. Schicke ihn als Datei.",
+        "ready": "Schreibe einen Text an {{token}} oder teile Dateien und Ordner."
+    },
+    "composer": {
+        "label": "Text",
+        "placeholder": "Text oder Code einfügen",
+        "send": "Text senden",
+        "sendShortcut": "Strg+Enter",
+        "expand": "Großes Textfeld öffnen",
+        "collapse": "Textfeld verkleinern",
+        "collapseShortcut": "Textfeld verkleinern (Esc)"
+    },
+    "lines_one": "{{count}} Zeile",
+    "lines_other": "{{count}} Zeilen",
+    "files_one": "{{count}} Datei",
+    "files_other": "{{count}} Dateien",
+    "dropZone": {
+        "pickRecipient": "Wähle zuerst einen Empfänger",
+        "sendingFolder": "Ordner „{{name}}“ wird gesendet",
+        "sendingFiles_one": "{{count}} Datei wird gesendet",
+        "sendingFiles_other": "{{count}} Dateien werden gesendet",
+        "release": "Loslassen",
+        "releaseTo": "Loslassen, um an {{token}} zu senden",
+        "dropHere": "Hier ablegen",
+        "pick": "Wähle Dateien oder Ordner",
+        "pickOrDrag": "Wähle Dateien oder Ordner oder ziehe sie hierher",
+        "shareFile": "Datei teilen",
+        "shareFolder": "Ordner teilen"
+    },
+    "transfers": {
+        "title": "Übertragungen",
+        "empty": "Keine Übertragungen",
+        "columns": {
+            "name": "Name",
+            "progress": "Fortschritt",
+            "size": "Größe",
+            "time": "Zeitstempel"
+        },
+        "sent": "Gesendet",
+        "received": "Empfangen",
+        "notDelivered": "Fehlgeschlagen",
+        "cancel": "Abbrechen",
+        "text": {
+            "open": "Klicken, um den ganzen Text zu lesen",
+            "sending": "Wird gesendet",
+            "delivered": "Gesendet",
+            "failedHint": "Versuche es später noch einmal"
+        },
+        "offer": {
+            "declined": "Abgelehnt",
+            "waiting": "Wartet auf Bestätigung",
+            "accept": "ANNEHMEN",
+            "acceptHint": "Klicken, um die Übertragung anzunehmen",
+            "decline": "Ablehnen"
+        },
+        "status": {
+            "done": "Fertig!",
+            "save": "SPEICHERN",
+            "saveFile": "Klicken, um die Datei zu speichern",
+            "saveFileAgain": "Klicken, um die Datei erneut zu speichern",
+            "saveFolder": "Klicken, um den Ordner zu speichern",
+            "saveFolderAgain": "Klicken, um den Ordner erneut zu speichern",
+            "interrupted": "Fehlgeschlagen",
+            "connectionLost": "Die Verbindung zu {{token}} ist abgebrochen",
+            "retry": "Erneut senden",
+            "canceled": "Abgebrochen",
+            "canceledHint": "Die Übertragung wurde abgebrochen",
+            "connecting": "Verbindet...",
+            "awaitingAck": "Warte auf Bestätigung...",
+            "storing": "Speichern...",
+            "measuring": "Berechne..."
+        },
+        "block": {
+            "block": "{{token}} blockieren",
+            "blocked": "{{token}} blockiert",
+            "blockedHint": "{{token}} ist blockiert, bis du die Seite neu lädst"
+        },
+        "copy": {
+            "copy": "KOPIEREN",
+            "copied": "KOPIERT",
+            "hint": "Klicken, um den Text zu kopieren"
+        },
+        "read": {
+            "from": "Text von {{token}}",
+            "to": "Text an {{token}}",
+            "close": "Text schließen",
+            "closeShortcut": "Schließen (Esc)"
+        }
+    }
+}

@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "../Button/Button";
 import AuthDialog from "./AuthDialog";
 import { useAuth } from "../../context/AuthContext";
 
 export default function AuthButton() {
+    const { t } = useTranslation("auth");
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const { isLoggedIn, isLoading, logout } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,7 +32,7 @@ export default function AuthButton() {
                     onClick={() => void logout()}
                     disabled={isDialogOpen}
                 >
-                    Ausloggen
+                    {t("logout")}
                 </Button>
             ) : (
                 <Button
@@ -39,7 +41,7 @@ export default function AuthButton() {
                     variant={"outline"}
                     disabled={isDialogOpen}
                 >
-                    Anmelden / Registrieren
+                    {t("openDialog")}
                 </Button>
             )}
 

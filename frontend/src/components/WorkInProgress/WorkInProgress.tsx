@@ -1,21 +1,29 @@
+import { Trans, useTranslation } from "react-i18next";
 import css from "./WorkInProgress.module.scss";
 import Link from "../Button/Link";
 
 export function WorkInProgress() {
+    const { t } = useTranslation();
+
     return (
         <div className={css.container}>
             <div className={css.content}>
                 <div className={css.statusCode}>WIP</div>
                 <h1 className={css.heading}>
-                    Seite <span className={css.highlight}>in Arbeit</span>
+                    <Trans
+                        t={t}
+                        i18nKey="pages.workInProgress.heading"
+                        components={{
+                            highlight: <span className={css.highlight} />,
+                        }}
+                    />
                 </h1>
                 <p className={css.paragraph}>
-                    Diese Seite befindet sich noch in der Entwicklung. Sie
-                    sollte bald verfügbar sein.
+                    {t("pages.workInProgress.text")}
                 </p>
                 <div className={css.actions}>
                     <Link to="/" className={css.homeButton}>
-                        Zurück zur Startseite
+                        {t("pages.backHome")}
                     </Link>
                 </div>
             </div>

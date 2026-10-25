@@ -1,0 +1,147 @@
+{
+    "token": {
+        "title": "Your token",
+        "share": "Share this token with others",
+        "change": "Change token",
+        "newToken": "New token",
+        "pickCharacters": "Pick {{length}} characters from A to Z and 0 to 9.",
+        "inUse": "{{token}} is taken right now. Reload the page later to get it.",
+        "copy": "Copy token",
+        "copied": "Token copied",
+        "copyLink": "Copy token as link",
+        "linkCopied": "Link copied"
+    },
+    "devices": {
+        "title": "Devices",
+        "network": "In your network",
+        "networkHelp": "Devices in the same network show up here without a click",
+        "searching": "Looking for devices in your network...",
+        "searchingMore": "Still looking...",
+        "discoveryOff": "Looking for devices in your network is off. Turn it on <settingsLink>in the settings</settingsLink>.",
+        "own": "Your devices",
+        "loginToRegister": "Log in to register devices",
+        "faqHint": "Go to the FAQ: <faqLink>Managing devices</faqLink>",
+        "unknown": "Unknown device",
+        "online": "This device is online.",
+        "offline": "This device is offline.",
+        "learnMore": "Learn more",
+        "rename": "Rename device",
+        "remove": "Remove device from your registered devices",
+        "currentBadge": "THIS DEVICE",
+        "currentName": "This device",
+        "register": "Register device",
+        "toast": {
+            "fetchFailed": "Could not load your registered devices. Please try again later.",
+            "registerFailed": "Could not register this device. Please try again later.",
+            "deleteFailed": "Could not remove the device. Please try again later.",
+            "renameFailed": "Could not rename the device. Please try again later."
+        }
+    },
+    "send": {
+        "title": "Send",
+        "to": "To",
+        "recipientToken": "Recipient's token",
+        "text": "Text",
+        "files": "Files and folders"
+    },
+    "hint": {
+        "tokensLocked_one": "You entered an unknown token too often. Please wait {{count}} minute.",
+        "tokensLocked_other": "You entered an unknown token too often. Please wait {{count}} minutes.",
+        "textsLocked": "You are sending too many texts. Please wait a few seconds.",
+        "enterToken": "Enter the recipient's token or pick one under \"Devices\".",
+        "missingChars_one": "Enter the last character of the token.",
+        "missingChars_other": "Enter the remaining {{count}} characters of the token.",
+        "ownToken": "{{token}} is your own token. Enter the token of another device.",
+        "blocked": "You blocked {{token}} until you reload the page.",
+        "checking": "Checking whether {{token}} is online...",
+        "offline": "{{token}} is offline. Please check the token.",
+        "tooBig": "The text is larger than 1 MB. Send it as a file.",
+        "ready": "Write a text to {{token}} or share files and folders."
+    },
+    "composer": {
+        "label": "Text",
+        "placeholder": "Paste text or code",
+        "send": "Send text",
+        "sendShortcut": "Ctrl+Enter",
+        "expand": "Open large text field",
+        "collapse": "Shrink text field",
+        "collapseShortcut": "Shrink text field (Esc)"
+    },
+    "lines_one": "{{count}} line",
+    "lines_other": "{{count}} lines",
+    "files_one": "{{count}} file",
+    "files_other": "{{count}} files",
+    "dropZone": {
+        "pickRecipient": "Pick a recipient first",
+        "sendingFolder": "Sending folder \"{{name}}\"",
+        "sendingFiles_one": "Sending {{count}} file",
+        "sendingFiles_other": "Sending {{count}} files",
+        "release": "Release",
+        "releaseTo": "Release to send to {{token}}",
+        "dropHere": "Drop here",
+        "pick": "Pick files or folders",
+        "pickOrDrag": "Pick files or folders, or drag them here",
+        "shareFile": "Share file",
+        "shareFolder": "Share folder"
+    },
+    "transfers": {
+        "title": "Transfers",
+        "empty": "No transfers",
+        "columns": {
+            "name": "Name",
+            "progress": "Progress",
+            "size": "Size",
+            "time": "Time"
+        },
+        "sent": "Sent",
+        "received": "Received",
+        "notDelivered": "Not delivered",
+        "cancel": "Cancel",
+        "text": {
+            "open": "Click to read the whole text",
+            "sending": "Sending",
+            "delivered": "Sent",
+            "failedHint": "Try again later"
+        },
+        "offer": {
+            "declined": "Declined",
+            "waiting": "Waiting for acceptance",
+            "accept": "ACCEPT",
+            "acceptHint": "Click to accept the transfer",
+            "decline": "Decline"
+        },
+        "status": {
+            "done": "Done",
+            "save": "SAVE",
+            "saveFile": "Click to save the file",
+            "saveFileAgain": "Click to save the file again",
+            "saveFolder": "Click to save the folder",
+            "saveFolderAgain": "Click to save the folder again",
+            "interrupted": "Interrupted",
+            "connectionLost": "The connection to {{token}} broke off",
+            "retry": "Send again",
+            "canceled": "Canceled",
+            "canceledHint": "The transfer got canceled",
+            "connecting": "Connecting...",
+            "awaitingAck": "Waiting for confirmation...",
+            "storing": "Saving...",
+            "measuring": "Measuring..."
+        },
+        "block": {
+            "block": "Block {{token}}",
+            "blocked": "{{token}} blocked",
+            "blockedHint": "{{token}} stays blocked until you reload the page"
+        },
+        "copy": {
+            "copy": "COPY",
+            "copied": "COPIED",
+            "hint": "Click to copy the text"
+        },
+        "read": {
+            "from": "Text from {{token}}",
+            "to": "Text to {{token}}",
+            "close": "Close text",
+            "closeShortcut": "Close (Esc)"
+        }
+    }
+}

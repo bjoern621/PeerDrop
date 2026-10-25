@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Device } from "../../../../types/device/Device";
 import { DeviceStatus } from "../../../../types/device/DeviceStatus";
 import css from "./DeviceDisplay.module.scss";
@@ -30,6 +31,7 @@ export default function DeviceDisplay({
     onDelete,
     onRename,
 }: DeviceDisplayProps) {
+    const { t } = useTranslation("dashboard");
     const [editing, setEditing] = useState(false);
     const [editedName, setEditedName] = useState("");
     const online = device.status === DeviceStatus.ONLINE;
@@ -53,10 +55,10 @@ export default function DeviceDisplay({
             online={online}
             statusTooltip={
                 <>
-                    {online
-                        ? "Dieses Gerät ist online."
-                        : "Dieses Gerät ist nicht online."}{" "}
-                    <Anchor to={"/faq#device-status"}>Mehr erfahren</Anchor>
+                    {online ? t("devices.online") : t("devices.offline")}{" "}
+                    <Anchor to={"/faq#device-status"}>
+                        {t("devices.learnMore")}
+                    </Anchor>
                 </>
             }
             selected={selected}
@@ -65,7 +67,7 @@ export default function DeviceDisplay({
             actions={
                 <>
                     <IconButton
-                        label="Gerät umbenennen"
+                        label={t("devices.rename")}
                         size="m"
                         onClick={e => {
                             e.stopPropagation();
@@ -75,7 +77,7 @@ export default function DeviceDisplay({
                         <EditIcon aria-hidden />
                     </IconButton>
                     <IconButton
-                        label="Gerät aus registrierten Geräten entfernen"
+                        label={t("devices.remove")}
                         size="m"
                         tone="error"
                         onClick={e => {
@@ -112,7 +114,7 @@ export default function DeviceDisplay({
                     {device.name}
                 </TruncatedText>
             )}
-            {device.current && <Badge>DIESES GERÄT</Badge>}
+            {device.current && <Badge>{t("devices.currentBadge")}</Badge>}
         </DeviceTile>
     );
 }

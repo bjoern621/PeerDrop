@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import css from "./DevicePanel.module.scss";
 import { IconDevices as DevicesIcon } from "@tabler/icons-react";
 import { useLanPeers } from "../../hooks/useLanPeers";
@@ -29,6 +30,7 @@ export default function DevicePanel({
     onPickToken,
     onPickDevice,
 }: DevicePanelProps) {
+    const { t } = useTranslation("dashboard");
     const { peers } = useLanPeers();
     const { lanDiscovery } = useSettings();
     const { openSettings } = useSettingsDialog();
@@ -39,16 +41,13 @@ export default function DevicePanel({
     return (
         <aside className={css.panel} aria-labelledby="devices-heading">
             <CardHeading id="devices-heading" icon={DevicesIcon} tone="primary">
-                Geräte
+                {t("devices.title")}
             </CardHeading>
             <div className={css.scrollFrame}>
                 <div ref={scrollRef} className={css.scroll}>
                     <span className={css.label}>
-                        In deinem Netzwerk
-                        <HelpTip>
-                            Geräte im selben Netzwerk erscheinen hier
-                            automatisch
-                        </HelpTip>
+                        {t("devices.network")}
+                        <HelpTip>{t("devices.networkHelp")}</HelpTip>
                     </span>
                     {lanDiscovery ? (
                         <>
@@ -63,28 +62,33 @@ export default function DevicePanel({
                             <span className={css.searching}>
                                 <span className={css.pulse} aria-hidden />
                                 {peers.length > 0
-                                    ? "Suche weiter..."
-                                    : "Suche nach Geräten in deinem Netzwerk..."}
+                                    ? t("devices.searchingMore")
+                                    : t("devices.searching")}
                             </span>
                         </>
                     ) : (
                         <p className={css.discoveryOff}>
-                            Die Suche nach Geräten im Netzwerk ist abgeschaltet.
-                            Schalte sie{" "}
-                            <button
-                                type="button"
-                                className={css.settingsLink}
-                                onClick={() => openSettings()}
-                            >
-                                in den Einstellungen
-                            </button>{" "}
-                            wieder ein.
+                            <Trans
+                                t={t}
+                                i18nKey="devices.discoveryOff"
+                                components={{
+                                    settingsLink: (
+                                        <button
+                                            type="button"
+                                            className={css.settingsLink}
+                                            onClick={() => openSettings()}
+                                        />
+                                    ),
+                                }}
+                            />
                         </p>
                     )}
 
                     {!isLoading && (
                         <>
-                            <span className={css.label}>Deine Geräte</span>
+                            <span className={css.label}>
+                                {t("devices.own")}
+                            </span>
                             {isLoggedIn ? (
                                 <DeviceList
                                     selectedUuid={selectedDeviceUuid}
@@ -92,12 +96,17 @@ export default function DevicePanel({
                                 />
                             ) : (
                                 <span className={css.signIn}>
-                                    Melde dich an, um Geräte zu registrieren
+                                    {t("devices.loginToRegister")}
                                     <HelpTip hoverable>
-                                        Zu FAQ wechseln:{" "}
-                                        <Anchor to="/faq#device-management">
-                                            Geräteverwaltung
-                                        </Anchor>
+                                        <Trans
+                                            t={t}
+                                            i18nKey="devices.faqHint"
+                                            components={{
+                                                faqLink: (
+                                                    <Anchor to="/faq#device-management" />
+                                                ),
+                                            }}
+                                        />
                                     </HelpTip>
                                 </span>
                             )}
@@ -132,10 +141,11 @@ function LanTile({
     selected: boolean;
     onPick: (token: string) => void;
 }) {
+    const { t } = useTranslation("dashboard");
     const deviceInfo =
         peer.browser && peer.os
             ? `${peer.browser} · ${peer.os}`
-            : peer.browser || peer.os || "Unbekanntes Gerät";
+            : peer.browser || peer.os || t("devices.unknown");
 
     return (
         <DeviceTile

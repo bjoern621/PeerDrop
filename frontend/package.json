@@ -17,9 +17,12 @@
         "@radix-ui/react-accordion": "^1.2.12",
         "@tabler/icons-react": "3.49.0",
         "class-variance-authority": "^0.7.1",
+        "country-flag-icons": "^1.6.20",
+        "i18next": "^26.5.10",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-hook-form": "^7.66.0",
+        "react-i18next": "^17.1.8",
         "react-router": "^7.6.0",
         "react-toastify": "^11.0.5",
         "zod": "^4.1.12"

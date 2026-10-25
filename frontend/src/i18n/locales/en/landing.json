@@ -1,0 +1,64 @@
+{
+    "hero": {
+        "heading": "Secure P2P file transfer <br/><highlight>right in your browser</highlight>",
+        "text": "PeerDrop lets you share files between devices securely, with your data under your own control. No servers, no storage, super easy.",
+        "start": "Get started",
+        "howItWorks": "How does it work?"
+    },
+    "tutorial": {
+        "heading": "<highlight>It's that</highlight> easy",
+        "text": "Three steps to a secure file transfer",
+        "shareToken": {
+            "title": "Share the token",
+            "text": "The person who receives gives you their token. On the same network, you also see their device under \"Devices\"."
+        },
+        "send": {
+            "title": "Send text or files",
+            "text": "Enter the token. Then you can send texts, files or folders."
+        },
+        "accept": {
+            "title": "Accept",
+            "text": "Your first file waits for the peer to accept it. Every file after it transfers without a prompt."
+        }
+    },
+    "why": {
+        "heading": "<highlight>Why</highlight> PeerDrop?",
+        "easy": {
+            "title": "Super <noWrap>easy</noWrap>",
+            "text": "Forget uploading to a cloud and sharing links.<br/>Open PeerDrop in your browser, enter your partner's 5-character token and send."
+        },
+        "control": {
+            "title": "Your data, your <noWrap>control</noWrap>",
+            "text": "We open an encrypted peer-to-peer connection to transfer your data securely. Files never get cached on a server, so nobody else can read them."
+        },
+        "free": {
+            "title": "No sign-up, no ads, open <noWrap>source</noWrap>",
+            "text": "Send a single file or your whole photo collection. All without an account and without annoying ads. <br/>PeerDrop is fully open source."
+        },
+        "speed": {
+            "title": "Maximum <noWrap>speed</noWrap>",
+            "text": "You pay for a fast internet connection, so put it to use.<br/>The direct connection gives your data the shortest path and makes the exchange noticeably faster than conventional services."
+        }
+    },
+    "underTheHood": {
+        "heading": "The <highlight>technical</highlight> details",
+        "connection": {
+            "title": "P2P connection setup",
+            "text": "Once you send files and the recipient accepts them, the connection setup starts in the background. Our signaling server exchanges the connection data between the peers. Then the devices connect directly over WebRTC. Offer, answer and ICE candidates get negotiated within seconds. Local connections come first, then paths over the internet. PeerDrop picks the best path automatically. It gets past routers and firewalls without a VPN and without a shared Wi-Fi. Since nothing gets uploaded to a server, the transfer starts sooner than with upload services. Unlike LAN-only tools, PeerDrop works across the internet as well."
+        },
+        "encryption": {
+            "title": "End-to-end encryption by design",
+            "text": "End-to-end encryption comes built in and needs no setup. Your data travels over DTLS-encrypted WebRTC data channels from device to device. It takes no detour over third-party servers and never gets cached or decrypted on the way. The keys get negotiated in the browser and never leave it. Our servers see the minimum that brokering the connection needs. We store neither files nor transfer logs. There is no account, no cloud and no shared link to remove later. Privacy comes automatic and by default. You can check the end-to-end encryption yourself, since PeerDrop is <sourceLink>open source</sourceLink>."
+        },
+        "transfer": {
+            "title": "Optimized file transfer",
+            "text": "Behind the scenes, PeerDrop splits files into small blocks and adapts the flow to the available bandwidth. Transfers stay stable and fast while the network fluctuates. Folders get compressed before sending. Several files run in parallel in a queue. PeerDrop resumes interrupted transfers and checks the integrity of every file at the end. You wait noticeably less than with upload and download services. No third-party server sets limits. You can follow the progress of each file in real time."
+        },
+        "more": "Want to learn more about the technology behind PeerDrop? Have a look at <insideLink>Inside PeerDrop</insideLink>."
+    },
+    "callToAction": {
+        "heading": "Ready for secure file transfer?",
+        "text": "Connect the most direct way and share what you want.",
+        "start": "Get started now"
+    }
+}

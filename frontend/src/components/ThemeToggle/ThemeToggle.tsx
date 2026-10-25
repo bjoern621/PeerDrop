@@ -1,7 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { useThemeContext } from "../../context/ThemeContext";
 import css from "./ThemeToggle.module.scss";
 
 export default function ThemeToggle() {
+    const { t } = useTranslation();
     const { themePreference, colorScheme, setThemePreference } =
         useThemeContext();
 
@@ -17,13 +19,15 @@ export default function ThemeToggle() {
 
     const getThemeLabel = () => {
         if (themePreference === "system")
-            return `System (${colorScheme === "light" ? "Hell" : "Dunkel"})`;
-        return themePreference === "light" ? "Hell" : "Dunkel";
+            return t("theme.systemResolved", {
+                scheme: t(`theme.${colorScheme}`),
+            });
+        return t(`theme.${themePreference}`);
     };
 
     return (
         <button onClick={cycleTheme} className={css.themeToggle}>
-            Design: {getThemeLabel()}
+            {t("theme.toggle", { theme: getThemeLabel() })}
         </button>
     );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, RefObject } from "react";
 import { flushSync } from "react-dom";
+import { useTranslation } from "react-i18next";
 import css from "./AuthDialog.module.scss";
 import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
@@ -20,6 +21,7 @@ const initialSharedUsername = "";
 const initialSharedPassword = "";
 
 export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
+    const { t } = useTranslation("auth");
     const [mode, setMode] = useState<AuthForm>(initialFormMode);
     const [sharedUsername, setSharedUsername] = useState<string>(
         initialSharedUsername
@@ -133,7 +135,7 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
                 className={css.closeButton}
                 onClick={() => closeDialog()}
                 color_scheme={"error"}
-                aria-label="Anmeldedialog schließen"
+                aria-label={t("closeDialog")}
             >
                 <ExitIcon />
             </Button>

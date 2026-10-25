@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import Button from "../Button/Button";
 import FormField from "../FormField/FormField";
 import css from "./AuthForms.module.scss";
@@ -10,7 +11,7 @@ import {
     IconArrowRight as ArrowIcon,
     IconRefresh as SwitchIcon,
 } from "@tabler/icons-react";
-import { registerSchema } from "./types";
+import { registerSchema, ValidationMessage } from "./types";
 
 type RegisterFormFields = z.infer<typeof registerSchema>;
 
@@ -31,6 +32,7 @@ export default function RegisterForm({
     initialPassword,
     onPasswordChange,
 }: RegisterFormProps) {
+    const { t } = useTranslation("auth");
     const {
         register,
         handleSubmit,
@@ -44,19 +46,22 @@ export default function RegisterForm({
         },
     });
 
-    const lastUsernameError = useRef<string>("");
-    const lastPasswordError = useRef<string>("");
-    const lastPasswordRetypeError = useRef<string>("");
+    const lastUsernameError = useRef<ValidationMessage | null>(null);
+    const lastPasswordError = useRef<ValidationMessage | null>(null);
+    const lastPasswordRetypeError = useRef<ValidationMessage | null>(null);
 
     // Update cached error messages when there's a new error
     if (errors.username?.message) {
-        lastUsernameError.current = errors.username.message;
+        lastUsernameError.current = errors.username
+            .message as ValidationMessage;
     }
     if (errors.password?.message) {
-        lastPasswordError.current = errors.password.message;
+        lastPasswordError.current = errors.password
+            .message as ValidationMessage;
     }
     if (errors.passwordRetype?.message) {
-        lastPasswordRetypeError.current = errors.passwordRetype.message;
+        lastPasswordRetypeError.current = errors.passwordRetype
+            .message as ValidationMessage;
     }
 
     const onSubmitForm = (data: RegisterFormFields) => {
@@ -91,14 +96,18 @@ export default function RegisterForm({
             className={`${css.form} ${registerCss.registerForm}`}
         >
             <h2 className={`${css.title} ${registerCss.title}`}>
-                Registrieren
+                {t("register")}
             </h2>
 
             <FormField
                 type="text"
-                label="Benutzername"
+                label={t("username")}
                 autoComplete="username"
-                error={lastUsernameError.current}
+                error={
+                    lastUsernameError.current
+                        ? t(lastUsernameError.current)
+                        : undefined
+                }
                 showError={shouldShowError("username")}
                 {...register("username", {
                     onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -108,9 +117,13 @@ export default function RegisterForm({
 
             <FormField
                 type="password"
-                label="Passwort"
+                label={t("password")}
                 autoComplete="new-password"
-                error={lastPasswordError.current}
+                error={
+                    lastPasswordError.current
+                        ? t(lastPasswordError.current)
+                        : undefined
+                }
                 showError={shouldShowError("password")}
                 {...register("password", {
                     // Re-checks the retype field, so the mismatch error follows
@@ -124,9 +137,13 @@ export default function RegisterForm({
             <div className={registerCss.confirmPasswordField}>
                 <FormField
                     type="password"
-                    label="Passwort wiederholen"
+                    label={t("passwordRetype")}
                     autoComplete="new-password"
-                    error={lastPasswordRetypeError.current}
+                    error={
+                        lastPasswordRetypeError.current
+                            ? t(lastPasswordRetypeError.current)
+                            : undefined
+                    }
                     showError={shouldShowError("passwordRetype")}
                     {...register("passwordRetype")}
                 />
@@ -139,10 +156,10 @@ export default function RegisterForm({
                     onClick={onSwitchToLogin}
                 >
                     <SwitchIcon aria-hidden />
-                    Anmelden
+                    {t("login")}
                 </Button>
                 <Button type="submit" className={css.primaryButton}>
-                    Registrieren
+                    {t("register")}
                     <ArrowIcon aria-hidden />
                 </Button>
             </div>

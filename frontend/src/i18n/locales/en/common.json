@@ -1,0 +1,36 @@
+{
+    "header": {
+        "homeLink": "Go to the home page",
+        "navigation": "Main navigation",
+        "howItWorksLink": "Go to the home page",
+        "howItWorks": "How it works",
+        "shareLink": "Go to file sharing",
+        "share": "Share files"
+    },
+    "footer": {
+        "version": "Version:",
+        "insidePeerDrop": "Inside PeerDrop",
+        "faq": "FAQ",
+        "furtherLinks": "Learn more",
+        "information": "Information",
+        "elsewhere": "Also on"
+    },
+    "theme": {
+        "toggle": "Theme: {{theme}}",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System",
+        "systemResolved": "System ({{scheme}})"
+    },
+    "pages": {
+        "backHome": "Back to the home page",
+        "notFound": {
+            "heading": "Page <highlight>not found</highlight>",
+            "text": "The page you are looking for does not exist. Check the address for a typo, or the page may have moved."
+        },
+        "workInProgress": {
+            "heading": "Page <highlight>in progress</highlight>",
+            "text": "This page is still being built. It should be available soon."
+        }
+    }
+}

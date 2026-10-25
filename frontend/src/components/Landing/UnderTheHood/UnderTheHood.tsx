@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import css from "./UnderTheHood.module.scss";
 import Security from "../../../assets/illustrations/security.svg?react";
 import Compress from "../../../assets/illustrations/compression.svg?react";
@@ -13,12 +14,19 @@ const illustrations = {
 } as const;
 
 export default function UnderTheHood() {
+    const { t } = useTranslation("landing");
     const [selectedItem, setSelectedItem] = useState("item-0");
 
     return (
         <section>
             <h2>
-                Die <span className="text-highlight">technischen</span> Details
+                <Trans
+                    t={t}
+                    i18nKey="underTheHood.heading"
+                    components={{
+                        highlight: <span className="text-highlight" />,
+                    }}
+                />
             </h2>
 
             <div className={css.horizontalLayout}>
@@ -41,28 +49,12 @@ export default function UnderTheHood() {
                     <Accordion.Item value="item-0" className={css.textBox}>
                         <Accordion.Header className={css.textBoxHeader}>
                             <Accordion.Trigger>
-                                P2P Verbindungsaufbau
+                                {t("underTheHood.connection.title")}
                             </Accordion.Trigger>
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
                             <p className={css.textBoxText}>
-                                Sobald du Dateien schickst und der Empfänger sie
-                                annimmt, startet im Hintergrund der
-                                Verbindungsaufbau: Unser Signaling-Server
-                                tauscht die Verbindungsdaten zwischen den Peers
-                                aus. Danach verbinden sich die Geräte direkt per
-                                WebRTC. Angebot und Antwort, also Offer und
-                                Answer, sowie ICE-Kandidaten werden in Sekunden
-                                verhandelt. Dabei werden alle Verbindungswege
-                                priorisiert: zuerst lokale Verbindungen, dann
-                                über das Internet. Der perfekte Pfad wird
-                                automatisch ausgewählt. Router- und
-                                Firewall-Hürden werden automatisch umgangen,
-                                ganz ohne VPN und ohne gemeinsames WLAN. Weil
-                                nichts auf Server hochgeladen wird, geht es
-                                schneller los als bei Upload-Diensten. Und im
-                                Gegensatz zu reinen LAN-Tools funktioniert
-                                PeerDrop zuverlässig auch quer durchs Internet.
+                                {t("underTheHood.connection.text")}
                             </p>
                         </Accordion.Content>
                     </Accordion.Item>
@@ -70,32 +62,20 @@ export default function UnderTheHood() {
                     <Accordion.Item value="item-1" className={css.textBox}>
                         <Accordion.Header className={css.textBoxHeader}>
                             <Accordion.Trigger>
-                                Ende-zu-Ende-Verschlüsselung by Design
+                                {t("underTheHood.encryption.title")}
                             </Accordion.Trigger>
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
                             <p className={css.textBoxText}>
-                                Die Ende-zu-Ende-Verschlüsselung ist fest
-                                eingebaut und funktioniert ohne zusätzliches
-                                Setup. Deine Daten laufen über
-                                DTLS-verschlüsselte WebRTC DataChannel direkt
-                                von Gerät zu Gerät, ohne Umwege über Drittserver
-                                und ohne, dass Inhalte zwischengespeichert oder
-                                entschlüsselt werden. Die Schlüssel werden
-                                ausschließlich im Browser ausgehandelt und
-                                verlassen ihn nicht, unsere Server sehen nur das
-                                Minimum, das für die Vermittlung der Verbindung
-                                nötig ist. Wir speichern weder Dateien noch
-                                Transferprotokolle; es gibt keinen Account,
-                                keine Cloud und keine Freigaben, die man später
-                                wieder entfernen müsste. Privacy ohne Aufwand
-                                automatisch und standardmäßig. Du kannst die
-                                Ende-zu-Ende-Verschlüsselung selbst
-                                nachvollziehen, wir sind{" "}
-                                <Anchor to="https://github.com/bjoern621/PeerDrop">
-                                    Open Source
-                                </Anchor>
-                                .
+                                <Trans
+                                    t={t}
+                                    i18nKey="underTheHood.encryption.text"
+                                    components={{
+                                        sourceLink: (
+                                            <Anchor to="https://github.com/bjoern621/PeerDrop" />
+                                        ),
+                                    }}
+                                />
                             </p>
                         </Accordion.Content>
                     </Accordion.Item>
@@ -103,25 +83,12 @@ export default function UnderTheHood() {
                     <Accordion.Item value="item-2" className={css.textBox}>
                         <Accordion.Header className={css.textBoxHeader}>
                             <Accordion.Trigger>
-                                Optimierter Dateitransfer
+                                {t("underTheHood.transfer.title")}
                             </Accordion.Trigger>
                         </Accordion.Header>
                         <Accordion.Content className={css.textBoxTextWrapper}>
                             <p className={css.textBoxText}>
-                                Hinter den Kulissen zerlegt PeerDrop Dateien in
-                                kleine Blöcke und passt den Fluss automatisch an
-                                die verfügbare Bandbreite an. So bleiben
-                                Übertragungen stabil, auch wenn das Netz
-                                schwankt, und sie sind trotzdem schnell. Ordner
-                                werden vor dem Senden automatisch komprimiert,
-                                mehrere Dateien laufen parallel in einer
-                                wartenden Pipeline. Abgebrochene Übertragungen
-                                setzt PeerDrop nahtlos fort und bestätigt am
-                                Ende die Integrität jeder Datei. Ergebnis:
-                                spürbar weniger Wartezeit als bei Upload-
-                                Download-Lösungen und keine Limits fremder
-                                Server. Du kannst den Fortschritt der
-                                Übertragung pro Datei in Echtzeit sehen.
+                                {t("underTheHood.transfer.text")}
                             </p>
                         </Accordion.Content>
                     </Accordion.Item>
@@ -129,9 +96,11 @@ export default function UnderTheHood() {
             </div>
 
             <p className={css.insidePeerDropLink}>
-                Du willst noch mehr über die Technik hinter PeerDrop erfahren?
-                Schau dir unser <Anchor to="/inside">Inside PeerDrop</Anchor>{" "}
-                an!
+                <Trans
+                    t={t}
+                    i18nKey="underTheHood.more"
+                    components={{ insideLink: <Anchor to="/inside" /> }}
+                />
             </p>
         </section>
     );

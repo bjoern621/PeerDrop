@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import css from "./ReadView.module.scss";
 import { IconX as CloseIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
@@ -20,11 +21,14 @@ export default function ReadView({
     blocked: boolean;
     onClose: () => void;
 }) {
+    const { t } = useTranslation("dashboard");
     const messaging = useMessagingService();
     useEscapeKey(onClose);
     const peer = entry.peer.toUpperCase();
     const title =
-        entry.direction === "down" ? `Text von ${peer}` : `Text an ${peer}`;
+        entry.direction === "down"
+            ? t("transfers.read.from", { token: peer })
+            : t("transfers.read.to", { token: peer });
     const lines = entry.text.split("\n").length;
 
     return (
@@ -43,7 +47,7 @@ export default function ReadView({
                 <div className={css.bar}>
                     <span className={css.title}>{title}</span>
                     <span className={css.meta}>
-                        {lines} {lines === 1 ? "Zeile" : "Zeilen"} ·{" "}
+                        {t("lines", { count: lines })} ·{" "}
                         {getSizeInHumanReadableFormat(
                             new Blob([entry.text]).size
                         )}{" "}
@@ -58,8 +62,8 @@ export default function ReadView({
                         />
                     )}
                     <IconButton
-                        label="Text schließen"
-                        tooltip="Schließen (Esc)"
+                        label={t("transfers.read.close")}
+                        tooltip={t("transfers.read.closeShortcut")}
                         size="m"
                         onClick={onClose}
                     >

@@ -1,0 +1,14 @@
+{
+    "title": "Einstellungen",
+    "theme": "Design",
+    "receivedFiles": {
+        "title": "Empfangene Dateien",
+        "autoSave": "Automatisch speichern",
+        "autoSaveHint": "Wenn deaktiviert, wird eine empfangene Datei erst nach einem Klick auf SPEICHERN gespeichert."
+    },
+    "network": {
+        "title": "Netzwerk",
+        "lanDiscovery": "Geräte im Netzwerk finden",
+        "lanDiscoveryHint": "Dein Gerät erscheint dann bei anderen Geräten im selben Netzwerk und zeigt sie dir an."
+    }
+}

@@ -1,4 +1,6 @@
 import { ReactNode, useState } from "react";
+import { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import css from "./TokenCard.module.scss";
 import {
     IconId as ProfileIcon,
@@ -22,6 +24,7 @@ import IconButton from "../IconButton/IconButton";
 import CardHeading from "./CardHeading/CardHeading";
 
 export default function TokenCard() {
+    const { t } = useTranslation("dashboard");
     const token = useOwnToken();
     const { isLoggedIn } = useAuth();
     const resetWebsocket = useResetWebsocket();
@@ -62,11 +65,11 @@ export default function TokenCard() {
         <section className={css.tokenCard} aria-labelledby="own-token">
             <div className={css.header}>
                 <CardHeading id="own-token" icon={ProfileIcon} tone="secondary">
-                    Dein Token
+                    {t("token.title")}
                 </CardHeading>
                 {isLoggedIn && (
                     <IconButton
-                        label="Token ändern"
+                        label={t("token.change")}
                         size="m"
                         onClick={startEditing}
                     >
@@ -82,7 +85,7 @@ export default function TokenCard() {
                     autoFocus
                     autoComplete="off"
                     spellCheck={false}
-                    aria-label="Neuer Token"
+                    aria-label={t("token.newToken")}
                     onChange={e =>
                         setEditedToken(chosenTokenFromInput(e.target.value))
                     }
@@ -102,12 +105,12 @@ export default function TokenCard() {
             )}
             <div className={css.shareRow}>
                 <p className={css.shareText}>
-                    {shareText(editing, inUseToken, token)}
+                    {shareText(t, editing, inUseToken, token)}
                 </p>
                 <CopyIconButton
                     text={token?.toUpperCase()}
-                    label="Token kopieren"
-                    copiedLabel="Token kopiert"
+                    label={t("token.copy")}
+                    copiedLabel={t("token.copied")}
                     icon={<CopyIcon />}
                 />
                 <CopyIconButton
@@ -115,8 +118,8 @@ export default function TokenCard() {
                         token &&
                         `${getRuntimeEnvVars().frontendDomain}/connect?token=${token}`
                     }
-                    label="Token als Link kopieren"
-                    copiedLabel="Link kopiert"
+                    label={t("token.copyLink")}
+                    copiedLabel={t("token.linkCopied")}
                     icon={<CopyLinkIcon />}
                 />
             </div>
@@ -133,17 +136,18 @@ function chosenTokenFromInput(value: string): string {
 }
 
 function shareText(
+    t: TFunction<"dashboard">,
     editing: boolean,
     inUseToken: string | null,
     token: string | undefined
 ): string {
     if (editing) {
-        return `Wähle ${CLIENT_TOKEN_LENGTH} Zeichen aus A bis Z und 0 bis 9.`;
+        return t("token.pickCharacters", { length: CLIENT_TOKEN_LENGTH });
     }
     if (inUseToken && inUseToken !== token) {
-        return `${inUseToken.toUpperCase()} ist gerade belegt. Lade die Seite später neu, um den Token zu bekommen.`;
+        return t("token.inUse", { token: inUseToken.toUpperCase() });
     }
-    return "Teile diesen Token mit anderen";
+    return t("token.share");
 }
 
 /** Copies `text` and shows a check mark for a moment; disabled while there is no text. */

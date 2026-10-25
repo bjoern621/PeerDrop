@@ -1,3 +1,5 @@
+import { detectLanguage, isLanguage, Language } from "../i18n/languages";
+
 /**
  * User-facing app settings, persisted in localStorage (one key per setting).
  * The module keeps a single mutable snapshot; React components subscribe via
@@ -15,16 +17,21 @@ export interface AppSettings {
      * when true; otherwise the device stays hidden and no devices are listed.
      */
     lanDiscovery: boolean;
+
+    /** Language of the interface. Follows the browser until the user picks one. */
+    language: Language;
 }
 
 const STORAGE_KEYS: Record<keyof AppSettings, string> = {
     autoSaveDownloads: "autoSaveDownloads",
     lanDiscovery: "lanDiscovery",
+    language: "language",
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
     autoSaveDownloads: true,
     lanDiscovery: true,
+    language: detectLanguage(),
 };
 
 function readBooleanSetting(key: string, defaultValue: boolean): boolean {
@@ -32,6 +39,11 @@ function readBooleanSetting(key: string, defaultValue: boolean): boolean {
     if (raw === "true") return true;
     if (raw === "false") return false;
     return defaultValue;
+}
+
+function readLanguageSetting(key: string, defaultValue: Language): Language {
+    const raw = localStorage.getItem(key);
+    return isLanguage(raw) ? raw : defaultValue;
 }
 
 let settings: AppSettings = {
@@ -42,6 +54,10 @@ let settings: AppSettings = {
     lanDiscovery: readBooleanSetting(
         STORAGE_KEYS.lanDiscovery,
         DEFAULT_SETTINGS.lanDiscovery
+    ),
+    language: readLanguageSetting(
+        STORAGE_KEYS.language,
+        DEFAULT_SETTINGS.language
     ),
 };
 

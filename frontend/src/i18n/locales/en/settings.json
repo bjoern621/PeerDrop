@@ -1,0 +1,14 @@
+{
+    "title": "Settings",
+    "theme": "Theme",
+    "receivedFiles": {
+        "title": "Received files",
+        "autoSave": "Save automatically",
+        "autoSaveHint": "When off, a received file gets saved after a click on SAVE."
+    },
+    "network": {
+        "title": "Network",
+        "lanDiscovery": "Find devices in your network",
+        "lanDiscoveryHint": "Your device then shows up on other devices in the same network and lists them for you."
+    }
+}

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import css from "./ActivityList.module.scss";
 import { IconChevronRight as ArrowIcon } from "@tabler/icons-react";
 import { useScrollShadows } from "../../../hooks/useScrollShadows";
@@ -8,12 +9,7 @@ import { buildActivity, DEFAULT_SORT, Sort, SortKey } from "../activity";
 import { FileRow, FolderRow, OfferRow, TextRow } from "./ActivityRows";
 import ReadView from "./ReadView";
 
-const COLUMNS: { key: SortKey; label: string }[] = [
-    { key: "name", label: "Name" },
-    { key: "progress", label: "Fortschritt" },
-    { key: "size", label: "Größe" },
-    { key: "time", label: "Zeitstempel" },
-];
+const COLUMNS: SortKey[] = ["name", "progress", "size", "time"];
 
 /** Everything sent and received in this session, in one sortable list. */
 export default function ActivityList({
@@ -23,6 +19,7 @@ export default function ActivityList({
     messaging: MessagingSnapshot;
     transfers: TransferSnapshot[];
 }) {
+    const { t, i18n } = useTranslation("dashboard");
     const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
     const [readId, setReadId] = useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -32,7 +29,9 @@ export default function ActivityList({
         messaging.texts,
         messaging.offers,
         transfers,
-        sort
+        sort,
+        t,
+        i18n.language
     );
     const reading = messaging.texts.find(entry => entry.id === readId);
 
@@ -47,7 +46,11 @@ export default function ActivityList({
         );
 
     return (
-        <div role="table" aria-label="Übertragungen" className={css.table}>
+        <div
+            role="table"
+            aria-label={t("transfers.title")}
+            className={css.table}
+        >
             <div
                 role="rowgroup"
                 className={css.head}
@@ -55,10 +58,10 @@ export default function ActivityList({
             >
                 <div role="row" className={css.headRow}>
                     {COLUMNS.map(column => {
-                        const active = sort.key === column.key;
+                        const active = sort.key === column;
                         return (
                             <div
-                                key={column.key}
+                                key={column}
                                 role="columnheader"
                                 aria-sort={
                                     active
@@ -71,9 +74,9 @@ export default function ActivityList({
                                 <button
                                     type="button"
                                     className={css.sortButton}
-                                    onClick={() => toggleSort(column.key)}
+                                    onClick={() => toggleSort(column)}
                                 >
-                                    {column.label}
+                                    {t(`transfers.columns.${column}`)}
                                     {active && (
                                         <ArrowIcon
                                             className={
@@ -96,7 +99,7 @@ export default function ActivityList({
                         {items.length === 0 && (
                             <div role="row">
                                 <div role="cell" className={css.empty}>
-                                    Keine Übertragungen
+                                    {t("transfers.empty")}
                                 </div>
                             </div>
                         )}
