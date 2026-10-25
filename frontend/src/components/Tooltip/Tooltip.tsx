@@ -55,15 +55,6 @@ export default function Tooltip({
         }
     };
 
-    // A tap fires no mouseleave afterwards, which would leave the tooltip of a
-    // pressed button open until the next tap elsewhere.
-    const handleClick = (event: React.MouseEvent) => {
-        if ((event.target as Element).closest("button, a")) {
-            window.clearTimeout(hideTimeout.current);
-            setIsVisible(false);
-        }
-    };
-
     const tooltipClasses = [
         css.tooltip,
         css[position],
@@ -97,7 +88,6 @@ export default function Tooltip({
                 }
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
-                onClick={handleClick}
             >
                 {children}
             </div>
