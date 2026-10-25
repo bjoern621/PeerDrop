@@ -34,7 +34,8 @@ export default function DevicePanel({
     const { peers } = useLanPeers();
     const { lanDiscovery } = useSettings();
     const { openSettings } = useSettingsDialog();
-    const { isLoggedIn, isLoading } = useAuth();
+    const { isLoggedIn, isStatusKnown } = useAuth();
+    const pending = isStatusKnown ? "" : css.pending;
     const scrollRef = useRef<HTMLDivElement>(null);
     const shadows = useScrollShadows(scrollRef);
 
@@ -84,33 +85,29 @@ export default function DevicePanel({
                         </p>
                     )}
 
-                    {!isLoading && (
-                        <>
-                            <span className={css.label}>
-                                {t("devices.own")}
-                            </span>
-                            {isLoggedIn ? (
-                                <DeviceList
-                                    selectedUuid={selectedDeviceUuid}
-                                    onSelect={onPickDevice}
+                    <span className={`${css.label} ${pending}`}>
+                        {t("devices.own")}
+                    </span>
+                    {isLoggedIn ? (
+                        <DeviceList
+                            selectedUuid={selectedDeviceUuid}
+                            onSelect={onPickDevice}
+                        />
+                    ) : (
+                        <span className={`${css.signIn} ${pending}`}>
+                            {t("devices.loginToRegister")}
+                            <HelpTip hoverable>
+                                <Trans
+                                    t={t}
+                                    i18nKey="devices.faqHint"
+                                    components={{
+                                        faqLink: (
+                                            <Anchor to="/faq#device-management" />
+                                        ),
+                                    }}
                                 />
-                            ) : (
-                                <span className={css.signIn}>
-                                    {t("devices.loginToRegister")}
-                                    <HelpTip hoverable>
-                                        <Trans
-                                            t={t}
-                                            i18nKey="devices.faqHint"
-                                            components={{
-                                                faqLink: (
-                                                    <Anchor to="/faq#device-management" />
-                                                ),
-                                            }}
-                                        />
-                                    </HelpTip>
-                                </span>
-                            )}
-                        </>
+                            </HelpTip>
+                        </span>
                     )}
                 </div>
                 <div

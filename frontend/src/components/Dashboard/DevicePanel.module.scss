@@ -147,6 +147,10 @@
     }
 }
 
+.pending {
+    visibility: hidden;
+}
+
 .signIn {
     display: flex;
     align-items: center;
