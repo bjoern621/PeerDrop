@@ -4,9 +4,13 @@
 .header {
     width: 100%;
 
-    position: sticky;
+    position: relative;
     z-index: 100;
-    top: 0;
+
+    // Reserves the scrollbar gutter of the page below, so both centre alike.
+    overflow: hidden;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
 
     border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
     background-color: var(--background);

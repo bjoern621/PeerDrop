@@ -1,7 +1,23 @@
 .layout-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100dvh;
+}
+
+// The page below the header scrolls, so the scrollbar leaves the header out.
+.layout-scroll {
+    flex: 1;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-muted) var(--background);
+    scrollbar-gutter: stable;
+
+    scroll-behavior: smooth;
 }
 
 main {
@@ -12,18 +28,14 @@ main {
     width: 100%;
 }
 
-// Pages that fill the window keep header and footer in view and scroll inside.
+// Pages that fill the window keep the footer in view and scroll inside.
 @media (width > 760px) {
-    .layout-container.full-height {
-        height: 100vh;
-        min-height: 720px;
-
-        main {
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            max-width: 1440px;
-        }
+    .layout-container.full-height main {
+        flex-basis: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 609px; // Height in a 720px window, below which the page scrolls.
+        max-width: 1440px;
     }
 }
 

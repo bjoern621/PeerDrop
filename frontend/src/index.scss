@@ -6,14 +6,6 @@
 @use "react-toastify/dist/ReactToastify.css";
 @use "theme/toastify-styles";
 
-html {
-    scrollbar-width: thin;
-    scrollbar-color: var(--text-muted) var(--background);
-    scrollbar-gutter: stable;
-
-    scroll-behavior: smooth;
-}
-
 body {
     background-color: var(--background);
     color: var(--text);
