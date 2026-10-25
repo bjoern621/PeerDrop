@@ -139,7 +139,9 @@
     .fileIcon2,
     .fileIcon3 {
         position: absolute;
-        transition: all 0.3s ease;
+        transition:
+            transform 0.3s ease,
+            opacity 0.3s ease;
     }
 
     // Outline icons would show through each other, so only the front one
