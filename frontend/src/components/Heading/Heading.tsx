@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
 import { IconMenu2 as MenuIcon, IconX as CloseIcon } from "@tabler/icons-react";
@@ -25,6 +25,14 @@ export default function Heading() {
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const isMenuLayout = useMediaQuery(MENU_LAYOUT_QUERY);
+    const menuRef = useRef<HTMLDivElement>(null!);
+
+    // An open popover stays in the top layer and leaves the wide header empty.
+    useEffect(() => {
+        if (!isMenuLayout && menuRef.current.matches(":popover-open")) {
+            menuRef.current.hidePopover();
+        }
+    }, [isMenuLayout]);
 
     return (
         <header className={css.header}>
@@ -65,6 +73,7 @@ export default function Heading() {
             </div>
 
             <div
+                ref={menuRef}
                 id="header-menu"
                 className={css.menu}
                 popover="auto"
