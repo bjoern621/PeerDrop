@@ -49,11 +49,24 @@
     @include visually-hidden;
 }
 
-// Margin rather than padding, so scrolled text stops short of the frame.
-.text {
+// Margin keeps scrolled text off the frame. Padding keeps it off the scrollbars.
+// The box scrolls in place of the textarea, since browsers leave a textarea's right padding out of its scroll width.
+.scroller {
     flex: 1;
     min-height: 0;
     margin: var(--space-8) var(--space-12);
+    padding: 0 var(--space-12) var(--space-8) 0;
+    overflow: auto;
+}
+
+// Scrolls itself where field-sizing is unsupported.
+.text {
+    display: block;
+    field-sizing: content;
+    box-sizing: border-box;
+    min-width: 100%;
+    min-height: 100%;
+    margin: 0;
     resize: none;
     padding: 0;
     border: none;
