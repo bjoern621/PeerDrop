@@ -15,8 +15,17 @@ const THEME_OPTIONS = ["light", "dark", "system"] as const;
  * anchored below the header like the auth dialog and closes on Escape and
  * on clicks outside of it. The open state comes from the settings dialog
  * context, so other components can open the dialog as well.
+ *
+ * With `labelled`, the gear sits beside the title in a text button carrying
+ * `labelClassName`.
  */
-export default function SettingsMenu() {
+export default function SettingsMenu({
+    labelled = false,
+    labelClassName = "",
+}: {
+    labelled?: boolean;
+    labelClassName?: string;
+}) {
     const { t } = useTranslation(["settings", "common"]);
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const { isOpen, openSettings, closeSettings } = useSettingsDialog();
@@ -43,17 +52,31 @@ export default function SettingsMenu() {
 
     return (
         <>
-            <IconButton
-                className={css.gearButton}
-                size={"m"}
-                label={t("title")}
-                aria-haspopup="dialog"
-                aria-expanded={isOpen}
-                disabled={isOpen}
-                onClick={() => openSettings()}
-            >
-                <SettingsIcon aria-hidden />
-            </IconButton>
+            {labelled ? (
+                <button
+                    type="button"
+                    className={labelClassName}
+                    aria-haspopup="dialog"
+                    aria-expanded={isOpen}
+                    disabled={isOpen}
+                    onClick={() => openSettings()}
+                >
+                    <SettingsIcon aria-hidden />
+                    {t("title")}
+                </button>
+            ) : (
+                <IconButton
+                    className={css.gearButton}
+                    size={"m"}
+                    label={t("title")}
+                    aria-haspopup="dialog"
+                    aria-expanded={isOpen}
+                    disabled={isOpen}
+                    onClick={() => openSettings()}
+                >
+                    <SettingsIcon aria-hidden />
+                </IconButton>
+            )}
 
             <dialog
                 ref={dialogRef}

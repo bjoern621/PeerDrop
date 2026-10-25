@@ -7,17 +7,24 @@ import css from "./Heading.module.scss";
 import StableText from "../StableText/StableText";
 import AuthButton from "../Auth/AuthButton";
 import SettingsMenu from "../SettingsMenu/SettingsMenu";
-import { LanguageFlagButton } from "../LanguageToggle/LanguageToggle";
+import LanguageToggle, {
+    LanguageFlagButton,
+} from "../LanguageToggle/LanguageToggle";
 import IconButton from "../IconButton/IconButton";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+
+// Matches $header-breakpoint in Variables.scss.
+const MENU_LAYOUT_QUERY = "(width <= 960px)";
 
 /**
  * On narrow screens, language, settings and account controls sit in a popover
- * menu opened from the right. On wide screens, the popover stays closed and
- * shows its content inline.
+ * menu opened from the right, as a list with their names spelled out. On wide
+ * screens, the popover stays closed and shows its content inline as icons.
  */
 export default function Heading() {
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const isMenuLayout = useMediaQuery(MENU_LAYOUT_QUERY);
 
     return (
         <header className={css.header}>
@@ -68,11 +75,24 @@ export default function Heading() {
                     }
                 }}
             >
-                <div className={css.authSection}>
-                    <LanguageFlagButton />
-                    <SettingsMenu />
-                    <AuthButton />
-                </div>
+                <ul className={css.authSection}>
+                    <li>
+                        {isMenuLayout ? (
+                            <LanguageToggle className={css.menuItem} />
+                        ) : (
+                            <LanguageFlagButton />
+                        )}
+                    </li>
+                    <li>
+                        <SettingsMenu
+                            labelled={isMenuLayout}
+                            labelClassName={css.menuItem}
+                        />
+                    </li>
+                    <li>
+                        <AuthButton />
+                    </li>
+                </ul>
             </div>
         </header>
     );

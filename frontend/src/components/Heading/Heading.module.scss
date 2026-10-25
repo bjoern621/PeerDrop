@@ -123,10 +123,50 @@
     align-items: center;
     gap: var(--space-8);
 
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    > li {
+        display: flex;
+    }
+
     @media (max-width: $header-breakpoint) {
         position: static;
         transform: none;
-        flex-wrap: wrap;
+
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-16);
+
+        > li > button {
+            flex-grow: 1;
+        }
+    }
+
+    // Nested to outweigh the footer styles of the language toggle.
+    .menuItem {
+        display: flex;
+        align-items: center;
+        gap: var(--space-12);
+
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--text);
+        font: inherit;
+        font-weight: var(--font-weight-regular);
+        cursor: pointer;
+        text-underline-position: under;
+
+        > svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        &:hover:not(:disabled) {
+            text-decoration: underline;
+        }
     }
 }
 
