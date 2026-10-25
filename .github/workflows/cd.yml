@@ -60,18 +60,3 @@ jobs:
         uses: ./.github/workflows/docker-publish-database.yml
         with:
             tags: ${{ needs.determine-image-tag.outputs.TAGS }}
-
-    deploy:
-        name: Deploy to Production
-        runs-on: ubuntu-latest
-        needs:
-            - build-and-push-frontend
-            - build-and-push-backend
-            - build-and-push-database
-
-        steps:
-            - name: Trigger Watchtower Update
-              run: |
-                  curl -X POST \
-                    -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
-                    https://watchtower.bjoernblessin.de/peerdrop/v1/update
