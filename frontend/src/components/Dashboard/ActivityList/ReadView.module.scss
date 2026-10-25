@@ -1,4 +1,5 @@
 @use "../card" as *;
+@use "../layout" as *;
 
 .overlay {
     position: absolute;
@@ -72,7 +73,7 @@
     }
 }
 
-@media (width <= 760px) {
+@media (width <= #{$phone-breakpoint}) {
     .overlay {
         position: fixed;
         z-index: 130;

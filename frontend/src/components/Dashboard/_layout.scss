@@ -1,0 +1,20 @@
+// Up to this width the cards stack as full-width sections.
+// Dashboard.tsx and TextComposer.tsx repeat it in their queries.
+$phone-breakpoint: 760px;
+
+// Columns of the wide layout, both spaced by --space-24.
+$left-column-width: 300px;
+$column-gap: 24px;
+$dashboard-padding: 24px;
+
+// Columns of the activity table. Their minimums add up to $activity-min-width.
+$activity-columns: minmax(200px, 1fr) minmax(240px, 300px) 100px 140px;
+$activity-min-width: 200px + 240px + 100px + 140px;
+
+// Below this width the activity table no longer fits beside the left column and runs below both.
+// Adds the side padding of main in Layout.scss, --space-24 on each side, and room for the page scrollbar.
+// Dashboard.tsx repeats it in its query.
+$page-padding: 2 * 24px;
+$scrollbar-room: 16px;
+$beside-table: $left-column-width + $column-gap + $page-padding;
+$compact-breakpoint: $beside-table + $activity-min-width + $scrollbar-room;

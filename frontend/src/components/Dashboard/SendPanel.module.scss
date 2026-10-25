@@ -1,4 +1,5 @@
 @use "card" as *;
+@use "layout" as *;
 
 .panel {
     @include card;
@@ -72,7 +73,7 @@
     font-weight: var(--font-weight-semibold);
 }
 
-@media (width <= 760px) {
+@media (width <= #{$phone-breakpoint}) {
     .hint {
         position: fixed;
         z-index: 120;

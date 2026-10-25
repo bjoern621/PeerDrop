@@ -62,7 +62,7 @@ export default function ActivityList({
                 role="rowgroup"
                 className={css.head}
                 style={{
-                    paddingRight: `calc(var(--space-12) + ${shadows.scrollbar}px)`,
+                    paddingRight: `calc(var(--row-gutter) + ${shadows.scrollbar}px)`,
                 }}
             >
                 <div role="row" ref={headRowRef} className={css.headRow}>

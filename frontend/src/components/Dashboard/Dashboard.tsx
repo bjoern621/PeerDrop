@@ -44,9 +44,9 @@ export default function Dashboard() {
         () => transferTracker.getSnapshot()
     );
     const ownToken = useOwnToken();
+    // Match $phone-breakpoint and $compact-breakpoint in _layout.scss.
     const stacked = useMediaQuery("(width <= 760px)");
-    // Below this width the activity table no longer fits beside the left column.
-    const compact = useMediaQuery("(760px < width <= 1120px)");
+    const compact = useMediaQuery("(760px < width < 1068px)");
     const [searchParams] = useSearchParams();
 
     const [recipient, setRecipient] = useState(() =>

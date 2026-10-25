@@ -1,14 +1,15 @@
 @use "../../theme/shadows.scss" as *;
 @use "card" as *;
+@use "layout" as *;
 
 .dashboard {
     position: relative;
     flex: 1 1 0;
     min-height: 0;
     display: grid;
-    grid-template-columns: 300px minmax(0, 1fr);
-    gap: var(--space-24);
-    padding: var(--space-24) 0;
+    grid-template-columns: $left-column-width minmax(0, 1fr);
+    gap: $column-gap;
+    padding: $dashboard-padding 0;
 
     @include background-effect;
 
@@ -44,7 +45,7 @@
 }
 
 // The list runs below both columns, which leave it too little width beside each other.
-@media (760px < width <= 1120px) {
+@media (#{$phone-breakpoint} < width < #{$compact-breakpoint}) {
     .dashboard {
         grid-template-rows: auto minmax(0, 1fr);
         grid-template-areas:
@@ -72,7 +73,7 @@
     }
 }
 
-@media (width <= 760px) {
+@media (width <= #{$phone-breakpoint}) {
     .dashboard {
         display: flex;
         flex-direction: column;

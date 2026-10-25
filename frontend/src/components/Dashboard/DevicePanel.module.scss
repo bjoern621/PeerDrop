@@ -1,4 +1,5 @@
 @use "card" as *;
+@use "layout" as *;
 
 .panel {
     @include card;
@@ -57,8 +58,8 @@
     position: absolute;
     z-index: 10;
     position-anchor: --devices-toggle;
-    inset: calc(anchor(bottom) + var(--space-8)) anchor(right) var(--space-24)
-        anchor(left);
+    inset: calc(anchor(bottom) + var(--space-8)) anchor(right)
+        $dashboard-padding anchor(left);
     height: fit-content;
     background:
         linear-gradient(var(--primary-5), var(--primary-5)), var(--background);
@@ -227,7 +228,7 @@
 }
 
 // The phone page scrolls as a whole, so the panel takes its natural height.
-@media (width <= 760px) {
+@media (width <= #{$phone-breakpoint}) {
     .panel,
     .scrollFrame,
     .scroll {

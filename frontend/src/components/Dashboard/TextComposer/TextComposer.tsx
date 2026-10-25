@@ -26,6 +26,7 @@ const GROW_MS = 200;
 
 /** Space kept free below the large field: the phone shows the hint there. */
 function bottomReserve(): number {
+    // Matches $phone-breakpoint in Dashboard/_layout.scss.
     return window.matchMedia("(width <= 760px)").matches ? 120 : 16;
 }
 

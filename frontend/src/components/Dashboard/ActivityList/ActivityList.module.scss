@@ -1,7 +1,10 @@
-$columns: minmax(200px, 1fr) minmax(240px, 300px) 100px 140px;
-$min-width: 680px;
+@use "../layout" as *;
 
 .table {
+    // Room beside the rows for their shadow, which the scroll box would clip.
+    // ActivityList.tsx adds it to the right padding of the head.
+    --row-gutter: var(--space-12);
+
     position: relative;
     flex: 1 1 0;
     min-height: 0;
@@ -14,15 +17,15 @@ $min-width: 680px;
     position: relative;
     z-index: 4;
     flex: none;
-    margin: 0 calc(-1 * var(--space-12));
-    padding: 0 var(--space-12);
+    margin: 0 calc(-1 * var(--row-gutter));
+    padding: 0 var(--row-gutter);
     overflow-x: clip;
 }
 
 .headRow {
-    min-width: $min-width;
+    min-width: $activity-min-width;
     display: grid;
-    grid-template-columns: $columns;
+    grid-template-columns: $activity-columns;
     border: 1px solid var(--border);
     border-radius: var(--space-16);
     background-color: var(--background);
@@ -69,7 +72,7 @@ $min-width: 680px;
     position: relative;
     flex: 1 1 0;
     min-height: 0;
-    margin: 0 calc(-1 * var(--space-12)) calc(-1 * var(--space-16));
+    margin: 0 calc(-1 * var(--row-gutter)) calc(-1 * var(--space-16));
 }
 
 .scroll {
@@ -77,11 +80,11 @@ $min-width: 680px;
     inset: 0;
     box-sizing: border-box;
     overflow: auto;
-    padding: var(--space-8) var(--space-12) var(--space-16);
+    padding: var(--space-8) var(--row-gutter) var(--space-16);
 }
 
 .rows {
-    min-width: $min-width;
+    min-width: $activity-min-width;
     border: 1px solid var(--border);
     border-radius: var(--space-16);
     overflow: hidden;
@@ -99,7 +102,7 @@ $min-width: 680px;
 .shadowBottom {
     position: absolute;
     z-index: 3;
-    left: var(--space-12);
+    left: var(--row-gutter);
     height: 14px;
     pointer-events: none;
     opacity: 0;
@@ -122,7 +125,7 @@ $min-width: 680px;
 
 .row {
     display: grid;
-    grid-template-columns: $columns;
+    grid-template-columns: $activity-columns;
     border-bottom: 1px solid var(--border);
     color: var(--text-muted);
 
@@ -307,7 +310,7 @@ $min-width: 680px;
     opacity: 0.75;
 }
 
-@media (width <= 760px) {
+@media (width <= #{$phone-breakpoint}) {
     .table {
         flex: none;
     }
