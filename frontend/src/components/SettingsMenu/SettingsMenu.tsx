@@ -42,6 +42,12 @@ export default function SettingsMenu({
     // closed one, so both calls go through the element's own open flag.
     useEffect(() => {
         if (isOpen && !dialogRef.current.open) {
+            // On narrow screens the dialog sits in the closed header menu,
+            // whose hidden popover would leave the dialog without a box.
+            const menu = dialogRef.current.closest<HTMLElement>("[popover]");
+            if (menu && getComputedStyle(menu).display === "none") {
+                menu.showPopover();
+            }
             dialogRef.current.showModal();
         } else if (!isOpen && dialogRef.current.open) {
             dialogRef.current.close();
