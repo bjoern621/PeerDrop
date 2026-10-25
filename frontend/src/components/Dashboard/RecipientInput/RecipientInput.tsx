@@ -90,6 +90,7 @@ export default function RecipientInput({
             type="search"
             enterKeyHint="done"
             className={css.input}
+            containerClassName={css.container}
             data-bwignore="true"
             data-lpignore="true"
             data-1p-ignore="true"

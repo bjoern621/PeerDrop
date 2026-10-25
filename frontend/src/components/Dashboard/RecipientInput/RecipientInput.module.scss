@@ -1,3 +1,8 @@
+// Lets the slots narrow below their width on phones too narrow for them.
+.container {
+    min-width: 0;
+}
+
 .slots-container {
     display: flex;
     align-items: center;
@@ -6,6 +11,7 @@
 
 .otp-slot {
     width: 44px;
+    min-width: 0;
     height: 56px;
     box-sizing: border-box;
 
