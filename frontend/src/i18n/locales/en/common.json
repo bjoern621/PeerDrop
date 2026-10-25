@@ -5,7 +5,8 @@
         "howItWorksLink": "Go to the home page",
         "howItWorks": "How it works",
         "shareLink": "Go to file sharing",
-        "share": "Share files"
+        "share": "Share files",
+        "menu": "Menu"
     },
     "footer": {
         "version": "Version:",
