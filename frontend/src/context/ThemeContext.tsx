@@ -11,6 +11,9 @@ const LOCAL_STORAGE_KEY = "theme";
 type ColorScheme = "light" | "dark";
 type ThemePreference = ColorScheme | "system";
 const prefersDarkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+const prefersReducedMotionQuery = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+);
 
 interface ThemeContextType {
     themePreference: ThemePreference;
@@ -51,7 +54,7 @@ export function applyStoredColorScheme() {
 }
 
 // Color transitions serve state changes such as a token turning online, and
-// would otherwise fade the whole page on a theme switch.
+// would otherwise fade single elements apart from the rest of the page.
 function applyColorSchemeWithoutTransitions(colorScheme: ColorScheme) {
     const root = document.documentElement;
     root.setAttribute("data-theme-switching", "");
@@ -59,6 +62,21 @@ function applyColorSchemeWithoutTransitions(colorScheme: ColorScheme) {
     // Reading a computed style recalculates the page while transitions are off.
     void getComputedStyle(root).color;
     root.removeAttribute("data-theme-switching");
+}
+
+// The view transition crossfades a snapshot of the page, so gradients and SVG
+// fade as well, which element transitions leave out.
+function switchColorScheme(colorScheme: ColorScheme) {
+    if (document.documentElement.getAttribute("data-theme") === colorScheme) {
+        return;
+    }
+    if (!document.startViewTransition || prefersReducedMotionQuery.matches) {
+        applyColorSchemeWithoutTransitions(colorScheme);
+        return;
+    }
+    document.startViewTransition(() =>
+        applyColorSchemeWithoutTransitions(colorScheme)
+    );
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -89,7 +107,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, [themePreference]);
 
     useLayoutEffect(() => {
-        applyColorSchemeWithoutTransitions(colorScheme);
+        switchColorScheme(colorScheme);
     }, [colorScheme]);
 
     const setThemePreference = (newPreference: ThemePreference) => {
