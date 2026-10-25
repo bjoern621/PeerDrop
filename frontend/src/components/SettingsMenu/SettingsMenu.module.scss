@@ -73,8 +73,18 @@
     gap: var(--space-16);
 }
 
+.panelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 .panelTitle {
     font-weight: var(--font-weight-medium);
+}
+
+.closeButton {
+    padding: var(--space-8);
 }
 
 .section {

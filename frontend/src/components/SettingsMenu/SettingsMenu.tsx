@@ -1,7 +1,11 @@
 import { useEffect, useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import css from "./SettingsMenu.module.scss";
-import { IconSettings as SettingsIcon } from "@tabler/icons-react";
+import {
+    IconSettings as SettingsIcon,
+    IconX as CloseIcon,
+} from "@tabler/icons-react";
+import Button from "../Button/Button";
 import IconButton from "../IconButton/IconButton";
 import { useThemeContext } from "../../context/ThemeContext";
 import useSettings from "../../hooks/useSettings";
@@ -86,7 +90,17 @@ export default function SettingsMenu({
                 onClick={handleBackdropClick}
             >
                 <div className={css.panelContent}>
-                    <div className={css.panelTitle}>{t("title")}</div>
+                    <div className={css.panelHeader}>
+                        <div className={css.panelTitle}>{t("title")}</div>
+                        <Button
+                            className={css.closeButton}
+                            color_scheme={"error"}
+                            aria-label={t("close")}
+                            onClick={() => closeSettings()}
+                        >
+                            <CloseIcon aria-hidden />
+                        </Button>
+                    </div>
 
                     <div className={css.section}>
                         <div className={css.sectionTitle}>{t("theme")}</div>

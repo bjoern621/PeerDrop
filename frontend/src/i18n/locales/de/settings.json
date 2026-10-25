@@ -1,5 +1,6 @@
 {
     "title": "Einstellungen",
+    "close": "Einstellungen schließen",
     "theme": "Design",
     "receivedFiles": {
         "title": "Empfangene Dateien",
