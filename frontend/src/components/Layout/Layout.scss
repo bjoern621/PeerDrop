@@ -20,6 +20,12 @@
     scroll-behavior: smooth;
 }
 
+// The header menu opens without making the page inert like a modal dialog.
+// A press beside it closes the menu and reaches nothing below.
+.layout-container:has(:popover-open) .layout-scroll {
+    pointer-events: none;
+}
+
 main {
     flex: 1;
     max-width: 1120px; // 1200 - 64 * 2 (general preferred width) + 24 * 2 (padding)
