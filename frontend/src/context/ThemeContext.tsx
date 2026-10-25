@@ -50,6 +50,17 @@ export function applyStoredColorScheme() {
     document.documentElement.setAttribute("data-theme", storedColorScheme());
 }
 
+// Color transitions serve state changes such as a token turning online, and
+// would otherwise fade the whole page on a theme switch.
+function applyColorSchemeWithoutTransitions(colorScheme: ColorScheme) {
+    const root = document.documentElement;
+    root.setAttribute("data-theme-switching", "");
+    root.setAttribute("data-theme", colorScheme);
+    // Reading a computed style recalculates the page while transitions are off.
+    void getComputedStyle(root).color;
+    root.removeAttribute("data-theme-switching");
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [themePreference, setThemePreferenceState] =
         useState<ThemePreference>(() => {
@@ -78,7 +89,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, [themePreference]);
 
     useLayoutEffect(() => {
-        document.documentElement.setAttribute("data-theme", colorScheme);
+        applyColorSchemeWithoutTransitions(colorScheme);
     }, [colorScheme]);
 
     const setThemePreference = (newPreference: ThemePreference) => {

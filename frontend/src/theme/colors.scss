@@ -179,3 +179,10 @@ html {
 [data-theme="light"] {
     @include light;
 }
+
+[data-theme-switching],
+[data-theme-switching] *,
+[data-theme-switching] *::before,
+[data-theme-switching] *::after {
+    transition: none !important;
+}
