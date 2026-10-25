@@ -85,9 +85,7 @@ export default function DevicePanel({
                         </p>
                     )}
 
-                    <span className={`${css.label} ${pending}`}>
-                        {t("devices.own")}
-                    </span>
+                    <span className={css.label}>{t("devices.own")}</span>
                     {isLoggedIn ? (
                         <DeviceList
                             selectedUuid={selectedDeviceUuid}
