@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import css from "./SettingsMenu.module.scss";
 import { IconSettings as SettingsIcon } from "@tabler/icons-react";
-import Button from "../Button/Button";
+import IconButton from "../IconButton/IconButton";
 import { useThemeContext } from "../../context/ThemeContext";
 import useSettings from "../../hooks/useSettings";
 import { updateSettings } from "../../services/SettingsStore";
@@ -43,18 +43,17 @@ export default function SettingsMenu() {
 
     return (
         <>
-            <Button
+            <IconButton
                 className={css.gearButton}
-                color_scheme={"neutral"}
-                variant={"outline"}
-                aria-label={t("title")}
+                size={"m"}
+                label={t("title")}
                 aria-haspopup="dialog"
                 aria-expanded={isOpen}
                 disabled={isOpen}
                 onClick={() => openSettings()}
             >
                 <SettingsIcon aria-hidden />
-            </Button>
+            </IconButton>
 
             <dialog
                 ref={dialogRef}
