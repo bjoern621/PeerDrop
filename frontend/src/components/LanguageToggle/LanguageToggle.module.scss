@@ -6,8 +6,9 @@
     fill: initial;
 }
 
-.flagButton {
-    padding-inline: var(--space-8);
+.flagButton > .flag {
+    width: 18px;
+    height: auto;
 }
 
 .languageToggle {

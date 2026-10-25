@@ -2,7 +2,7 @@ import { DE, GB } from "country-flag-icons/react/3x2";
 import useSettings from "../../hooks/useSettings";
 import { updateSettings } from "../../services/SettingsStore";
 import { Language, languageName, nextLanguage } from "../../i18n/languages";
-import Button from "../Button/Button";
+import IconButton from "../IconButton/IconButton";
 import css from "./LanguageToggle.module.scss";
 
 const FLAGS: Record<Language, typeof GB> = {
@@ -34,16 +34,16 @@ export function LanguageFlagButton() {
     const { language, name, Flag, switchLanguage } = useLanguageToggle();
 
     return (
-        <Button
+        <IconButton
             className={css.flagButton}
-            color_scheme={"neutral"}
-            variant={"outline"}
+            size={"m"}
+            label={name}
+            tooltip={<span lang={language}>{name}</span>}
             lang={language}
-            aria-label={name}
             onClick={switchLanguage}
         >
             <Flag className={css.flag} aria-hidden />
-        </Button>
+        </IconButton>
     );
 }
 
