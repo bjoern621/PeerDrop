@@ -28,14 +28,14 @@ main {
     width: 100%;
 }
 
+// Shows a scrollbar only once the page overflows.
+.layout-container.full-height > header,
+.layout-container.full-height .layout-scroll {
+    scrollbar-gutter: auto;
+}
+
 // Pages that fill the window keep the footer in view and scroll inside.
 @media (width > 760px) {
-    // Such a page fits the window and shows a scrollbar only in a short one.
-    .layout-container.full-height > header,
-    .layout-container.full-height .layout-scroll {
-        scrollbar-gutter: auto;
-    }
-
     .layout-container.full-height main {
         flex-basis: 0;
         display: flex;
