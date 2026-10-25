@@ -122,40 +122,42 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
 
     return (
         <dialog ref={ref} className={css.dialog} onClose={() => onClose?.()}>
-            <Button
-                className={css.closeButton}
-                onClick={() => closeDialog()}
-                color_scheme={"error"}
-                aria-label={t("closeDialog")}
-            >
-                <ExitIcon />
-            </Button>
+            <div className={css.content}>
+                <Button
+                    className={css.closeButton}
+                    onClick={() => closeDialog()}
+                    color_scheme={"error"}
+                    aria-label={t("closeDialog")}
+                >
+                    <ExitIcon />
+                </Button>
 
-            {mode === "login" ? (
-                <LoginForm
-                    key={formKey}
-                    onSubmit={(username, password) => {
-                        void handleLogin(username, password);
-                    }}
-                    onSwitchToRegister={() => switchMode("register")}
-                    initialUsername={sharedUsername}
-                    onUsernameChange={setSharedUsername}
-                    initialPassword={sharedPassword}
-                    onPasswordChange={setSharedPassword}
-                />
-            ) : (
-                <RegisterForm
-                    key={formKey}
-                    onSubmit={(username, password) => {
-                        void handleRegister(username, password);
-                    }}
-                    onSwitchToLogin={() => switchMode("login")}
-                    initialUsername={sharedUsername}
-                    onUsernameChange={setSharedUsername}
-                    initialPassword={sharedPassword}
-                    onPasswordChange={setSharedPassword}
-                />
-            )}
+                {mode === "login" ? (
+                    <LoginForm
+                        key={formKey}
+                        onSubmit={(username, password) => {
+                            void handleLogin(username, password);
+                        }}
+                        onSwitchToRegister={() => switchMode("register")}
+                        initialUsername={sharedUsername}
+                        onUsernameChange={setSharedUsername}
+                        initialPassword={sharedPassword}
+                        onPasswordChange={setSharedPassword}
+                    />
+                ) : (
+                    <RegisterForm
+                        key={formKey}
+                        onSubmit={(username, password) => {
+                            void handleRegister(username, password);
+                        }}
+                        onSwitchToLogin={() => switchMode("login")}
+                        initialUsername={sharedUsername}
+                        onUsernameChange={setSharedUsername}
+                        initialPassword={sharedPassword}
+                        onPasswordChange={setSharedPassword}
+                    />
+                )}
+            </div>
         </dialog>
     );
 }
