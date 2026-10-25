@@ -23,7 +23,11 @@ public interface IWebSocketHandler
     /// Sends a typed message to a specific client. The client ID must be valid and connected. Returns true if the message was sent successfully, false otherwise.
     /// </summary>
     public Task<bool> SendMessage(string clientToken, ITypedMessage message);
-    public Task HandleConnect(HttpContext context);
+    /// <summary>
+    /// Accepts the WebSocket and serves it until it closes.
+    /// The connection gets <paramref name="chosenToken"/> as its client token if no other connection holds it, a random token otherwise.
+    /// </summary>
+    public Task HandleConnect(HttpContext context, string? chosenToken);
     public void SubscribeToMessageType<T>(MessageType messageType, TypedMessageHandlerDelegate<T> handler);
     public List<string> GetClientTokensForUserId(int userId);
     /// <summary>

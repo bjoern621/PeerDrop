@@ -17,5 +17,7 @@ public class AccountRoutes : IAccountRoutes
             loginHandler.HandleGetCurrentUser(context));
         app.MapGet("/me/status", (IAccountLoginHandler loginHandler, HttpContext context) =>
             loginHandler.HandleGetLoggedInStatus(context));
+        app.MapPatch("/me/client-token", (IChosenClientTokenHandler handler, HttpContext context) =>
+            handler.HandleSetChosenClientToken(context));
     }
 }

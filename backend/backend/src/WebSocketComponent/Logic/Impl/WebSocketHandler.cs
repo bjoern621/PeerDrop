@@ -7,6 +7,7 @@ using System.Text.Json;
 using backend.WebSocketComponent.Common.Api.DTOs;
 using backend.WebSocketComponent.Logic.Api;
 using backend.WebSocketComponent.Logic.Types;
+using static backend.WebSocketComponent.Common.Api.ClientTokenFormat;
 
 namespace backend.WebSocketComponent.Logic.Impl;
 
@@ -30,8 +31,6 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     {
         return ActiveConnections.ContainsKey(remoteToken);
     }
-    private const string ProquintConsonants = "bdfghjklmnprstvz"; // 4 bits
-    private const string ProquintVowels = "aiou"; // 2 bits
 
     /// <summary>
     /// Generates a client token as a proquint: a random 16-bit value encoded into a pronounceable
@@ -52,9 +51,10 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     }
 
     /// <summary>
-    /// Generates a unique client ID and adds the WebSocket connection to the active connections list. Returns the client ID.
+    /// Adds the WebSocket connection to the active connections list and returns its client token.
+    /// The connection gets the chosen token if no other connection holds it, a generated unique token otherwise.
     /// </summary>
-    private string AddConnection(WebSocket webSocket, HttpContext context)
+    private string AddConnection(WebSocket webSocket, HttpContext context, string? chosenToken)
     {
         int? userId = null;
         var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -70,6 +70,11 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
             RemoteIpAddress = context.Connection.RemoteIpAddress?.ToString(),
             UserAgent = context.Request.Headers.UserAgent.ToString() is { Length: > 0 } ua ? ua : null
         };
+
+        if (chosenToken != null && ActiveConnections.TryAdd(chosenToken, runtimeInformation))
+        {
+            return chosenToken;
+        }
 
         string clientToken;
         do
@@ -126,7 +131,7 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         }
     }
 
-    public async Task HandleConnect(HttpContext context)
+    public async Task HandleConnect(HttpContext context, string? chosenToken)
     {
         if (!context.WebSockets.IsWebSocketRequest)
         {
@@ -134,7 +139,7 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         }
 
         using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-        var clientToken = AddConnection(webSocket, context);
+        var clientToken = AddConnection(webSocket, context, chosenToken);
 
         await SendClientTokenAsync(clientToken);
 

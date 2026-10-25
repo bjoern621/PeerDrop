@@ -1,6 +1,10 @@
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using backend.WebSocketComponent.Logic.Impl;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace backend.tests.WebSocketComponent.Logic.Impl;
 
@@ -83,5 +87,109 @@ public class WebSocketHandlerTest
             Assert.That(message, Is.Null);
             Assert.That(closeStatus, Is.EqualTo(WebSocketCloseStatus.NormalClosure));
         });
+    }
+
+    /// <summary>
+    /// Stays open until <see cref="Close"/> and keeps the first message that the server sends.
+    /// </summary>
+    private class HeldOpenWebSocket : WebSocket
+    {
+        private readonly TaskCompletionSource _closed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public readonly TaskCompletionSource<string> FirstSent = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void Close() => _closed.TrySetResult();
+
+        public override async Task<WebSocketReceiveResult> ReceiveAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
+        {
+            await _closed.Task;
+            return new WebSocketReceiveResult(0, WebSocketMessageType.Close, true);
+        }
+
+        public override Task SendAsync(ArraySegment<byte> buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken)
+        {
+            FirstSent.TrySetResult(Encoding.UTF8.GetString(buffer));
+            return Task.CompletedTask;
+        }
+
+        public override WebSocketCloseStatus? CloseStatus => null;
+        public override string? CloseStatusDescription => null;
+        public override WebSocketState State => _closed.Task.IsCompleted ? WebSocketState.Closed : WebSocketState.Open;
+        public override string? SubProtocol => null;
+        public override void Abort() { }
+        public override Task CloseAsync(WebSocketCloseStatus closeStatus, string? statusDescription, CancellationToken cancellationToken) => Task.CompletedTask;
+        public override Task CloseOutputAsync(WebSocketCloseStatus closeStatus, string? statusDescription, CancellationToken cancellationToken) => Task.CompletedTask;
+        public override void Dispose() { }
+    }
+
+    private class AcceptingWebSocketFeature(WebSocket socket) : IHttpWebSocketFeature
+    {
+        public bool IsWebSocketRequest => true;
+        public Task<WebSocket> AcceptAsync(WebSocketAcceptContext context) => Task.FromResult(socket);
+    }
+
+    /// <summary>
+    /// Opens a connection that stays open until the socket closes. Returns the client token that the server sent.
+    /// </summary>
+    private static async Task<(Task Serving, string ClientToken)> Connect(
+        WebSocketHandler handler, HeldOpenWebSocket socket, string? chosenToken)
+    {
+        var context = new DefaultHttpContext();
+        context.Features.Set<IHttpWebSocketFeature>(new AcceptingWebSocketFeature(socket));
+
+        var serving = handler.HandleConnect(context, chosenToken);
+        using var message = JsonDocument.Parse(await socket.FirstSent.Task);
+        var clientToken = message.RootElement.GetProperty("msg").GetProperty("token").GetString()!;
+
+        return (serving, clientToken);
+    }
+
+    [Test]
+    public async Task HandleConnect_FreeChosenToken_AssignsChosenToken()
+    {
+        var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
+        var socket = new HeldOpenWebSocket();
+
+        var (serving, clientToken) = await Connect(handler, socket, "aaaaa");
+        socket.Close();
+        await serving;
+
+        Assert.That(clientToken, Is.EqualTo("aaaaa"));
+    }
+
+    [Test]
+    public async Task HandleConnect_ChosenTokenHeldByAnotherConnection_AssignsGeneratedToken()
+    {
+        var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
+        var first = new HeldOpenWebSocket();
+        var second = new HeldOpenWebSocket();
+
+        var (firstServing, firstToken) = await Connect(handler, first, "aaaaa");
+        var (secondServing, secondToken) = await Connect(handler, second, "aaaaa");
+        first.Close();
+        second.Close();
+        await Task.WhenAll(firstServing, secondServing);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstToken, Is.EqualTo("aaaaa"));
+            Assert.That(secondToken, Does.Match("^[bdfghjklmnprstvz][aiou][bdfghjklmnprstvz][aiou][bdfghjklmnprstvz]$"));
+        });
+    }
+
+    [Test]
+    public async Task HandleConnect_ChosenTokenReleased_AssignsChosenTokenAgain()
+    {
+        var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
+        var first = new HeldOpenWebSocket();
+        var second = new HeldOpenWebSocket();
+
+        var (firstServing, _) = await Connect(handler, first, "aaaaa");
+        first.Close();
+        await firstServing;
+        var (secondServing, secondToken) = await Connect(handler, second, "aaaaa");
+        second.Close();
+        await secondServing;
+
+        Assert.That(secondToken, Is.EqualTo("aaaaa"));
     }
 }
