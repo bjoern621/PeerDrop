@@ -62,6 +62,37 @@ function applyColorSchemeWithoutTransitions(colorScheme: ColorScheme) {
     root.removeAttribute("data-theme-switching");
 }
 
+const blockedInputEvents = [
+    "pointerdown",
+    "pointerup",
+    "mousedown",
+    "mouseup",
+    "click",
+    "dblclick",
+    "contextmenu",
+] as const;
+
+function swallowInputEvent(event: Event) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+}
+
+// Presses during a view transition target the root element, and an open
+// dialog would take them for a press outside and close.
+function blockInputUntil(done: Promise<unknown>) {
+    for (const type of blockedInputEvents) {
+        window.addEventListener(type, swallowInputEvent, { capture: true });
+    }
+    const unblock = () => {
+        for (const type of blockedInputEvents) {
+            window.removeEventListener(type, swallowInputEvent, {
+                capture: true,
+            });
+        }
+    };
+    done.then(unblock, unblock);
+}
+
 // The view transition crossfades a snapshot of the page, so gradients and SVG
 // fade as well, which element transitions leave out.
 function switchColorScheme(colorScheme: ColorScheme) {
@@ -72,9 +103,10 @@ function switchColorScheme(colorScheme: ColorScheme) {
         applyColorSchemeWithoutTransitions(colorScheme);
         return;
     }
-    document.startViewTransition(() =>
+    const transition = document.startViewTransition(() =>
         applyColorSchemeWithoutTransitions(colorScheme)
     );
+    blockInputUntil(transition.finished);
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
