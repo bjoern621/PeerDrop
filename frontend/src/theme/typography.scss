@@ -69,6 +69,12 @@ $fluid-full-width: 25rem; // 400px
     --line-height-4xl: 1.143; // 64px / 56px = 1.143
 }
 
+@mixin families {
+    --font-body: "Jost", sans-serif;
+    --font-display: "Atma", sans-serif;
+    --font-mono: "Roboto Mono", monospace;
+}
+
 @mixin weights {
     --font-weight-thin: 100;
     --font-weight-extralight: 200;
@@ -83,7 +89,8 @@ $fluid-full-width: 25rem; // 400px
 
 html {
     @include sizes;
+    @include families;
     @include weights;
 
-    font-family: Jost, sans-serif;
+    font-family: var(--font-body);
 }

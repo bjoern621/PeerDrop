@@ -27,7 +27,7 @@
 
     font-size: var(--font-size-xl);
     line-height: 1;
-    font-family: "Roboto Mono", monospace;
+    font-family: var(--font-mono);
 
     transition:
         background-color 0.2s ease,

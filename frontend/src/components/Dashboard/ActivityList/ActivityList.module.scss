@@ -176,7 +176,7 @@
 .textPreview {
     @include ellipsis;
 
-    font-family: "Roboto Mono", monospace;
+    font-family: var(--font-mono);
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
 }
@@ -215,7 +215,7 @@
 .peer {
     flex: none;
     width: 52px;
-    font-family: "Roboto Mono", monospace;
+    font-family: var(--font-mono);
     font-size: var(--font-size-s);
     line-height: var(--line-height-s);
     font-weight: var(--font-weight-semibold);

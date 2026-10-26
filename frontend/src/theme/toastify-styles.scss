@@ -1,5 +1,5 @@
 :root {
-    --toastify-font-family: "Jost";
+    --toastify-font-family: var(--font-body);
     --toastify-color-info: var(--info-20);
     --toastify-color-success: var(--success-20);
     --toastify-color-warning: var(--warning-20);
