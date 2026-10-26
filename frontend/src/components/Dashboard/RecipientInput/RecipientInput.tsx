@@ -4,6 +4,8 @@ import { OTPInput, SlotProps } from "input-otp";
 import css from "./RecipientInput.module.scss";
 import { normalizeClientToken } from "../../../services/WebSocketService";
 import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
+import { REDUCED_MOTION_QUERY } from "../../../util/mediaQueries";
+import { useMediaQuery } from "../../../hooks/useMediaQuery";
 
 /** Result of the server's check of a complete token. */
 export type RecipientCheck = "online" | "offline" | null;
@@ -101,10 +103,6 @@ function useSampleToken(active: boolean): {
     return { typed, fading };
 }
 
-function prefersReducedMotion(): boolean {
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 /**
  * Ctrl+Backspace (Alt or Cmd on macOS) deletes everything before the caret.
  * input-otp keeps the last slot selected in a full field.
@@ -163,9 +161,8 @@ export default function RecipientInput({
 }) {
     const { t } = useTranslation("dashboard");
     const [focused, setFocused] = useState(false);
-    const sample = useSampleToken(
-        value === "" && !focused && !prefersReducedMotion()
-    );
+    const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
+    const sample = useSampleToken(value === "" && !focused && !reducedMotion);
 
     return (
         <OTPInput

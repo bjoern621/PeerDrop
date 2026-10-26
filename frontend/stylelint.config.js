@@ -34,12 +34,14 @@ export default {
                 ],
             },
         ],
-        // :global / :local are CSS Modules pseudo-classes.
+        // :global, :local and :export are CSS Modules pseudo-classes.
         "selector-pseudo-class-no-unknown": [
             true,
             {
-                ignorePseudoClasses: ["global", "local"],
+                ignorePseudoClasses: ["global", "local", "export"],
             },
         ],
+        // An :export block names values for scripts, not CSS properties.
+        "property-no-unknown": [true, { ignoreSelectors: [":export"] }],
     },
 };

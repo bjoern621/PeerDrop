@@ -12,9 +12,7 @@ import LanguageToggle, {
 } from "../LanguageToggle/LanguageToggle";
 import IconButton from "../IconButton/IconButton";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-
-// Matches $header-breakpoint in Variables.scss.
-const MENU_LAYOUT_QUERY = "(width <= 960px)";
+import { HEADER_MENU_QUERY } from "../../util/mediaQueries";
 
 /**
  * On narrow screens, language, settings and account controls sit in a popover
@@ -24,7 +22,7 @@ const MENU_LAYOUT_QUERY = "(width <= 960px)";
 export default function Heading() {
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const isMenuLayout = useMediaQuery(MENU_LAYOUT_QUERY);
+    const isMenuLayout = useMediaQuery(HEADER_MENU_QUERY);
     const menuRef = useRef<HTMLDivElement>(null!);
 
     // An open popover stays in the top layer and leaves the wide header empty.

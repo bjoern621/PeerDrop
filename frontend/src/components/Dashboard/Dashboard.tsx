@@ -18,6 +18,7 @@ import { nextStep } from "./nextStep";
 import { useMessaging } from "../../hooks/useMessaging";
 import { useOwnToken } from "../../hooks/useOwnToken";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { COMPACT_QUERY, PHONE_QUERY } from "../../util/mediaQueries";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { useMessagingService } from "../../context/connection/MessagingContext";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
@@ -44,9 +45,8 @@ export default function Dashboard() {
         () => transferTracker.getSnapshot()
     );
     const ownToken = useOwnToken();
-    // Match $phone-breakpoint and $compact-breakpoint in _layout.scss.
-    const stacked = useMediaQuery("(width <= 760px)");
-    const compact = useMediaQuery("(760px < width < 1068px)");
+    const stacked = useMediaQuery(PHONE_QUERY);
+    const compact = useMediaQuery(COMPACT_QUERY);
     const [searchParams] = useSearchParams();
 
     const [recipient, setRecipient] = useState(() =>

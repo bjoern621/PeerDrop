@@ -17,6 +17,7 @@ import { getSizeInHumanReadableFormat } from "../transferFormat";
 import { useModalView } from "../../../hooks/useModalView";
 import { useTimeout } from "../../../hooks/useTimeout";
 import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
+import { PHONE_QUERY } from "../../../util/mediaQueries";
 import Button from "../../Button/Button";
 import IconButton from "../../IconButton/IconButton";
 import Tooltip from "../../Tooltip/Tooltip";
@@ -27,8 +28,7 @@ const GROW_MS = 200;
 
 /** Space kept free below the large field: the phone shows the hint there. */
 function bottomReserve(): number {
-    // Matches $phone-breakpoint in Dashboard/_layout.scss.
-    return window.matchMedia("(width <= 760px)").matches ? 120 : 16;
+    return window.matchMedia(PHONE_QUERY).matches ? 120 : 16;
 }
 
 interface TextComposerProps {

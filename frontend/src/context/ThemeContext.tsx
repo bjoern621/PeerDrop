@@ -6,14 +6,13 @@ import {
     useLayoutEffect,
     useState,
 } from "react";
+import { PREFERS_DARK_QUERY, REDUCED_MOTION_QUERY } from "../util/mediaQueries";
 
 const LOCAL_STORAGE_KEY = "theme";
 type ColorScheme = "light" | "dark";
 type ThemePreference = ColorScheme | "system";
-const prefersDarkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-const prefersReducedMotionQuery = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-);
+const prefersDarkMediaQuery = window.matchMedia(PREFERS_DARK_QUERY);
+const prefersReducedMotionQuery = window.matchMedia(REDUCED_MOTION_QUERY);
 
 interface ThemeContextType {
     themePreference: ThemePreference;
