@@ -1,4 +1,5 @@
 @use "../layout" as *;
+@use "../../../theme/shadows" as *;
 
 .table {
     // Room beside the rows for their shadow, which the scroll box would clip.
@@ -30,7 +31,8 @@
     border-radius: var(--space-16);
     background-color: var(--background);
     background-image: linear-gradient(var(--primary-10), var(--primary-10));
-    box-shadow: 0 4px 10px 2px var(--shadow);
+
+    @include elevated-shadow-no-highlight;
 }
 
 .sortButton {
@@ -91,7 +93,8 @@
     border-radius: var(--space-16);
     overflow: hidden;
     background-color: var(--background);
-    box-shadow: 0 4px 10px 2px var(--shadow);
+
+    @include elevated-shadow-no-highlight;
 }
 
 .empty {

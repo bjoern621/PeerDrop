@@ -1,6 +1,7 @@
 @use "card" as *;
 @use "layout" as *;
 @use "../../theme/tones" as *;
+@use "../../theme/shadows" as *;
 
 .panel {
     @include card;
@@ -125,7 +126,8 @@
         background:
             linear-gradient(var(--hint-tint), var(--hint-tint)),
             var(--background);
-        box-shadow: 0 4px 10px 2px var(--shadow);
+
+        @include elevated-shadow-no-highlight;
     }
 
     // Lets the page scroll its footer clear of the hint above it.
