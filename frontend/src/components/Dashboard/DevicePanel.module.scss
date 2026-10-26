@@ -9,71 +9,43 @@
     background-color: var(--primary-5);
 }
 
-.toggleCard {
+.compact {
+    container: devices / size;
+}
+
+// Too low for a readable part of the list, the card keeps its heading alone.
+@container devices (height < 160px) {
+    .compact .scrollFrame {
+        display: none;
+    }
+}
+
+// Holds the panel's place in the column while the panel floats.
+.placeholder {
     @include card;
 
-    flex: 1 1 auto;
-    position: relative;
-    anchor-name: --devices-toggle;
+    flex: 1 1 0;
+    anchor-name: --devices-place;
     background-color: var(--primary-5);
-
-    &:hover {
-        background-color: var(--primary-10);
-    }
 }
 
-.toggle {
+.title {
     flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0;
-    border: none;
-    background: none;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
 }
 
-// The button covers the whole toggle card, its icon included.
-.toggleCard .toggle::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
+// Keeps the heading at its text height, so the button appearing moves nothing.
+.toggle {
+    margin-block: calc(-1 * var(--space-4));
 }
 
-.chevron {
-    flex: none;
-    width: 20px;
-    height: 20px;
-
-    @media (prefers-reduced-motion: no-preference) {
-        transition: rotate 0.2s ease-out;
-    }
-}
-
-// The panel turns its chevron up as it appears. The card below turns its own back down as the panel goes.
-.chevronOpen {
-    rotate: 180deg;
-
-    @starting-style {
-        rotate: 0deg;
-    }
-}
-
-// Covers the toggle card and runs over the list down to the bottom of the dashboard.
+// Covers the placeholder and runs over the list down to the bottom of the dashboard.
 .floating {
     position: absolute;
     z-index: 10;
-    position-anchor: --devices-toggle;
+    position-anchor: --devices-place;
     inset: anchor(top) anchor(right) $dashboard-padding anchor(left);
     background:
         linear-gradient(var(--primary-5), var(--primary-5)), var(--background);
-}
-
-.closed {
-    display: none;
 }
 
 .scrollFrame {

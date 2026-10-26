@@ -2,7 +2,8 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import css from "./DevicePanel.module.scss";
 import {
-    IconChevronDown as ChevronIcon,
+    IconArrowsDiagonal as ExpandIcon,
+    IconArrowsDiagonalMinimize2 as CollapseIcon,
     IconDevices as DevicesIcon,
 } from "@tabler/icons-react";
 import { useLanPeers } from "../../hooks/useLanPeers";
@@ -15,6 +16,7 @@ import { Device } from "../../types/device/Device";
 import HelpTip from "../HelpTip/HelpTip";
 import TruncatedText from "../TruncatedText/TruncatedText";
 import Anchor from "../Anchor/Anchor";
+import IconButton from "../IconButton/IconButton";
 import CardHeading from "./CardHeading/CardHeading";
 import DeviceList from "./Devices/DeviceList/DeviceList";
 import DeviceTile from "./Devices/DeviceTile/DeviceTile";
@@ -24,7 +26,7 @@ interface DevicePanelProps {
     selectedDeviceUuid: string | null;
     onPickToken: (token: string) => void;
     onPickDevice: (device: Device) => void;
-    /** Shows the heading alone, which opens the panel over the content below. */
+    /** Offers to enlarge the list over the content below. */
     floating: boolean;
 }
 
@@ -45,24 +47,21 @@ export default function DevicePanel({
     const scrollRef = useRef<HTMLDivElement>(null);
     const shadows = useScrollShadows(scrollRef);
     const panelRef = useRef<HTMLElement>(null);
-    const openButtonRef = useRef<HTMLButtonElement>(null);
-    const closeButtonRef = useRef<HTMLButtonElement>(null);
+    const toggleRef = useRef<HTMLButtonElement>(null);
     const [open, setOpen] = useState(false);
     const isOpen = floating && open;
-    // A close by keyboard or by a pick inside the panel hands focus back to the card below it.
+    // A close by keyboard or by a pick inside the panel hands focus back to the toggle.
     const returnFocus = useRef(false);
 
-    const close = (focusCard: boolean) => {
-        returnFocus.current = focusCard;
+    const close = (focusToggle: boolean) => {
+        returnFocus.current = focusToggle;
         setOpen(false);
     };
 
     useEffect(() => {
-        if (isOpen) {
-            closeButtonRef.current?.focus();
-        } else if (returnFocus.current) {
+        if (!isOpen && returnFocus.current) {
             returnFocus.current = false;
-            openButtonRef.current?.focus();
+            toggleRef.current?.focus();
         }
     }, [isOpen]);
 
@@ -78,46 +77,42 @@ export default function DevicePanel({
         close(true);
     };
 
-    const panelState = floating
-        ? `${css.floating} ${open ? "" : css.closed}`
-        : "";
-
     return (
         <>
-            {floating && (
-                <div className={css.toggleCard} inert={isOpen}>
-                    <DevicesToggleHeading
-                        id="devices-heading"
-                        open={isOpen}
-                        buttonRef={openButtonRef}
-                        onToggle={() => setOpen(true)}
-                    />
-                </div>
-            )}
+            {isOpen && <div className={css.placeholder} aria-hidden />}
             <aside
                 ref={panelRef}
                 id="devices-panel"
-                className={`${css.panel} ${panelState}`}
-                aria-labelledby={
-                    floating ? "devices-panel-heading" : "devices-heading"
-                }
+                className={`${css.panel} ${floating ? css.compact : ""} ${isOpen ? css.floating : ""}`}
+                aria-labelledby="devices-heading"
             >
-                {floating ? (
-                    <DevicesToggleHeading
-                        id="devices-panel-heading"
-                        open
-                        buttonRef={closeButtonRef}
-                        onToggle={() => close(true)}
-                    />
-                ) : (
-                    <CardHeading
-                        id="devices-heading"
-                        icon={DevicesIcon}
-                        tone="primary"
-                    >
-                        {t("devices.title")}
-                    </CardHeading>
-                )}
+                <CardHeading
+                    id="devices-heading"
+                    icon={DevicesIcon}
+                    tone="primary"
+                >
+                    <span className={css.title}>{t("devices.title")}</span>
+                    {floating && (
+                        <IconButton
+                            ref={toggleRef}
+                            className={css.toggle}
+                            label={t(
+                                isOpen ? "devices.collapse" : "devices.expand"
+                            )}
+                            size="m"
+                            aria-expanded={isOpen}
+                            onClick={() =>
+                                isOpen ? close(false) : setOpen(true)
+                            }
+                        >
+                            {isOpen ? (
+                                <CollapseIcon aria-hidden />
+                            ) : (
+                                <ExpandIcon aria-hidden />
+                            )}
+                        </IconButton>
+                    )}
+                </CardHeading>
                 <div className={css.scrollFrame}>
                     <div ref={scrollRef} className={css.scroll}>
                         <span className={css.label}>
@@ -199,40 +194,6 @@ export default function DevicePanel({
                 </div>
             </aside>
         </>
-    );
-}
-
-/** Card heading as a button that opens or closes the floating panel. */
-function DevicesToggleHeading({
-    id,
-    open,
-    buttonRef,
-    onToggle,
-}: {
-    id: string;
-    open: boolean;
-    buttonRef: RefObject<HTMLButtonElement | null>;
-    onToggle: () => void;
-}) {
-    const { t } = useTranslation("dashboard");
-
-    return (
-        <CardHeading id={id} icon={DevicesIcon} tone="primary">
-            <button
-                ref={buttonRef}
-                type="button"
-                className={css.toggle}
-                aria-expanded={open}
-                aria-controls="devices-panel"
-                onClick={onToggle}
-            >
-                {t("devices.title")}
-                <ChevronIcon
-                    className={`${css.chevron} ${open ? css.chevronOpen : ""}`}
-                    aria-hidden
-                />
-            </button>
-        </CardHeading>
     );
 }
 

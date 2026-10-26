@@ -13,6 +13,8 @@
     },
     "devices": {
         "title": "Devices",
+        "expand": "Enlarge device list",
+        "collapse": "Shrink device list",
         "network": "In your network",
         "networkHelp": "Devices in the same network show up here without a click",
         "searching": "Looking for devices in your network...",
