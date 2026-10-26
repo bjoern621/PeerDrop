@@ -22,6 +22,35 @@
     gap: var(--space-12);
 }
 
+.label,
+.partHeading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.step {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: var(--text-muted-10);
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    line-height: 1;
+    font-weight: var(--font-weight-semibold);
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.stepActive {
+    background-color: var(--primary);
+    color: var(--background);
+}
+
 .hint {
     display: flex;
     align-items: center;

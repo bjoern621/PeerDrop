@@ -66,7 +66,10 @@ export default function SendPanel(props: SendPanelProps) {
                     {t("send.title")}
                 </CardHeading>
                 <div className={css.recipient}>
-                    <span>{t("send.to")}</span>
+                    <span className={css.label}>
+                        <StepNumber step={1} active />
+                        {t("send.to")}
+                    </span>
                     <RecipientInput
                         value={props.recipient}
                         onChange={props.onRecipientChange}
@@ -82,7 +85,10 @@ export default function SendPanel(props: SendPanelProps) {
 
             <div className={css.parts}>
                 <div className={css.part}>
-                    <h3 className={css.partHeading}>{t("send.text")}</h3>
+                    <h3 className={css.partHeading}>
+                        <StepNumber step={2} active={props.canWriteText} />
+                        {t("send.text")}
+                    </h3>
                     <TextComposer
                         draft={props.draft}
                         onDraftChange={props.onDraftChange}
@@ -94,7 +100,10 @@ export default function SendPanel(props: SendPanelProps) {
                     />
                 </div>
                 <div className={css.part}>
-                    <h3 className={css.partHeading}>{t("send.files")}</h3>
+                    <h3 className={css.partHeading}>
+                        <StepNumber step={2} active={props.canWriteText} />
+                        {t("send.files")}
+                    </h3>
                     <DropZone
                         recipient={props.filesRecipient}
                         onSelection={props.onSelection}
@@ -102,6 +111,18 @@ export default function SendPanel(props: SendPanelProps) {
                 </div>
             </div>
         </section>
+    );
+}
+
+/** Numbers a step of sending. Lights up once the step can start. */
+function StepNumber({ step, active }: { step: number; active: boolean }) {
+    return (
+        <span
+            className={`${css.step} ${active ? css.stepActive : ""}`}
+            aria-hidden
+        >
+            {step}
+        </span>
     );
 }
 
