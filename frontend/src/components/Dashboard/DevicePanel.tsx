@@ -11,6 +11,7 @@ import useSettings from "../../hooks/useSettings";
 import { useSettingsDialog } from "../../context/SettingsDialogContext";
 import { useAuth } from "../../context/AuthContext";
 import { useScrollShadows } from "../../hooks/useScrollShadows";
+import { useTimeout } from "../../hooks/useTimeout";
 import { LanPeer } from "../../types/lan/LanPeer";
 import { Device } from "../../types/device/Device";
 import HelpTip from "../HelpTip/HelpTip";
@@ -54,18 +55,15 @@ export default function DevicePanel({
     const [open, setOpen] = useState(false);
     const isOpen = floating && open;
     const [moving, setMoving] = useState(false);
-    const moveTimer = useRef<number | undefined>(undefined);
+    const moveEnd = useTimeout();
     // A close by keyboard or by a pick inside the panel hands focus back to the toggle.
     const returnFocus = useRef(false);
-
-    useEffect(() => () => window.clearTimeout(moveTimer.current), []);
 
     // The transition runs only while opening or closing, so the panel follows a resize at once.
     const changeOpen = (next: boolean) => {
         setOpen(next);
         setMoving(true);
-        window.clearTimeout(moveTimer.current);
-        moveTimer.current = window.setTimeout(() => setMoving(false), MOVE_MS);
+        moveEnd.set(() => setMoving(false), MOVE_MS);
     };
 
     const close = (focusToggle: boolean) => {

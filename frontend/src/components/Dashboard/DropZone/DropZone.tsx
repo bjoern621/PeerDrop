@@ -19,6 +19,7 @@ import {
 } from "../../../util/shareSelection";
 import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
 import { useContentHeight } from "../../../hooks/useContentHeight";
+import { useTimeout } from "../../../hooks/useTimeout";
 
 const FLASH_OK_MS = 1800;
 const FLASH_WARN_MS = 2500;
@@ -39,7 +40,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
     const [overZone, setOverZone] = useState(false);
     const [pageDrag, setPageDrag] = useState(false);
     const [flash, setFlash] = useState<Flash | null>(null);
-    const flashTimer = useRef<number | undefined>(undefined);
+    const flashEnd = useTimeout();
     const hintRef = useRef<HTMLSpanElement>(null);
     const hintHeight = useContentHeight(hintRef);
 
@@ -79,14 +80,12 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
             window.removeEventListener("dragenter", handlePageDragEnter);
             window.removeEventListener("dragleave", handlePageDragLeave);
             window.removeEventListener("drop", endPageDrag);
-            window.clearTimeout(flashTimer.current);
         };
     }, [isTouchDevice]);
 
     const showFlash = (next: Flash) => {
         setFlash(next);
-        window.clearTimeout(flashTimer.current);
-        flashTimer.current = window.setTimeout(
+        flashEnd.set(
             () => setFlash(null),
             next.kind === "ok" ? FLASH_OK_MS : FLASH_WARN_MS
         );

@@ -2,7 +2,6 @@ import {
     KeyboardEvent,
     MouseEvent,
     RefObject,
-    useEffect,
     useLayoutEffect,
     useRef,
     useState,
@@ -16,6 +15,7 @@ import {
 } from "@tabler/icons-react";
 import { getSizeInHumanReadableFormat } from "../transferFormat";
 import { useModalView } from "../../../hooks/useModalView";
+import { useTimeout } from "../../../hooks/useTimeout";
 import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
 import Button from "../../Button/Button";
 import IconButton from "../../IconButton/IconButton";
@@ -70,7 +70,7 @@ export default function TextComposer({
     const [overflowing, setOverflowing] = useState(false);
     const [big, setBig] = useState<{ from: Rect; to: Rect } | null>(null);
     const [grown, setGrown] = useState(false);
-    const closeTimer = useRef<number | undefined>(undefined);
+    const closeEnd = useTimeout();
 
     useLayoutEffect(() => {
         const textarea = textareaRef.current;
@@ -78,8 +78,6 @@ export default function TextComposer({
             setOverflowing(textarea.scrollHeight > textarea.clientHeight + 1);
         }
     }, [draft]);
-
-    useEffect(() => () => window.clearTimeout(closeTimer.current), []);
 
     const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
         if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
@@ -100,7 +98,7 @@ export default function TextComposer({
         }
         const left = field.left - bounds.left;
         const top = field.top - bounds.top;
-        window.clearTimeout(closeTimer.current);
+        closeEnd.clear();
         setBig({
             from: { left, top, width: field.width, height: field.height },
             to: {
@@ -125,8 +123,7 @@ export default function TextComposer({
 
     const closeBig = () => {
         setGrown(false);
-        window.clearTimeout(closeTimer.current);
-        closeTimer.current = window.setTimeout(() => setBig(null), GROW_MS);
+        closeEnd.set(() => setBig(null), GROW_MS);
     };
     const bigRef = useRef<HTMLDivElement>(null);
     useModalView(bigRef, closeBig, big !== null);

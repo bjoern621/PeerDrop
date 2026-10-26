@@ -1,6 +1,7 @@
-import { ReactNode, useEffect, useId, useRef, useState } from "react";
+import { ReactNode, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import css from "./Tooltip.module.scss";
+import { useTimeout } from "../../hooks/useTimeout";
 
 export type TooltipPosition = "top" | "bottom" | "left" | "right";
 
@@ -32,13 +33,11 @@ export default function Tooltip({
     triggerClassName = "",
 }: TooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
-    const hideTimeout = useRef<number | undefined>(undefined);
+    const hide = useTimeout();
     const anchorId = useId();
 
-    useEffect(() => () => window.clearTimeout(hideTimeout.current), []);
-
     const handleMouseEnter = () => {
-        window.clearTimeout(hideTimeout.current);
+        hide.clear();
         if (!disabled) {
             setIsVisible(true);
         }
@@ -46,10 +45,7 @@ export default function Tooltip({
 
     const handleMouseLeave = () => {
         if (hoverable) {
-            hideTimeout.current = window.setTimeout(
-                () => setIsVisible(false),
-                HIDE_DELAY_MS
-            );
+            hide.set(() => setIsVisible(false), HIDE_DELAY_MS);
         } else {
             setIsVisible(false);
         }

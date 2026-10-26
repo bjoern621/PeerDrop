@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import css from "./ReadView.module.scss";
 import { IconX as CloseIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
 import { useModalView } from "../../../hooks/useModalView";
+import { useTimeout } from "../../../hooks/useTimeout";
 import {
     getSizeInHumanReadableFormat,
     getTimeInHumanReadableFormat,
@@ -28,15 +29,14 @@ export default function ReadView({
     const { t } = useTranslation("dashboard");
     const messaging = useMessagingService();
     const [closing, setClosing] = useState(false);
-    const closeTimer = useRef<number | undefined>(undefined);
-    useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+    const closeEnd = useTimeout();
 
     const close = () => {
         if (closing) {
             return;
         }
         setClosing(true);
-        closeTimer.current = window.setTimeout(onClose, CLOSE_MS);
+        closeEnd.set(onClose, CLOSE_MS);
     };
     const dialogRef = useRef<HTMLDivElement>(null);
     useModalView(dialogRef, close);
