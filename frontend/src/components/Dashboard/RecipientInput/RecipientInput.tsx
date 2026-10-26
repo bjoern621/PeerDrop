@@ -13,14 +13,17 @@ const PROQUINT_CONSONANTS = "bdfghjklmnprstvz";
 const PROQUINT_VOWELS = "aiou";
 const SAMPLE_TYPE_MS = 380;
 const SAMPLE_HOLD_MS = 1600;
-const SAMPLE_GAP_MS = 700;
+// Matches the fade-out in RecipientInput.module.scss.
+const SAMPLE_FADE_MS = 400;
+const SAMPLE_GAP_MS = 500;
 
 const Slot = ({
     char,
     hasFakeCaret,
     isActive,
     sample,
-}: SlotProps & { sample?: string }) => {
+    sampleFading,
+}: SlotProps & { sample?: string; sampleFading: boolean }) => {
     return (
         <div
             className={`${css.otpSlot} ${isActive ? css.otpSlotActive : ""}`}
@@ -31,7 +34,10 @@ const Slot = ({
             {char?.toUpperCase()}
             {hasFakeCaret && "_"}
             {!char && sample && (
-                <span className={css.sample} aria-hidden>
+                <span
+                    className={`${css.sample} ${sampleFading ? css.sampleFading : ""}`}
+                    aria-hidden
+                >
                     {sample.toUpperCase()}
                 </span>
             )}
@@ -53,41 +59,46 @@ function randomSampleToken(): string {
 
 /**
  * Types made-up tokens into the empty field one letter at a time, to show where a token goes.
- * Returns the letters typed so far, or "" while `active` is false.
+ * Returns the letters typed so far, "" while `active` is false, and whether the full token fades out.
  */
-function useSampleToken(active: boolean): string {
+function useSampleToken(active: boolean): {
+    typed: string;
+    fading: boolean;
+} {
     const [typed, setTyped] = useState("");
+    const [fading, setFading] = useState(false);
 
     useEffect(() => {
         if (!active) {
             setTyped("");
+            setFading(false);
             return;
         }
         let timer: number | undefined;
+        const later = (step: () => void, ms: number) => {
+            timer = window.setTimeout(step, ms);
+        };
+        const startToken = () => typeToken(randomSampleToken(), 1);
         const typeToken = (token: string, length: number) => {
             setTyped(token.slice(0, length));
-            timer =
-                length < token.length
-                    ? window.setTimeout(
-                          () => typeToken(token, length + 1),
-                          SAMPLE_TYPE_MS
-                      )
-                    : window.setTimeout(() => {
-                          setTyped("");
-                          timer = window.setTimeout(
-                              () => typeToken(randomSampleToken(), 1),
-                              SAMPLE_GAP_MS
-                          );
-                      }, SAMPLE_HOLD_MS);
+            if (length < token.length) {
+                later(() => typeToken(token, length + 1), SAMPLE_TYPE_MS);
+                return;
+            }
+            later(() => {
+                setFading(true);
+                later(() => {
+                    setTyped("");
+                    setFading(false);
+                    later(startToken, SAMPLE_GAP_MS);
+                }, SAMPLE_FADE_MS);
+            }, SAMPLE_HOLD_MS);
         };
-        timer = window.setTimeout(
-            () => typeToken(randomSampleToken(), 1),
-            SAMPLE_GAP_MS
-        );
+        later(startToken, SAMPLE_GAP_MS);
         return () => window.clearTimeout(timer);
     }, [active]);
 
-    return typed;
+    return { typed, fading };
 }
 
 function prefersReducedMotion(): boolean {
@@ -183,7 +194,12 @@ export default function RecipientInput({
                     className={`${css.slotsContainer} ${check === "online" ? css.online : ""} ${check === "offline" ? css.offline : ""}`}
                 >
                     {slots.map((slot, idx) => (
-                        <Slot key={idx} {...slot} sample={sample[idx]} />
+                        <Slot
+                            key={idx}
+                            {...slot}
+                            sample={sample.typed[idx]}
+                            sampleFading={sample.fading}
+                        />
                     ))}
                 </div>
             )}

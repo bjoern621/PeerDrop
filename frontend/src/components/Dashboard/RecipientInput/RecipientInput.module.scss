@@ -35,19 +35,30 @@
 
 @keyframes type-in {
     from {
-        scale: 0.4;
+        scale: 0.75;
         opacity: 0;
     }
 
     60% {
-        scale: 1.25;
+        scale: 1.08;
+    }
+}
+
+@keyframes fade-out {
+    to {
+        opacity: 0;
     }
 }
 
 .sample {
     color: var(--text-muted);
     opacity: 0.6;
-    animation: type-in 0.25s ease-out;
+    animation: type-in 0.35s ease-out;
+}
+
+// Lasts SAMPLE_FADE_MS in RecipientInput.tsx.
+.sampleFading {
+    animation: fade-out 0.4s ease-in forwards;
 }
 
 .otpSlotActive {
