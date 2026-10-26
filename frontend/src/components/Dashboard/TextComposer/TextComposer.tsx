@@ -25,19 +25,10 @@ const BIG_MAX_WIDTH = 840;
 const BIG_MAX_HEIGHT = 600;
 const GROW_MS = 200;
 
-function isPhoneLayout(): boolean {
-    // Matches $phone-breakpoint in Dashboard/_layout.scss.
-    return window.matchMedia("(width <= 760px)").matches;
-}
-
 /** Space kept free below the large field: the phone shows the hint there. */
 function bottomReserve(): number {
-    return isPhoneLayout() ? 120 : 16;
-}
-
-/** Right edge the large field grows to. On the phone the field spans the card already. */
-function growthRight(field: DOMRect, bounds: DOMRect): number {
-    return isPhoneLayout() ? field.right : bounds.right;
+    // Matches $phone-breakpoint in Dashboard/_layout.scss.
+    return window.matchMedia("(width <= 760px)").matches ? 120 : 16;
 }
 
 interface TextComposerProps {
@@ -51,6 +42,8 @@ interface TextComposerProps {
     onSend: () => void;
     /** The large field grows inside this element. */
     boundsRef: RefObject<HTMLElement | null>;
+    /** The large field grows no further right than this element. */
+    widthRef: RefObject<HTMLElement | null>;
 }
 
 interface Rect {
@@ -68,6 +61,7 @@ export default function TextComposer({
     pauseProgress,
     onSend,
     boundsRef,
+    widthRef,
 }: TextComposerProps) {
     const { t } = useTranslation("dashboard");
     const isTouchDevice = useIsTouchDevice();
@@ -100,7 +94,8 @@ export default function TextComposer({
     const openBig = () => {
         const field = fieldRef.current?.getBoundingClientRect();
         const bounds = boundsRef.current?.getBoundingClientRect();
-        if (!field || !bounds) {
+        const right = widthRef.current?.getBoundingClientRect().right;
+        if (!field || !bounds || right === undefined) {
             return;
         }
         const left = field.left - bounds.left;
@@ -111,10 +106,7 @@ export default function TextComposer({
             to: {
                 left,
                 top,
-                width: Math.min(
-                    BIG_MAX_WIDTH,
-                    growthRight(field, bounds) - field.left
-                ),
+                width: Math.min(BIG_MAX_WIDTH, right - field.left),
                 height: Math.max(
                     field.height,
                     Math.min(

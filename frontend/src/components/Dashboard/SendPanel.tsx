@@ -53,6 +53,7 @@ export default function SendPanel(props: SendPanelProps) {
               ? css.err
               : css.info;
     const hintRef = useRef<HTMLDivElement>(null);
+    const partsRef = useRef<HTMLDivElement>(null);
     usePublishHeight(hintRef, "--send-hint-height");
 
     return (
@@ -83,7 +84,7 @@ export default function SendPanel(props: SendPanelProps) {
                 <span>{props.hint.text}</span>
             </div>
 
-            <div className={css.parts}>
+            <div ref={partsRef} className={css.parts}>
                 <div className={css.part}>
                     <h3 className={css.partHeading}>
                         <StepNumber step={2} active={props.canWriteText} />
@@ -97,6 +98,7 @@ export default function SendPanel(props: SendPanelProps) {
                         pauseProgress={props.pauseProgress}
                         onSend={props.onSendText}
                         boundsRef={props.boundsRef}
+                        widthRef={partsRef}
                     />
                 </div>
                 <div className={css.part}>
