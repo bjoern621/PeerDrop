@@ -161,6 +161,8 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                         <CloseIcon aria-hidden />
                     </IconButton>
                 </>
+            ) : blocked.has(entry.peer) ? (
+                <BlockButton peer={entry.peer} blocked />
             ) : (
                 <>
                     <RowButton
@@ -181,10 +183,7 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                     >
                         <CloseIcon aria-hidden />
                     </IconButton>
-                    <BlockButton
-                        peer={entry.peer}
-                        blocked={blocked.has(entry.peer)}
-                    />
+                    <BlockButton peer={entry.peer} blocked={false} />
                 </>
             )}
         </Row>

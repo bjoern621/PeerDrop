@@ -306,7 +306,11 @@ export class MessagingService {
      */
     public answerOffer(offerId: string, accepted: boolean) {
         const offer = this.incomingOffers.get(offerId);
-        if (!offer || offer.status !== "waiting") {
+        if (
+            !offer ||
+            offer.status !== "waiting" ||
+            this.blocked.has(offer.peer)
+        ) {
             return;
         }
 
@@ -335,18 +339,14 @@ export class MessagingService {
     }
 
     /**
-     * Mutes a peer until the page reloads: its texts and offers are dropped
-     * without telling it, and its connection closes.
+     * Mutes a peer until unblock: its new texts and offers are dropped
+     * without telling it, and its connection closes. Its open offers stay
+     * listed and wait for an answer until then.
      */
     public block(token: ClientToken) {
         token = normalizeClientToken(token);
         this.blocked.add(token);
         this.acceptedFrom.delete(token);
-        for (const offer of Array.from(this.incomingOffers.values())) {
-            if (offer.peer === token) {
-                this.incomingOffers.delete(offer.offerId);
-            }
-        }
         this.peerConnections.closePeer(token);
         this.publish();
     }
