@@ -32,6 +32,8 @@
     border-radius: var(--space-16);
     background-color: var(--background);
     overflow: hidden;
+    // The page around it takes no pointer events while it is open.
+    pointer-events: auto;
 
     @media (prefers-reduced-motion: no-preference) {
         animation: grow-in 0.18s ease-out;

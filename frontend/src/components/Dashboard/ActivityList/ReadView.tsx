@@ -16,6 +16,19 @@ import IconButton from "../../IconButton/IconButton";
 // Matches the shrink-out in ReadView.module.scss.
 const CLOSE_MS = 120;
 
+/**
+ * Turns off hover and clicks on the page outside the view while it is mounted.
+ * A press outside then lands on the root element and only closes the view.
+ */
+function usePagePointerBlock() {
+    useEffect(() => {
+        document.body.style.pointerEvents = "none";
+        return () => {
+            document.body.style.pointerEvents = "";
+        };
+    }, []);
+}
+
 /** Shows a whole text read-only over the transfer list. */
 export default function ReadView({
     entry,
@@ -42,6 +55,7 @@ export default function ReadView({
     useEscapeKey(close);
     const dialogRef = useRef<HTMLDivElement>(null);
     useOutsidePress(dialogRef, close);
+    usePagePointerBlock();
     const peer = entry.peer.toUpperCase();
     const title =
         entry.direction === "down"
