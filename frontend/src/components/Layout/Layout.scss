@@ -17,7 +17,8 @@
     overflow: hidden auto;
     scrollbar-width: thin;
     scrollbar-color: var(--text-muted) var(--background);
-    scrollbar-gutter: stable;
+    // A gutter on each edge centres the page under the header, which keeps none.
+    scrollbar-gutter: stable both-edges;
 
     scroll-behavior: smooth;
 }
@@ -37,7 +38,6 @@ main {
 }
 
 // Shows a scrollbar only once the page overflows.
-.layout-container.full-height > header,
 .layout-container.full-height .layout-scroll {
     scrollbar-gutter: auto;
 }
