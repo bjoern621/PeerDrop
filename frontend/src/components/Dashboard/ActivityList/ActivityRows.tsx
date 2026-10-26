@@ -135,9 +135,14 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
             at={entry.at}
         >
             {entry.status === "declined" ? (
-                <StatusChip tone="error">
-                    {t("transfers.offer.declined")}
-                </StatusChip>
+                <>
+                    <StatusChip tone="error">
+                        {t("transfers.offer.declined")}
+                    </StatusChip>
+                    {entry.direction === "down" && blocked.has(entry.peer) && (
+                        <BlockButton peer={entry.peer} blocked />
+                    )}
+                </>
             ) : entry.status === "failed" ? (
                 <StatusChip tone="error">
                     {t("transfers.notDelivered")}
@@ -161,8 +166,6 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                         <CloseIcon aria-hidden />
                     </IconButton>
                 </>
-            ) : blocked.has(entry.peer) ? (
-                <BlockButton peer={entry.peer} blocked />
             ) : (
                 <>
                     <RowButton
@@ -530,7 +533,7 @@ function Row({
     );
 }
 
-/** Blocks a sender until reload. Once blocked, it stays in red and does nothing. */
+/** Blocks a sender. Once blocked, it turns red and unblocks on the next press. */
 export function BlockButton({
     peer,
     blocked,

@@ -306,19 +306,12 @@ export class MessagingService {
      */
     public answerOffer(offerId: string, accepted: boolean) {
         const offer = this.incomingOffers.get(offerId);
-        if (
-            !offer ||
-            offer.status !== "waiting" ||
-            this.blocked.has(offer.peer)
-        ) {
+        if (!offer || offer.status !== "waiting") {
             return;
         }
 
         if (!accepted) {
-            this.signaling.sendMessage(
-                new TransferAnswerMessage({ offerId, accepted: false })
-            );
-            this.incomingOffers.set(offerId, { ...offer, status: "declined" });
+            this.declineOffer(offer);
             this.publish();
             return;
         }
@@ -339,14 +332,18 @@ export class MessagingService {
     }
 
     /**
-     * Mutes a peer until unblock: its new texts and offers are dropped
-     * without telling it, and its connection closes. Its open offers stay
-     * listed and wait for an answer until then.
+     * Mutes a peer until unblock: its open offers get declined, its new texts
+     * and offers are dropped without telling it, and its connection closes.
      */
     public block(token: ClientToken) {
         token = normalizeClientToken(token);
         this.blocked.add(token);
         this.acceptedFrom.delete(token);
+        for (const offer of Array.from(this.incomingOffers.values())) {
+            if (offer.peer === token && offer.status === "waiting") {
+                this.declineOffer(offer);
+            }
+        }
         this.peerConnections.closePeer(token);
         this.publish();
     }
@@ -355,6 +352,19 @@ export class MessagingService {
     public unblock(token: ClientToken) {
         this.blocked.delete(normalizeClientToken(token));
         this.publish();
+    }
+
+    private declineOffer(offer: OfferEntry) {
+        this.signaling.sendMessage(
+            new TransferAnswerMessage({
+                offerId: offer.offerId,
+                accepted: false,
+            })
+        );
+        this.incomingOffers.set(offer.offerId, {
+            ...offer,
+            status: "declined",
+        });
     }
 
     private on(type: MessageType, handler: (message: ITypedMessage) => void) {
