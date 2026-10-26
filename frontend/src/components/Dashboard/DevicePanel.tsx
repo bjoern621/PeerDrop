@@ -18,6 +18,7 @@ import { LanPeer } from "../../types/lan/LanPeer";
 import { Device } from "../../types/device/Device";
 import HelpTip from "../HelpTip/HelpTip";
 import TruncatedText from "../TruncatedText/TruncatedText";
+import EdgeShadows from "./EdgeShadows/EdgeShadows";
 import Anchor from "../Anchor/Anchor";
 import IconButton from "../IconButton/IconButton";
 import CardHeading from "./CardHeading/CardHeading";
@@ -202,19 +203,9 @@ export default function DevicePanel({
                             </span>
                         )}
                     </div>
-                    <div
-                        className={`${css.shadowTop} ${shadows.top ? css.visible : ""}`}
-                        style={{
-                            right: `calc(${shadows.scrollbar}px - var(--space-8))`,
-                        }}
-                        aria-hidden
-                    />
-                    <div
-                        className={`${css.shadowBottom} ${shadows.bottom ? css.visible : ""}`}
-                        style={{
-                            right: `calc(${shadows.scrollbar}px - var(--space-8))`,
-                        }}
-                        aria-hidden
+                    <EdgeShadows
+                        shadows={shadows}
+                        className={css.edgeShadows}
                     />
                 </div>
             </aside>

@@ -69,6 +69,8 @@
 }
 
 .bodyFrame {
+    --edge-inset-x: var(--row-gutter);
+
     position: relative;
     flex: 1 1 0;
     min-height: 0;
@@ -96,31 +98,6 @@
     padding: var(--space-16);
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
-}
-
-.shadowTop,
-.shadowBottom {
-    position: absolute;
-    z-index: 3;
-    left: var(--row-gutter);
-    height: 14px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.shadowTop {
-    top: 0;
-    background: linear-gradient(var(--shadow), transparent);
-}
-
-.shadowBottom {
-    bottom: 0;
-    background: linear-gradient(transparent, var(--shadow));
-}
-
-.visible {
-    opacity: 1;
 }
 
 .row {
@@ -316,8 +293,7 @@
     }
 
     .head,
-    .shadowTop,
-    .shadowBottom {
+    .edgeShadows {
         display: none;
     }
 

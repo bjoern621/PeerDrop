@@ -8,6 +8,7 @@ import { TransferSnapshot } from "../../../services/TransferTracker";
 import { buildActivity, DEFAULT_SORT, Sort, SortKey } from "../activity";
 import { FileRow, FolderRow, OfferRow, TextRow } from "./ActivityRows";
 import ReadView from "./ReadView";
+import EdgeShadows from "../EdgeShadows/EdgeShadows";
 
 const COLUMNS: SortKey[] = ["name", "progress", "size", "time"];
 
@@ -158,20 +159,7 @@ export default function ActivityList({
                         })}
                     </div>
                 </div>
-                <div
-                    className={`${css.shadowTop} ${shadows.top ? css.visible : ""}`}
-                    style={{
-                        right: `calc(${shadows.scrollbar}px + var(--space-12))`,
-                    }}
-                    aria-hidden
-                />
-                <div
-                    className={`${css.shadowBottom} ${shadows.bottom ? css.visible : ""}`}
-                    style={{
-                        right: `calc(${shadows.scrollbar}px + var(--space-12))`,
-                    }}
-                    aria-hidden
-                />
+                <EdgeShadows shadows={shadows} className={css.edgeShadows} />
             </div>
             {reading && (
                 <ReadView
