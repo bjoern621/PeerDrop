@@ -10,7 +10,9 @@ import { PREFERS_DARK_QUERY, REDUCED_MOTION_QUERY } from "../util/mediaQueries";
 
 const LOCAL_STORAGE_KEY = "theme";
 type ColorScheme = "light" | "dark";
-type ThemePreference = ColorScheme | "system";
+/** Order of the options in the settings and of the footer toggle's cycle. */
+export const THEME_PREFERENCES = ["light", "dark", "system"] as const;
+type ThemePreference = (typeof THEME_PREFERENCES)[number];
 const prefersDarkMediaQuery = window.matchMedia(PREFERS_DARK_QUERY);
 const prefersReducedMotionQuery = window.matchMedia(REDUCED_MOTION_QUERY);
 
@@ -35,7 +37,7 @@ function isColorScheme(value: unknown): value is ColorScheme {
 }
 
 function isThemePreference(value: unknown): value is ThemePreference {
-    return isColorScheme(value) || value === "system";
+    return THEME_PREFERENCES.includes(value as ThemePreference);
 }
 
 function storedColorScheme(): ColorScheme {
