@@ -16,6 +16,7 @@ import {
 } from "@tabler/icons-react";
 import { getSizeInHumanReadableFormat } from "../transferFormat";
 import { useEscapeKey } from "../../../hooks/useEscapeKey";
+import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
 import Button from "../../Button/Button";
 import IconButton from "../../IconButton/IconButton";
 import Tooltip from "../../Tooltip/Tooltip";
@@ -57,6 +58,7 @@ export default function TextComposer({
     boundsRef,
 }: TextComposerProps) {
     const { t } = useTranslation("dashboard");
+    const isTouchDevice = useIsTouchDevice();
     const fieldRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [overflowing, setOverflowing] = useState(false);
@@ -128,7 +130,7 @@ export default function TextComposer({
             : `${t("lines", { count: lines })} · ${getSizeInHumanReadableFormat(new Blob([draft]).size)}`;
 
     const sendButton = (
-        <Tooltip content={t("composer.sendShortcut")}>
+        <Tooltip content={t("composer.sendShortcut")} disabled={isTouchDevice}>
             <Button
                 size="small"
                 className={css.send}
