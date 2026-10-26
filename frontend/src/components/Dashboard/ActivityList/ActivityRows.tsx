@@ -22,7 +22,10 @@ import { usePeerConnectionManager } from "../../../context/connection/PeerConnec
 import useSettings from "../../../hooks/useSettings";
 import { useCopyToClipboard } from "../../../hooks/useCopyToClipboard";
 import { OfferEntry, TextEntry } from "../../../services/MessagingService";
-import { TransferSnapshot } from "../../../services/TransferTracker";
+import {
+    TransferDirection,
+    TransferSnapshot,
+} from "../../../services/TransferTracker";
 import { peerColor } from "../../../util/peerColor";
 import { FolderNode } from "../groupTransfers";
 import { offerName } from "../activity";
@@ -484,7 +487,7 @@ function Row({
 }: {
     name: ReactNode;
     count?: number;
-    direction: "up" | "down";
+    direction: TransferDirection;
     peer: string;
     size: number;
     at: Date;

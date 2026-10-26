@@ -22,6 +22,7 @@ import { TransferAnswerMessage } from "../types/messaging/TransferAnswerMessage"
 import { EstablishConnectionMessage } from "../types/connection/EstablishConnectionMessage";
 import errorAsValue from "../util/ErrorAsValue";
 import { Logger } from "../util/Logger";
+import { TransferDirection } from "./TransferTracker";
 
 /** Largest text the server forwards, in UTF-8 bytes. */
 export const MAX_TEXT_BYTES = 1024 * 1024;
@@ -47,7 +48,7 @@ export interface OfferSummary {
 export interface TextEntry {
     kind: "text";
     id: string;
-    direction: "up" | "down";
+    direction: TransferDirection;
     peer: ClientToken;
     text: string;
     at: Date;
@@ -57,7 +58,7 @@ export interface TextEntry {
 export interface OfferEntry {
     kind: "offer";
     offerId: string;
-    direction: "up" | "down";
+    direction: TransferDirection;
     peer: ClientToken;
     summary: OfferSummary;
     at: Date;
