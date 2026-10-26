@@ -24,7 +24,10 @@
     @include focused-frame;
 
     // Matches the disabled outline buttons beside it.
+    // The padding makes up for the thinner border, so the content stays put.
     &:has(textarea:disabled) {
+        border-width: 1px;
+        padding: 2px;
         border-color: var(--text-muted);
         background-color: var(--text-muted-10);
 
