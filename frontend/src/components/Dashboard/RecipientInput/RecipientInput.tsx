@@ -6,6 +6,7 @@ import { normalizeClientToken } from "../../../services/WebSocketService";
 import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
 import { REDUCED_MOTION_QUERY } from "../../../util/mediaQueries";
 import { useMediaQuery } from "../../../hooks/useMediaQuery";
+import { cx } from "class-variance-authority";
 
 /** Result of the server's check of a complete token. */
 export type RecipientCheck = "online" | "offline" | null;
@@ -28,7 +29,7 @@ const Slot = ({
 }: SlotProps & { sample?: string; sampleFading: boolean }) => {
     return (
         <div
-            className={`${css.otpSlot} ${isActive ? css.otpSlotActive : ""}`}
+            className={cx(css.otpSlot, isActive && css.otpSlotActive)}
             data-state={!char ? "empty" : "filled"}
             data-active={isActive || undefined}
         >
@@ -37,7 +38,7 @@ const Slot = ({
             {hasFakeCaret && "_"}
             {!char && sample && (
                 <span
-                    className={`${css.sample} ${sampleFading ? css.sampleFading : ""}`}
+                    className={cx(css.sample, sampleFading && css.sampleFading)}
                     aria-hidden
                 >
                     {sample.toUpperCase()}
@@ -188,7 +189,11 @@ export default function RecipientInput({
             onBlur={() => setFocused(false)}
             render={({ slots }) => (
                 <div
-                    className={`${css.slotsContainer} ${check === "online" ? css.online : ""} ${check === "offline" ? css.offline : ""}`}
+                    className={cx(
+                        css.slotsContainer,
+                        check === "online" && css.online,
+                        check === "offline" && css.offline
+                    )}
                 >
                     {slots.map((slot, idx) => (
                         <Slot

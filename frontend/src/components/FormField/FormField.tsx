@@ -1,5 +1,6 @@
 import { InputHTMLAttributes, Ref, useId, useRef } from "react";
 import css from "./FormField.module.scss";
+import { cx } from "class-variance-authority";
 
 interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
     label: string;
@@ -31,13 +32,11 @@ export default function FormField({
             <input
                 id={inputId}
                 ref={ref}
-                className={`${css.input} ${className || ""}`}
+                className={cx(css.input, className)}
                 aria-invalid={showError ? "true" : "false"}
                 {...inputProps}
             />
-            <div
-                className={`${css.errorWrapper} ${!showError ? css.hidden : ""}`}
-            >
+            <div className={cx(css.errorWrapper, !showError && css.hidden)}>
                 <div className={css.error}>{shownError.current}</div>
             </div>
         </div>

@@ -36,10 +36,7 @@ export default function Anchor({
 }: AnchorProps) {
     return (
         <Link
-            className={`${anchorVariants({
-                underline,
-                hover,
-            })} ${className || ""}`}
+            className={anchorVariants({ underline, hover, className })}
             {...props}
         >
             {children}

@@ -12,6 +12,7 @@ import {
 import { loginSchema } from "./types";
 import { useAuthForm } from "./useAuthForm";
 import loginCss from "./LoginForm.module.scss";
+import { cx } from "class-variance-authority";
 
 type LoginFormFields = z.infer<typeof loginSchema>;
 
@@ -54,7 +55,7 @@ export default function LoginForm({
             onKeyDown={handleKeyDown}
             className={css.form}
         >
-            <h2 className={`${css.title} ${loginCss.title}`}>{t("login")}</h2>
+            <h2 className={cx(css.title, loginCss.title)}>{t("login")}</h2>
 
             <FormField
                 type="text"

@@ -22,6 +22,7 @@ import {
 } from "../../util/Constants";
 import IconButton from "../IconButton/IconButton";
 import CardHeading from "./CardHeading/CardHeading";
+import { cx } from "class-variance-authority";
 
 export default function TokenCard() {
     const { t } = useTranslation("dashboard");
@@ -79,7 +80,7 @@ export default function TokenCard() {
             </div>
             {editing ? (
                 <input
-                    className={`${css.tokenBox} ${css.tokenInput}`}
+                    className={cx(css.tokenBox, css.tokenInput)}
                     value={editedToken}
                     maxLength={CLIENT_TOKEN_LENGTH}
                     autoFocus

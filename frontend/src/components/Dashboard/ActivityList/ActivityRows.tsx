@@ -31,6 +31,7 @@ import {
     getTimeInHumanReadableFormat,
     getTransferInfo,
 } from "../transferFormat";
+import { cx } from "class-variance-authority";
 
 interface RowProps {
     blocked: ReadonlySet<string>;
@@ -247,7 +248,10 @@ export function FolderRow({
                         onClick={() => setExpanded(value => !value)}
                     >
                         <ChevronIcon
-                            className={`${css.chevron} ${expanded ? css.chevronOpen : ""}`}
+                            className={cx(
+                                css.chevron,
+                                expanded && css.chevronOpen
+                            )}
                             aria-hidden
                         />
                         <FolderIcon className={css.icon} aria-hidden />

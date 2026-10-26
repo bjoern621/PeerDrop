@@ -24,6 +24,7 @@ import IconButton from "../IconButton/IconButton";
 import CardHeading from "./CardHeading/CardHeading";
 import DeviceList from "./Devices/DeviceList/DeviceList";
 import DeviceTile from "./Devices/DeviceTile/DeviceTile";
+import { cx } from "class-variance-authority";
 
 // Matches the transition of .moving in DevicePanel.module.scss.
 const MOVE_MS = 200;
@@ -50,7 +51,6 @@ export default function DevicePanel({
     const { lanDiscovery } = useSettings();
     const { openSettings } = useSettingsDialog();
     const { isLoggedIn, isStatusKnown } = useAuth();
-    const pending = isStatusKnown ? "" : css.pending;
     const scrollRef = useRef<HTMLDivElement>(null);
     const shadows = useScrollShadows(scrollRef);
     const panelRef = useRef<HTMLElement>(null);
@@ -100,7 +100,12 @@ export default function DevicePanel({
             <aside
                 ref={panelRef}
                 id="devices-panel"
-                className={`${css.panel} ${floating ? css.compact : ""} ${isOpen ? css.floating : ""} ${moving ? css.moving : ""}`}
+                className={cx(
+                    css.panel,
+                    floating && css.compact,
+                    isOpen && css.floating,
+                    moving && css.moving
+                )}
                 aria-labelledby="devices-heading"
             >
                 <CardHeading
@@ -187,7 +192,12 @@ export default function DevicePanel({
                                 onSelect={pickDevice}
                             />
                         ) : (
-                            <span className={`${css.signIn} ${pending}`}>
+                            <span
+                                className={cx(
+                                    css.signIn,
+                                    !isStatusKnown && css.pending
+                                )}
+                            >
                                 {t("devices.loginToRegister")}
                                 <HelpTip hoverable>
                                     <Trans

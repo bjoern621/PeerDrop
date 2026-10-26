@@ -12,6 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { registerSchema } from "./types";
 import { useAuthForm } from "./useAuthForm";
+import { cx } from "class-variance-authority";
 
 type RegisterFormFields = z.infer<typeof registerSchema>;
 
@@ -52,9 +53,9 @@ export default function RegisterForm({
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onSubmit={submit}
             onKeyDown={handleKeyDown}
-            className={`${css.form} ${registerCss.registerForm}`}
+            className={cx(css.form, registerCss.registerForm)}
         >
-            <h2 className={`${css.title} ${registerCss.title}`}>
+            <h2 className={cx(css.title, registerCss.title)}>
                 {t("register")}
             </h2>
 

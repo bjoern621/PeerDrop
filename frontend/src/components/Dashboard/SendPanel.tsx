@@ -17,6 +17,7 @@ import CardHeading from "./CardHeading/CardHeading";
 import { Hint } from "./nextStep";
 import { ShareSelection } from "../../types/transfer/ShareSelection";
 import { useResizeObserver } from "../../hooks/useResizeObserver";
+import { cx } from "class-variance-authority";
 
 interface SendPanelProps {
     recipient: string;
@@ -80,7 +81,7 @@ export default function SendPanel(props: SendPanelProps) {
                 </div>
             </div>
 
-            <div ref={hintRef} role="status" className={`${css.hint} ${tone}`}>
+            <div ref={hintRef} role="status" className={cx(css.hint, tone)}>
                 <HintIcon aria-hidden />
                 <span>{props.hint.text}</span>
             </div>
@@ -120,10 +121,7 @@ export default function SendPanel(props: SendPanelProps) {
 /** Numbers a step of sending. Lights up while the step is due. */
 function StepNumber({ step, active }: { step: number; active: boolean }) {
     return (
-        <span
-            className={`${css.step} ${active ? css.stepActive : ""}`}
-            aria-hidden
-        >
+        <span className={cx(css.step, active && css.stepActive)} aria-hidden>
             {step}
         </span>
     );

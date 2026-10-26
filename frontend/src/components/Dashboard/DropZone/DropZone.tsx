@@ -20,6 +20,7 @@ import {
 import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
 import { useContentHeight } from "../../../hooks/useContentHeight";
 import { useTimeout } from "../../../hooks/useTimeout";
+import { cx } from "class-variance-authority";
 
 const FLASH_OK_MS = 1800;
 const FLASH_WARN_MS = 2500;
@@ -179,7 +180,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
 
     return (
         <div
-            className={`${css.zone} ${overlay?.edge ?? ""} ${dimming ? css.dimming : ""}`}
+            className={cx(css.zone, overlay?.edge, dimming && css.dimming)}
             onDragOver={event => {
                 event.preventDefault();
                 if (!overZone) setOverZone(true);
@@ -204,7 +205,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
                 variant="outline"
                 color_scheme="primary"
                 alignment="vertical"
-                className={`${css.shareButton} ${css.fileButton}`}
+                className={cx(css.shareButton, css.fileButton)}
                 disabled={!recipient}
                 onClick={() => fileInputRef.current?.click()}
             >
@@ -229,7 +230,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
                 variant="outline"
                 color_scheme="primary"
                 alignment="vertical"
-                className={`${css.shareButton} ${css.folderButton}`}
+                className={cx(css.shareButton, css.folderButton)}
                 disabled={!recipient}
                 onClick={() => folderInputRef.current?.click()}
             >
@@ -247,7 +248,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
             {overlay && (
                 <div
                     role="status"
-                    className={`${css.overlay} ${overlay.className}`}
+                    className={cx(css.overlay, overlay.className)}
                 >
                     {overlay.icon === "drop" && <DropIcon aria-hidden />}
                     {overlay.icon === "ok" && <CheckIcon aria-hidden />}

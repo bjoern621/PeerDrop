@@ -3,6 +3,7 @@ import { IconCheck as CheckIcon } from "@tabler/icons-react";
 import css from "./DeviceTile.module.scss";
 import FakeButton from "../../../FakeButton/FakeButton";
 import Tooltip from "../../../Tooltip/Tooltip";
+import { cx } from "class-variance-authority";
 
 interface DeviceTileProps {
     online: boolean;
@@ -28,7 +29,7 @@ export default function DeviceTile({
 }: DeviceTileProps) {
     const dot = (
         <span
-            className={`${css.status} ${online ? css.online : css.offline}`}
+            className={cx(css.status, online ? css.online : css.offline)}
             aria-hidden
         />
     );

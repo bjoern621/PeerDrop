@@ -21,6 +21,7 @@ import { PHONE_QUERY } from "../../../util/mediaQueries";
 import Button from "../../Button/Button";
 import IconButton from "../../IconButton/IconButton";
 import Tooltip from "../../Tooltip/Tooltip";
+import { cx } from "class-variance-authority";
 
 const BIG_MAX_WIDTH = 840;
 const BIG_MAX_HEIGHT = 600;
@@ -188,7 +189,7 @@ export default function TextComposer({
                     />
                 </div>
                 <div
-                    className={`${css.fadeBottom} ${overflowing ? css.visible : ""}`}
+                    className={cx(css.fadeBottom, overflowing && css.visible)}
                     aria-hidden
                 />
                 <div className={css.bar}>

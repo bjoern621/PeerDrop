@@ -2,6 +2,7 @@ import { ReactNode, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import css from "./Tooltip.module.scss";
 import { useTimeout } from "../../hooks/useTimeout";
+import { cx } from "class-variance-authority";
 
 export type TooltipPosition = "top" | "bottom" | "left" | "right";
 
@@ -27,7 +28,7 @@ export default function Tooltip({
     content,
     position = "top",
     showArrow = false,
-    className = "",
+    className,
     disabled = false,
     hoverable = false,
     triggerClassName = "",
@@ -51,24 +52,15 @@ export default function Tooltip({
         }
     };
 
-    const tooltipClasses = [
+    const tooltipClasses = cx(
         css.tooltip,
         css[position],
-        showArrow ? css.withArrow : "",
-        isVisible ? css.visible : "",
-        hoverable ? css.hoverable : "",
-        className,
-    ]
-        .filter(Boolean)
-        .join(" ");
-
-    const arrowClasses = [
-        css.arrow,
-        css[position],
-        isVisible ? css.visible : "",
-    ]
-        .filter(Boolean)
-        .join(" ");
+        showArrow && css.withArrow,
+        isVisible && css.visible,
+        hoverable && css.hoverable,
+        className
+    );
+    const arrowClasses = cx(css.arrow, css[position], isVisible && css.visible);
 
     const anchorName = `--anchor-${anchorId.replace(/:/g, "")}`;
 
@@ -76,7 +68,7 @@ export default function Tooltip({
         <>
             <div
                 id={anchorId}
-                className={`${css.tooltipTrigger} ${triggerClassName}`}
+                className={cx(css.tooltipTrigger, triggerClassName)}
                 style={
                     {
                         anchorName: anchorName,

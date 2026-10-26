@@ -12,6 +12,7 @@ import {
 } from "../transferFormat";
 import { BlockButton, CopyButton } from "./ActivityRows";
 import IconButton from "../../IconButton/IconButton";
+import { cx } from "class-variance-authority";
 
 // Matches the shrink-out in ReadView.module.scss.
 const CLOSE_MS = 120;
@@ -54,7 +55,7 @@ export default function ReadView({
                 role="dialog"
                 aria-modal="true"
                 aria-label={title}
-                className={`${css.dialog} ${closing ? css.closing : ""}`}
+                className={cx(css.dialog, closing && css.closing)}
             >
                 <div className={css.bar}>
                     <span className={css.title}>{title}</span>

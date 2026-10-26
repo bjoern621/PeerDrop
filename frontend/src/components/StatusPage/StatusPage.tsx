@@ -1,6 +1,7 @@
 import { Trans, useTranslation } from "react-i18next";
 import css from "./StatusPage.module.scss";
 import Link from "../Button/Link";
+import { cx } from "class-variance-authority";
 
 /** A page that names a state of the site in place of content, with a way back home. */
 export default function StatusPage({
@@ -17,7 +18,7 @@ export default function StatusPage({
     const { t } = useTranslation();
 
     return (
-        <div className={`${css.container} ${fullScreen ? css.fullScreen : ""}`}>
+        <div className={cx(css.container, fullScreen && css.fullScreen)}>
             <div className={css.content}>
                 <div className={css.code}>{code}</div>
                 <h1 className={css.heading}>

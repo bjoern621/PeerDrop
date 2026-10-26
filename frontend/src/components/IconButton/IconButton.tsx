@@ -1,6 +1,7 @@
 import { ComponentPropsWithRef, ReactNode } from "react";
 import css from "./IconButton.module.scss";
 import Tooltip from "../Tooltip/Tooltip";
+import { cx } from "class-variance-authority";
 
 interface IconButtonProps
     extends Omit<ComponentPropsWithRef<"button">, "children"> {
@@ -23,19 +24,17 @@ export default function IconButton({
     variant = "ghost",
     size = "l",
     tone = "neutral",
-    className = "",
+    className,
     children,
     ...props
 }: IconButtonProps) {
-    const classes = [
+    const classes = cx(
         css.iconButton,
         css[variant],
-        variant === "ghost" ? css[size] : "",
-        tone === "error" ? css.error : "",
-        className,
-    ]
-        .filter(Boolean)
-        .join(" ");
+        variant === "ghost" && css[size],
+        tone === "error" && css.error,
+        className
+    );
 
     const button = (
         <button type="button" className={classes} aria-label={label} {...props}>

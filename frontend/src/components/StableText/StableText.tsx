@@ -1,5 +1,6 @@
 import { CSSProperties } from "react";
 import css from "./StableText.module.scss";
+import { cx } from "class-variance-authority";
 
 interface StableTextProps {
     text: string;
@@ -16,12 +17,12 @@ interface StableTextProps {
 export default function StableText({
     text,
     fontWeight,
-    className = "",
+    className,
     style,
 }: StableTextProps) {
     return (
         <span
-            className={`${css.stableText} ${className}`}
+            className={cx(css.stableText, className)}
             style={{ "--font-weight": fontWeight, ...style } as CSSProperties}
         >
             <span className={css.hidden} aria-hidden="true">
