@@ -43,11 +43,7 @@
 // Stands in for the list while the card is too low for it.
 .expandHint {
     display: none;
-    padding: 0;
-    border: none;
-    background: none;
     color: var(--text-muted);
-    font: inherit;
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
     font-weight: var(--font-weight-regular);
@@ -182,11 +178,7 @@
 }
 
 .settingsLink {
-    padding: 0;
-    border: none;
-    background: none;
     color: inherit;
-    font: inherit;
     text-decoration: dashed underline;
     text-underline-position: under;
     cursor: pointer;

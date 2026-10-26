@@ -42,14 +42,10 @@
     align-items: center;
     gap: var(--space-8);
     padding: var(--space-8) var(--space-16);
-    border: none;
     border-radius: var(--space-16);
-    background: transparent;
     color: var(--text);
-    font: inherit;
     font-weight: var(--font-weight-medium);
     text-align: left;
-    cursor: pointer;
 
     &:hover {
         background-color: var(--text-muted-10);
@@ -165,10 +161,6 @@
 
 .nameButton {
     @extend .iconName;
-    padding: 0;
-    border: none;
-    background: none;
-    font: inherit;
     text-align: left;
     cursor: pointer;
 }
