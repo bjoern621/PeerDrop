@@ -71,7 +71,7 @@
     align-items: center;
     gap: var(--space-12);
     padding: var(--space-8) var(--space-16);
-    border-radius: 12px;
+    border-radius: var(--space-12);
     font-weight: var(--font-weight-medium);
 
     > svg {
