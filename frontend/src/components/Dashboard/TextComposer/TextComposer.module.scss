@@ -47,6 +47,7 @@
     flex-direction: column;
     padding: var(--space-8) var(--space-12);
     cursor: text;
+
     // Keeps the textarea's default columns out of the field's minimum width.
     contain: inline-size;
 }
@@ -118,6 +119,7 @@
 .meta {
     flex: 1;
     min-width: 0;
+
     // Stays out of the field's minimum width and gets cut off instead.
     contain: inline-size;
     color: var(--text-muted);
