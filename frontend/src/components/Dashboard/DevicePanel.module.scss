@@ -178,17 +178,6 @@
     font-weight: var(--font-weight-regular);
 }
 
-.settingsLink {
-    color: inherit;
-    text-decoration: dashed underline;
-    text-underline-position: under;
-    cursor: pointer;
-
-    &:hover {
-        text-decoration: underline;
-    }
-}
-
 .pending {
     visibility: hidden;
 }

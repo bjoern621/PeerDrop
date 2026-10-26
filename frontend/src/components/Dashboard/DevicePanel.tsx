@@ -20,7 +20,7 @@ import { displayToken } from "../../services/WebSocketService";
 import HelpTip from "../HelpTip/HelpTip";
 import TruncatedText from "../TruncatedText/TruncatedText";
 import EdgeShadows from "./EdgeShadows/EdgeShadows";
-import Anchor from "../Anchor/Anchor";
+import Anchor, { anchorVariants } from "../Anchor/Anchor";
 import IconButton from "../IconButton/IconButton";
 import CardHeading from "./CardHeading/CardHeading";
 import DeviceList from "./Devices/DeviceList/DeviceList";
@@ -177,7 +177,7 @@ export default function DevicePanel({
                                         settingsLink: (
                                             <button
                                                 type="button"
-                                                className={css.settingsLink}
+                                                className={anchorVariants()}
                                                 onClick={() => openSettings()}
                                             />
                                         ),
