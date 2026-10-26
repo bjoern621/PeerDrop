@@ -19,15 +19,13 @@
     background-color: var(--background);
     transition:
         border-color 0.2s ease,
+        background-color 0.2s ease,
         box-shadow 0.2s ease;
 
     @include focused-frame;
 
-    // Matches the disabled outline buttons beside it.
-    // The padding makes up for the thinner border, so the content stays put.
+    // Matches the colors of the disabled buttons beside it.
     &:has(textarea:disabled) {
-        border-width: 1px;
-        padding: 2px;
         border-color: var(--text-muted);
         background-color: var(--text-muted-10);
 
