@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import css from "./DevicePanel.module.scss";
 import {
@@ -11,6 +11,8 @@ import useSettings from "../../hooks/useSettings";
 import { useSettingsDialog } from "../../context/SettingsDialogContext";
 import { useAuth } from "../../context/AuthContext";
 import { useScrollShadows } from "../../hooks/useScrollShadows";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
+import { useOutsidePress } from "../../hooks/useOutsidePress";
 import { useTimeout } from "../../hooks/useTimeout";
 import { LanPeer } from "../../types/lan/LanPeer";
 import { Device } from "../../types/device/Device";
@@ -78,7 +80,8 @@ export default function DevicePanel({
         }
     }, [isOpen]);
 
-    useDismiss(isOpen, close, panelRef);
+    useEscapeKey(() => close(true), isOpen);
+    useOutsidePress(panelRef, () => close(false), isOpen);
 
     const pickToken = (token: string) => {
         onPickToken(token);
@@ -217,50 +220,6 @@ export default function DevicePanel({
             </aside>
         </>
     );
-}
-
-/**
- * Calls `close` while `open` on Escape, asking for focus back, and on a press
- * outside the given elements, leaving focus where the press put it.
- */
-function useDismiss(
-    open: boolean,
-    close: (returnFocus: boolean) => void,
-    ...insideRefs: RefObject<HTMLElement | null>[]
-) {
-    const latest = useRef({ close, insideRefs });
-
-    useEffect(() => {
-        latest.current = { close, insideRefs };
-    });
-
-    useEffect(() => {
-        if (!open) {
-            return;
-        }
-
-        const handlePointerDown = (event: PointerEvent) => {
-            const target = event.target as Node;
-            const inside = latest.current.insideRefs.some(ref =>
-                ref.current?.contains(target)
-            );
-            if (!inside) {
-                latest.current.close(false);
-            }
-        };
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                latest.current.close(true);
-            }
-        };
-
-        window.addEventListener("pointerdown", handlePointerDown);
-        window.addEventListener("keydown", handleKeyDown);
-        return () => {
-            window.removeEventListener("pointerdown", handlePointerDown);
-            window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [open]);
 }
 
 function LanTile({
