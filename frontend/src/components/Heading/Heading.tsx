@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
 import { IconMenu2 as MenuIcon, IconX as CloseIcon } from "@tabler/icons-react";
-import Logo from "../Logo/Logo";
+import Logo, { LogoIcon } from "../Logo/Logo";
 import css from "./Heading.module.scss";
 import StableText from "../StableText/StableText";
 import AuthButton from "../Auth/AuthButton";
@@ -38,7 +38,8 @@ export default function Heading() {
         <header className={css.header}>
             <div className={css.headerContent}>
                 <Link to="/" aria-label={t("header.homeLink")}>
-                    <Logo aria-hidden />
+                    <Logo className={css.bannerLogo} aria-hidden />
+                    <LogoIcon className={css.iconLogo} aria-hidden />
                 </Link>
 
                 <nav

@@ -2,6 +2,10 @@
 // Below ~940px the centered nav and the right-pinned auth section, both out of flow, overlap.
 $header-breakpoint: 960px;
 
-// Navigation moves to its own row here.
+// Logo shrinks to the paper clip here. The navigation joins its row.
 // Below ~600px the centered nav overlaps the logo.
-$nav-row-breakpoint: 640px;
+$compact-header-breakpoint: 640px;
+
+// Navigation moves to its own row here.
+// Below ~360px logo, navigation and menu button outgrow one row.
+$nav-row-breakpoint: 359px;
