@@ -1,3 +1,5 @@
+@use "../Dashboard/layout" as *;
+
 .container {
     display: flex;
     justify-content: center;
@@ -7,12 +9,16 @@
     ); // full height minus header and footer
 }
 
+.fullScreen {
+    min-height: 100vh;
+}
+
 .content {
     max-width: 600px;
     text-align: center;
 }
 
-.statusCode {
+.code {
     font-size: 10rem;
     font-weight: var(--font-weight-bold);
     line-height: 1;
@@ -55,11 +61,10 @@
 
 .homeButton {
     padding: var(--space-12) var(--space-24);
-    font-size: var(--font-size-base);
 }
 
-@media (width <= 768px) {
-    .statusCode {
+@media (width <= #{$phone-breakpoint}) {
+    .code {
         font-size: 6rem;
     }
 
@@ -68,6 +73,6 @@
     }
 
     .paragraph {
-        font-size: var(--font-size-base);
+        font-size: var(--font-size-s);
     }
 }
