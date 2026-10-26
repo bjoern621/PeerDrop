@@ -15,7 +15,7 @@
         "title": "Devices",
         "expand": "Enlarge device list",
         "collapse": "Shrink device list",
-        "expandHint": "Enlarge the list to see the devices.",
+        "expandHint": "Enlarge the list to see devices.",
         "network": "In your network",
         "networkHelp": "Devices in the same network show up here without a click",
         "searching": "Looking for devices in your network...",
