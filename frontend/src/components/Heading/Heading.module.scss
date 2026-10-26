@@ -1,5 +1,6 @@
 @use "../../theme/shadows.scss" as *;
 @use "Variables.scss" as *;
+@use "panel" as *;
 
 .header {
     width: 100%;
@@ -96,66 +97,17 @@
     }
 
     @media (max-width: $header-breakpoint) {
-        position-anchor: --heading;
-        position: fixed;
         inset: auto;
-        top: anchor(bottom);
-        right: 0;
         margin: 0;
-
         width: min(360px, 100%);
-
-        background-color: var(--background);
-
-        @include elevated-shadow-no-highlight;
-        border: 1px solid var(--border);
         padding: var(--space-24);
-        border-bottom-left-radius: var(--space-16);
+
+        @include header-panel(":popover-open");
 
         &:popover-open {
             display: flex;
             flex-direction: column;
             gap: var(--space-24);
-        }
-
-        // Starts below the header to keep the close button undimmed.
-        &::backdrop {
-            position-anchor: --heading;
-            top: anchor(bottom);
-
-            background-color: transparent;
-
-            @media (prefers-reduced-motion: no-preference) {
-                transition: background-color 0.1s;
-            }
-        }
-
-        &:popover-open::backdrop {
-            background-color: var(--backdrop);
-
-            @starting-style {
-                background-color: transparent;
-            }
-        }
-
-        @media (prefers-reduced-motion: no-preference) {
-            transition-property: opacity, scale, display, overlay;
-            transition-duration: 0.1s;
-            transition-behavior: allow-discrete;
-
-            opacity: 0;
-            scale: 0.9;
-            transform-origin: top;
-
-            &:popover-open {
-                opacity: 1;
-                scale: 1;
-
-                @starting-style {
-                    opacity: 0;
-                    scale: 0.9;
-                }
-            }
         }
     }
 }
