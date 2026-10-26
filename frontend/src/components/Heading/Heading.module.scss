@@ -2,6 +2,7 @@
 @use "Variables.scss" as *;
 @use "panel" as *;
 @use "../../theme/layers" as *;
+@use "../../theme/page" as *;
 
 .header {
     width: 100%;
@@ -27,7 +28,7 @@
 }
 
 .headerContent {
-    max-width: 1072px;
+    max-width: $content-width;
     margin: auto;
 
     position: relative;
