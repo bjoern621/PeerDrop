@@ -33,6 +33,11 @@
         color 0.2s ease;
 }
 
+.sample {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
 .otpSlotActive {
     border-color: var(--primary);
     border-width: 4px;

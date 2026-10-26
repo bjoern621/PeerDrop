@@ -1,4 +1,4 @@
-import { KeyboardEvent } from "react";
+import { KeyboardEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { OTPInput, SlotProps } from "input-otp";
 import css from "./RecipientInput.module.scss";
@@ -8,7 +8,19 @@ import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
 /** Result of the server's check of a complete token. */
 export type RecipientCheck = "online" | "offline" | null;
 
-const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
+// Letters of the server's proquint tokens, from ClientTokenFormat in the backend.
+const SAMPLE_CONSONANTS = "bdfghjklmnprstvz";
+const SAMPLE_VOWELS = "aiou";
+const SAMPLE_TYPE_MS = 220;
+const SAMPLE_HOLD_MS = 1600;
+const SAMPLE_GAP_MS = 700;
+
+const Slot = ({
+    char,
+    hasFakeCaret,
+    isActive,
+    sample,
+}: SlotProps & { sample?: string }) => {
     return (
         <div
             className={`${css.otpSlot} ${isActive ? css.otpSlotActive : ""}`}
@@ -18,9 +30,65 @@ const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
             {/* Tokens are stored lowercase; presentation is uppercase. */}
             {char?.toUpperCase()}
             {hasFakeCaret && "_"}
+            {!char && sample && (
+                <span className={css.sample} aria-hidden>
+                    {sample.toUpperCase()}
+                </span>
+            )}
         </div>
     );
 };
+
+function randomSampleToken(): string {
+    const pick = (letters: string) =>
+        letters[Math.floor(Math.random() * letters.length)];
+    return Array.from({ length: CLIENT_TOKEN_LENGTH }, (_, index) =>
+        pick(index % 2 === 0 ? SAMPLE_CONSONANTS : SAMPLE_VOWELS)
+    ).join("");
+}
+
+/**
+ * Types made-up tokens into the empty field one letter at a time, to show where a token goes.
+ * Returns the letters typed so far, or "" while `active` is false.
+ */
+function useSampleToken(active: boolean): string {
+    const [typed, setTyped] = useState("");
+
+    useEffect(() => {
+        if (!active) {
+            setTyped("");
+            return;
+        }
+        let timer: number | undefined;
+        const typeToken = (token: string, length: number) => {
+            setTyped(token.slice(0, length));
+            timer =
+                length < token.length
+                    ? window.setTimeout(
+                          () => typeToken(token, length + 1),
+                          SAMPLE_TYPE_MS
+                      )
+                    : window.setTimeout(() => {
+                          setTyped("");
+                          timer = window.setTimeout(
+                              () => typeToken(randomSampleToken(), 1),
+                              SAMPLE_GAP_MS
+                          );
+                      }, SAMPLE_HOLD_MS);
+        };
+        timer = window.setTimeout(
+            () => typeToken(randomSampleToken(), 1),
+            SAMPLE_GAP_MS
+        );
+        return () => window.clearTimeout(timer);
+    }, [active]);
+
+    return typed;
+}
+
+function prefersReducedMotion(): boolean {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 /**
  * Ctrl+Backspace (Alt or Cmd on macOS) deletes everything before the caret.
@@ -79,6 +147,10 @@ export default function RecipientInput({
     check: RecipientCheck;
 }) {
     const { t } = useTranslation("dashboard");
+    const [focused, setFocused] = useState(false);
+    const sample = useSampleToken(
+        value === "" && !focused && !prefersReducedMotion()
+    );
 
     return (
         <OTPInput
@@ -100,12 +172,14 @@ export default function RecipientInput({
                 deleteWordBackward(event, value, onChange);
                 deleteForward(event, value, onChange);
             }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             render={({ slots }) => (
                 <div
                     className={`${css.slotsContainer} ${check === "online" ? css.online : ""} ${check === "offline" ? css.offline : ""}`}
                 >
                     {slots.map((slot, idx) => (
-                        <Slot key={idx} {...slot} />
+                        <Slot key={idx} {...slot} sample={sample[idx]} />
                     ))}
                 </div>
             )}
