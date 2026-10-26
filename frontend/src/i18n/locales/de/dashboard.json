@@ -50,7 +50,7 @@
         "tokensLocked_one": "Du hast zu oft einen unbekannten Token eingegeben. Bitte warte {{count}} Minute.",
         "tokensLocked_other": "Du hast zu oft einen unbekannten Token eingegeben. Bitte warte {{count}} Minuten.",
         "textsLocked": "Du schickst zu viele Texte. Bitte warte ein paar Sekunden.",
-        "enterToken": "Gib den Token des Empfängers ein oder wähle unter „Geräte“ einen aus.",
+        "enterToken": "Gib zuerst den Token des Empfängers ein oder wähle unter „Geräte“ einen aus.",
         "missingChars_one": "Gib das letzte Zeichen des Tokens ein.",
         "missingChars_other": "Gib die restlichen {{count}} Zeichen des Tokens ein.",
         "ownToken": "{{token}} ist dein eigener Token. Gib den Token eines anderen Geräts ein.",
