@@ -44,8 +44,9 @@
     }
 }
 
+// Grows to the banner's 45px at $compact-header-breakpoint, from 28px at 360px.
 .headerContent .iconLogo {
-    height: 28px;
+    height: clamp(28px, calc(28px + (100vw - 360px) * 17 / 280), 45px);
 }
 
 @media (width > #{$compact-header-breakpoint}) {
