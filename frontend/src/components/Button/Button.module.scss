@@ -13,7 +13,7 @@
     font-weight: var(--font-weight-medium);
 
     svg {
-        height: calc(var(--font-size-s) * var(--line-height-s));
+        height: 1lh;
     }
 }
 
@@ -108,6 +108,6 @@
 
     svg {
         width: auto;
-        height: calc(var(--font-size-xs) * var(--line-height-xs));
+        height: 1lh;
     }
 }
