@@ -101,20 +101,13 @@ export class WebSocketService {
      * subscription to the message type is automatically removed.
      */
     private waitForLocalClientToken() {
-        const handleClientTokenMessage = (message: ClientTokenMessage) => {
-            this.log("Received client token:", message.msg.token);
-
-            this.localToken = normalizeClientToken(message.msg.token);
-
-            this.unsubscribeMessage(
-                MessageType.CLIENT_TOKEN,
-                handleClientTokenMessage as MessageHandler
-            );
-        };
-
-        this.subscribeMessage(
+        const unsubscribe = this.subscribeMessage<ClientTokenMessage>(
             MessageType.CLIENT_TOKEN,
-            handleClientTokenMessage as MessageHandler
+            message => {
+                this.log("Received client token:", message.msg.token);
+                this.localToken = normalizeClientToken(message.msg.token);
+                unsubscribe();
+            }
         );
     }
 
@@ -169,12 +162,13 @@ export class WebSocketService {
     }
 
     /**
-     * Subscribe to a specific message type.
+     * Calls `handler` for every message of `messageType`, which the caller declares as `M`.
+     * Returns the unsubscribe.
      */
-    public subscribeMessage(
+    public subscribeMessage<M extends ITypedMessage = ITypedMessage>(
         messageType: MessageType,
-        handler: MessageHandler
-    ): void {
+        handler: (message: M) => unknown
+    ): () => void {
         if (!this.messageHandlers.has(messageType)) {
             this.messageHandlers.set(messageType, []);
         }
@@ -182,14 +176,13 @@ export class WebSocketService {
         const handlers = this.messageHandlers.get(messageType);
         assert(handlers);
 
-        handlers.push(handler);
+        const typedHandler = handler as MessageHandler;
+        handlers.push(typedHandler);
+        return () => this.unsubscribeMessage(messageType, typedHandler);
     }
 
-    /**
-     * Unsubscribe from a specific message type.
-     * The handler must be subscribed to the message type.
-     */
-    public unsubscribeMessage(
+    /** The handler must be subscribed to the message type. */
+    private unsubscribeMessage(
         messageType: MessageType,
         handler: MessageHandler
     ): void {

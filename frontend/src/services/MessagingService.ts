@@ -1,6 +1,5 @@
 import {
     ClientToken,
-    MessageHandler,
     WebSocketService,
     normalizeClientToken,
 } from "./WebSocketService";
@@ -352,7 +351,7 @@ export class MessagingService {
     }
 
     private on(type: MessageType, handler: (message: ITypedMessage) => void) {
-        this.signaling.subscribeMessage(type, handler as MessageHandler);
+        this.signaling.subscribeMessage(type, handler);
     }
 
     private async handleNewToken() {

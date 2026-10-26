@@ -3,6 +3,7 @@ import { useWebSocketService } from "../context/connection/WebSocketContext";
 import { MessageType } from "../types/MessageType";
 import { LanDiscoveryStateMessage } from "../types/lan/LanDiscoveryStateMessage";
 import useSettings from "./useSettings";
+import { useWebSocketMessage } from "./useWebSocketMessage";
 
 /**
  * Reports the LAN discovery setting to the server and keeps it reported.
@@ -15,25 +16,12 @@ export const useLanDiscoveryState = () => {
     const webSocketService = useWebSocketService();
     const { lanDiscovery } = useSettings();
 
-    useEffect(() => {
-        const reportState = () => {
-            webSocketService.sendMessage(
-                new LanDiscoveryStateMessage({ enabled: lanDiscovery })
-            );
-        };
-
-        reportState();
-
-        webSocketService.subscribeMessage(
-            MessageType.CLIENT_TOKEN,
-            reportState
+    const reportState = () => {
+        webSocketService.sendMessage(
+            new LanDiscoveryStateMessage({ enabled: lanDiscovery })
         );
+    };
 
-        return () => {
-            webSocketService.unsubscribeMessage(
-                MessageType.CLIENT_TOKEN,
-                reportState
-            );
-        };
-    }, [lanDiscovery, webSocketService]);
+    useEffect(reportState, [lanDiscovery, webSocketService]);
+    useWebSocketMessage(MessageType.CLIENT_TOKEN, reportState);
 };

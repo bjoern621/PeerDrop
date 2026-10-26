@@ -99,7 +99,7 @@ export class WebRTCConnection {
     private readonly outgoingChannels: Map<string, RTCDataChannel> = new Map();
     // Transfers stopped on purpose; their channel close is no failure.
     private readonly canceledTransfers: Set<string> = new Set();
-    private readonly signalingHandlers: [MessageType, MessageHandler][] = [];
+    private readonly signalingUnsubscribes: (() => void)[] = [];
 
     // Peer connections to the remote peer by lane index. Lane 0 carries the
     // connection state, metadata and acknowledgements; further lanes carry
@@ -783,8 +783,9 @@ export class WebRTCConnection {
             }
             return handler(message);
         };
-        this.signalingHandlers.push([type, scoped]);
-        this.signalingChannel.subscribeMessage(type, scoped);
+        this.signalingUnsubscribes.push(
+            this.signalingChannel.subscribeMessage(type, scoped)
+        );
     }
 
     private handleRemoteICECandidates() {
@@ -840,10 +841,8 @@ export class WebRTCConnection {
         this.lanes.forEach(lane => lane.close());
         this.lanes.clear();
 
-        this.signalingHandlers.forEach(([type, handler]) =>
-            this.signalingChannel.unsubscribeMessage(type, handler)
-        );
-        this.signalingHandlers.length = 0;
+        this.signalingUnsubscribes.forEach(unsubscribe => unsubscribe());
+        this.signalingUnsubscribes.length = 0;
 
         assert(this.peerConnection.connectionState === "closed");
         this.emitEvent("connectionstatechange", "closed");
