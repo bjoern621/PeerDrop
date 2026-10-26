@@ -72,6 +72,13 @@
         display: flex;
         flex-direction: column;
     }
+
+    // Until the first transfer, the devices run down the whole column.
+    .dashboard:not(:has(.transfers)) {
+        grid-template-areas:
+            "left send"
+            "left .";
+    }
 }
 
 @media (width <= #{$phone-breakpoint}) {
@@ -111,7 +118,8 @@
     }
 
     // The last section needs no band below it.
-    .right > .transfers {
+    .right > .transfers,
+    .dashboard:not(:has(.transfers)) .left > :nth-child(2) {
         border-bottom: none;
     }
 

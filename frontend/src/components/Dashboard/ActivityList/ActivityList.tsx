@@ -109,13 +109,6 @@ export default function ActivityList({
                     onScroll={scrollHeadAlong}
                 >
                     <div role="rowgroup" className={css.rows}>
-                        {items.length === 0 && (
-                            <div role="row">
-                                <div role="cell" className={css.empty}>
-                                    {t("transfers.empty")}
-                                </div>
-                            </div>
-                        )}
                         {items.map(item => {
                             switch (item.kind) {
                                 case "text":
