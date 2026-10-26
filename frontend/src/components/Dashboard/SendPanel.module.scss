@@ -43,12 +43,25 @@
     font-weight: var(--font-weight-semibold);
     transition:
         background-color 0.2s ease,
-        color 0.2s ease;
+        color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
+@keyframes step-pop {
+    50% {
+        scale: 1.25;
+    }
+}
+
+// A ring around the due step, popping once when the step comes due.
 .stepActive {
     background-color: var(--primary);
     color: var(--background);
+    box-shadow: 0 0 0 4px var(--primary-40);
+
+    @media (prefers-reduced-motion: no-preference) {
+        animation: step-pop 0.35s ease-out;
+    }
 }
 
 .hint {
