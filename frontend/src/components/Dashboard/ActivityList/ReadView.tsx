@@ -4,7 +4,6 @@ import css from "./ReadView.module.scss";
 import { IconX as CloseIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
 import { displayToken } from "../../../services/WebSocketService";
-import { useMessagingService } from "../../../context/connection/MessagingContext";
 import { useModalView } from "../../../hooks/useModalView";
 import { useTimeout } from "../../../hooks/useTimeout";
 import {
@@ -29,7 +28,6 @@ export default function ReadView({
     onClose: () => void;
 }) {
     const { t } = useTranslation("dashboard");
-    const messaging = useMessagingService();
     const [closing, setClosing] = useState(false);
     const closeEnd = useTimeout();
 
@@ -65,11 +63,7 @@ export default function ReadView({
                     </span>
                     <CopyButton text={entry.text} />
                     {entry.direction === "down" && (
-                        <BlockButton
-                            peer={entry.peer}
-                            blocked={blocked}
-                            onBlock={() => messaging.block(entry.peer)}
-                        />
+                        <BlockButton peer={entry.peer} blocked={blocked} />
                     )}
                     <IconButton
                         label={t("transfers.read.close")}

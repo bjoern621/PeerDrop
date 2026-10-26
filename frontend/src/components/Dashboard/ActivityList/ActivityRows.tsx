@@ -59,7 +59,6 @@ export function TextRow({
     onOpen,
 }: RowProps & { entry: TextEntry; onOpen: () => void }) {
     const { t } = useTranslation("dashboard");
-    const messaging = useMessagingService();
     const preview = entry.text.replace(/\s+/g, " ").trim();
 
     return (
@@ -103,7 +102,6 @@ export function TextRow({
                     <BlockButton
                         peer={entry.peer}
                         blocked={blocked.has(entry.peer)}
-                        onBlock={() => messaging.block(entry.peer)}
                     />
                 </>
             )}
@@ -186,7 +184,6 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                     <BlockButton
                         peer={entry.peer}
                         blocked={blocked.has(entry.peer)}
-                        onBlock={() => messaging.block(entry.peer)}
                     />
                 </>
             )}
@@ -321,7 +318,6 @@ function TransferStatus({
 }) {
     const { t } = useTranslation("dashboard");
     const pcm = usePeerConnectionManager();
-    const messaging = useMessagingService();
     const { autoSaveDownloads } = useSettings();
     const { direction, remoteToken } = transfers[0];
 
@@ -330,7 +326,6 @@ function TransferStatus({
             <BlockButton
                 peer={remoteToken}
                 blocked={blocked.has(remoteToken)}
-                onBlock={() => messaging.block(remoteToken)}
             />
         ) : null;
 
@@ -540,21 +535,20 @@ function Row({
 export function BlockButton({
     peer,
     blocked,
-    onBlock,
 }: {
     peer: string;
     blocked: boolean;
-    onBlock: () => void;
 }) {
     const { t } = useTranslation("dashboard");
+    const messaging = useMessagingService();
     const token = displayToken(peer);
     return blocked ? (
         <IconButton
             variant="badge"
             tone="error"
-            label={t("transfers.block.blocked", { token })}
+            label={t("transfers.block.unblock", { token })}
             tooltip={t("transfers.block.blockedHint", { token })}
-            aria-disabled
+            onClick={() => messaging.unblock(peer)}
         >
             <BlockIcon aria-hidden />
         </IconButton>
@@ -562,7 +556,7 @@ export function BlockButton({
         <IconButton
             variant="badge"
             label={t("transfers.block.block", { token })}
-            onClick={onBlock}
+            onClick={() => messaging.block(peer)}
         >
             <BlockIcon aria-hidden />
         </IconButton>

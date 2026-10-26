@@ -132,8 +132,8 @@
         },
         "block": {
             "block": "Block {{token}}",
-            "blocked": "{{token}} blocked",
-            "blockedHint": "{{token}} stays blocked until you reload the page"
+            "unblock": "Unblock {{token}}",
+            "blockedHint": "{{token}} is blocked. Click to unblock."
         },
         "copy": {
             "copy": "COPY",

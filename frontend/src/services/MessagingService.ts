@@ -351,6 +351,12 @@ export class MessagingService {
         this.publish();
     }
 
+    /** Lets the peer send again. Its next offer asks once more, since blocking dropped the trust. */
+    public unblock(token: ClientToken) {
+        this.blocked.delete(normalizeClientToken(token));
+        this.publish();
+    }
+
     private on(type: MessageType, handler: (message: ITypedMessage) => void) {
         this.signaling.subscribeMessage(type, handler);
     }
