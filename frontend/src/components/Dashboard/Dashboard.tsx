@@ -1,10 +1,4 @@
-import {
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-    useSyncExternalStore,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import css from "./Dashboard.module.scss";
@@ -21,7 +15,7 @@ import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { COMPACT_QUERY, PHONE_QUERY } from "../../util/mediaQueries";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { useMessagingService } from "../../context/connection/MessagingContext";
-import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
+import { useTransfers } from "../../hooks/useTransfers";
 import { LookupState, MAX_TEXT_BYTES } from "../../services/MessagingService";
 import {
     displayToken,
@@ -43,11 +37,7 @@ export default function Dashboard() {
     const { t } = useTranslation("dashboard");
     const messagingService = useMessagingService();
     const messaging = useMessaging();
-    const transferTracker = usePeerConnectionManager().getTransferTracker();
-    const transfers = useSyncExternalStore(
-        listener => transferTracker.subscribe(listener),
-        () => transferTracker.getSnapshot()
-    );
+    const transfers = useTransfers();
     const ownToken = useOwnToken();
     const stacked = useMediaQuery(PHONE_QUERY);
     const compact = useMediaQuery(COMPACT_QUERY);
