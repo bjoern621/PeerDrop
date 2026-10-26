@@ -57,7 +57,7 @@
     // The text column keeps the width of the composer's button bar.
     grid-template-columns: minmax(min-content, 1fr) minmax(0, 1fr);
     align-items: stretch;
-    gap: var(--space-16) var(--space-24);
+    gap: var(--space-16);
 }
 
 .part {
