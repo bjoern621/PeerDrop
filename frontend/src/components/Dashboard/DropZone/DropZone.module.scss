@@ -25,8 +25,18 @@
     min-width: max-content;
 }
 
-.hint {
+// Grows and shrinks with a transition when the hint wraps to more or fewer lines.
+.hintFrame {
     flex: 1 1 100%;
+    overflow: hidden;
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition: height 0.2s ease-out;
+    }
+}
+
+.hint {
+    display: block;
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
     text-align: center;

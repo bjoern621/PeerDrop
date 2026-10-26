@@ -18,6 +18,7 @@ import {
     selectionFromFileList,
 } from "../../../util/shareSelection";
 import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
+import { useContentHeight } from "../../../hooks/useContentHeight";
 
 const FLASH_OK_MS = 1800;
 const FLASH_WARN_MS = 2500;
@@ -39,6 +40,8 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
     const [pageDrag, setPageDrag] = useState(false);
     const [flash, setFlash] = useState<Flash | null>(null);
     const flashTimer = useRef<number | undefined>(undefined);
+    const hintRef = useRef<HTMLSpanElement>(null);
+    const hintHeight = useContentHeight(hintRef);
 
     useEffect(() => {
         if (isTouchDevice) {
@@ -237,7 +240,11 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
                 </div>
                 {t("dropZone.shareFolder")}
             </Button>
-            <span className={css.hint}>{hint}</span>
+            <div className={css.hintFrame} style={{ height: hintHeight }}>
+                <span ref={hintRef} className={css.hint}>
+                    {hint}
+                </span>
+            </div>
             {overlay && (
                 <div
                     role="status"
