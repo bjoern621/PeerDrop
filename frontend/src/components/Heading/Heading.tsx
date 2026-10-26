@@ -13,6 +13,7 @@ import LanguageToggle, {
 import IconButton from "../IconButton/IconButton";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { HEADER_MENU_QUERY } from "../../util/mediaQueries";
+import { cx } from "class-variance-authority";
 
 /**
  * On narrow screens, language, settings and account controls sit in a popover
@@ -59,11 +60,7 @@ export default function Heading() {
                 </nav>
 
                 <IconButton
-                    className={
-                        isMenuOpen
-                            ? `${css.menuButton} ${css.open}`
-                            : css.menuButton
-                    }
+                    className={cx(css.menuButton, isMenuOpen && css.open)}
                     label={t("header.menu")}
                     tooltip={false}
                     popoverTarget="header-menu"
