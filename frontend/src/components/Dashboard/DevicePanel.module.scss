@@ -18,7 +18,10 @@
     inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
     background:
         linear-gradient(var(--primary-5), var(--primary-5)), var(--background);
+}
 
+// Lasts MOVE_MS in DevicePanel.tsx.
+.moving {
     @media (prefers-reduced-motion: no-preference) {
         transition: bottom 0.2s ease-out;
     }

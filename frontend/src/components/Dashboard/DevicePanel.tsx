@@ -21,6 +21,9 @@ import CardHeading from "./CardHeading/CardHeading";
 import DeviceList from "./Devices/DeviceList/DeviceList";
 import DeviceTile from "./Devices/DeviceTile/DeviceTile";
 
+// Matches the transition of .moving in DevicePanel.module.scss.
+const MOVE_MS = 200;
+
 interface DevicePanelProps {
     recipient: string;
     selectedDeviceUuid: string | null;
@@ -50,12 +53,24 @@ export default function DevicePanel({
     const toggleRef = useRef<HTMLButtonElement>(null);
     const [open, setOpen] = useState(false);
     const isOpen = floating && open;
+    const [moving, setMoving] = useState(false);
+    const moveTimer = useRef<number | undefined>(undefined);
     // A close by keyboard or by a pick inside the panel hands focus back to the toggle.
     const returnFocus = useRef(false);
 
+    useEffect(() => () => window.clearTimeout(moveTimer.current), []);
+
+    // The transition runs only while opening or closing, so the panel follows a resize at once.
+    const changeOpen = (next: boolean) => {
+        setOpen(next);
+        setMoving(true);
+        window.clearTimeout(moveTimer.current);
+        moveTimer.current = window.setTimeout(() => setMoving(false), MOVE_MS);
+    };
+
     const close = (focusToggle: boolean) => {
         returnFocus.current = focusToggle;
-        setOpen(false);
+        changeOpen(false);
     };
 
     useEffect(() => {
@@ -83,7 +98,7 @@ export default function DevicePanel({
             <aside
                 ref={panelRef}
                 id="devices-panel"
-                className={`${css.panel} ${floating ? css.compact : ""} ${isOpen ? css.floating : ""}`}
+                className={`${css.panel} ${floating ? css.compact : ""} ${isOpen ? css.floating : ""} ${moving ? css.moving : ""}`}
                 aria-labelledby="devices-heading"
             >
                 <CardHeading
@@ -102,7 +117,7 @@ export default function DevicePanel({
                             size="m"
                             aria-expanded={isOpen}
                             onClick={() =>
-                                isOpen ? close(false) : setOpen(true)
+                                isOpen ? close(false) : changeOpen(true)
                             }
                         >
                             {isOpen ? (
