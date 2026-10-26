@@ -81,41 +81,6 @@ $fluid-full-width: 25rem; // 400px
     --font-weight-black: 900;
 }
 
-.text-xxs {
-    font-size: var(--text-xxs-size);
-    line-height: var(--text-xxs-line);
-}
-
-.text-xs {
-    font-size: var(--text-xs-size);
-    line-height: var(--text-xs-line);
-}
-
-.text-s {
-    font-size: var(--text-s-size);
-    line-height: var(--text-s-line);
-}
-
-.text-m {
-    font-size: var(--text-m-size);
-    line-height: var(--text-m-line);
-}
-
-.text-l {
-    font-size: var(--text-l-size);
-    line-height: var(--text-l-line);
-}
-
-.text-xl {
-    font-size: var(--text-xl-size);
-    line-height: var(--text-xl-line);
-}
-
-.text-2xl {
-    font-size: var(--text-2xl-size);
-    line-height: var(--text-2xl-line);
-}
-
 html {
     @include sizes;
     @include weights;
