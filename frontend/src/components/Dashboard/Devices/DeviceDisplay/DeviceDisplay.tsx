@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Device } from "../../../../types/device/Device";
 import { DeviceStatus } from "../../../../types/device/DeviceStatus";
@@ -12,6 +11,7 @@ import IconButton from "../../../IconButton/IconButton";
 import Anchor from "../../../Anchor/Anchor";
 import DeviceTile from "../DeviceTile/DeviceTile";
 import TruncatedText from "../../../TruncatedText/TruncatedText";
+import { useInlineEdit } from "../../../../hooks/useInlineEdit";
 
 const MAX_DEVICE_NAME_LENGTH = 64; // Linked to the backend DisplayNameValidator
 
@@ -32,23 +32,13 @@ export default function DeviceDisplay({
     onRename,
 }: DeviceDisplayProps) {
     const { t } = useTranslation("dashboard");
-    const [editing, setEditing] = useState(false);
-    const [editedName, setEditedName] = useState("");
     const online = device.status === DeviceStatus.ONLINE;
-
-    const startEditing = () => {
-        setEditedName(device.name);
-        setEditing(true);
-    };
-
-    const commitRename = () => {
-        setEditing(false);
-        const newName = editedName.trim();
-        if (newName.length === 0 || newName === device.name) {
-            return;
+    const nameEdit = useInlineEdit(draft => {
+        const newName = draft.trim();
+        if (newName.length > 0 && newName !== device.name) {
+            onRename(device, newName);
         }
-        onRename(device, newName);
-    };
+    });
 
     return (
         <DeviceTile
@@ -71,7 +61,7 @@ export default function DeviceDisplay({
                         size="m"
                         onClick={e => {
                             e.stopPropagation();
-                            startEditing();
+                            nameEdit.start(device.name);
                         }}
                     >
                         <EditIcon aria-hidden />
@@ -90,24 +80,18 @@ export default function DeviceDisplay({
                 </>
             }
         >
-            {editing ? (
+            {nameEdit.editing ? (
                 <input
+                    {...nameEdit.fieldProps}
                     className={css.nameInput}
-                    value={editedName}
                     maxLength={MAX_DEVICE_NAME_LENGTH}
-                    autoFocus
-                    onChange={e => setEditedName(e.target.value)}
+                    onChange={e => nameEdit.setDraft(e.target.value)}
                     onClick={e => e.stopPropagation()}
                     onKeyDown={e => {
                         // Prevents FakeButton from treating Enter/Space as a connect click
                         e.stopPropagation();
-                        if (e.key === "Enter") {
-                            commitRename();
-                        } else if (e.key === "Escape") {
-                            setEditing(false);
-                        }
+                        nameEdit.fieldProps.onKeyDown(e);
                     }}
-                    onBlur={commitRename}
                 />
             ) : (
                 <TruncatedText className={css.deviceName}>

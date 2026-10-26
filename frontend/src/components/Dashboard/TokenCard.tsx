@@ -12,6 +12,7 @@ import {
 import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 import { useOwnToken } from "../../hooks/useOwnToken";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
+import { useInlineEdit } from "../../hooks/useInlineEdit";
 import { useAuth } from "../../context/AuthContext";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
 import { AuthService } from "../../services/AuthService";
@@ -32,26 +33,14 @@ export default function TokenCard() {
     const token = useOwnToken();
     const { isLoggedIn } = useAuth();
     const resetWebsocket = useResetWebsocket();
-    const [editing, setEditing] = useState(false);
-    const [editedToken, setEditedToken] = useState("");
     const [inUseToken, setInUseToken] = useState<string | null>(null);
 
-    const startEditing = () => {
-        setEditedToken(token ?? "");
-        setInUseToken(null);
-        setEditing(true);
-    };
-
-    const commitEdit = async () => {
-        setEditing(false);
-        if (
-            editedToken.length !== CLIENT_TOKEN_LENGTH ||
-            editedToken === token
-        ) {
+    const chooseToken = async (chosen: string) => {
+        if (chosen.length !== CLIENT_TOKEN_LENGTH || chosen === token) {
             return;
         }
 
-        const result = await AuthService.setChosenClientToken(editedToken);
+        const result = await AuthService.setChosenClientToken(chosen);
         if (!result) {
             return;
         }
@@ -63,6 +52,13 @@ export default function TokenCard() {
 
         // The server assigns the chosen token on the next connect
         resetWebsocket();
+    };
+
+    const tokenEdit = useInlineEdit(draft => void chooseToken(draft));
+
+    const startEditing = () => {
+        setInUseToken(null);
+        tokenEdit.start(token ?? "");
     };
 
     return (
@@ -81,26 +77,17 @@ export default function TokenCard() {
                     </IconButton>
                 )}
             </div>
-            {editing ? (
+            {tokenEdit.editing ? (
                 <input
+                    {...tokenEdit.fieldProps}
                     className={cx(css.tokenBox, css.tokenInput)}
-                    value={editedToken}
                     maxLength={CLIENT_TOKEN_LENGTH}
-                    autoFocus
                     autoComplete="off"
                     spellCheck={false}
                     aria-label={t("token.newToken")}
                     onChange={e =>
-                        setEditedToken(chosenTokenFromInput(e.target.value))
+                        tokenEdit.setDraft(chosenTokenFromInput(e.target.value))
                     }
-                    onKeyDown={e => {
-                        if (e.key === "Enter") {
-                            void commitEdit();
-                        } else if (e.key === "Escape") {
-                            setEditing(false);
-                        }
-                    }}
-                    onBlur={() => void commitEdit()}
                 />
             ) : (
                 <div className={css.tokenBox}>
@@ -109,7 +96,7 @@ export default function TokenCard() {
             )}
             <div className={css.shareRow}>
                 <p className={css.shareText}>
-                    {shareText(t, editing, inUseToken, token)}
+                    {shareText(t, tokenEdit.editing, inUseToken, token)}
                 </p>
                 <CopyIconButton
                     text={token && displayToken(token)}
