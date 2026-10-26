@@ -24,6 +24,7 @@ interface SendPanelProps {
     hint: Hint;
     draft: string;
     onDraftChange: (draft: string) => void;
+    canWriteText: boolean;
     canSendText: boolean;
     pauseProgress: number | null;
     onSendText: () => void;
@@ -85,6 +86,7 @@ export default function SendPanel(props: SendPanelProps) {
                     <TextComposer
                         draft={props.draft}
                         onDraftChange={props.onDraftChange}
+                        disabled={!props.canWriteText}
                         canSend={props.canSendText}
                         pauseProgress={props.pauseProgress}
                         onSend={props.onSendText}

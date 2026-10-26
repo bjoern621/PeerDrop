@@ -177,6 +177,7 @@ export default function Dashboard() {
                     hint={hint}
                     draft={draft}
                     onDraftChange={setDraft}
+                    canWriteText={complete}
                     canSendText={ready && hasText && !tooBig && !lock}
                     pauseProgress={
                         lock?.reason === "texts"

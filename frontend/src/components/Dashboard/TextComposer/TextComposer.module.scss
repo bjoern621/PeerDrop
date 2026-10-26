@@ -22,6 +22,14 @@
         box-shadow 0.2s ease;
 
     @include focused-frame;
+
+    &:has(textarea:disabled) {
+        border-color: var(--primary-20);
+
+        .textBox {
+            cursor: default;
+        }
+    }
 }
 
 .label {

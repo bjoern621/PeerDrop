@@ -34,6 +34,8 @@ function bottomReserve(): number {
 interface TextComposerProps {
     draft: string;
     onDraftChange: (draft: string) => void;
+    /** Keeps the field locked while no recipient is entered. */
+    disabled: boolean;
     canSend: boolean;
     /** Share of the send pause already over, 0..1; null while sending is allowed. */
     pauseProgress: number | null;
@@ -52,6 +54,7 @@ interface Rect {
 export default function TextComposer({
     draft,
     onDraftChange,
+    disabled,
     canSend,
     pauseProgress,
     onSend,
@@ -174,7 +177,12 @@ export default function TextComposer({
                         onKeyDown={handleKeyDown}
                         spellCheck={false}
                         wrap="off"
-                        placeholder={t("composer.placeholder")}
+                        disabled={disabled}
+                        placeholder={
+                            disabled
+                                ? t("dropZone.pickRecipient")
+                                : t("composer.placeholder")
+                        }
                     />
                 </div>
                 <div
@@ -186,6 +194,7 @@ export default function TextComposer({
                     <IconButton
                         label={t("composer.expand")}
                         size="m"
+                        disabled={disabled}
                         onClick={openBig}
                     >
                         <ExpandIcon aria-hidden />
