@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import css from "./ReadView.module.scss";
 import { IconX as CloseIcon } from "@tabler/icons-react";
@@ -11,6 +12,9 @@ import {
 import { BlockButton, CopyButton } from "./ActivityRows";
 import IconButton from "../../IconButton/IconButton";
 
+// Matches the shrink-out in ReadView.module.scss.
+const CLOSE_MS = 120;
+
 /** Shows a whole text read-only over the transfer list. */
 export default function ReadView({
     entry,
@@ -23,7 +27,18 @@ export default function ReadView({
 }) {
     const { t } = useTranslation("dashboard");
     const messaging = useMessagingService();
-    useEscapeKey(onClose);
+    const [closing, setClosing] = useState(false);
+    const closeTimer = useRef<number | undefined>(undefined);
+    useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
+    const close = () => {
+        if (closing) {
+            return;
+        }
+        setClosing(true);
+        closeTimer.current = window.setTimeout(onClose, CLOSE_MS);
+    };
+    useEscapeKey(close);
     const peer = entry.peer.toUpperCase();
     const title =
         entry.direction === "down"
@@ -35,14 +50,14 @@ export default function ReadView({
         <div
             className={css.overlay}
             onClick={event => {
-                if (event.target === event.currentTarget) onClose();
+                if (event.target === event.currentTarget) close();
             }}
         >
             <div
                 role="dialog"
                 aria-modal="true"
                 aria-label={title}
-                className={css.dialog}
+                className={`${css.dialog} ${closing ? css.closing : ""}`}
             >
                 <div className={css.bar}>
                     <span className={css.title}>{title}</span>
@@ -65,7 +80,7 @@ export default function ReadView({
                         label={t("transfers.read.close")}
                         tooltip={t("transfers.read.closeShortcut")}
                         size="m"
-                        onClick={onClose}
+                        onClick={close}
                     >
                         <CloseIcon aria-hidden />
                     </IconButton>

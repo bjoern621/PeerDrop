@@ -8,6 +8,20 @@
     display: flex;
 }
 
+@keyframes grow-in {
+    from {
+        scale: 0.96;
+        opacity: 0;
+    }
+}
+
+@keyframes shrink-out {
+    to {
+        scale: 0.96;
+        opacity: 0;
+    }
+}
+
 .dialog {
     flex: 1;
     min-width: 0;
@@ -18,6 +32,17 @@
     border-radius: var(--space-16);
     background-color: var(--background);
     overflow: hidden;
+
+    @media (prefers-reduced-motion: no-preference) {
+        animation: grow-in 0.18s ease-out;
+    }
+}
+
+// Lasts CLOSE_MS in ReadView.tsx.
+.closing {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: shrink-out 0.12s ease-in forwards;
+    }
 }
 
 .bar {
