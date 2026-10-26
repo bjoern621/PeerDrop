@@ -34,7 +34,7 @@ function bottomReserve(): number {
 interface TextComposerProps {
     draft: string;
     onDraftChange: (draft: string) => void;
-    /** Keeps the field locked while no recipient is entered. */
+    /** Keeps the field locked until the recipient can receive. */
     disabled: boolean;
     canSend: boolean;
     /** Share of the send pause already over, 0..1; null while sending is allowed. */
