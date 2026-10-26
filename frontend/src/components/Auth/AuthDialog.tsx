@@ -9,6 +9,8 @@ import { useAuth } from "../../context/AuthContext";
 import { IconX as ExitIcon } from "@tabler/icons-react";
 import { useDialogOutsidePress } from "../../hooks/useDialogOutsidePress";
 import Button from "../Button/Button";
+import { useResizeObserver } from "../../hooks/useResizeObserver";
+import { useWindowEvent } from "../../hooks/useWindowEvent";
 
 type AuthForm = "login" | "register";
 
@@ -35,41 +37,7 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
     const { login, register } = useAuth();
     const resetWebsocketConnection = useResetWebsocket();
 
-    // Mirrors the dialog's bottom edge into --auth-dialog-bottom on the root
-    // element so the toast container can position itself below the open
-    // dialog (see toastify-styles.scss). offsetTop/offsetHeight are layout
-    // values and ignore the scale transform of the open animation.
-    useEffect(() => {
-        const dialog = ref.current;
-
-        const updateToastOffset = () => {
-            if (dialog.open) {
-                document.documentElement.style.setProperty(
-                    "--auth-dialog-bottom",
-                    `${dialog.offsetTop + dialog.offsetHeight}px`
-                );
-            } else {
-                document.documentElement.style.removeProperty(
-                    "--auth-dialog-bottom"
-                );
-            }
-        };
-
-        // Covers open/close (rendered size changes from/to zero) and form
-        // switches that change the dialog height
-        const resizeObserver = new ResizeObserver(updateToastOffset);
-        resizeObserver.observe(dialog);
-        // Covers header height changes that move the anchored dialog
-        window.addEventListener("resize", updateToastOffset);
-
-        return () => {
-            resizeObserver.disconnect();
-            window.removeEventListener("resize", updateToastOffset);
-            document.documentElement.style.removeProperty(
-                "--auth-dialog-bottom"
-            );
-        };
-    }, [ref]);
+    useToastOffset(ref);
 
     const switchMode = (newMode: AuthForm) => {
         if (document.startViewTransition) {
@@ -152,4 +120,36 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
             </div>
         </dialog>
     );
+}
+
+const TOAST_OFFSET = "--auth-dialog-bottom";
+
+/**
+ * Mirrors the bottom edge of the open dialog into TOAST_OFFSET on the root element,
+ * so the toast container sits below it (see toastify-styles.scss).
+ */
+function useToastOffset(ref: RefObject<HTMLDialogElement>) {
+    // Open and close change the rendered size from and to zero; a form switch changes the height.
+    useResizeObserver(ref, publishToastOffset);
+    // A change of the header height moves the anchored dialog.
+    useWindowEvent("resize", () => publishToastOffset(ref.current));
+    useEffect(
+        () => () => {
+            document.documentElement.style.removeProperty(TOAST_OFFSET);
+        },
+        []
+    );
+}
+
+/** offsetTop and offsetHeight are layout values and ignore the scale transform of the open animation. */
+function publishToastOffset(dialog: HTMLDialogElement) {
+    const style = document.documentElement.style;
+    if (dialog.open) {
+        style.setProperty(
+            TOAST_OFFSET,
+            `${dialog.offsetTop + dialog.offsetHeight}px`
+        );
+    } else {
+        style.removeProperty(TOAST_OFFSET);
+    }
 }

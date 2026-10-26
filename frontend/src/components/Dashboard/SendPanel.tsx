@@ -16,6 +16,7 @@ import DropZone from "./DropZone/DropZone";
 import CardHeading from "./CardHeading/CardHeading";
 import { Hint } from "./nextStep";
 import { ShareSelection } from "../../types/transfer/ShareSelection";
+import { useResizeObserver } from "../../hooks/useResizeObserver";
 
 interface SendPanelProps {
     recipient: string;
@@ -130,20 +131,16 @@ function StepNumber({ step, active }: { step: number; active: boolean }) {
 
 /** Keeps the height of `ref`, in px, in the custom property `name` on the root element. */
 function usePublishHeight(ref: RefObject<HTMLElement | null>, name: string) {
-    useEffect(() => {
-        const element = ref.current;
-        if (!element) {
-            return;
-        }
-
-        const root = document.documentElement;
-        const observer = new ResizeObserver(() =>
-            root.style.setProperty(name, `${element.offsetHeight}px`)
-        );
-        observer.observe(element);
-        return () => {
-            observer.disconnect();
-            root.style.removeProperty(name);
-        };
-    }, [ref, name]);
+    useResizeObserver(ref, element =>
+        document.documentElement.style.setProperty(
+            name,
+            `${element.offsetHeight}px`
+        )
+    );
+    useEffect(
+        () => () => {
+            document.documentElement.style.removeProperty(name);
+        },
+        [name]
+    );
 }

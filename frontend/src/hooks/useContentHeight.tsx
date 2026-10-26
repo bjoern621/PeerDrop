@@ -1,4 +1,5 @@
-import { RefObject, useEffect, useState } from "react";
+import { RefObject, useState } from "react";
+import { useResizeObserver } from "./useResizeObserver";
 
 /**
  * Height of an element in px, kept up to date as its content changes.
@@ -9,19 +10,6 @@ export function useContentHeight(
     ref: RefObject<HTMLElement | null>
 ): number | undefined {
     const [height, setHeight] = useState<number>();
-
-    useEffect(() => {
-        const element = ref.current;
-        if (!element) {
-            return;
-        }
-
-        const observer = new ResizeObserver(() =>
-            setHeight(element.offsetHeight)
-        );
-        observer.observe(element);
-        return () => observer.disconnect();
-    }, [ref]);
-
+    useResizeObserver(ref, element => setHeight(element.offsetHeight));
     return height;
 }
