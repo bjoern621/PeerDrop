@@ -79,7 +79,7 @@ export default function DevicePanel({
 
     return (
         <>
-            {isOpen && <div className={css.placeholder} aria-hidden />}
+            {floating && <div className={css.placeholder} aria-hidden />}
             <aside
                 ref={panelRef}
                 id="devices-panel"

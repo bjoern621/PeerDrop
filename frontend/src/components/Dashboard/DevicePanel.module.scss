@@ -9,8 +9,19 @@
     background-color: var(--primary-5);
 }
 
+// Sits over the placeholder, so opening moves its bottom edge alone and runs as a transition.
 .compact {
     container: devices / size;
+    position: absolute;
+    z-index: 10;
+    position-anchor: --devices-place;
+    inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
+    background:
+        linear-gradient(var(--primary-5), var(--primary-5)), var(--background);
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition: bottom 0.2s ease-out;
+    }
 }
 
 // Too low for a readable part of the list, the card keeps its heading alone.
@@ -21,13 +32,11 @@
     }
 }
 
-// Holds the panel's place in the column while the panel floats.
+// Holds the panel's place in the column.
 .placeholder {
-    @include card;
-
     flex: 1 1 0;
+    min-height: 0;
     anchor-name: --devices-place;
-    background-color: var(--primary-5);
 }
 
 .title {
@@ -39,14 +48,9 @@
     margin-block: calc(-1 * var(--space-4));
 }
 
-// Covers the placeholder and runs over the list down to the bottom of the dashboard.
+// Runs over the list down to the bottom of the dashboard.
 .floating {
-    position: absolute;
-    z-index: 10;
-    position-anchor: --devices-place;
-    inset: anchor(top) anchor(right) $dashboard-padding anchor(left);
-    background:
-        linear-gradient(var(--primary-5), var(--primary-5)), var(--background);
+    bottom: $dashboard-padding;
 }
 
 .scrollFrame {
