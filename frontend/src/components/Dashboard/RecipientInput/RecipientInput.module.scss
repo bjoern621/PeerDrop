@@ -33,9 +33,21 @@
         color 0.2s ease;
 }
 
+@keyframes type-in {
+    from {
+        scale: 0.4;
+        opacity: 0;
+    }
+
+    60% {
+        scale: 1.25;
+    }
+}
+
 .sample {
     color: var(--text-muted);
     opacity: 0.6;
+    animation: type-in 0.25s ease-out;
 }
 
 .otpSlotActive {

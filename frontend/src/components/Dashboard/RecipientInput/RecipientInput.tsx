@@ -9,9 +9,9 @@ import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
 export type RecipientCheck = "online" | "offline" | null;
 
 // Letters of the server's proquint tokens, from ClientTokenFormat in the backend.
-const SAMPLE_CONSONANTS = "bdfghjklmnprstvz";
-const SAMPLE_VOWELS = "aiou";
-const SAMPLE_TYPE_MS = 220;
+const PROQUINT_CONSONANTS = "bdfghjklmnprstvz";
+const PROQUINT_VOWELS = "aiou";
+const SAMPLE_TYPE_MS = 380;
 const SAMPLE_HOLD_MS = 1600;
 const SAMPLE_GAP_MS = 700;
 
@@ -39,12 +39,16 @@ const Slot = ({
     );
 };
 
+/** Encodes a random 16-bit value as the backend's GenerateClientToken does. */
 function randomSampleToken(): string {
-    const pick = (letters: string) =>
-        letters[Math.floor(Math.random() * letters.length)];
-    return Array.from({ length: CLIENT_TOKEN_LENGTH }, (_, index) =>
-        pick(index % 2 === 0 ? SAMPLE_CONSONANTS : SAMPLE_VOWELS)
-    ).join("");
+    const value = Math.floor(Math.random() * 0x10000);
+    return (
+        PROQUINT_CONSONANTS[(value >> 12) & 0xf] +
+        PROQUINT_VOWELS[(value >> 10) & 0x3] +
+        PROQUINT_CONSONANTS[(value >> 6) & 0xf] +
+        PROQUINT_VOWELS[(value >> 4) & 0x3] +
+        PROQUINT_CONSONANTS[value & 0xf]
+    );
 }
 
 /**
