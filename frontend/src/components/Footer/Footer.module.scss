@@ -1,4 +1,5 @@
 @use "../../theme/page" as *;
+@use "../Logo/size" as *;
 
 .footer {
     width: 100%;
@@ -43,7 +44,7 @@
     align-items: flex-start;
 
     > :first-child {
-        height: 45px;
+        height: $logo-height;
     }
 }
 
