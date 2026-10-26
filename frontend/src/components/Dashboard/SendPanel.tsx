@@ -67,7 +67,7 @@ export default function SendPanel(props: SendPanelProps) {
                 </CardHeading>
                 <div className={css.recipient}>
                     <span className={css.label}>
-                        <StepNumber step={1} active />
+                        <StepNumber step={1} active={!props.canWriteText} />
                         {t("send.to")}
                     </span>
                     <RecipientInput
@@ -114,7 +114,7 @@ export default function SendPanel(props: SendPanelProps) {
     );
 }
 
-/** Numbers a step of sending. Lights up once the step can start. */
+/** Numbers a step of sending. Lights up while the step is due. */
 function StepNumber({ step, active }: { step: number; active: boolean }) {
     return (
         <span
