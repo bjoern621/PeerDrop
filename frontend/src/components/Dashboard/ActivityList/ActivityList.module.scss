@@ -92,6 +92,12 @@
     box-shadow: 0 4px 10px 2px var(--shadow);
 }
 
+.empty {
+    padding: var(--space-16);
+    color: var(--text-muted);
+    font-weight: var(--font-weight-regular);
+}
+
 .shadowTop,
 .shadowBottom {
     position: absolute;

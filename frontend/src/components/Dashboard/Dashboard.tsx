@@ -92,10 +92,6 @@ export default function Dashboard() {
     const blocked = messaging.blocked.has(recipient);
     const ready = complete && lookup?.status === "online" && !blocked;
     const hasText = draft.trim().length > 0;
-    const hasActivity =
-        messaging.texts.length > 0 ||
-        messaging.offers.length > 0 ||
-        transfers.length > 0;
     const tooBig = useMemo(
         () => new TextEncoder().encode(draft).length > MAX_TEXT_BYTES,
         [draft]
@@ -201,25 +197,20 @@ export default function Dashboard() {
                     // The phone and compact layouts dissolve the column box.
                     boundsRef={stacked || compact ? dashboardRef : rightRef}
                 />
-                {hasActivity && (
-                    <section
-                        className={css.transfers}
-                        aria-labelledby="transfers-heading"
+                <section
+                    className={css.transfers}
+                    aria-labelledby="transfers-heading"
+                >
+                    <CardHeading
+                        id="transfers-heading"
+                        icon={TransferIcon}
+                        tone="primary"
+                        className={css.transfersHeading}
                     >
-                        <CardHeading
-                            id="transfers-heading"
-                            icon={TransferIcon}
-                            tone="primary"
-                            className={css.transfersHeading}
-                        >
-                            {t("transfers.title")}
-                        </CardHeading>
-                        <ActivityList
-                            messaging={messaging}
-                            transfers={transfers}
-                        />
-                    </section>
-                )}
+                        {t("transfers.title")}
+                    </CardHeading>
+                    <ActivityList messaging={messaging} transfers={transfers} />
+                </section>
             </div>
         </div>
     );

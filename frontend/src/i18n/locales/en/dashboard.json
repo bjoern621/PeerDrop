@@ -88,6 +88,7 @@
     },
     "transfers": {
         "title": "Transfers",
+        "empty": "No transfers yet",
         "columns": {
             "name": "Name",
             "progress": "Progress",

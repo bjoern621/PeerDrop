@@ -88,6 +88,7 @@
     },
     "transfers": {
         "title": "Übertragungen",
+        "empty": "Bisher keine Übertragungen",
         "columns": {
             "name": "Name",
             "progress": "Fortschritt",
