@@ -8,6 +8,7 @@ import {
 } from "@tabler/icons-react";
 import { ReactNode, useRef } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { HEADING_COMPONENTS } from "../headingComponents";
 
 const CARDS = [
     { key: "easy", icon: EasyIcon },
@@ -40,9 +41,7 @@ export default function Why() {
                 <Trans
                     t={t}
                     i18nKey="why.heading"
-                    components={{
-                        highlight: <span className="text-highlight" />,
-                    }}
+                    components={HEADING_COMPONENTS}
                 />
             </h2>
             <div className={css.cardContainer} onMouseMove={onMouseMove}>
