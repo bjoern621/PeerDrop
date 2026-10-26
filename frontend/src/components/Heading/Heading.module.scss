@@ -7,6 +7,9 @@
     position: relative;
     z-index: 100;
 
+    // A navigation wider than a tiny window would scroll the whole page sideways.
+    overflow: clip;
+
     border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
     background-color: var(--background);
 
