@@ -37,6 +37,48 @@
     pointer-events: auto;
 }
 
+/// Row of a view frame along its top or bottom `$edge`, holding a title or meta line and buttons.
+@mixin view-bar($edge) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
+    border-#{$edge}: 1px solid var(--text-muted-10);
+}
+
+/// Muted line in a view bar that takes the free width and ends in an ellipsis.
+@mixin view-meta {
+    flex: 1;
+    min-width: 0;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-muted);
+    font-weight: var(--font-weight-regular);
+}
+
+/// Monospaced text area of a view, without the browser's field chrome.
+@mixin code-field {
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    resize: none;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: "Roboto Mono", monospace;
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+    font-weight: var(--font-weight-regular);
+    white-space: pre;
+    tab-size: 4;
+
+    &:focus {
+        outline: none;
+    }
+}
+
 @mixin visually-hidden {
     position: absolute;
     width: 1px;

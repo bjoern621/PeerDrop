@@ -54,27 +54,11 @@
 
 .textarea {
     flex: 1 1 auto;
-    display: block;
     min-width: 0;
     height: 72px;
-    box-sizing: border-box;
-    margin: 0;
-    resize: none;
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: var(--text);
-    font-family: "Roboto Mono", monospace;
-    font-size: var(--font-size-s);
-    line-height: var(--line-height-s);
-    font-weight: var(--font-weight-regular);
-    white-space: pre;
     overflow: hidden;
-    tab-size: 4;
 
-    &:focus {
-        outline: none;
-    }
+    @include code-field;
 }
 
 .bigTextarea {
@@ -107,26 +91,17 @@
 }
 
 .bar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-8);
-    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
-    border-top: 1px solid var(--text-muted-10);
+    @include view-bar(top);
+
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
 }
 
 .meta {
-    flex: 1;
-    min-width: 0;
+    @include view-meta;
 
     // Stays out of the field's minimum width and gets cut off instead.
     contain: inline-size;
-    color: var(--text-muted);
-    font-weight: var(--font-weight-regular);
-    white-space: nowrap;
-    overflow-x: clip;
-    text-overflow: ellipsis;
 }
 
 .send {
