@@ -1,4 +1,5 @@
 @use "../../../theme/layers" as *;
+@use "../card" as *;
 
 .zone {
     flex: 1 1 auto;
@@ -9,7 +10,7 @@
     align-content: center;
     gap: var(--space-12) var(--space-16);
     padding: var(--space-12);
-    border: 3px dashed var(--primary-40);
+    border: 3px dashed $drop-zone-border-color;
     border-radius: var(--space-16);
     transition:
         border-color 0.2s ease,

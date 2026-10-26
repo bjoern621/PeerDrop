@@ -14,7 +14,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    border: 3px solid var(--primary-60);
+    border: $field-border;
     border-radius: var(--space-16);
     background-color: var(--background);
     transition:
@@ -26,7 +26,7 @@
 
     // Borrows the border of the drop zone and the background of the disabled buttons beside it.
     &:has(textarea:disabled) {
-        border-color: var(--primary-40);
+        border-color: $drop-zone-border-color;
         background-color: var(--text-muted-10);
 
         .textBox {

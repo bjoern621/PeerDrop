@@ -2,6 +2,12 @@
 @use "layout" as *;
 @use "../../theme/text" as *;
 
+/// Border of the dashboard fields that take input: the recipient slots, the text field and the views over the page.
+$field-border: 3px solid var(--primary-60);
+
+/// Dashed border of the drop zone, whose colour also marks the disabled text field.
+$drop-zone-border-color: var(--primary-40);
+
 /// Bordered card of the dashboard.
 @mixin card {
     box-sizing: border-box;
@@ -31,7 +37,7 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    border: 3px solid var(--primary-60);
+    border: $field-border;
     border-radius: var(--space-16);
     background-color: var(--background);
     overflow: hidden;

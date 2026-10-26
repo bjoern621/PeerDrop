@@ -1,4 +1,5 @@
 @use "../../../theme/tones" as *;
+@use "../card" as *;
 
 // Lets the slots narrow below their width on phones too narrow for them.
 .container {
@@ -17,7 +18,7 @@
     height: 56px;
     box-sizing: border-box;
 
-    border: 3px solid var(--primary-60);
+    border: $field-border;
     border-radius: 10px;
     background-color: var(--background);
 
