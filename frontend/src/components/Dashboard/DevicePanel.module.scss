@@ -1,5 +1,6 @@
 @use "card" as *;
 @use "layout" as *;
+@use "../../theme/text" as *;
 
 .panel {
     @include card;
@@ -119,11 +120,9 @@
 }
 
 .tileInfo {
+    @include ellipsis;
+
     flex: 1;
-    min-width: 0;
-    overflow-x: clip;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
 

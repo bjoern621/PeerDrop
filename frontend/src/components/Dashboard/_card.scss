@@ -1,5 +1,6 @@
 @use "../../theme/shadows.scss" as *;
 @use "layout" as *;
+@use "../../theme/text" as *;
 
 /// Bordered card of the dashboard.
 @mixin card {
@@ -48,11 +49,9 @@
 
 /// Muted line in a view bar that takes the free width and ends in an ellipsis.
 @mixin view-meta {
+    @include ellipsis;
+
     flex: 1;
-    min-width: 0;
-    overflow-x: clip;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
 }
