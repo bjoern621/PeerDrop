@@ -28,6 +28,7 @@ import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { Device } from "../../types/device/Device";
 import { ShareSelection } from "../../types/transfer/ShareSelection";
 import { CLIENT_TOKEN_LENGTH } from "../../util/Constants";
+import { textBytes } from "./transferFormat";
 
 const LOCK_TICK_MS = 250;
 // Shortest time the hint shows the online check, so it does not flash by.
@@ -92,10 +93,7 @@ export default function Dashboard() {
     const blocked = messaging.blocked.has(recipient);
     const ready = complete && lookup?.status === "online" && !blocked;
     const hasText = draft.trim().length > 0;
-    const tooBig = useMemo(
-        () => new TextEncoder().encode(draft).length > MAX_TEXT_BYTES,
-        [draft]
-    );
+    const tooBig = useMemo(() => textBytes(draft) > MAX_TEXT_BYTES, [draft]);
 
     const hint = nextStep(
         {

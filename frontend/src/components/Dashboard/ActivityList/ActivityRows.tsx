@@ -30,6 +30,7 @@ import {
     getSizeInHumanReadableFormat,
     getTimeInHumanReadableFormat,
     getTransferInfo,
+    textBytes,
 } from "../transferFormat";
 import { cx } from "class-variance-authority";
 
@@ -72,7 +73,7 @@ export function TextRow({
             }
             direction={entry.direction}
             peer={entry.peer}
-            size={new Blob([entry.text]).size}
+            size={textBytes(entry.text)}
             at={entry.at}
         >
             {entry.direction === "up" ? (

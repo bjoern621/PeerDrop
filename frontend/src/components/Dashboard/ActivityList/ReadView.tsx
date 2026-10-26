@@ -7,7 +7,7 @@ import { useMessagingService } from "../../../context/connection/MessagingContex
 import { useModalView } from "../../../hooks/useModalView";
 import { useTimeout } from "../../../hooks/useTimeout";
 import {
-    getSizeInHumanReadableFormat,
+    getTextSummary,
     getTimeInHumanReadableFormat,
 } from "../transferFormat";
 import { BlockButton, CopyButton } from "./ActivityRows";
@@ -46,7 +46,6 @@ export default function ReadView({
         entry.direction === "down"
             ? t("transfers.read.from", { token: peer })
             : t("transfers.read.to", { token: peer });
-    const lines = entry.text.split("\n").length;
 
     return (
         <div className={css.overlay}>
@@ -60,11 +59,8 @@ export default function ReadView({
                 <div className={css.bar}>
                     <span className={css.title}>{title}</span>
                     <span className={css.meta}>
-                        {t("lines", { count: lines })} ·{" "}
-                        {getSizeInHumanReadableFormat(
-                            new Blob([entry.text]).size
-                        )}{" "}
-                        · {getTimeInHumanReadableFormat(entry.at)}
+                        {getTextSummary(entry.text, t)} ·{" "}
+                        {getTimeInHumanReadableFormat(entry.at)}
                     </span>
                     <CopyButton text={entry.text} />
                     {entry.direction === "down" && (

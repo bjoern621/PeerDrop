@@ -13,7 +13,7 @@ import {
     IconArrowsDiagonal as ExpandIcon,
     IconArrowsDiagonalMinimize2 as CollapseIcon,
 } from "@tabler/icons-react";
-import { getSizeInHumanReadableFormat } from "../transferFormat";
+import { getTextSummary } from "../transferFormat";
 import { useModalView } from "../../../hooks/useModalView";
 import { useTimeout } from "../../../hooks/useTimeout";
 import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
@@ -129,11 +129,7 @@ export default function TextComposer({
     const bigRef = useRef<HTMLDivElement>(null);
     useModalView(bigRef, closeBig, big !== null);
 
-    const lines = draft.length === 0 ? 0 : draft.split("\n").length;
-    const meta =
-        draft.length === 0
-            ? ""
-            : `${t("lines", { count: lines })} · ${getSizeInHumanReadableFormat(new Blob([draft]).size)}`;
+    const meta = draft.length === 0 ? "" : getTextSummary(draft, t);
 
     const sendButton = (
         <Tooltip content={t("composer.sendShortcut")} disabled={isTouchDevice}>

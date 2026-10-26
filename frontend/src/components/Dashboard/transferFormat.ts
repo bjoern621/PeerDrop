@@ -1,4 +1,4 @@
-/** Formatting helpers shared by the rows of the transfer list. */
+/** Formatting helpers for the texts and transfers on the dashboard. */
 
 import { TFunction } from "i18next";
 import {
@@ -6,40 +6,41 @@ import {
     TransferStatus,
 } from "../../services/TransferTracker";
 
-export const getSizeInHumanReadableFormat = (size: number): string => {
-    const units = ["B", "KB", "MB", "GB", "TB"];
+/** Divides `value` by 1024 until it fits the unit, up to the last of `units`. */
+const formatScaled = (
+    value: number,
+    units: string[],
+    fractionDigits: number
+): string => {
     let unitIndex = 0;
-
-    while (size >= 1024 && unitIndex < units.length - 1) {
-        size /= 1024;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
         unitIndex++;
     }
-
-    return `${size.toFixed(0)} ${units[unitIndex]}`;
+    return `${value.toFixed(fractionDigits)} ${units[unitIndex]}`;
 };
 
-export const getTimeInHumanReadableFormat = (date: Date): string => {
-    return (
-        ("0" + date.getHours()).slice(-2) +
-        ":" +
-        ("0" + date.getMinutes()).slice(-2) +
-        ":" +
-        ("0" + date.getSeconds()).slice(-2)
-    );
-};
+export const getSizeInHumanReadableFormat = (size: number): string =>
+    formatScaled(size, ["B", "KB", "MB", "GB", "TB"], 0);
 
-const getSpeedInHumanReadableFormat = (bytesPerSecond: number): string => {
-    const units = ["B/s", "KB/s", "MB/s", "GB/s"];
-    let unitIndex = 0;
-    let speed = bytesPerSecond;
+const getSpeedInHumanReadableFormat = (bytesPerSecond: number): string =>
+    formatScaled(bytesPerSecond, ["B/s", "KB/s", "MB/s", "GB/s"], 1);
 
-    while (speed >= 1024 && unitIndex < units.length - 1) {
-        speed /= 1024;
-        unitIndex++;
-    }
+export const getTimeInHumanReadableFormat = (date: Date): string =>
+    [date.getHours(), date.getMinutes(), date.getSeconds()]
+        .map(part => String(part).padStart(2, "0"))
+        .join(":");
 
-    return `${speed.toFixed(1)} ${units[unitIndex]}`;
-};
+/** Size of `text` in bytes once encoded as UTF-8, as it travels to the peer. */
+export const textBytes = (text: string): number =>
+    new TextEncoder().encode(text).length;
+
+/** Line count and size of a text message, such as "3 Zeilen · 1 KB". */
+export const getTextSummary = (
+    text: string,
+    t: TFunction<"dashboard">
+): string =>
+    `${t("lines", { count: text.split("\n").length })} · ${getSizeInHumanReadableFormat(textBytes(text))}`;
 
 const formatRemainingTime = (seconds: number): string => {
     if (seconds > 3600) {
