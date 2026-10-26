@@ -33,6 +33,30 @@
     .compact .scrollFrame {
         display: none;
     }
+
+    .compact .expandHint {
+        display: block;
+    }
+}
+
+// Stands in for the list while the card is too low for it.
+.expandHint {
+    display: none;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-xs);
+    font-weight: var(--font-weight-regular);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text);
+        text-decoration: underline;
+    }
 }
 
 // Holds the panel's place in the column.

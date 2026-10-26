@@ -128,6 +128,15 @@ export default function DevicePanel({
                         </IconButton>
                     )}
                 </CardHeading>
+                {floating && (
+                    <button
+                        type="button"
+                        className={css.expandHint}
+                        onClick={() => changeOpen(true)}
+                    >
+                        {t("devices.expandHint")}
+                    </button>
+                )}
                 <div className={css.scrollFrame}>
                     <div ref={scrollRef} className={css.scroll}>
                         <span className={css.label}>

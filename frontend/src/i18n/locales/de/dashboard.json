@@ -15,6 +15,7 @@
         "title": "Geräte",
         "expand": "Geräteliste vergrößern",
         "collapse": "Geräteliste verkleinern",
+        "expandHint": "Vergrößere die Liste, um die Geräte zu sehen.",
         "network": "In deinem Netzwerk",
         "networkHelp": "Geräte im selben Netzwerk erscheinen hier automatisch",
         "searching": "Suche nach Geräten in deinem Netzwerk...",
