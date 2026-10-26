@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, Ref, useId } from "react";
+import { InputHTMLAttributes, Ref, useId, useRef } from "react";
 import css from "./FormField.module.scss";
 
 interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -17,6 +17,11 @@ export default function FormField({
     ...inputProps
 }: FormFieldProps) {
     const inputId = useId();
+    // Keeps the text of a cleared error while it slides out.
+    const shownError = useRef(error);
+    if (error) {
+        shownError.current = error;
+    }
 
     return (
         <div>
@@ -33,7 +38,7 @@ export default function FormField({
             <div
                 className={`${css.errorWrapper} ${!showError ? css.hidden : ""}`}
             >
-                <div className={css.error}>{error}</div>
+                <div className={css.error}>{shownError.current}</div>
             </div>
         </div>
     );

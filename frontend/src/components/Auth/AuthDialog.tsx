@@ -85,25 +85,17 @@ export default function AuthDialog({ ref, onClose }: AuthDialogProps) {
         }
     };
 
-    const handleLogin = async (username: string, password: string) => {
-        const success = await login(username, password);
-
-        if (success) {
-            resetWebsocketConnection();
-            resetForm();
-            closeDialog();
-        }
-    };
-
-    const handleRegister = async (username: string, password: string) => {
-        const success = await register(username, password);
-
-        if (success) {
-            resetWebsocketConnection();
-            resetForm();
-            closeDialog();
-        }
-    };
+    const signInWith =
+        (action: typeof login) =>
+        async (username: string, password: string) => {
+            if (await action(username, password)) {
+                resetWebsocketConnection();
+                resetForm();
+                closeDialog();
+            }
+        };
+    const handleLogin = signInWith(login);
+    const handleRegister = signInWith(register);
 
     // close() fires the dialog's close event, which reports every way of
     // closing (button, backdrop click, Escape) through onClose.

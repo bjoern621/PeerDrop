@@ -1,7 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "../Button/Button";
 import FormField from "../FormField/FormField";
@@ -10,13 +9,14 @@ import {
     IconArrowRight as ArrowIcon,
     IconRefresh as SwitchIcon,
 } from "@tabler/icons-react";
-import { loginSchema, ValidationMessage } from "./types";
+import { loginSchema } from "./types";
+import { useAuthForm } from "./useAuthForm";
 import loginCss from "./LoginForm.module.scss";
 
 type LoginFormFields = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
-    onSubmit: (email: string, password: string) => void;
+    onSubmit: (username: string, password: string) => void;
     onSwitchToRegister: () => void;
     initialUsername: string;
     onUsernameChange: (username: string) => void;
@@ -33,11 +33,7 @@ export default function LoginForm({
     onPasswordChange,
 }: LoginFormProps) {
     const { t } = useTranslation("auth");
-    const {
-        register,
-        handleSubmit,
-        formState: { errors, dirtyFields, touchedFields, isSubmitted },
-    } = useForm<LoginFormFields>({
+    const form = useForm<LoginFormFields>({
         resolver: zodResolver(loginSchema),
         mode: "onChange",
         defaultValues: {
@@ -46,47 +42,15 @@ export default function LoginForm({
         },
     });
 
-    const lastUsernameError = useRef<ValidationMessage | null>(null);
-    const lastPasswordError = useRef<ValidationMessage | null>(null);
-
-    // Update cached error messages when there's a new error
-    if (errors.username?.message) {
-        lastUsernameError.current = errors.username
-            .message as ValidationMessage;
-    }
-    if (errors.password?.message) {
-        lastPasswordError.current = errors.password
-            .message as ValidationMessage;
-    }
-
-    const onSubmitForm = (data: LoginFormFields) => {
-        onSubmit(data.username, data.password);
-    };
-
-    /**
-     * Prevents dialog from closing on Enter key press in input fields
-     */
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-        if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
-            e.preventDefault();
-            void handleSubmit(onSubmitForm)();
-        }
-    };
-
-    /**
-     * Determines if an error message should be shown for a given field
-     */
-    const shouldShowError = (field: keyof LoginFormFields) => {
-        return (
-            errors[field] &&
-            ((touchedFields[field] && dirtyFields[field]) || isSubmitted)
-        );
-    };
+    const { register } = form;
+    const { submit, handleKeyDown, errorProps } = useAuthForm(form, data =>
+        onSubmit(data.username, data.password)
+    );
 
     return (
         <form
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onSubmit={handleSubmit(onSubmitForm)}
+            onSubmit={submit}
             onKeyDown={handleKeyDown}
             className={css.form}
         >
@@ -96,12 +60,7 @@ export default function LoginForm({
                 type="text"
                 label={t("username")}
                 autoComplete="username"
-                error={
-                    lastUsernameError.current
-                        ? t(lastUsernameError.current)
-                        : undefined
-                }
-                showError={shouldShowError("username")}
+                {...errorProps("username")}
                 {...register("username", {
                     onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
                         onUsernameChange(event.target.value),
@@ -112,12 +71,7 @@ export default function LoginForm({
                 type="password"
                 label={t("password")}
                 autoComplete="current-password"
-                error={
-                    lastPasswordError.current
-                        ? t(lastPasswordError.current)
-                        : undefined
-                }
-                showError={shouldShowError("password")}
+                {...errorProps("password")}
                 {...register("password", {
                     onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
                         onPasswordChange(event.target.value),
