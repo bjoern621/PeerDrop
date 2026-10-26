@@ -25,10 +25,19 @@ const BIG_MAX_WIDTH = 840;
 const BIG_MAX_HEIGHT = 600;
 const GROW_MS = 200;
 
+function isPhoneLayout(): boolean {
+    // Matches $phone-breakpoint in Dashboard/_layout.scss.
+    return window.matchMedia("(width <= 760px)").matches;
+}
+
 /** Space kept free below the large field: the phone shows the hint there. */
 function bottomReserve(): number {
-    // Matches $phone-breakpoint in Dashboard/_layout.scss.
-    return window.matchMedia("(width <= 760px)").matches ? 120 : 16;
+    return isPhoneLayout() ? 120 : 16;
+}
+
+/** Right edge the large field grows to. On the phone the field spans the card already. */
+function growthRight(field: DOMRect, bounds: DOMRect): number {
+    return isPhoneLayout() ? field.right : bounds.right;
 }
 
 interface TextComposerProps {
@@ -102,7 +111,10 @@ export default function TextComposer({
             to: {
                 left,
                 top,
-                width: Math.min(BIG_MAX_WIDTH, bounds.right - field.left),
+                width: Math.min(
+                    BIG_MAX_WIDTH,
+                    growthRight(field, bounds) - field.left
+                ),
                 height: Math.max(
                     field.height,
                     Math.min(
@@ -193,6 +205,7 @@ export default function TextComposer({
                     <span className={css.meta}>{meta}</span>
                     <IconButton
                         label={t("composer.expand")}
+                        tooltip={isTouchDevice ? false : undefined}
                         size="m"
                         disabled={disabled}
                         onClick={openBig}
@@ -245,7 +258,10 @@ export default function TextComposer({
                             <span className={css.meta}>{meta}</span>
                             <IconButton
                                 label={t("composer.collapse")}
-                                tooltip={t("composer.collapseShortcut")}
+                                tooltip={
+                                    !isTouchDevice &&
+                                    t("composer.collapseShortcut")
+                                }
                                 size="m"
                                 onClick={closeBig}
                             >
