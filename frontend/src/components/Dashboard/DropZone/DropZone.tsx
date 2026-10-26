@@ -21,9 +21,6 @@ import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
 
 const FLASH_OK_MS = 1800;
 const FLASH_WARN_MS = 2500;
-// Dragover repeats about every 50 ms while a file hovers the page, so a
-// short silence means the drag left the page.
-const DRAG_SILENCE_MS = 250;
 
 interface DropZoneProps {
     /** Uppercase token of a recipient that files can go to, or null. */
@@ -42,27 +39,43 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
     const [pageDrag, setPageDrag] = useState(false);
     const [flash, setFlash] = useState<Flash | null>(null);
     const flashTimer = useRef<number | undefined>(undefined);
-    const dragTimer = useRef<number | undefined>(undefined);
 
     useEffect(() => {
         if (isTouchDevice) {
             return;
         }
-        const handlePageDragOver = (event: globalThis.DragEvent) => {
-            if (!event.dataTransfer?.types.includes("Files")) {
+        // Elements the dragged file is over. Dragenter on the next element fires
+        // before dragleave on the last one, so an empty list means the drag left the page.
+        let targets: EventTarget[] = [];
+        const endPageDrag = () => {
+            targets = [];
+            setPageDrag(false);
+            setOverZone(false);
+        };
+        const handlePageDragEnter = (event: globalThis.DragEvent) => {
+            if (!event.dataTransfer?.types.includes("Files") || !event.target) {
                 return;
             }
+            targets.push(event.target);
             setPageDrag(true);
-            window.clearTimeout(dragTimer.current);
-            dragTimer.current = window.setTimeout(() => {
-                setPageDrag(false);
-                setOverZone(false);
-            }, DRAG_SILENCE_MS);
         };
-        window.addEventListener("dragover", handlePageDragOver);
+        const handlePageDragLeave = (event: globalThis.DragEvent) => {
+            // An element removed mid-drag never fires dragleave.
+            targets = targets.filter(
+                target =>
+                    target !== event.target && document.contains(target as Node)
+            );
+            if (targets.length === 0) {
+                endPageDrag();
+            }
+        };
+        window.addEventListener("dragenter", handlePageDragEnter);
+        window.addEventListener("dragleave", handlePageDragLeave);
+        window.addEventListener("drop", endPageDrag);
         return () => {
-            window.removeEventListener("dragover", handlePageDragOver);
-            window.clearTimeout(dragTimer.current);
+            window.removeEventListener("dragenter", handlePageDragEnter);
+            window.removeEventListener("dragleave", handlePageDragLeave);
+            window.removeEventListener("drop", endPageDrag);
             window.clearTimeout(flashTimer.current);
         };
     }, [isTouchDevice]);
