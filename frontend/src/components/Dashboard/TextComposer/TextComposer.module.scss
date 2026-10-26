@@ -107,6 +107,8 @@
 .meta {
     flex: 1;
     min-width: 0;
+    // Stays out of the field's minimum width and gets cut off instead.
+    contain: inline-size;
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
     white-space: nowrap;
