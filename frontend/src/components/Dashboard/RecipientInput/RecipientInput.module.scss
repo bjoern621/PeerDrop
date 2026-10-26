@@ -1,3 +1,5 @@
+@use "../../../theme/tones" as *;
+
 // Lets the slots narrow below their width on phones too narrow for them.
 .container {
     min-width: 0;
@@ -67,15 +69,15 @@
 }
 
 .online .otp-slot {
+    @include tone(success);
+
     border-color: var(--success-text);
-    background-color: var(--success-20);
-    color: var(--success-text);
 }
 
 .offline .otp-slot {
+    @include tone(error);
+
     border-color: var(--error-text);
-    background-color: var(--error-20);
-    color: var(--error-text);
 }
 
 // The field draws its own slots, so the search box keeps no clear button or decoration.

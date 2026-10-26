@@ -1,5 +1,6 @@
 @use "card" as *;
 @use "layout" as *;
+@use "../../theme/tones" as *;
 
 .panel {
     @include card;
@@ -80,18 +81,15 @@
 }
 
 .info {
-    background-color: var(--info-20);
-    color: var(--info-text);
+    @include tone(info);
 }
 
 .warn {
-    background-color: var(--warning-20);
-    color: var(--warning-text);
+    @include tone(warning);
 }
 
 .err {
-    background-color: var(--error-20);
-    color: var(--error-text);
+    @include tone(error);
 }
 
 .parts {
