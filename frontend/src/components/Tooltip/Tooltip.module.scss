@@ -1,3 +1,5 @@
+@use "../../theme/layers" as *;
+
 // Fallback placements offered to position-try-fallbacks.
 // Each one puts the tooltip on the side opposite its preferred one.
 @position-try --tooltip-top {
@@ -27,7 +29,7 @@
     padding: var(--space-4) var(--space-12);
     border-radius: var(--space-4);
     border: 1px solid var(--border);
-    z-index: 999;
+    z-index: layer(tooltip);
     text-wrap: wrap;
 
     position: fixed;
@@ -98,7 +100,7 @@
 .arrow {
     position: fixed;
     pointer-events: none;
-    z-index: 999;
+    z-index: layer(tooltip);
 
     width: 8px;
     height: 8px;

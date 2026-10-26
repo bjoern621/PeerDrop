@@ -2,6 +2,7 @@
 @use "layout" as *;
 @use "../../theme/tones" as *;
 @use "../../theme/shadows" as *;
+@use "../../theme/layers" as *;
 
 .panel {
     @include card;
@@ -119,7 +120,7 @@
 @media (width <= #{$phone-breakpoint}) {
     .hint {
         position: fixed;
-        z-index: 120;
+        z-index: layer(phone-hint);
         left: var(--space-16);
         right: var(--space-16);
         bottom: var(--space-16);

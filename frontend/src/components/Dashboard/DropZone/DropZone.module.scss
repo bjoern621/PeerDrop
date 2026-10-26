@@ -1,3 +1,5 @@
+@use "../../../theme/layers" as *;
+
 .zone {
     flex: 1 1 auto;
     position: relative;
@@ -16,7 +18,7 @@
 
 // Lifts the zone above the page and darkens everything around it.
 .dimming {
-    z-index: 150;
+    z-index: layer(drop-dimming);
     box-shadow: 0 0 0 200vmax rgb(0 0 0 / var(--a-50));
 }
 

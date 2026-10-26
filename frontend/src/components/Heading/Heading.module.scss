@@ -1,12 +1,13 @@
 @use "../../theme/shadows.scss" as *;
 @use "Variables.scss" as *;
 @use "panel" as *;
+@use "../../theme/layers" as *;
 
 .header {
     width: 100%;
 
     position: relative;
-    z-index: 100;
+    z-index: layer(header);
 
     // A navigation wider than a tiny window would scroll the whole page sideways.
     overflow: clip;

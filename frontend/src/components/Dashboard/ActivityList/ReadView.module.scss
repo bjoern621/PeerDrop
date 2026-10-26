@@ -1,5 +1,6 @@
 @use "../card" as *;
 @use "../layout" as *;
+@use "../../../theme/layers" as *;
 
 .overlay {
     position: absolute;
@@ -86,7 +87,7 @@
 @media (width <= #{$phone-breakpoint}) {
     .overlay {
         position: fixed;
-        z-index: 130;
+        z-index: layer(phone-read-view);
         padding: var(--space-16);
         background-color: var(--background);
     }

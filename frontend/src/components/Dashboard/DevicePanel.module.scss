@@ -1,6 +1,7 @@
 @use "card" as *;
 @use "layout" as *;
 @use "../../theme/text" as *;
+@use "../../theme/layers" as *;
 
 .panel {
     @include card;
@@ -14,7 +15,7 @@
 .compact {
     container: devices / size;
     position: absolute;
-    z-index: 10;
+    z-index: layer(floating-devices);
     position-anchor: --devices-place;
     inset: anchor(top) anchor(right) anchor(bottom) anchor(left);
     background:

@@ -1,0 +1,15 @@
+@use "sass:map";
+
+// Stacking order of the layers over the page, from low to high.
+$layers: (
+    floating-devices: 10,
+    header: 100,
+    phone-hint: 120,
+    phone-read-view: 130,
+    drop-dimming: 150,
+    tooltip: 999,
+);
+
+@function layer($name) {
+    @return map.get($layers, $name);
+}
