@@ -33,6 +33,7 @@ import {
     textBytes,
 } from "../transferFormat";
 import { cx } from "class-variance-authority";
+import { displayToken } from "../../../services/WebSocketService";
 
 interface RowProps {
     blocked: ReadonlySet<string>;
@@ -368,7 +369,7 @@ function TransferStatus({
                     <StatusChip
                         tone="error"
                         tooltip={t("transfers.status.connectionLost", {
-                            token: remoteToken.toUpperCase(),
+                            token: displayToken(remoteToken),
                         })}
                     >
                         {t("transfers.status.interrupted")}
@@ -515,7 +516,7 @@ function Row({
                     />
                 )}
                 <span className={css.peer} style={{ color: peerColor(peer) }}>
-                    {peer.toUpperCase()}
+                    {displayToken(peer)}
                 </span>
                 <div className={css.status}>{children}</div>
             </div>
@@ -543,7 +544,7 @@ export function BlockButton({
     onBlock: () => void;
 }) {
     const { t } = useTranslation("dashboard");
-    const token = peer.toUpperCase();
+    const token = displayToken(peer);
     return blocked ? (
         <IconButton
             variant="badge"

@@ -21,6 +21,11 @@ export function normalizeClientToken(token: ClientToken): ClientToken {
     return token.toLowerCase();
 }
 
+/** Uppercase form of a token, as the interface shows it. */
+export function displayToken(token: ClientToken): string {
+    return token.toUpperCase();
+}
+
 /**
  * The `WebSocketService` class provides functionality for managing the WebSocket connection
  * to the server, sending and receiving typed messages, and subscribing to specific

@@ -2,7 +2,10 @@ import { KeyboardEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { OTPInput, SlotProps } from "input-otp";
 import css from "./RecipientInput.module.scss";
-import { normalizeClientToken } from "../../../services/WebSocketService";
+import {
+    displayToken,
+    normalizeClientToken,
+} from "../../../services/WebSocketService";
 import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
 import { REDUCED_MOTION_QUERY } from "../../../util/mediaQueries";
 import { useMediaQuery } from "../../../hooks/useMediaQuery";
@@ -41,7 +44,7 @@ const Slot = ({
                     className={cx(css.sample, sampleFading && css.sampleFading)}
                     aria-hidden
                 >
-                    {sample.toUpperCase()}
+                    {displayToken(sample)}
                 </span>
             )}
         </div>

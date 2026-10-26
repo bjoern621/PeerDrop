@@ -23,7 +23,10 @@ import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { useMessagingService } from "../../context/connection/MessagingContext";
 import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
 import { LookupState, MAX_TEXT_BYTES } from "../../services/MessagingService";
-import { normalizeClientToken } from "../../services/WebSocketService";
+import {
+    displayToken,
+    normalizeClientToken,
+} from "../../services/WebSocketService";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { Device } from "../../types/device/Device";
 import { ShareSelection } from "../../types/transfer/ShareSelection";
@@ -190,7 +193,7 @@ export default function Dashboard() {
                             : null
                     }
                     onSendText={sendText}
-                    filesRecipient={ready ? recipient.toUpperCase() : null}
+                    filesRecipient={ready ? displayToken(recipient) : null}
                     onSelection={sendSelection}
                     // The phone and compact layouts dissolve the column box.
                     boundsRef={stacked || compact ? dashboardRef : rightRef}

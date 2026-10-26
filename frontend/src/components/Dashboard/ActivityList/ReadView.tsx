@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import css from "./ReadView.module.scss";
 import { IconX as CloseIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
+import { displayToken } from "../../../services/WebSocketService";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
 import { useModalView } from "../../../hooks/useModalView";
 import { useTimeout } from "../../../hooks/useTimeout";
@@ -41,7 +42,7 @@ export default function ReadView({
     };
     const dialogRef = useRef<HTMLDivElement>(null);
     useModalView(dialogRef, close);
-    const peer = entry.peer.toUpperCase();
+    const peer = displayToken(entry.peer);
     const title =
         entry.direction === "down"
             ? t("transfers.read.from", { token: peer })

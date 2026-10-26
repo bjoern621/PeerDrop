@@ -1,6 +1,7 @@
 import { TFunction } from "i18next";
 import { LookupState, SendLock } from "../../services/MessagingService";
 import { CLIENT_TOKEN_LENGTH } from "../../util/Constants";
+import { displayToken } from "../../services/WebSocketService";
 
 export type HintKind = "type" | "pick" | "wait" | "warn" | "err";
 
@@ -25,7 +26,7 @@ export function nextStep(
     t: TFunction<"dashboard">
 ): Hint {
     const { recipient, lock } = input;
-    const token = recipient.toUpperCase();
+    const token = displayToken(recipient);
 
     if (lock?.reason === "tokens") {
         const minutes = Math.max(

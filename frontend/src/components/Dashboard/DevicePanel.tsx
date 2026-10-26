@@ -16,6 +16,7 @@ import { useOutsidePress } from "../../hooks/useOutsidePress";
 import { useTimeout } from "../../hooks/useTimeout";
 import { LanPeer } from "../../types/lan/LanPeer";
 import { Device } from "../../types/device/Device";
+import { displayToken } from "../../services/WebSocketService";
 import HelpTip from "../HelpTip/HelpTip";
 import TruncatedText from "../TruncatedText/TruncatedText";
 import EdgeShadows from "./EdgeShadows/EdgeShadows";
@@ -244,7 +245,7 @@ function LanTile({
             selected={selected}
             onSelect={() => onPick(peer.token)}
         >
-            <span className={css.tileToken}>{peer.token.toUpperCase()}</span>
+            <span className={css.tileToken}>{displayToken(peer.token)}</span>
             <TruncatedText className={css.tileInfo}>{deviceInfo}</TruncatedText>
         </DeviceTile>
     );

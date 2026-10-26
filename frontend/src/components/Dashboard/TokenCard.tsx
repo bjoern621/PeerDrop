@@ -15,7 +15,10 @@ import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import { useAuth } from "../../context/AuthContext";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
 import { AuthService } from "../../services/AuthService";
-import { normalizeClientToken } from "../../services/WebSocketService";
+import {
+    displayToken,
+    normalizeClientToken,
+} from "../../services/WebSocketService";
 import {
     CLIENT_TOKEN_LENGTH,
     CLIENT_TOKEN_CHARACTERS,
@@ -101,7 +104,7 @@ export default function TokenCard() {
                 />
             ) : (
                 <div className={css.tokenBox}>
-                    {token?.toUpperCase() ?? "_____"}
+                    {token ? displayToken(token) : "_____"}
                 </div>
             )}
             <div className={css.shareRow}>
@@ -109,7 +112,7 @@ export default function TokenCard() {
                     {shareText(t, editing, inUseToken, token)}
                 </p>
                 <CopyIconButton
-                    text={token?.toUpperCase()}
+                    text={token && displayToken(token)}
                     label={t("token.copy")}
                     copiedLabel={t("token.copied")}
                     icon={<CopyIcon />}
@@ -146,7 +149,7 @@ function shareText(
         return t("token.pickCharacters", { length: CLIENT_TOKEN_LENGTH });
     }
     if (inUseToken && inUseToken !== token) {
-        return t("token.inUse", { token: inUseToken.toUpperCase() });
+        return t("token.inUse", { token: displayToken(inUseToken) });
     }
     return t("token.share");
 }
