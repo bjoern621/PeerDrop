@@ -24,10 +24,10 @@
 
     @include focused-frame;
 
-    // Matches the colors of the drop zone beside it.
+    // Borrows the border of the drop zone and the background of the disabled buttons beside it.
     &:has(textarea:disabled) {
         border-color: var(--primary-40);
-        background-color: transparent;
+        background-color: var(--text-muted-10);
 
         .textBox {
             cursor: default;
