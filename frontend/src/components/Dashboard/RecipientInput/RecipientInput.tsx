@@ -12,7 +12,7 @@ export type RecipientCheck = "online" | "offline" | null;
 const PROQUINT_CONSONANTS = "bdfghjklmnprstvz";
 const PROQUINT_VOWELS = "aiou";
 const SAMPLE_TYPE_MS = 380;
-const SAMPLE_HOLD_MS = 1600;
+const SAMPLE_HOLD_MS = 3000;
 // Matches the fade-out in RecipientInput.module.scss.
 const SAMPLE_FADE_MS = 400;
 const SAMPLE_GAP_MS = 500;
