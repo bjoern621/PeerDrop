@@ -15,7 +15,7 @@ import {
     IconArrowsDiagonalMinimize2 as CollapseIcon,
 } from "@tabler/icons-react";
 import { getSizeInHumanReadableFormat } from "../transferFormat";
-import { useEscapeKey } from "../../../hooks/useEscapeKey";
+import { useModalView } from "../../../hooks/useModalView";
 import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
 import Button from "../../Button/Button";
 import IconButton from "../../IconButton/IconButton";
@@ -128,7 +128,8 @@ export default function TextComposer({
         window.clearTimeout(closeTimer.current);
         closeTimer.current = window.setTimeout(() => setBig(null), GROW_MS);
     };
-    useEscapeKey(closeBig, big !== null);
+    const bigRef = useRef<HTMLDivElement>(null);
+    useModalView(bigRef, closeBig, big !== null);
 
     const lines = draft.length === 0 ? 0 : draft.split("\n").length;
     const meta =
@@ -209,13 +210,9 @@ export default function TextComposer({
             </div>
 
             {big && rect && (
-                <div
-                    className={css.overlay}
-                    onClick={event => {
-                        if (event.target === event.currentTarget) closeBig();
-                    }}
-                >
+                <div className={css.overlay}>
                     <div
+                        ref={bigRef}
                         role="dialog"
                         aria-modal="true"
                         aria-label={t("composer.label")}

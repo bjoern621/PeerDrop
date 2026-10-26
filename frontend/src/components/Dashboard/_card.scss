@@ -24,6 +24,19 @@
     }
 }
 
+/// Frame of a view that opens over the dashboard, like the large text field or a read text.
+/// The page around it takes no pointer events while it is open, see useModalView.
+@mixin view-frame {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    border: 3px solid var(--primary-60);
+    border-radius: var(--space-16);
+    background-color: var(--background);
+    overflow: hidden;
+    pointer-events: auto;
+}
+
 @mixin visually-hidden {
     position: absolute;
     width: 1px;

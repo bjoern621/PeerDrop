@@ -4,8 +4,7 @@ import css from "./ReadView.module.scss";
 import { IconX as CloseIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
-import { useEscapeKey } from "../../../hooks/useEscapeKey";
-import { useOutsidePress } from "../../../hooks/useOutsidePress";
+import { useModalView } from "../../../hooks/useModalView";
 import {
     getSizeInHumanReadableFormat,
     getTimeInHumanReadableFormat,
@@ -15,19 +14,6 @@ import IconButton from "../../IconButton/IconButton";
 
 // Matches the shrink-out in ReadView.module.scss.
 const CLOSE_MS = 120;
-
-/**
- * Turns off hover and clicks on the page outside the view while it is mounted.
- * A press outside then lands on the root element and only closes the view.
- */
-function usePagePointerBlock() {
-    useEffect(() => {
-        document.body.style.pointerEvents = "none";
-        return () => {
-            document.body.style.pointerEvents = "";
-        };
-    }, []);
-}
 
 /** Shows a whole text read-only over the transfer list. */
 export default function ReadView({
@@ -52,10 +38,8 @@ export default function ReadView({
         setClosing(true);
         closeTimer.current = window.setTimeout(onClose, CLOSE_MS);
     };
-    useEscapeKey(close);
     const dialogRef = useRef<HTMLDivElement>(null);
-    useOutsidePress(dialogRef, close);
-    usePagePointerBlock();
+    useModalView(dialogRef, close);
     const peer = entry.peer.toUpperCase();
     const title =
         entry.direction === "down"

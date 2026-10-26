@@ -161,14 +161,9 @@
 }
 
 .big {
+    @include view-frame;
+
     position: absolute;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    border: 3px solid var(--primary-60);
-    border-radius: var(--space-16);
-    background-color: var(--background);
-    overflow: hidden;
     transition:
         width 0.2s ease-out,
         height 0.2s ease-out;
