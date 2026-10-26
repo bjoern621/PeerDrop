@@ -5,6 +5,7 @@ import { IconX as CloseIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
 import { useMessagingService } from "../../../context/connection/MessagingContext";
 import { useEscapeKey } from "../../../hooks/useEscapeKey";
+import { useOutsidePress } from "../../../hooks/useOutsidePress";
 import {
     getSizeInHumanReadableFormat,
     getTimeInHumanReadableFormat,
@@ -39,6 +40,8 @@ export default function ReadView({
         closeTimer.current = window.setTimeout(onClose, CLOSE_MS);
     };
     useEscapeKey(close);
+    const dialogRef = useRef<HTMLDivElement>(null);
+    useOutsidePress(dialogRef, close);
     const peer = entry.peer.toUpperCase();
     const title =
         entry.direction === "down"
@@ -47,13 +50,9 @@ export default function ReadView({
     const lines = entry.text.split("\n").length;
 
     return (
-        <div
-            className={css.overlay}
-            onClick={event => {
-                if (event.target === event.currentTarget) close();
-            }}
-        >
+        <div className={css.overlay}>
             <div
+                ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
                 aria-label={title}
