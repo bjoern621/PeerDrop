@@ -14,7 +14,8 @@
 }
 
 // Too low for a readable part of the list, the card keeps its heading alone.
-@container devices (height < 160px) {
+// The height counts inside the card's padding.
+@container devices (height < 100px) {
     .compact .scrollFrame {
         display: none;
     }
