@@ -18,18 +18,24 @@
     position-area: right span-all;
 }
 
+// Shared by tooltip and arrow, so the tip reads as part of the box.
+@mixin surface {
+    pointer-events: none;
+    z-index: layer(tooltip);
+    background-color: var(--background);
+    background-image: linear-gradient(var(--text-muted-10));
+    border: 1px solid var(--border);
+}
+
 .tooltipTrigger {
     display: inline-flex;
 }
 
 .tooltip {
-    pointer-events: none;
-    background-color: var(--background);
-    background-image: linear-gradient(var(--text-muted-10));
+    @include surface;
+
     padding: var(--space-4) var(--space-12);
     border-radius: var(--space-4);
-    border: 1px solid var(--border);
-    z-index: layer(tooltip);
     text-wrap: wrap;
 
     position: fixed;
@@ -98,15 +104,11 @@
 // Anchored to the trigger, the tip stays over it once the tooltip slides
 // along its side.
 .arrow {
-    position: fixed;
-    pointer-events: none;
-    z-index: layer(tooltip);
+    @include surface;
 
+    position: fixed;
     width: 8px;
     height: 8px;
-    background-color: var(--background);
-    background-image: linear-gradient(var(--text-muted-10));
-    border: 1px solid var(--border);
     rotate: 45deg;
 
     opacity: 0;
