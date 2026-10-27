@@ -12,12 +12,14 @@ namespace backend.tests.WebSocketComponent.Logic.Impl;
 public class WebSocketHandlerTest
 {
     /// <summary>
-    /// Hands out the queued frames one per receive, cut to the receive buffer.
+    /// Hands out the queued frames one per receive, cut to the receive buffer, then closes.
+    /// Keeps every message that the server sends.
     /// </summary>
     private class FrameQueueWebSocket(params (string Text, bool EndOfMessage)[] frames) : WebSocket
     {
         private readonly Queue<(byte[] Bytes, bool EndOfMessage)> _frames =
             new(frames.Select(frame => (Encoding.UTF8.GetBytes(frame.Text), frame.EndOfMessage)));
+        public readonly List<string> Sent = [];
 
         public override Task<WebSocketReceiveResult> ReceiveAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
         {
@@ -36,7 +38,12 @@ public class WebSocketHandlerTest
         public override Task CloseAsync(WebSocketCloseStatus closeStatus, string? statusDescription, CancellationToken cancellationToken) => Task.CompletedTask;
         public override Task CloseOutputAsync(WebSocketCloseStatus closeStatus, string? statusDescription, CancellationToken cancellationToken) => Task.CompletedTask;
         public override void Dispose() { }
-        public override Task SendAsync(ArraySegment<byte> buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public override Task SendAsync(ArraySegment<byte> buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken)
+        {
+            Sent.Add(Encoding.UTF8.GetString(buffer));
+            return Task.CompletedTask;
+        }
     }
 
     [Test]
@@ -191,5 +198,18 @@ public class WebSocketHandlerTest
         await secondServing;
 
         Assert.That(secondToken, Is.EqualTo("aaaaa"));
+    }
+
+    [Test]
+    public async Task HandleConnect_Ping_AnswersWithPong()
+    {
+        var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
+        var socket = new FrameQueueWebSocket(("""{"type":"ping","msg":{}}""", true));
+        var context = new DefaultHttpContext();
+        context.Features.Set<IHttpWebSocketFeature>(new AcceptingWebSocketFeature(socket));
+
+        await handler.HandleConnect(context, null);
+
+        Assert.That(socket.Sent, Does.Contain("""{"type":"pong","msg":{}}"""));
     }
 }

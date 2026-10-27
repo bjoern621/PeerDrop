@@ -22,6 +22,8 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     // once a ping goes unanswered for PongTimeout.
     private static readonly TimeSpan PingInterval = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan PongTimeout = TimeSpan.FromSeconds(15);
+    // Browsers hide the WebSocket ping frames from scripts, so the client sends its own and expects a PongMessage.
+    private const string PingMessageType = "ping";
 
     // String is the client token. Case-insensitive so tokens entered with any casing map to the same connection.
     private readonly ConcurrentDictionary<string, RuntimeClientInformation> ActiveConnections = new(StringComparer.OrdinalIgnoreCase);
@@ -242,6 +244,12 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
                 {
                     CloseConnection(webSocket, WebSocketCloseStatus.InvalidPayloadData);
                     return;
+                }
+
+                if (messageType == PingMessageType)
+                {
+                    await SendMessage(clientToken, new PongMessage());
+                    continue;
                 }
 
                 ForwardMessageToHandlers(clientToken, messageType, msgElement);
