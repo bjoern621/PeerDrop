@@ -40,3 +40,23 @@ test("a connection that goes silent shows a toast", async ({ openPeer }) => {
 
     await expect(alice.lostConnectionToast()).toBeVisible();
 });
+
+test("a lost connection locks sending and leaves the recipient unknown", async ({
+    openPeer,
+}) => {
+    const relay = new SocketRelay();
+    const alice = await openPeer(relay);
+    const bob = await openPeer();
+    await alice.connectTo(bob);
+
+    await relay.drop();
+
+    await expect(alice.hint()).toHaveText(
+        "Without a connection to the server, you cannot send anything."
+    );
+    await expect(alice.recipientCheck()).toHaveClass(/_unknown_/);
+    await expect(alice.textField()).toBeDisabled();
+    await expect(
+        alice.page.getByRole("button", { name: "Share file" })
+    ).toBeDisabled();
+});

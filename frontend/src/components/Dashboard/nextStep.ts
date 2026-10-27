@@ -16,6 +16,7 @@ interface NextStepInput {
     lookup: LookupState | undefined;
     blocked: boolean;
     tooBig: boolean;
+    lost: boolean;
     lock: SendLock | null;
     now: number;
 }
@@ -27,6 +28,10 @@ export function nextStep(
 ): Hint {
     const { recipient, lock } = input;
     const token = displayToken(recipient);
+
+    if (input.lost) {
+        return { kind: "warn", text: t("hint.lost") };
+    }
 
     if (lock?.reason === "tokens") {
         const minutes = Math.max(

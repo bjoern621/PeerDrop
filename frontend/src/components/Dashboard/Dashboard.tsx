@@ -11,6 +11,7 @@ import { IconArrowsTransferUpDown as TransferIcon } from "@tabler/icons-react";
 import { nextStep } from "./nextStep";
 import { useMessaging } from "../../hooks/useMessaging";
 import { useOwnToken } from "../../hooks/useOwnToken";
+import { useServerConnection } from "../../hooks/useServerConnection";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { COMPACT_QUERY, PHONE_QUERY } from "../../util/mediaQueries";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
@@ -84,7 +85,8 @@ export default function Dashboard() {
         complete ? messaging.lookups.get(recipient) : undefined
     );
     const blocked = messaging.blocked.has(recipient);
-    const ready = complete && lookup?.status === "online" && !blocked;
+    const lost = useServerConnection() === "lost";
+    const ready = complete && lookup?.status === "online" && !blocked && !lost;
     const hasText = draft.trim().length > 0;
     const tooBig = useMemo(() => textBytes(draft) > MAX_TEXT_BYTES, [draft]);
 
@@ -97,6 +99,7 @@ export default function Dashboard() {
             tooBig,
             lock,
             now,
+            lost,
         },
         t
     );
@@ -164,7 +167,9 @@ export default function Dashboard() {
                         !lookup ||
                         lookup.status === "checking"
                             ? null
-                            : lookup.status
+                            : lost
+                              ? "unknown"
+                              : lookup.status
                     }
                     hint={hint}
                     draft={draft}

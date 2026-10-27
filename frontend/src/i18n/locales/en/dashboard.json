@@ -56,6 +56,7 @@
         "missingChars_other": "Enter the remaining {{count}} characters of the token.",
         "ownToken": "{{token}} is your own token. Enter the token of another device.",
         "blocked": "You blocked {{token}} until you reload the page.",
+        "lost": "Without a connection to the server, you cannot send anything.",
         "checking": "Checking whether {{token}} is online...",
         "offline": "{{token}} is offline. Please check the token.",
         "tooBig": "The text is larger than 1 MB. Send it as a file.",

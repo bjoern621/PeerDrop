@@ -81,6 +81,12 @@
     border-color: var(--error-text);
 }
 
+.unknown .otp-slot {
+    @include tone(warning);
+
+    border-color: var(--warning-text);
+}
+
 // The field draws its own slots, so the search box keeps no clear button or decoration.
 .input {
     appearance: none;

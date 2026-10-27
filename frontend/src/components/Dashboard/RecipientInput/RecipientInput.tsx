@@ -11,8 +11,11 @@ import { REDUCED_MOTION_QUERY } from "../../../util/mediaQueries";
 import { useMediaQuery } from "../../../hooks/useMediaQuery";
 import { cx } from "class-variance-authority";
 
-/** Result of the server's check of a complete token. */
-export type RecipientCheck = "online" | "offline" | null;
+/**
+ * Result of the server's check of a complete token.
+ * "unknown" while the connection to the server is lost, because the last result may be stale.
+ */
+export type RecipientCheck = "online" | "offline" | "unknown" | null;
 
 // Letters of the server's proquint tokens, from ClientTokenFormat in the backend.
 const PROQUINT_CONSONANTS = "bdfghjklmnprstvz";
@@ -195,7 +198,8 @@ export default function RecipientInput({
                     className={cx(
                         css.slotsContainer,
                         check === "online" && css.online,
-                        check === "offline" && css.offline
+                        check === "offline" && css.offline,
+                        check === "unknown" && css.unknown
                     )}
                 >
                     {slots.map((slot, idx) => (
