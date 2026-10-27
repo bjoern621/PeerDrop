@@ -25,6 +25,7 @@ public interface ITokenLookupService
     /// <summary>
     /// Tells every client whose last lookup named this client's token that it went offline.
     /// They keep watching the token.
+    /// Forgets the client's public key.
     /// </summary>
     Task HandleClientDisconnected(string clientToken);
 }

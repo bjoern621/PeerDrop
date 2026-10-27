@@ -476,19 +476,6 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         return ActiveConnections.TryGetValue(clientToken, out var runtimeInfo) ? runtimeInfo.RemoteIpAddress : null;
     }
 
-    public void SetPublicKey(string clientToken, string publicKey)
-    {
-        if (ActiveConnections.TryGetValue(clientToken, out var runtimeInfo))
-        {
-            runtimeInfo.PublicKey = publicKey;
-        }
-    }
-
-    public string? GetPublicKeyForClientToken(string clientToken)
-    {
-        return ActiveConnections.TryGetValue(clientToken, out var runtimeInfo) ? runtimeInfo.PublicKey : null;
-    }
-
     public (int SignedIn, int Anonymous) CountClients()
     {
         int signedIn = 0;

@@ -21,6 +21,7 @@ public class TransferOfferServiceTest
     private const string IV = "AAECAwQFBgcICQoL";
 
     private Mock<IWebSocketHandler> _mockHandler;
+    private PublicKeyRepository _publicKeys;
     private Mock<IConnectionInitiationService> _mockConnectionInitiationService;
     private SentMessages _sent;
     private PairRepository _pairRepository;
@@ -32,7 +33,8 @@ public class TransferOfferServiceTest
     {
         _mockHandler = new Mock<IWebSocketHandler>();
         _mockHandler.Setup(h => h.RemoteTokenExists(It.IsAny<string>())).Returns<string>(t => t is SENDER or RECEIVER);
-        _mockHandler.Setup(h => h.GetPublicKeyForClientToken(SENDER)).Returns(SENDER_KEY);
+        _publicKeys = new PublicKeyRepository();
+        _publicKeys.Set(SENDER, SENDER_KEY);
         _sent = new SentMessages()
             .Capture<IncomingTransferOfferMessage>(_mockHandler)
             .Capture<TransferOfferResultMessage>(_mockHandler)
@@ -45,6 +47,7 @@ public class TransferOfferServiceTest
         _clock = new ManualTimeProvider();
         _service = new TransferOfferService(
             _mockHandler.Object,
+            _publicKeys,
             new AbuseGuard(_clock),
             new PendingOfferRepository(),
             _pairRepository,

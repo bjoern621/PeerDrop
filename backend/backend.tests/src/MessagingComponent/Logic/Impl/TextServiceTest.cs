@@ -1,3 +1,4 @@
+using backend.MessagingComponent.Dataaccess.Impl;
 using backend.MessagingComponent.Common.Api.DTOs;
 using backend.MessagingComponent.Common.Api.Validators;
 using backend.MessagingComponent.Logic.Impl;
@@ -19,6 +20,7 @@ public class TextServiceTest
     private const string IV = "AAECAwQFBgcICQoL";
 
     private Mock<IWebSocketHandler> _mockHandler;
+    private PublicKeyRepository _publicKeys;
     private SentMessages _sent;
     private HashSet<string> _online;
     private ManualTimeProvider _clock;
@@ -30,7 +32,8 @@ public class TextServiceTest
         _mockHandler = new Mock<IWebSocketHandler>();
         _online = [SENDER, RECEIVER];
         _mockHandler.Setup(h => h.RemoteTokenExists(It.IsAny<string>())).Returns<string>(t => _online.Contains(t));
-        _mockHandler.Setup(h => h.GetPublicKeyForClientToken(SENDER)).Returns(SENDER_KEY);
+        _publicKeys = new PublicKeyRepository();
+        _publicKeys.Set(SENDER, SENDER_KEY);
         _sent = new SentMessages()
             .Capture<IncomingTextMessage>(_mockHandler)
             .Capture<TextResultMessage>(_mockHandler);
@@ -38,6 +41,7 @@ public class TextServiceTest
         _clock = new ManualTimeProvider();
         _service = new TextService(
             _mockHandler.Object,
+            _publicKeys,
             new AbuseGuard(_clock),
             new Mock<IUsageMetrics>().Object,
             NullLogger<TextService>.Instance);

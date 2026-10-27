@@ -26,12 +26,6 @@ public class RuntimeClientInformation
     /// </summary>
     public string? UserAgent { get; set; }
 
-    /// <summary>
-    /// Base64 of the client's raw P-256 public key, as last announced by the client.
-    /// Null until the client sends one.
-    /// </summary>
-    public string? PublicKey { get; set; }
-
     private TaskCompletionSource _nextMessage = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     /// <summary>

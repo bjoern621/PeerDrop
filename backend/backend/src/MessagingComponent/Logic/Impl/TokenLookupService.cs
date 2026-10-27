@@ -12,6 +12,7 @@ namespace backend.MessagingComponent.Logic.Impl;
 
 public class TokenLookupService(
     IWebSocketHandler _webSocketHandler,
+    IPublicKeyRepository _publicKeys,
     IAbuseGuard _abuseGuard,
     IPresenceWatchRepository _presenceWatchRepository,
     IDeviceService _deviceService,
@@ -27,7 +28,7 @@ public class TokenLookupService(
             return Task.CompletedTask;
         }
 
-        _webSocketHandler.SetPublicKey(clientToken, message.Key);
+        _publicKeys.Set(clientToken, message.Key);
         return TellWatchersOnline(clientToken.ToLowerInvariant());
     }
 
@@ -62,6 +63,7 @@ public class TokenLookupService(
     public async Task HandleClientDisconnected(string clientToken)
     {
         var token = clientToken.ToLowerInvariant();
+        _publicKeys.Remove(token);
 
         foreach (var watcher in _presenceWatchRepository.RemoveClient(token))
         {
@@ -125,7 +127,7 @@ public class TokenLookupService(
             Token = token,
             DeviceUuid = deviceUuid,
             Online = true,
-            PublicKey = _webSocketHandler.GetPublicKeyForClientToken(token),
+            PublicKey = _publicKeys.Get(token),
             OwnDevice = _webSocketHandler.AreSignedInWithSameAccount(clientToken, token),
         };
     }

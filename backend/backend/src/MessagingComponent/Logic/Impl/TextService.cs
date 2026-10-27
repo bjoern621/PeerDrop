@@ -1,5 +1,6 @@
 using backend.MessagingComponent.Common.Api.DTOs;
 using backend.MessagingComponent.Common.Api.Validators;
+using backend.MessagingComponent.Dataaccess.Api;
 using backend.MessagingComponent.Logic.Api;
 using backend.MessagingComponent.Logic.Types;
 using backend.TelemetryComponent.Logic.Api;
@@ -9,6 +10,7 @@ namespace backend.MessagingComponent.Logic.Impl;
 
 public class TextService(
     IWebSocketHandler _webSocketHandler,
+    IPublicKeyRepository _publicKeys,
     IAbuseGuard _abuseGuard,
     IUsageMetrics _usageMetrics,
     ILogger<TextService> _logger) : ITextService
@@ -62,7 +64,7 @@ public class TextService(
         var forwarded = await _webSocketHandler.SendMessage(receiverToken, new IncomingTextMessage
         {
             From = clientToken,
-            FromKey = _webSocketHandler.GetPublicKeyForClientToken(clientToken),
+            FromKey = _publicKeys.Get(clientToken),
             Iv = message.Iv,
             Ciphertext = message.Ciphertext,
         });

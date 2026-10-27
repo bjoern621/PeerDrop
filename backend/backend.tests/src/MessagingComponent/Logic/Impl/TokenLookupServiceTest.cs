@@ -24,6 +24,7 @@ public class TokenLookupServiceTest
     private static readonly Guid DEVICE_UUID = Guid.Parse("8f14e45f-ceea-467f-a0e6-1f2c4b2d8a10");
 
     private Mock<IWebSocketHandler> _mockHandler;
+    private PublicKeyRepository _publicKeys;
     private Mock<IDeviceService> _mockDeviceService;
     private Mock<IDeviceRepository> _mockDeviceRepository;
     private SentMessages _sent;
@@ -34,7 +35,8 @@ public class TokenLookupServiceTest
     {
         _mockHandler = new Mock<IWebSocketHandler>();
         _mockHandler.Setup(h => h.RemoteTokenExists(It.IsAny<string>())).Returns<string>(t => t is REQUESTER or TARGET);
-        _mockHandler.Setup(h => h.GetPublicKeyForClientToken(TARGET)).Returns(TARGET_KEY);
+        _publicKeys = new PublicKeyRepository();
+        _publicKeys.Set(TARGET, TARGET_KEY);
         _sent = new SentMessages().Capture<TokenStatusMessage>(_mockHandler);
 
         _mockDeviceService = new Mock<IDeviceService>();
@@ -49,6 +51,7 @@ public class TokenLookupServiceTest
 
         _service = new TokenLookupService(
             _mockHandler.Object,
+            _publicKeys,
             new AbuseGuard(new ManualTimeProvider()),
             new PresenceWatchRepository(),
             _mockDeviceService.Object,
@@ -281,7 +284,7 @@ public class TokenLookupServiceTest
 
         await _service.HandlePublicKey(REQUESTER, new PublicKeyMessage { Key = key });
 
-        _mockHandler.Verify(h => h.SetPublicKey(REQUESTER, key), Times.Once);
+        Assert.That(_publicKeys.Get(REQUESTER), Is.EqualTo(key));
     }
 
     [TestCase("not base64!")]
@@ -290,7 +293,7 @@ public class TokenLookupServiceTest
     {
         await _service.HandlePublicKey(REQUESTER, new PublicKeyMessage { Key = key });
 
-        _mockHandler.Verify(h => h.SetPublicKey(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        Assert.That(_publicKeys.Get(REQUESTER), Is.Null);
     }
 
     [Test]
@@ -298,6 +301,6 @@ public class TokenLookupServiceTest
     {
         await _service.HandlePublicKey(REQUESTER, new PublicKeyMessage { Key = Convert.ToBase64String(new byte[153]) });
 
-        _mockHandler.Verify(h => h.SetPublicKey(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        Assert.That(_publicKeys.Get(REQUESTER), Is.Null);
     }
 }

@@ -12,6 +12,7 @@ namespace backend.MessagingComponent.Logic.Impl;
 
 public class TransferOfferService(
     IWebSocketHandler _webSocketHandler,
+    IPublicKeyRepository _publicKeys,
     IAbuseGuard _abuseGuard,
     IPendingOfferRepository _pendingOfferRepository,
     IPairRepository _pairRepository,
@@ -80,7 +81,7 @@ public class TransferOfferService(
         {
             OfferId = message.OfferId,
             From = clientToken,
-            FromKey = _webSocketHandler.GetPublicKeyForClientToken(clientToken),
+            FromKey = _publicKeys.Get(clientToken),
             Iv = message.Iv,
             Ciphertext = message.Ciphertext,
         });
