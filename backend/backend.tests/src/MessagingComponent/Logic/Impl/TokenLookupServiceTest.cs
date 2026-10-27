@@ -110,24 +110,45 @@ public class TokenLookupServiceTest
     }
 
     [Test]
-    public async Task HandleClientDisconnected_TokenLeavesTwice_TellsRequesterOnce()
+    public async Task HandlePublicKey_LookedUpTokenReturns_TellsRequesterOnlineWithKey()
     {
         await LookUp(TARGET);
-
-        await _service.HandleClientDisconnected(TARGET);
         await _service.HandleClientDisconnected(TARGET);
 
-        Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(2));
+        await _service.HandlePublicKey(TARGET.ToUpperInvariant(), new PublicKeyMessage { Key = TARGET_KEY });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(3));
+            Assert.That(LastStatus().Token, Is.EqualTo(TARGET));
+            Assert.That(LastStatus().Online, Is.True);
+            Assert.That(LastStatus().PublicKey, Is.EqualTo(TARGET_KEY));
+        });
     }
 
     [Test]
-    public async Task HandleClientDisconnected_OfflineLookupLeaves_TellsNothing()
+    public async Task HandlePublicKey_OfflineLookupComesOnline_TellsRequesterOnline()
     {
         await LookUp(OFFLINE);
 
-        await _service.HandleClientDisconnected(OFFLINE);
+        await _service.HandlePublicKey(OFFLINE, new PublicKeyMessage { Key = TARGET_KEY });
 
-        Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(LastStatus().Token, Is.EqualTo(OFFLINE));
+            Assert.That(LastStatus().Online, Is.True);
+        });
+    }
+
+    [Test]
+    public async Task HandlePublicKey_RequesterLookedUpAnotherToken_TellsNothing()
+    {
+        await LookUp(OFFLINE);
+        await LookUp(TARGET);
+
+        await _service.HandlePublicKey(OFFLINE, new PublicKeyMessage { Key = TARGET_KEY });
+
+        Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(2));
     }
 
     [Test]

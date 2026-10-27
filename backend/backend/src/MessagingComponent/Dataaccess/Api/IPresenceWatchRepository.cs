@@ -1,7 +1,7 @@
 namespace backend.MessagingComponent.Dataaccess.Api;
 
 /// <summary>
-/// Holds the online token that each client looked up last, so the client learns when that token leaves.
+/// Holds the token that each client looked up last, so the client learns when that token leaves or returns.
 /// Tokens compare case-insensitively.
 /// Can be called concurrently.
 /// </summary>
@@ -13,8 +13,13 @@ public interface IPresenceWatchRepository
     void Watch(string watcherToken, string watchedToken);
 
     /// <summary>
-    /// Drops the client's own watch and returns the clients that watched it.
-    /// Those clients watch nothing afterwards.
+    /// Returns the clients that watch the token.
+    /// </summary>
+    IReadOnlyList<string> WatchersOf(string watchedToken);
+
+    /// <summary>
+    /// Drops the client's own watch and returns the clients that watch it.
+    /// Those clients keep watching, so they learn when the token returns.
     /// </summary>
     IReadOnlyList<string> RemoveClient(string clientToken);
 }

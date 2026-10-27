@@ -27,6 +27,16 @@ public class PresenceWatchRepositoryTest
     }
 
     [Test]
+    public void RemoveClient_WatchedClient_KeepsItsWatchers()
+    {
+        _repository.Watch(WATCHER, WATCHED);
+
+        _repository.RemoveClient(WATCHED);
+
+        Assert.That(_repository.WatchersOf(WATCHED.ToUpperInvariant()), Is.EqualTo(new[] { WATCHER }));
+    }
+
+    [Test]
     public void Watch_SecondToken_ReplacesFirst()
     {
         _repository.Watch(WATCHER, WATCHED);
@@ -34,8 +44,8 @@ public class PresenceWatchRepositoryTest
 
         Assert.Multiple(() =>
         {
-            Assert.That(_repository.RemoveClient(WATCHED), Is.Empty);
-            Assert.That(_repository.RemoveClient(OTHER), Is.EqualTo(new[] { WATCHER }));
+            Assert.That(_repository.WatchersOf(WATCHED), Is.Empty);
+            Assert.That(_repository.WatchersOf(OTHER), Is.EqualTo(new[] { WATCHER }));
         });
     }
 
@@ -46,6 +56,6 @@ public class PresenceWatchRepositoryTest
 
         _repository.RemoveClient(WATCHER);
 
-        Assert.That(_repository.RemoveClient(WATCHED), Is.Empty);
+        Assert.That(_repository.WatchersOf(WATCHED), Is.Empty);
     }
 }

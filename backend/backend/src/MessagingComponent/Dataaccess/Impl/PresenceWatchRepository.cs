@@ -15,6 +15,14 @@ public class PresenceWatchRepository : IPresenceWatchRepository
         }
     }
 
+    public IReadOnlyList<string> WatchersOf(string watchedToken)
+    {
+        lock (_lock)
+        {
+            return WatchersOfUnlocked(Normalize(watchedToken));
+        }
+    }
+
     public IReadOnlyList<string> RemoveClient(string clientToken)
     {
         var token = Normalize(clientToken);
@@ -22,11 +30,12 @@ public class PresenceWatchRepository : IPresenceWatchRepository
         lock (_lock)
         {
             _watchedBy.Remove(token);
-            var watchers = _watchedBy.Where(w => w.Value == token).Select(w => w.Key).ToList();
-            watchers.ForEach(watcher => _watchedBy.Remove(watcher));
-            return watchers;
+            return WatchersOfUnlocked(token);
         }
     }
+
+    private List<string> WatchersOfUnlocked(string token) =>
+        _watchedBy.Where(w => w.Value == token).Select(w => w.Key).ToList();
 
     private static string Normalize(string token) => token.ToLowerInvariant();
 }

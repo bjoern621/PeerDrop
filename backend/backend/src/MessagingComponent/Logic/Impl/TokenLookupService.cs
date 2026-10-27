@@ -28,7 +28,16 @@ public class TokenLookupService(
         }
 
         _webSocketHandler.SetPublicKey(clientToken, message.Key);
-        return Task.CompletedTask;
+        return TellWatchersOnline(clientToken.ToLowerInvariant());
+    }
+
+    // Waits for the public key, since a watcher can encrypt for the token only with it.
+    private async Task TellWatchersOnline(string token)
+    {
+        foreach (var watcher in _presenceWatchRepository.WatchersOf(token))
+        {
+            await _webSocketHandler.SendMessage(watcher, OnlineStatus(watcher, token, null));
+        }
     }
 
     public async Task HandleTokenLookup(string clientToken, TokenLookupMessage message)
@@ -44,7 +53,7 @@ public class TokenLookupService(
             ? LookUpToken(clientToken, message.Token!.ToLowerInvariant())
             : await LookUpDevice(clientToken, message.DeviceUuid!.Value);
 
-        if (status.Online)
+        if (status.Token != string.Empty)
             _presenceWatchRepository.Watch(clientToken, status.Token);
 
         await _webSocketHandler.SendMessage(clientToken, status);
