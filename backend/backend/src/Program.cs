@@ -140,6 +140,7 @@ builder.Services.AddSingleton<ITextService, TextService>();
 builder.Services.AddSingleton<ITransferOfferService, TransferOfferService>();
 builder.Services.AddSingleton<IAbuseGuard, AbuseGuard>();
 builder.Services.AddSingleton<IPendingOfferRepository, PendingOfferRepository>();
+builder.Services.AddSingleton<IPresenceWatchRepository, PresenceWatchRepository>();
 builder.Services.AddSingleton<IUsageMetrics, UsageMetrics>();
 builder.Services.AddSingleton<IUsageCountRepository, UsageCountRepository>();
 builder.Services.AddSingleton<ITelemetryWebsocketMessages, TelemetryWebsocketMessages>();

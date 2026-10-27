@@ -1,4 +1,5 @@
 using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.MessagingComponent.Dataaccess.Api;
 using backend.DeviceComponent.Logic.Api;
 using backend.MessagingComponent.Common.Api.DTOs;
 using backend.MessagingComponent.Common.Api.Validators;
@@ -12,6 +13,7 @@ namespace backend.MessagingComponent.Logic.Impl;
 public class TokenLookupService(
     IWebSocketHandler _webSocketHandler,
     IAbuseGuard _abuseGuard,
+    IPresenceWatchRepository _presenceWatchRepository,
     IDeviceService _deviceService,
     IServiceScopeFactory _scopeFactory,
     IUsageMetrics _usageMetrics,
@@ -42,7 +44,20 @@ public class TokenLookupService(
             ? LookUpToken(clientToken, message.Token!.ToLowerInvariant())
             : await LookUpDevice(clientToken, message.DeviceUuid!.Value);
 
+        if (status.Online)
+            _presenceWatchRepository.Watch(clientToken, status.Token);
+
         await _webSocketHandler.SendMessage(clientToken, status);
+    }
+
+    public async Task HandleClientDisconnected(string clientToken)
+    {
+        var token = clientToken.ToLowerInvariant();
+
+        foreach (var watcher in _presenceWatchRepository.RemoveClient(token))
+        {
+            await _webSocketHandler.SendMessage(watcher, OfflineStatus(token, null, null));
+        }
     }
 
     private TokenStatusMessage LookUpToken(string clientToken, string token)

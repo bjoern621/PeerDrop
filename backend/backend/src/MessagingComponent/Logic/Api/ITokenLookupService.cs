@@ -18,4 +18,9 @@ public interface ITokenLookupService
     /// Ignored unless the message carries exactly one of token and device UUID.
     /// </summary>
     Task HandleTokenLookup(string clientToken, TokenLookupMessage message);
+
+    /// <summary>
+    /// Tells every client whose last online lookup found this client that it went offline.
+    /// </summary>
+    Task HandleClientDisconnected(string clientToken);
 }

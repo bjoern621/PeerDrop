@@ -2,6 +2,7 @@ using backend.DeviceComponent.Dataaccess.Api.Entity;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
 using backend.MessagingComponent.Common.Api.DTOs;
+using backend.MessagingComponent.Dataaccess.Impl;
 using backend.MessagingComponent.Logic.Impl;
 using backend.TelemetryComponent.Logic.Api;
 using backend.tests.TestUtils;
@@ -49,6 +50,7 @@ public class TokenLookupServiceTest
         _service = new TokenLookupService(
             _mockHandler.Object,
             new AbuseGuard(new ManualTimeProvider()),
+            new PresenceWatchRepository(),
             _mockDeviceService.Object,
             scopeFactory.Object,
             new Mock<IUsageMetrics>().Object,
@@ -90,6 +92,53 @@ public class TokenLookupServiceTest
             Assert.That(LastStatus().OwnDevice, Is.True);
             Assert.That(LastStatus().RetryAfterMs, Is.Null);
         });
+    }
+
+    [Test]
+    public async Task HandleClientDisconnected_LookedUpTokenLeaves_TellsRequesterOffline()
+    {
+        await LookUp(TARGET);
+
+        await _service.HandleClientDisconnected(TARGET.ToUpperInvariant());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(LastStatus().Token, Is.EqualTo(TARGET));
+            Assert.That(LastStatus().Online, Is.False);
+            Assert.That(LastStatus().RetryAfterMs, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task HandleClientDisconnected_TokenLeavesTwice_TellsRequesterOnce()
+    {
+        await LookUp(TARGET);
+
+        await _service.HandleClientDisconnected(TARGET);
+        await _service.HandleClientDisconnected(TARGET);
+
+        Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(2));
+    }
+
+    [Test]
+    public async Task HandleClientDisconnected_OfflineLookupLeaves_TellsNothing()
+    {
+        await LookUp(OFFLINE);
+
+        await _service.HandleClientDisconnected(OFFLINE);
+
+        Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public async Task HandleClientDisconnected_RequesterLeftFirst_TellsNothing()
+    {
+        await LookUp(TARGET);
+
+        await _service.HandleClientDisconnected(REQUESTER);
+        await _service.HandleClientDisconnected(TARGET);
+
+        Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(1));
     }
 
     [Test]

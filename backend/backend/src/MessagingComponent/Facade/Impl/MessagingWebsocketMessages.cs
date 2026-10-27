@@ -28,6 +28,8 @@ public class MessagingWebsocketMessages(
 
         _webSocketHandler.ClientDisconnected += _transferOfferService.HandleClientDisconnected;
 
+        _webSocketHandler.ClientDisconnected += _tokenLookupService.HandleClientDisconnected;
+
         _webSocketHandler.ClientDisconnected += clientToken =>
         {
             _abuseGuard.ForgetToken(clientToken);
