@@ -114,8 +114,6 @@ export class MessagingService {
         (token: ClientToken | null) => void
     >();
 
-    // Receivers that accepted an offer from this client.
-    private readonly acceptedBy = new Set<ClientToken>();
     // Senders whose offer this client accepted.
     private readonly acceptedFrom = new Set<ClientToken>();
     private readonly blocked = new Set<ClientToken>();
@@ -208,10 +206,7 @@ export class MessagingService {
     /** Whether files to this peer start without an offer. */
     public sendsDirectly(token: ClientToken): boolean {
         token = normalizeClientToken(token);
-        return (
-            this.acceptedBy.has(token) ||
-            this.peerInfo.get(token)?.ownDevice === true
-        );
+        return this.peerInfo.get(token)?.ownDevice === true;
     }
 
     public async sendText(to: ClientToken, text: string): Promise<void> {
@@ -243,9 +238,9 @@ export class MessagingService {
     }
 
     /**
-     * Sends a selection of loose files and folders. To a peer that accepted
-     * before, or an own device, the files start right away; otherwise the
-     * peer gets an offer first.
+     * Sends a selection of loose files and folders. To an own device, the
+     * files start right away. Every other peer gets an offer first, since
+     * only the receiver knows whether it still trusts or blocks this client.
      */
     public async sendSelection(to: ClientToken, selection: ShareSelection) {
         to = normalizeClientToken(to);
@@ -387,7 +382,6 @@ export class MessagingService {
      */
     private forgetSession() {
         this.peerConnections.reset();
-        this.acceptedBy.clear();
         this.acceptedFrom.clear();
         this.peerInfo.clear();
         this.lookups.clear();
@@ -546,7 +540,6 @@ export class MessagingService {
         }
 
         this.outgoingOffers.delete(offerId);
-        this.acceptedBy.add(offer.entry.peer);
         this.peerConnections.sendFiles(offer.entry.peer, offer.files);
         this.publish();
     }
