@@ -1,25 +1,19 @@
 import { expect, SocketRelay, test } from "./peers";
 
-const SHARE = "Anyone sending to you enters this token.";
-const LOST =
-    "The connection to the server dropped. Nobody can find you under this token. Reload the page.";
-
-test("a dropped connection marks the own token as lost", async ({
-    openPeer,
-}) => {
+test("a dropped connection shows a toast that stays", async ({ openPeer }) => {
     const relay = new SocketRelay();
     const alice = await openPeer(relay);
-    await expect(alice.tokenStatus()).toHaveText(SHARE);
+    await expect(alice.lostConnectionToast()).toBeHidden();
 
     await relay.drop();
 
-    await expect(alice.tokenStatus()).toHaveText(LOST);
-    await expect(
-        alice.page.getByRole("button", { name: "Copy token", exact: true })
-    ).toBeDisabled();
+    await expect(alice.lostConnectionToast()).toBeVisible();
+    // Outlasts the autoClose that the other toasts get.
+    await alice.page.waitForTimeout(4_000);
+    await expect(alice.lostConnectionToast()).toBeVisible();
 });
 
-test("a server that answers pings keeps the token", async ({ openPeer }) => {
+test("a server that answers pings shows no toast", async ({ openPeer }) => {
     const relay = new SocketRelay();
     const alice = await openPeer(relay);
 
@@ -28,19 +22,16 @@ test("a server that answers pings keeps the token", async ({ openPeer }) => {
     await expect
         .poll(() => relay.fromServer.some(message => message.includes("pong")))
         .toBe(true);
-    await expect(alice.tokenStatus()).toHaveText(SHARE);
+    await expect(alice.lostConnectionToast()).toBeHidden();
 });
 
-test("a connection that goes silent marks the own token as lost", async ({
-    openPeer,
-}) => {
+test("a connection that goes silent shows a toast", async ({ openPeer }) => {
     const relay = new SocketRelay();
     const alice = await openPeer(relay);
-    await expect(alice.tokenStatus()).toHaveText(SHARE);
 
     relay.goSilent();
     // Coming back online makes the page check the connection.
     await alice.page.evaluate(() => window.dispatchEvent(new Event("online")));
 
-    await expect(alice.tokenStatus()).toHaveText(LOST);
+    await expect(alice.lostConnectionToast()).toBeVisible();
 });

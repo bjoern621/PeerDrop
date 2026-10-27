@@ -19,12 +19,6 @@
     letter-spacing: 0.25em;
 }
 
-.lost {
-    border-color: var(--text-muted);
-    color: var(--text-muted);
-    text-decoration: line-through;
-}
-
 .shareRow {
     display: flex;
     align-items: center;
@@ -39,10 +33,6 @@
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
     font-weight: var(--font-weight-regular);
-}
-
-.lostText {
-    color: var(--error-text);
 }
 
 .header {

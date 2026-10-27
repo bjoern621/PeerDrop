@@ -6,7 +6,6 @@
         "newToken": "New token",
         "pickCharacters": "Pick {{length}} characters from A to Z and 0 to 9.",
         "inUse": "{{token}} is taken right now. Reload the page later to get it.",
-        "lost": "The connection to the server dropped. Nobody can find you under this token. Reload the page.",
         "copy": "Copy token",
         "copied": "Token copied",
         "copyLink": "Copy token as link",

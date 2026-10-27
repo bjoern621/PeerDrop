@@ -69,11 +69,10 @@ export class Peer {
         await this.page.context().close();
     }
 
-    /** The line under the own token, which tells whether others can find it. */
-    public tokenStatus() {
+    public lostConnectionToast() {
         return this.page
-            .getByRole("region", { name: "Your token" })
-            .getByRole("status");
+            .getByRole("alert")
+            .filter({ hasText: "The connection to the server dropped." });
     }
 
     public hint() {

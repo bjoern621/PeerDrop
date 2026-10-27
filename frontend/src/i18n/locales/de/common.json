@@ -23,6 +23,9 @@
         "system": "System",
         "systemResolved": "System ({{scheme}})"
     },
+    "connection": {
+        "lost": "Die Verbindung zum Server ist abgebrochen. Unter deinem Token findet dich niemand mehr. Lade die Seite neu."
+    },
     "pages": {
         "backHome": "Zurück zur Startseite",
         "notFound": {

@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { usePreventFileDropNavigation } from "../../hooks/usePreventFileDropNavigation";
 import { useLanDiscoveryState } from "../../hooks/useLanDiscoveryState";
+import { useLostConnectionToast } from "../../hooks/useLostConnectionToast";
 import { cx } from "class-variance-authority";
 
 // Per-route layout options, read from the matched route's `handle`.
@@ -23,6 +24,7 @@ export type RouteHandle = {
 export default function Layout() {
     usePreventFileDropNavigation();
     useLanDiscoveryState();
+    useLostConnectionToast();
 
     const matches = useMatches();
     const handles = matches.map(
