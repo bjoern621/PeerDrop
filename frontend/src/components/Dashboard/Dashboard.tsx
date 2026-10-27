@@ -128,8 +128,9 @@ export default function Dashboard() {
         if (!ready || !hasText || tooBig || lock) {
             return;
         }
-        void messagingService.sendText(recipient, draft);
-        setDraft("");
+        if (messagingService.sendText(recipient, draft)) {
+            setDraft("");
+        }
     };
 
     const sendSelection = (selection: ShareSelection) => {

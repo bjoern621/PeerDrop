@@ -209,10 +209,11 @@ export class MessagingService {
         return this.peerInfo.get(token)?.ownDevice === true;
     }
 
-    public async sendText(to: ClientToken, text: string): Promise<void> {
+    /** Queues a text. Returns false when a lock holds it back, so the draft can stay. */
+    public sendText(to: ClientToken, text: string): boolean {
         to = normalizeClientToken(to);
         if (this.isLocked() || !this.takeTextToken()) {
-            return;
+            return false;
         }
 
         const entry: TextEntry = {
@@ -226,14 +227,18 @@ export class MessagingService {
         };
         this.texts = [entry, ...this.texts];
         this.publish();
+        void this.deliverText(entry);
+        return true;
+    }
 
-        const sealed = await this.sealFor(to, { text });
+    private async deliverText(entry: TextEntry) {
+        const sealed = await this.sealFor(entry.peer, { text: entry.text });
         if (!sealed) {
             this.setTextStatus(entry.id, "failed");
             return;
         }
         this.signaling.sendMessage(
-            new OutgoingTextMessage({ id: entry.id, to, ...sealed })
+            new OutgoingTextMessage({ id: entry.id, to: entry.peer, ...sealed })
         );
     }
 
