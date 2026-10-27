@@ -75,9 +75,9 @@ public class TransferOfferServiceTest
     }
 
     [Test]
-    public async Task HandleTransferOffer_ReceiverOffline_ReportsUnknownAndLocksOnFifthMiss()
+    public async Task HandleTransferOffer_ReceiverOffline_ReportsUnknownAndLocksOnSixthMiss()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await Offer($"o{i}", OFFLINE);
         }
@@ -92,7 +92,7 @@ public class TransferOfferServiceTest
     [Test]
     public async Task HandleTransferOffer_SenderLocked_ReportsUnknownWithoutForwarding()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await Offer($"miss{i}", OFFLINE);
         }
@@ -113,7 +113,7 @@ public class TransferOfferServiceTest
     [Test]
     public async Task HandleTransferOffer_WhileLocked_CountsNoOfferAgainstCap()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await Offer($"miss{i}", OFFLINE);
         }

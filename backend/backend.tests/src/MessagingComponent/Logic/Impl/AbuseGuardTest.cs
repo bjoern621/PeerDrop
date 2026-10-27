@@ -32,21 +32,21 @@ public class AbuseGuardTest
     }
 
     [Test]
-    public void RecordUnknownTokenMiss_FourMisses_LeavesBudgetUnlocked()
+    public void RecordUnknownTokenMiss_FiveMisses_LeavesBudgetUnlocked()
     {
         Assert.Multiple(() =>
         {
-            Assert.That(MissTimes(4), Is.Null);
+            Assert.That(MissTimes(5), Is.Null);
             Assert.That(_guard.GetUnknownTokenLock(TOKEN_A, IP), Is.Null);
         });
     }
 
     [Test]
-    public void RecordUnknownTokenMiss_FifthMiss_LocksForOneMinute()
+    public void RecordUnknownTokenMiss_SixthMiss_LocksForOneMinute()
     {
         Assert.Multiple(() =>
         {
-            Assert.That(MissTimes(5), Is.EqualTo(TimeSpan.FromMinutes(1)));
+            Assert.That(MissTimes(6), Is.EqualTo(TimeSpan.FromMinutes(1)));
             Assert.That(_guard.GetUnknownTokenLock(TOKEN_A, IP), Is.EqualTo(TimeSpan.FromMinutes(1)));
         });
     }
@@ -54,7 +54,7 @@ public class AbuseGuardTest
     [Test]
     public void GetUnknownTokenLock_AfterLockDuration_ReturnsNull()
     {
-        MissTimes(5);
+        MissTimes(6);
 
         _clock.Advance(TimeSpan.FromMinutes(1));
 
@@ -64,7 +64,7 @@ public class AbuseGuardTest
     [Test]
     public void RecordUnknownTokenMiss_MissesOutsideWindow_DoNotCount()
     {
-        MissTimes(4);
+        MissTimes(5);
         _clock.Advance(TimeSpan.FromSeconds(61));
 
         Assert.That(MissTimes(1), Is.Null);
@@ -76,7 +76,7 @@ public class AbuseGuardTest
         var lockMinutes = new List<double>();
         for (var i = 0; i < 6; i++)
         {
-            var lockRemaining = MissTimes(5)!.Value;
+            var lockRemaining = MissTimes(6)!.Value;
             lockMinutes.Add(lockRemaining.TotalMinutes);
             _clock.Advance(lockRemaining);
         }
@@ -87,18 +87,18 @@ public class AbuseGuardTest
     [Test]
     public void RecordUnknownTokenMiss_FifteenMinutesWithoutLock_StartsDoublingOver()
     {
-        _clock.Advance(MissTimes(5)!.Value);
-        _clock.Advance(MissTimes(5)!.Value);
+        _clock.Advance(MissTimes(6)!.Value);
+        _clock.Advance(MissTimes(6)!.Value);
 
         _clock.Advance(TimeSpan.FromMinutes(15));
 
-        Assert.That(MissTimes(5), Is.EqualTo(TimeSpan.FromMinutes(1)));
+        Assert.That(MissTimes(6), Is.EqualTo(TimeSpan.FromMinutes(1)));
     }
 
     [Test]
     public void RecordUnknownTokenMiss_MissesWhileLocked_DoNotExtendLock()
     {
-        MissTimes(5);
+        MissTimes(6);
         _clock.Advance(TimeSpan.FromSeconds(30));
 
         Assert.That(MissTimes(3), Is.EqualTo(TimeSpan.FromSeconds(30)));
@@ -108,7 +108,7 @@ public class AbuseGuardTest
     public void RecordUnknownTokenMiss_MissesFromTwoTokensOnOneIp_LockTheIp()
     {
         MissTimes(3, TOKEN_A);
-        MissTimes(2, TOKEN_B);
+        MissTimes(3, TOKEN_B);
 
         Assert.Multiple(() =>
         {
@@ -121,13 +121,13 @@ public class AbuseGuardTest
     [Test]
     public void RecordUnknownTokenMiss_WithoutIp_LocksToken()
     {
-        Assert.That(MissTimes(5, TOKEN_A, null), Is.EqualTo(TimeSpan.FromMinutes(1)));
+        Assert.That(MissTimes(6, TOKEN_A, null), Is.EqualTo(TimeSpan.FromMinutes(1)));
     }
 
     [Test]
     public void ForgetToken_DropsTokenBudgetAndKeepsIpBudget()
     {
-        MissTimes(5);
+        MissTimes(6);
 
         _guard.ForgetToken(TOKEN_A);
 

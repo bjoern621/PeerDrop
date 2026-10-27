@@ -109,9 +109,9 @@ public class TextServiceTest
     }
 
     [Test]
-    public async Task HandleText_ReceiverOffline_ReportsUnknownAndLocksOnFifthMiss()
+    public async Task HandleText_ReceiverOffline_ReportsUnknownAndLocksOnSixthMiss()
     {
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < 5; i++)
         {
             await _service.HandleText(SENDER, Text(OFFLINE));
             Assert.That(LastResult().RetryAfterMs, Is.Null, $"miss {i + 1}");
@@ -129,7 +129,7 @@ public class TextServiceTest
     [Test]
     public async Task HandleText_ReceiverOffline_CostsNoTextToken()
     {
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < 5; i++)
         {
             await _service.HandleText(SENDER, Text(OFFLINE));
         }
@@ -162,7 +162,7 @@ public class TextServiceTest
     [Test]
     public async Task HandleText_SenderLocked_ReportsUnknownWithoutForwarding()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await _service.HandleText(SENDER, Text(OFFLINE));
         }
@@ -181,7 +181,7 @@ public class TextServiceTest
     [Test]
     public async Task HandleText_WhileLocked_TakesNoTextToken()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await _service.HandleText(SENDER, Text(OFFLINE));
         }

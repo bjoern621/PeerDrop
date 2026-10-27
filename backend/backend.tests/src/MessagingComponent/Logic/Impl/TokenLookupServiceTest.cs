@@ -142,9 +142,9 @@ public class TokenLookupServiceTest
     }
 
     [Test]
-    public async Task HandleTokenLookup_OfflineToken_AnswersOfflineAndLocksOnFifthMiss()
+    public async Task HandleTokenLookup_OfflineToken_AnswersOfflineAndLocksOnSixthMiss()
     {
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < 5; i++)
         {
             await LookUp(OFFLINE);
             Assert.That(LastStatus().RetryAfterMs, Is.Null, $"miss {i + 1}");
@@ -163,7 +163,7 @@ public class TokenLookupServiceTest
     [Test]
     public async Task HandleTokenLookup_WhileLocked_AnswersOfflineForOnlineToken()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await LookUp(OFFLINE);
         }
@@ -235,7 +235,7 @@ public class TokenLookupServiceTest
     [Test]
     public async Task HandleTokenLookup_OfflineDevices_CostNoBudget()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await LookUpDevice();
         }
