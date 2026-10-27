@@ -27,6 +27,7 @@ import { TransferDirection } from "./TransferTracker";
 /** Largest text the server forwards, in UTF-8 bytes. */
 export const MAX_TEXT_BYTES = 1024 * 1024;
 
+// Mirror the server's text bucket, so a text the client lets through never comes back rate-limited.
 const TEXT_BURST = 5;
 const TEXT_REFILL_MS = 6000;
 
@@ -471,7 +472,8 @@ export class MessagingService {
         this.setTextStatus(id, status === "delivered" ? "delivered" : "failed");
 
         if (status === "rate-limited" && retryAfterMs !== null) {
-            this.textTokens = 0;
+            this.textTokens = 1 - retryAfterMs / TEXT_REFILL_MS;
+            this.textRefilledAt = Date.now();
             this.lockFor("texts", retryAfterMs);
         } else if (status === "unknown" && retryAfterMs !== null) {
             this.lockFor("tokens", retryAfterMs);
@@ -598,18 +600,13 @@ export class MessagingService {
 
     private takeTextToken(): boolean {
         const now = Date.now();
-        const refills = Math.floor(
-            (now - this.textRefilledAt) / TEXT_REFILL_MS
+        this.textTokens = Math.min(
+            TEXT_BURST,
+            this.textTokens + (now - this.textRefilledAt) / TEXT_REFILL_MS
         );
-        if (refills > 0) {
-            this.textTokens = Math.min(TEXT_BURST, this.textTokens + refills);
-            this.textRefilledAt =
-                this.textTokens === TEXT_BURST
-                    ? now
-                    : this.textRefilledAt + refills * TEXT_REFILL_MS;
-        }
+        this.textRefilledAt = now;
         if (this.textTokens < 1) {
-            this.lockFor("texts", TEXT_REFILL_MS - (now - this.textRefilledAt));
+            this.lockFor("texts", (1 - this.textTokens) * TEXT_REFILL_MS);
             return false;
         }
         this.textTokens--;
