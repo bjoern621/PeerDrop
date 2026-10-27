@@ -22,9 +22,7 @@ test("a token that another device holds stays with it", async ({
 
     await bob.requestToken(token);
 
-    const taken = bob.page.getByText(
-        `${token} is taken right now. Reload the page later to get it.`
-    );
+    const taken = bob.page.getByText(`Token ${token} is taken. Reload later.`);
     await expect(taken).toBeVisible();
     expect(await bob.currentToken()).not.toBe(token);
     expect(await alice.currentToken()).toBe(token);

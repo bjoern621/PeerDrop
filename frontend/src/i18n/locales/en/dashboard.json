@@ -5,7 +5,7 @@
         "change": "Change token",
         "newToken": "New token",
         "pickCharacters": "Pick {{length}} characters from A to Z and 0 to 9.",
-        "inUse": "{{token}} is taken right now. Reload the page later to get it.",
+        "inUse": "Token {{token}} is taken. Reload later.",
         "copy": "Copy token",
         "copied": "Token copied",
         "copyLink": "Copy token as link",
