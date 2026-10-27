@@ -68,6 +68,11 @@ export class Peer {
         return this.page.getByRole("searchbox", { name: "Recipient's token" });
     }
 
+    /** The slots of the recipient input, colored by whether the recipient is online. */
+    public recipientCheck() {
+        return this.page.locator("[class*=_slots-container_]");
+    }
+
     public async connectTo(other: Peer) {
         await this.recipientInput().fill(other.token.toLowerCase());
         await expect(this.hint()).toHaveText(

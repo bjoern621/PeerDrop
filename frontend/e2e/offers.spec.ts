@@ -60,6 +60,20 @@ test("a withdrawn offer disappears at the receiver", async ({ alice, bob }) => {
     await expect(bob.row("notes.txt")).toHaveCount(0);
 });
 
+test("an offer to a receiver that leaves is not delivered", async ({
+    alice,
+    openPeer,
+}) => {
+    const bob = await openPeer();
+    await alice.connectTo(bob);
+    await alice.sendFiles({ name: "notes.txt", content: "hello bob" });
+    await expect(bob.row("notes.txt")).toBeVisible();
+
+    await bob.close();
+
+    await expect(alice.row("notes.txt")).toContainText("Not delivered");
+});
+
 test("after one accept, later files arrive without asking", async ({
     alice,
     bob,

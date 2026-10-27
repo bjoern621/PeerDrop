@@ -71,21 +71,20 @@ test("a pasted token link fills in the recipient", async ({
     );
 });
 
-test("a text to a peer that left is not delivered", async ({
-    alice,
-    openPeer,
-}) => {
-    // Each text to an unknown token counts towards the miss budget that locks the whole machine.
-    test.skip(
-        test.info().project.name !== "chromium" ||
-            test.info().repeatEachIndex > 0,
-        "runs once per suite"
-    );
+test("a peer that leaves shows as offline", async ({ alice, openPeer }) => {
     const bob = await openPeer();
+    const token = bob.token;
     await alice.connectTo(bob);
+    await expect(alice.recipientCheck()).toHaveClass(/_online_/);
+
     await bob.close();
 
-    await alice.sendText("anyone there?");
-
-    await expect(alice.row("anyone there?")).toContainText("Not delivered");
+    await expect(alice.hint()).toHaveText(
+        `${token} is offline. Please check the token.`
+    );
+    await expect(alice.recipientCheck()).toHaveClass(/_offline_/);
+    await expect(alice.textField()).toBeDisabled();
+    await expect(
+        alice.page.getByRole("button", { name: "Share file" })
+    ).toBeDisabled();
 });

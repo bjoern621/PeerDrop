@@ -108,8 +108,8 @@ Unter NixOS liefert `nix develop` die Browser passend zur Version von `@playwrig
 Wer die Version in `frontend/package.json` hebt, hebt sie im `flake.lock` mit.
 Auf anderen Systemen lädt `npx playwright install` die Browser.
 
-Der Server sperrt eine IP-Adresse nach wenigen Anfragen an unbekannte Tokens.
-Ein Test, der einen gegangenen oder falschen Token anspricht, läuft darum einmal pro Durchlauf und nur in Chromium.
+Der Server sperrt eine IP-Adresse nach wenigen Anfragen an unbekannte Tokens, für alle Tests auf diesem Rechner.
+Ein Test fragt darum nie einen Token ab, der offline ist.
 
 ## Übersetzungen
 
