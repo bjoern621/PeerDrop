@@ -1,13 +1,13 @@
 using backend.ConnectionComponent.Dataaccess.Api;
 using backend.SignalingComponent.Common.Api.DTOs;
 using backend.SignalingComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.SignalingComponent.Logic.Impl;
 
-public class SignalingService(IWebSocketHandler webSocketHandler, IPairRepository pairRepository, ILogger<SignalingService> logger) : ISignalingService
+public class SignalingService(IClientRegistry clientRegistry, IPairRepository pairRepository, ILogger<SignalingService> logger) : ISignalingService
 {
-    private readonly IWebSocketHandler _webSocketHandler = webSocketHandler;
+    private readonly IClientRegistry _clientRegistry = clientRegistry;
 
     public async Task HandleIceCandidateMessage(string clientId, IceCandidateMessage message)
     {
@@ -24,7 +24,7 @@ public class SignalingService(IWebSocketHandler webSocketHandler, IPairRepositor
             Lane = message.Lane
         };
 
-        await _webSocketHandler.SendMessage(remoteToken, response);
+        await _clientRegistry.SendMessage(remoteToken, response);
         logger.LogTrace($"to {remoteToken}: Remote ICE Candidate");
     }
 
@@ -43,7 +43,7 @@ public class SignalingService(IWebSocketHandler webSocketHandler, IPairRepositor
             Lane = message.Lane
         };
 
-        await _webSocketHandler.SendMessage(remoteToken, response);
+        await _clientRegistry.SendMessage(remoteToken, response);
         logger.LogTrace($"to {remoteToken}: Remote SDP");
     }
 

@@ -1,5 +1,5 @@
 using backend.LanComponent.Common.Api.DTOs;
-using backend.WebSocketComponent.Common.Api.DTOs;
+using backend.TokenComponent.Common.Api.DTOs;
 
 namespace backend.LanComponent.Logic.Api;
 

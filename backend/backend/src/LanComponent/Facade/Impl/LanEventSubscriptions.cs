@@ -1,23 +1,23 @@
 using backend.LanComponent.Common.Api.DTOs;
 using backend.LanComponent.Facade.Api;
 using backend.LanComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.LanComponent.Facade.Impl;
 
 public class LanEventSubscriptions(
-    IWebSocketHandler _webSocketHandler,
+    IClientRegistry _clientRegistry,
     ILanDiscoveryService _lanDiscoveryService) : ILanEventSubscriptions
 {
     public void SubscribeToEvents()
     {
-        _webSocketHandler.ClientConnected += _lanDiscoveryService.HandleClientConnected;
-        _webSocketHandler.ClientDisconnected += _lanDiscoveryService.HandleClientDisconnected;
+        _clientRegistry.ClientConnected += _lanDiscoveryService.HandleClientConnected;
+        _clientRegistry.ClientDisconnected += _lanDiscoveryService.HandleClientDisconnected;
 
-        _webSocketHandler.SubscribeToMessageType<RequestLanPeersMessage>(
+        _clientRegistry.SubscribeToMessageType<RequestLanPeersMessage>(
             RequestLanPeersMessage.TypeString, _lanDiscoveryService.HandleLanPeersRequest);
 
-        _webSocketHandler.SubscribeToMessageType<LanDiscoveryStateMessage>(
+        _clientRegistry.SubscribeToMessageType<LanDiscoveryStateMessage>(
             LanDiscoveryStateMessage.TypeString, _lanDiscoveryService.HandleLanDiscoveryState);
     }
 }

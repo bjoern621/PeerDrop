@@ -3,12 +3,12 @@ using backend.ConnectionComponent.Dataaccess.Api;
 using backend.ConnectionComponent.Logic.Api;
 using backend.SignalingComponent.Logic.Api;
 using backend.TelemetryComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.ConnectionComponent.Logic.Impl;
 
 public class ConnectionInitiationService(
-    IWebSocketHandler _webSocketHandler,
+    IClientRegistry _clientRegistry,
     IPairRepository _pairRepository,
     IIceServerProvider _iceServerProvider,
     IUsageMetrics _usageMetrics,
@@ -22,7 +22,7 @@ public class ConnectionInitiationService(
             return false;
         }
 
-        var ownDevice = _webSocketHandler.AreSignedInWithSameAccount(clientA, clientB);
+        var ownDevice = _clientRegistry.AreSignedInWithSameAccount(clientA, clientB);
 
         var messageToA = new EstablishConnectionMessage
         {
@@ -30,7 +30,7 @@ public class ConnectionInitiationService(
             IceServers = _iceServerProvider.CreateIceServers(clientA),
             OwnDevice = ownDevice,
         };
-        await _webSocketHandler.SendMessage(clientA, messageToA);
+        await _clientRegistry.SendMessage(clientA, messageToA);
 
         var messageToB = new EstablishConnectionMessage
         {
@@ -38,7 +38,7 @@ public class ConnectionInitiationService(
             IceServers = _iceServerProvider.CreateIceServers(clientB),
             OwnDevice = ownDevice,
         };
-        await _webSocketHandler.SendMessage(clientB, messageToB);
+        await _clientRegistry.SendMessage(clientB, messageToB);
 
         _usageMetrics.ConnectionInitiated(path);
         _logger.LogDebug($"to {clientA} and {clientB}: Initiating connection.");

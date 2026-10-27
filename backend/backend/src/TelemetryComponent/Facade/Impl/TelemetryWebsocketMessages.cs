@@ -1,21 +1,21 @@
 using backend.TelemetryComponent.Common.Api.DTOs;
 using backend.TelemetryComponent.Facade.Api;
 using backend.TelemetryComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.TelemetryComponent.Facade.Impl;
 
-public class TelemetryWebsocketMessages(IWebSocketHandler _webSocketHandler, IUsageMetrics _usageMetrics) : ITelemetryWebsocketMessages
+public class TelemetryWebsocketMessages(IClientRegistry _clientRegistry, IUsageMetrics _usageMetrics) : ITelemetryWebsocketMessages
 {
     public void SubscribeToMessageHandlers()
     {
-        _webSocketHandler.SubscribeToMessageType<PeerConnectionReportMessage>(PeerConnectionReportMessage.TypeString, (_, report) =>
+        _clientRegistry.SubscribeToMessageType<PeerConnectionReportMessage>(PeerConnectionReportMessage.TypeString, (_, report) =>
         {
             _usageMetrics.RecordPeerConnection(report);
             return Task.CompletedTask;
         });
 
-        _webSocketHandler.SubscribeToMessageType<TransferReportMessage>(TransferReportMessage.TypeString, (_, report) =>
+        _clientRegistry.SubscribeToMessageType<TransferReportMessage>(TransferReportMessage.TypeString, (_, report) =>
         {
             _usageMetrics.RecordTransfer(report);
             return Task.CompletedTask;

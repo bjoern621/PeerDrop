@@ -7,7 +7,7 @@ public class WebSocketRoutes : IWebSocketRoutes
 {
     public void RegisterRoutes(WebApplication app)
     {
-        app.MapGet("/connect", async (IWebSocketHandler handler, HttpContext context, string? requestedToken) =>
-            await handler.HandleConnect(context, requestedToken));
+        app.MapGet("/connect", async (IWebSocketTransport transport, HttpContext context) =>
+            await transport.HandleConnect(context));
     }
 }

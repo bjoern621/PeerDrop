@@ -4,7 +4,7 @@ using backend.MessagingComponent.Common.Api.Validators;
 using backend.MessagingComponent.Logic.Impl;
 using backend.TelemetryComponent.Logic.Api;
 using backend.tests.TestUtils;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
@@ -19,7 +19,7 @@ public class TextServiceTest
     private const string SENDER_KEY = "BHN0dWJrZXk=";
     private const string IV = "AAECAwQFBgcICQoL";
 
-    private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IClientRegistry> _mockHandler;
     private PublicKeyRepository _publicKeys;
     private SentMessages _sent;
     private HashSet<string> _online;
@@ -29,7 +29,7 @@ public class TextServiceTest
     [SetUp]
     public void Setup()
     {
-        _mockHandler = new Mock<IWebSocketHandler>();
+        _mockHandler = new Mock<IClientRegistry>();
         _online = [SENDER, RECEIVER];
         _mockHandler.Setup(h => h.RemoteTokenExists(It.IsAny<string>())).Returns<string>(t => _online.Contains(t));
         _publicKeys = new PublicKeyRepository();

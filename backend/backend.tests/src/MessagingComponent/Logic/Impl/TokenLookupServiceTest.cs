@@ -6,7 +6,7 @@ using backend.MessagingComponent.Dataaccess.Impl;
 using backend.MessagingComponent.Logic.Impl;
 using backend.TelemetryComponent.Logic.Api;
 using backend.tests.TestUtils;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -23,7 +23,7 @@ public class TokenLookupServiceTest
     private const int USER_ID = 7;
     private static readonly Guid DEVICE_UUID = Guid.Parse("8f14e45f-ceea-467f-a0e6-1f2c4b2d8a10");
 
-    private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IClientRegistry> _mockHandler;
     private PublicKeyRepository _publicKeys;
     private Mock<IDeviceService> _mockDeviceService;
     private Mock<IDeviceRepository> _mockDeviceRepository;
@@ -33,7 +33,7 @@ public class TokenLookupServiceTest
     [SetUp]
     public void Setup()
     {
-        _mockHandler = new Mock<IWebSocketHandler>();
+        _mockHandler = new Mock<IClientRegistry>();
         _mockHandler.Setup(h => h.RemoteTokenExists(It.IsAny<string>())).Returns<string>(t => t is REQUESTER or TARGET);
         _publicKeys = new PublicKeyRepository();
         _publicKeys.Set(TARGET, TARGET_KEY);

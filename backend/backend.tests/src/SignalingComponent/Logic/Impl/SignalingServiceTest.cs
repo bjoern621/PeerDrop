@@ -2,7 +2,7 @@
 using backend.ConnectionComponent.Dataaccess.Api;
 using backend.SignalingComponent.Common.Api.DTOs;
 using backend.SignalingComponent.Logic.Impl;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using backend.SignalingComponent.Logic.Api;
@@ -12,14 +12,14 @@ namespace backend.tests.SignalingComponent.Logic.Impl;
 [Category("UnitTest")]
 public class SignalingServiceTest
 {
-    private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IClientRegistry> _mockHandler;
     private Mock<IPairRepository> _mockPairRepository;
     private ISignalingService _service;
 
     [SetUp]
     public void Setup()
     {
-        _mockHandler = new Mock<IWebSocketHandler>();
+        _mockHandler = new Mock<IClientRegistry>();
         _mockPairRepository = new Mock<IPairRepository>();
         _mockPairRepository.Setup(r => r.AreConnected("ABCDE", "BCDEF")).Returns(true);
         _service = new SignalingService(_mockHandler.Object, _mockPairRepository.Object, NullLogger<SignalingService>.Instance);

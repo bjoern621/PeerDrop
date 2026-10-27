@@ -1,4 +1,4 @@
-namespace backend.WebSocketComponent.Common.Api;
+namespace backend.TokenComponent.Common.Api;
 
 /// <summary>
 /// Letters and length of a client token.

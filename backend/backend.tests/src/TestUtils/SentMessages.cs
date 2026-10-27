@@ -1,11 +1,11 @@
 using backend.WebSocketComponent.Common.Api.DTOs;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Moq;
 
 namespace backend.tests.TestUtils;
 
 /// <summary>
-/// Records the messages a mocked <see cref="IWebSocketHandler"/> sends, for the message types passed to <see cref="Capture{T}"/>.
+/// Records the messages a mocked <see cref="IClientRegistry"/> sends, for the message types passed to <see cref="Capture{T}"/>.
 /// </summary>
 public class SentMessages
 {
@@ -15,7 +15,7 @@ public class SentMessages
 
     private readonly List<(string Recipient, object Message)> _messages = [];
 
-    public SentMessages Capture<T>(Mock<IWebSocketHandler> handler) where T : ITypedMessage
+    public SentMessages Capture<T>(Mock<IClientRegistry> handler) where T : ITypedMessage
     {
         handler
             .Setup(h => h.SendMessage(It.IsAny<string>(), It.IsAny<T>()))

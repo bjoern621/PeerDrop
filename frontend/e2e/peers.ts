@@ -279,6 +279,15 @@ async function connectSilentPeer(
             "",
         ].join("\r\n")
     );
+    // The server hands out no token before the hello.
+    socket.write(
+        maskedTextFrame(
+            JSON.stringify({
+                type: "hello",
+                msg: { requestedToken: null, reclaimKey: null },
+            })
+        )
+    );
 
     const token = await new Promise<string>((resolve, reject) => {
         let received = "";
@@ -296,6 +305,18 @@ async function connectSilentPeer(
         socket.once("error", reject);
     });
     return { token: token.toUpperCase(), socket };
+}
+
+/** A client text frame of up to 125 bytes, masked as RFC 6455 requires from clients. */
+function maskedTextFrame(text: string): Buffer {
+    const payload = Buffer.from(text);
+    const mask = randomBytes(4);
+    const masked = payload.map((byte, index) => byte ^ mask[index % 4]);
+    return Buffer.concat([
+        Buffer.from([0x81, 0x80 | payload.length]),
+        mask,
+        masked,
+    ]);
 }
 
 export async function contentOf(download: Download): Promise<string> {

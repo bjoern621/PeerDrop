@@ -1,11 +1,11 @@
 using backend.LanComponent.Common.Api.DTOs;
 using backend.LanComponent.Logic.Api;
-using backend.WebSocketComponent.Common.Api.DTOs;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Common.Api.DTOs;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.LanComponent.Logic.Impl;
 
-public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<LanDiscoveryService> _logger) : ILanDiscoveryService
+public class LanDiscoveryService(IClientRegistry _clientRegistry, ILogger<LanDiscoveryService> _logger) : ILanDiscoveryService
 {
     // Maps client token to its network membership. Clients without a resolvable
     // IP address are not tracked and do not take part in discovery.
@@ -66,7 +66,7 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
             response = new LanPeersMessage { Peers = peers };
         }
 
-        await _webSocketHandler.SendMessage(clientToken, response);
+        await _clientRegistry.SendMessage(clientToken, response);
     }
 
     public async Task HandleLanDiscoveryState(string clientToken, LanDiscoveryStateMessage message)
@@ -85,7 +85,7 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
         // NotifyNetwork skips the client from here on, so its now empty list is
         // sent separately.
         if (!message.Enabled)
-            await _webSocketHandler.SendMessage(clientToken, new LanPeersMessage { Peers = [] });
+            await _clientRegistry.SendMessage(clientToken, new LanPeersMessage { Peers = [] });
 
         await NotifyNetwork(remoteIpAddress);
     }
@@ -129,7 +129,7 @@ public class LanDiscoveryService(IWebSocketHandler _webSocketHandler, ILogger<La
 
         foreach (var (recipientToken, message) in messages)
         {
-            await _webSocketHandler.SendMessage(recipientToken, message);
+            await _clientRegistry.SendMessage(recipientToken, message);
         }
     }
 

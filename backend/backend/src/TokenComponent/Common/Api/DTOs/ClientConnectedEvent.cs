@@ -1,4 +1,4 @@
-namespace backend.WebSocketComponent.Common.Api.DTOs;
+namespace backend.TokenComponent.Common.Api.DTOs;
 
 /// <summary>
 /// Payload raised when a client opens a WebSocket connection. Carries the

@@ -1,12 +1,12 @@
 using backend.MessagingComponent.Common.Api.DTOs;
 using backend.MessagingComponent.Facade.Api;
 using backend.MessagingComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.MessagingComponent.Facade.Impl;
 
 public class MessagingWebsocketMessages(
-    IWebSocketHandler _webSocketHandler,
+    IClientRegistry _clientRegistry,
     ITokenLookupService _tokenLookupService,
     ITextService _textService,
     ITransferOfferService _transferOfferService,
@@ -14,23 +14,23 @@ public class MessagingWebsocketMessages(
 {
     public void SubscribeToMessageHandlers()
     {
-        _webSocketHandler.SubscribeToMessageType<PublicKeyMessage>(PublicKeyMessage.TypeString, _tokenLookupService.HandlePublicKey);
+        _clientRegistry.SubscribeToMessageType<PublicKeyMessage>(PublicKeyMessage.TypeString, _tokenLookupService.HandlePublicKey);
 
-        _webSocketHandler.SubscribeToMessageType<TokenLookupMessage>(TokenLookupMessage.TypeString, _tokenLookupService.HandleTokenLookup);
+        _clientRegistry.SubscribeToMessageType<TokenLookupMessage>(TokenLookupMessage.TypeString, _tokenLookupService.HandleTokenLookup);
 
-        _webSocketHandler.SubscribeToMessageType<TextMessage>(TextMessage.TypeString, _textService.HandleText);
+        _clientRegistry.SubscribeToMessageType<TextMessage>(TextMessage.TypeString, _textService.HandleText);
 
-        _webSocketHandler.SubscribeToMessageType<TransferOfferMessage>(TransferOfferMessage.TypeString, _transferOfferService.HandleTransferOffer);
+        _clientRegistry.SubscribeToMessageType<TransferOfferMessage>(TransferOfferMessage.TypeString, _transferOfferService.HandleTransferOffer);
 
-        _webSocketHandler.SubscribeToMessageType<TransferOfferCancelMessage>(TransferOfferCancelMessage.TypeString, _transferOfferService.HandleTransferOfferCancel);
+        _clientRegistry.SubscribeToMessageType<TransferOfferCancelMessage>(TransferOfferCancelMessage.TypeString, _transferOfferService.HandleTransferOfferCancel);
 
-        _webSocketHandler.SubscribeToMessageType<TransferAnswerMessage>(TransferAnswerMessage.TypeString, _transferOfferService.HandleTransferAnswer);
+        _clientRegistry.SubscribeToMessageType<TransferAnswerMessage>(TransferAnswerMessage.TypeString, _transferOfferService.HandleTransferAnswer);
 
-        _webSocketHandler.ClientDisconnected += _transferOfferService.HandleClientDisconnected;
+        _clientRegistry.ClientDisconnected += _transferOfferService.HandleClientDisconnected;
 
-        _webSocketHandler.ClientDisconnected += _tokenLookupService.HandleClientDisconnected;
+        _clientRegistry.ClientDisconnected += _tokenLookupService.HandleClientDisconnected;
 
-        _webSocketHandler.ClientDisconnected += clientToken =>
+        _clientRegistry.ClientDisconnected += clientToken =>
         {
             _abuseGuard.ForgetToken(clientToken);
             return Task.CompletedTask;

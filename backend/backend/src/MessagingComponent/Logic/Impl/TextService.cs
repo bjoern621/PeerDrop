@@ -4,12 +4,12 @@ using backend.MessagingComponent.Dataaccess.Api;
 using backend.MessagingComponent.Logic.Api;
 using backend.MessagingComponent.Logic.Types;
 using backend.TelemetryComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.MessagingComponent.Logic.Impl;
 
 public class TextService(
-    IWebSocketHandler _webSocketHandler,
+    IClientRegistry _clientRegistry,
     IPublicKeyRepository _publicKeys,
     IAbuseGuard _abuseGuard,
     IUsageMetrics _usageMetrics,
@@ -29,7 +29,7 @@ public class TextService(
         var (status, retryAfter) = await DeliverText(clientToken, message.To.ToLowerInvariant(), message);
 
         _usageMetrics.TextHandled(status);
-        await _webSocketHandler.SendMessage(clientToken, new TextResultMessage
+        await _clientRegistry.SendMessage(clientToken, new TextResultMessage
         {
             Id = message.Id,
             Status = status,
@@ -43,7 +43,7 @@ public class TextService(
             return (TextResultMessage.STATUS_TOO_LARGE, null);
 
         // A locked requester learns nothing about the receiver, delivered or not.
-        var requesterIp = _webSocketHandler.GetRemoteIpAddressForClientToken(clientToken);
+        var requesterIp = _clientRegistry.GetRemoteIpAddressForClientToken(clientToken);
         var lockRemaining = _abuseGuard.GetUnknownTokenLock(clientToken, requesterIp);
         if (lockRemaining != null)
             return (TextResultMessage.STATUS_UNKNOWN, lockRemaining);
@@ -52,7 +52,7 @@ public class TextService(
         if (textWait != null)
             return (TextResultMessage.STATUS_RATE_LIMITED, textWait);
 
-        if (!_webSocketHandler.RemoteTokenExists(receiverToken))
+        if (!_clientRegistry.RemoteTokenExists(receiverToken))
             return (TextResultMessage.STATUS_UNKNOWN, _abuseGuard.RecordUnknownTokenMiss(clientToken, requesterIp));
 
         if (_abuseGuard.IsReceiverTextCapReached(receiverToken))
@@ -61,7 +61,7 @@ public class TextService(
             return (TextResultMessage.STATUS_UNDELIVERED, null);
         }
 
-        var forwarded = await _webSocketHandler.SendMessage(receiverToken, new IncomingTextMessage
+        var forwarded = await _clientRegistry.SendMessage(receiverToken, new IncomingTextMessage
         {
             From = clientToken,
             FromKey = _publicKeys.Get(clientToken),

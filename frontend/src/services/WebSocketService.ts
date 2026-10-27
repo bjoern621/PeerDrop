@@ -5,7 +5,7 @@ import { ITypedMessage } from "../types/ITypedMessage";
 import { ClientTokenMessage } from "../types/token/ClientTokenMessage";
 import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
 import { PingMessage } from "../types/server/PingMessage";
-import { PongMessage } from "../types/server/PongMessage";
+import { HelloMessage } from "../types/token/HelloMessage";
 import { getSettings } from "./SettingsStore";
 import {
     RECONNECT_DELAYS_MS,
@@ -53,6 +53,8 @@ export class WebSocketService {
         new Map();
 
     private localToken: ClientToken | undefined;
+    // Lets the next connection take localToken back from a connection that the server still counts as open.
+    private reclaimKey: string | null = null;
 
     private connection: ServerConnection = "connecting";
     private readonly connectionListeners = new Set<() => void>();
@@ -70,10 +72,6 @@ export class WebSocketService {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
 
         this.subscribeMessage(MessageType.PONG, () => this.clearPongTimer());
-        // The server pings before it hands this token to a connection that requests it.
-        this.subscribeMessage(MessageType.PING, () =>
-            this.sendMessage(new PongMessage())
-        );
         window.setInterval(() => this.checkServer(), SERVER_CHECK_INTERVAL_MS);
         // A device waking up or rejoining a network often holds a socket that died in the meantime.
         window.addEventListener("online", () => this.checkOrReconnect());
@@ -102,12 +100,19 @@ export class WebSocketService {
     }
 
     private connectToServer(requestedToken: ClientToken | null) {
-        const url = new URL(`${getRuntimeEnvVars().wsBackendUrl}/connect`);
-        if (requestedToken) {
-            url.searchParams.set("requestedToken", requestedToken);
-        }
-        const socket = new WebSocket(url);
+        const socket = new WebSocket(
+            `${getRuntimeEnvVars().wsBackendUrl}/connect`
+        );
         this.socket = socket;
+        // The server assigns no token before the hello, so it has to go out first.
+        const hello = new HelloMessage({
+            requestedToken,
+            reclaimKey:
+                requestedToken === this.localToken ? this.reclaimKey : null,
+        });
+        socket.addEventListener("open", () =>
+            socket.send(JSON.stringify(hello))
+        );
         // Attempts to reconnect leave the connection lost until one of them succeeds.
         if (this.connection !== "lost") {
             this.setConnection("connecting");
@@ -234,6 +239,7 @@ export class WebSocketService {
             message => {
                 this.log("Received client token:", message.msg.token);
                 this.localToken = normalizeClientToken(message.msg.token);
+                this.reclaimKey = message.msg.reclaimKey;
                 this.reconnectAttempt = 0;
                 this.setConnection("open");
                 unsubscribe();
