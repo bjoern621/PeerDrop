@@ -32,6 +32,11 @@
 
             # Required by IDEs and tools that locate the SDK via DOTNET_ROOT.
             DOTNET_ROOT = "${dotnet}/share/dotnet";
+
+            # Playwright's own browser downloads miss the libraries on NixOS.
+            # @playwright/test in frontend/package.json matches the version of this driver.
+            PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
+            PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
           };
         }
       );

@@ -88,6 +88,29 @@ Beim Erstellen der Datenbank wird das aktuelle Schema aus `<base_dir>/database/d
 
 Jetzt ist die Entwicklungsumgebung komplett eingerichtet.
 
+## End-to-End-Tests
+
+Die Playwright-Tests unter `frontend/e2e/` spielen die Abläufe des Dashboards mit zwei Peers durch, je ein eigener Browser-Kontext mit eigenem Token.
+Sie laufen gegen den Stack aus Docker Compose, den `task up` baut und startet.
+`PEERDROP_URL` richtet sie auf eine andere Adresse.
+
+```bash
+task up
+task e2e
+task e2e -- --project=chromium e2e/blocking.spec.ts
+```
+
+Jeder Test läuft in Chromium und Firefox.
+Die Oberfläche läuft dabei auf Englisch, und die Suche nach Geräten im Netzwerk bleibt aus, da sonst jeder Peer alle anderen Test-Peers desselben Rechners sähe.
+Ein Fehlschlag hinterlässt einen Trace unter `frontend/test-results/`, den `npx playwright show-trace` öffnet.
+
+Unter NixOS liefert `nix develop` die Browser passend zur Version von `@playwright/test`.
+Wer die Version in `frontend/package.json` hebt, hebt sie im `flake.lock` mit.
+Auf anderen Systemen lädt `npx playwright install` die Browser.
+
+Der Server sperrt eine IP-Adresse nach wenigen Anfragen an unbekannte Tokens.
+Ein Test, der einen gegangenen oder falschen Token anspricht, läuft darum einmal pro Durchlauf und nur in Chromium.
+
 ## Übersetzungen
 
 Die Oberfläche übersetzt ihre Texte mit [i18next](https://www.i18next.com/) und [react-i18next](https://react.i18next.com/).
