@@ -5,6 +5,8 @@ import { ITypedMessage } from "../types/ITypedMessage";
 import { ClientTokenMessage } from "../types/token/ClientTokenMessage";
 import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
 import { PingMessage } from "../types/server/PingMessage";
+import { PongMessage } from "../types/server/PongMessage";
+import { getSettings } from "./SettingsStore";
 import {
     RECONNECT_DELAYS_MS,
     SERVER_CHECK_INTERVAL_MS,
@@ -68,6 +70,10 @@ export class WebSocketService {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
 
         this.subscribeMessage(MessageType.PONG, () => this.clearPongTimer());
+        // The server pings before it hands this token to a connection that requests it.
+        this.subscribeMessage(MessageType.PING, () =>
+            this.sendMessage(new PongMessage())
+        );
         window.setInterval(() => this.checkServer(), SERVER_CHECK_INTERVAL_MS);
         // A device waking up or rejoining a network often holds a socket that died in the meantime.
         window.addEventListener("online", () => this.checkOrReconnect());
@@ -80,18 +86,27 @@ export class WebSocketService {
         this.openWebSocket();
     }
 
-    public openWebSocket(): void {
+    /**
+     * Connects and asks the server for `requestedToken`. By default it asks for
+     * the token held last, so a reconnect keeps it, or else for the token that
+     * the settings request. The server may hand out another one.
+     */
+    public openWebSocket(
+        requestedToken = this.localToken ?? getSettings().requestedToken
+    ): void {
         assert(!this.socket, "WebSocket is already open.");
         window.clearTimeout(this.reconnectTimer);
         this.reconnectTimer = undefined;
-        this.connectToServer();
+        this.connectToServer(requestedToken);
         this.waitForLocalClientToken();
     }
 
-    private connectToServer() {
-        const socket = new WebSocket(
-            `${getRuntimeEnvVars().wsBackendUrl}/connect`
-        );
+    private connectToServer(requestedToken: ClientToken | null) {
+        const url = new URL(`${getRuntimeEnvVars().wsBackendUrl}/connect`);
+        if (requestedToken) {
+            url.searchParams.set("requestedToken", requestedToken);
+        }
+        const socket = new WebSocket(url);
         this.socket = socket;
         // Attempts to reconnect leave the connection lost until one of them succeeds.
         if (this.connection !== "lost") {

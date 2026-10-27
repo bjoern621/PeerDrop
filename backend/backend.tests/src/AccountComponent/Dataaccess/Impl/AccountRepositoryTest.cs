@@ -138,40 +138,4 @@ public class AccountRepositoryTest
         var nonExistentAccount2 = await _accountRepository.GetByIdAsync(2);
         Assert.That(nonExistentAccount2, Is.Null);
     }
-
-    [Test]
-    public async Task GetChosenClientTokenAsync_Returns_Null_Without_Chosen_Token()
-    {
-        var id = await _accountRepository.SaveAsync(new Account("testuser", "testpassword"));
-
-        Assert.That(await _accountRepository.GetChosenClientTokenAsync(id), Is.Null);
-    }
-
-    [Test]
-    public async Task SetChosenClientTokenAsync_Stores_Token()
-    {
-        var id = await _accountRepository.SaveAsync(new Account("testuser", "testpassword"));
-
-        var updated = await _accountRepository.SetChosenClientTokenAsync(id, "c0de9");
-
-        Assert.Multiple(async () =>
-        {
-            Assert.That(updated, Is.EqualTo(1));
-            Assert.That(await _accountRepository.GetChosenClientTokenAsync(id), Is.EqualTo("c0de9"));
-        });
-    }
-
-    [Test]
-    public async Task SetChosenClientTokenAsync_Returns_Zero_For_Nonexistent_Id()
-    {
-        Assert.That(await _accountRepository.SetChosenClientTokenAsync(1, "kuras"), Is.EqualTo(0));
-    }
-
-    [Test]
-    public async Task SetChosenClientTokenAsync_Outside_Letters_And_Digits_Throws_PostgresException()
-    {
-        var id = await _accountRepository.SaveAsync(new Account("testuser", "testpassword"));
-
-        Assert.ThrowsAsync<PostgresException>(() => _accountRepository.SetChosenClientTokenAsync(id, "kur-s"));
-    }
 }

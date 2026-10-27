@@ -1,6 +1,7 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 using backend.WebSocketComponent.Logic.Impl;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -11,6 +12,8 @@ namespace backend.tests.WebSocketComponent.Logic.Impl;
 [Category("UnitTest")]
 public class WebSocketHandlerTest
 {
+    private const string GeneratedTokenPattern = "^[bdfghjklmnprstvz][aiou][bdfghjklmnprstvz][aiou][bdfghjklmnprstvz]$";
+
     /// <summary>
     /// Hands out the queued frames one per receive, cut to the receive buffer, then closes.
     /// Keeps every message that the server sends.
@@ -97,32 +100,47 @@ public class WebSocketHandlerTest
     }
 
     /// <summary>
-    /// Stays open until <see cref="Close"/> and keeps the first message that the server sends.
+    /// Stays open until <see cref="Close"/> or an abort and keeps the first message that the server sends.
+    /// Answers a ping from the server with a pong if <paramref name="answersPings"/> holds.
     /// </summary>
-    private class HeldOpenWebSocket : WebSocket
+    private class HeldOpenWebSocket(bool answersPings = false) : WebSocket
     {
-        private readonly TaskCompletionSource _closed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private const string PongJson = """{"type":"pong","msg":{}}""";
+        // Null stands for the close frame.
+        private readonly Channel<string?> _incoming = Channel.CreateUnbounded<string?>();
+        private bool _closed;
         public readonly TaskCompletionSource<string> FirstSent = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public void Close() => _closed.TrySetResult();
+        public void Close() => _incoming.Writer.TryWrite(null);
 
         public override async Task<WebSocketReceiveResult> ReceiveAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
         {
-            await _closed.Task;
-            return new WebSocketReceiveResult(0, WebSocketMessageType.Close, true);
+            var text = await _incoming.Reader.ReadAsync(cancellationToken);
+            if (text == null)
+            {
+                _closed = true;
+                return new WebSocketReceiveResult(0, WebSocketMessageType.Close, true);
+            }
+
+            var bytes = Encoding.UTF8.GetBytes(text);
+            bytes.CopyTo(buffer.Array!, buffer.Offset);
+            return new WebSocketReceiveResult(bytes.Length, WebSocketMessageType.Text, true);
         }
 
         public override Task SendAsync(ArraySegment<byte> buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken)
         {
-            FirstSent.TrySetResult(Encoding.UTF8.GetString(buffer));
+            var text = Encoding.UTF8.GetString(buffer);
+            FirstSent.TrySetResult(text);
+            if (answersPings && text.Contains("\"type\":\"ping\""))
+                _incoming.Writer.TryWrite(PongJson);
             return Task.CompletedTask;
         }
 
         public override WebSocketCloseStatus? CloseStatus => null;
         public override string? CloseStatusDescription => null;
-        public override WebSocketState State => _closed.Task.IsCompleted ? WebSocketState.Closed : WebSocketState.Open;
+        public override WebSocketState State => _closed ? WebSocketState.Closed : WebSocketState.Open;
         public override string? SubProtocol => null;
-        public override void Abort() { }
+        public override void Abort() => Close();
         public override Task CloseAsync(WebSocketCloseStatus closeStatus, string? statusDescription, CancellationToken cancellationToken) => Task.CompletedTask;
         public override Task CloseOutputAsync(WebSocketCloseStatus closeStatus, string? statusDescription, CancellationToken cancellationToken) => Task.CompletedTask;
         public override void Dispose() { }
@@ -138,12 +156,12 @@ public class WebSocketHandlerTest
     /// Opens a connection that stays open until the socket closes. Returns the client token that the server sent.
     /// </summary>
     private static async Task<(Task Serving, string ClientToken)> Connect(
-        WebSocketHandler handler, HeldOpenWebSocket socket, string? chosenToken)
+        WebSocketHandler handler, HeldOpenWebSocket socket, string? requestedToken)
     {
         var context = new DefaultHttpContext();
         context.Features.Set<IHttpWebSocketFeature>(new AcceptingWebSocketFeature(socket));
 
-        var serving = handler.HandleConnect(context, chosenToken);
+        var serving = handler.HandleConnect(context, requestedToken);
         using var message = JsonDocument.Parse(await socket.FirstSent.Task);
         var clientToken = message.RootElement.GetProperty("msg").GetProperty("token").GetString()!;
 
@@ -151,7 +169,7 @@ public class WebSocketHandlerTest
     }
 
     [Test]
-    public async Task HandleConnect_FreeChosenToken_AssignsChosenToken()
+    public async Task HandleConnect_FreeRequestedToken_AssignsRequestedToken()
     {
         var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
         var socket = new HeldOpenWebSocket();
@@ -164,10 +182,10 @@ public class WebSocketHandlerTest
     }
 
     [Test]
-    public async Task HandleConnect_ChosenTokenHeldByAnotherConnection_AssignsGeneratedToken()
+    public async Task HandleConnect_RequestedTokenHeldByAnsweringConnection_AssignsGeneratedToken()
     {
         var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
-        var first = new HeldOpenWebSocket();
+        var first = new HeldOpenWebSocket(answersPings: true);
         var second = new HeldOpenWebSocket();
 
         var (firstServing, firstToken) = await Connect(handler, first, "aaaaa");
@@ -179,12 +197,27 @@ public class WebSocketHandlerTest
         Assert.Multiple(() =>
         {
             Assert.That(firstToken, Is.EqualTo("aaaaa"));
-            Assert.That(secondToken, Does.Match("^[bdfghjklmnprstvz][aiou][bdfghjklmnprstvz][aiou][bdfghjklmnprstvz]$"));
+            Assert.That(secondToken, Does.Match(GeneratedTokenPattern));
         });
     }
 
     [Test]
-    public async Task HandleConnect_ChosenTokenReleased_AssignsChosenTokenAgain()
+    public async Task HandleConnect_RequestedTokenHeldBySilentConnection_TakesTokenOver()
+    {
+        var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
+        var first = new HeldOpenWebSocket();
+        var second = new HeldOpenWebSocket();
+
+        var (firstServing, _) = await Connect(handler, first, "aaaaa");
+        var (secondServing, secondToken) = await Connect(handler, second, "aaaaa");
+        second.Close();
+        await Task.WhenAll(firstServing, secondServing);
+
+        Assert.That(secondToken, Is.EqualTo("aaaaa"));
+    }
+
+    [Test]
+    public async Task HandleConnect_RequestedTokenReleased_AssignsRequestedTokenAgain()
     {
         var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
         var first = new HeldOpenWebSocket();
@@ -198,6 +231,34 @@ public class WebSocketHandlerTest
         await secondServing;
 
         Assert.That(secondToken, Is.EqualTo("aaaaa"));
+    }
+
+    [Test]
+    public async Task HandleConnect_UppercaseRequestedToken_AssignsLowercase()
+    {
+        var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
+        var socket = new HeldOpenWebSocket();
+
+        var (serving, clientToken) = await Connect(handler, socket, "AB12C");
+        socket.Close();
+        await serving;
+
+        Assert.That(clientToken, Is.EqualTo("ab12c"));
+    }
+
+    [TestCase("abcd")]
+    [TestCase("abcdef")]
+    [TestCase("ab-cd")]
+    public async Task HandleConnect_RequestedTokenOutsideFormat_AssignsGeneratedToken(string requestedToken)
+    {
+        var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
+        var socket = new HeldOpenWebSocket();
+
+        var (serving, clientToken) = await Connect(handler, socket, requestedToken);
+        socket.Close();
+        await serving;
+
+        Assert.That(clientToken, Does.Match(GeneratedTokenPattern));
     }
 
     [Test]

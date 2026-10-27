@@ -65,7 +65,7 @@ test("a lost connection locks sending and leaves the recipient unknown", async (
     ).toBeDisabled();
 });
 
-test("a dropped connection comes back under a new token", async ({
+test("a dropped connection comes back under the same token", async ({
     openPeer,
 }) => {
     const relay = new SocketRelay();
@@ -77,15 +77,52 @@ test("a dropped connection comes back under a new token", async ({
 
     await expect(alice.lostConnectionToast()).toBeVisible();
     await expect(alice.lostConnectionToast()).toBeHidden();
-    const token = await alice.currentToken();
-    expect(token).not.toBe(alice.token);
+    expect(await alice.currentToken()).toBe(alice.token);
     await expect(
-        alice.page.getByText(
-            `Connected to the server again. Your token changed to ${token}.`
-        )
+        alice.page.getByText("Connected to the server again.", { exact: true })
     ).toBeVisible();
     await expect(alice.hint()).toHaveText(
         `Write a text to ${bob.token} or share files and folders.`
     );
     await expect(alice.textField()).toBeEnabled();
+});
+
+test("a half-open connection hands its token to the reconnect", async ({
+    openPeer,
+}) => {
+    const relay = new SocketRelay();
+    const bob = await openPeer(relay);
+    const alice = await openPeer();
+    await alice.connectTo(bob);
+
+    relay.stall();
+    // Coming back online makes the page check the connection.
+    await bob.page.evaluate(() => window.dispatchEvent(new Event("online")));
+
+    await expect(bob.lostConnectionToast()).toBeVisible();
+    await expect(bob.lostConnectionToast()).toBeHidden();
+    expect(await bob.currentToken()).toBe(bob.token);
+    await expect(alice.hint()).toHaveText(
+        `Write a text to ${bob.token} or share files and folders.`
+    );
+});
+
+test("a recipient that comes back shows as online again", async ({
+    openPeer,
+}) => {
+    const relay = new SocketRelay();
+    const bob = await openPeer(relay);
+    const alice = await openPeer();
+    await alice.connectTo(bob);
+
+    await relay.cut();
+    await expect(alice.recipientCheck()).toHaveClass(/_offline_/);
+
+    relay.reopen();
+    await bob.page.evaluate(() => window.dispatchEvent(new Event("online")));
+
+    await expect(alice.recipientCheck()).toHaveClass(/_online_/);
+    await expect(alice.hint()).toHaveText(
+        `Write a text to ${bob.token} or share files and folders.`
+    );
 });

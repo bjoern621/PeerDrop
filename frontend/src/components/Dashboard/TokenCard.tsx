@@ -14,9 +14,11 @@ import { useOwnToken } from "../../hooks/useOwnToken";
 import { useServerConnection } from "../../hooks/useServerConnection";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import { useInlineEdit } from "../../hooks/useInlineEdit";
-import { useAuth } from "../../context/AuthContext";
+import { useWebSocketMessage } from "../../hooks/useWebSocketMessage";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
-import { AuthService } from "../../services/AuthService";
+import { updateSettings } from "../../services/SettingsStore";
+import { MessageType } from "../../types/MessageType";
+import { ClientTokenMessage } from "../../types/token/ClientTokenMessage";
 import {
     displayToken,
     normalizeClientToken,
@@ -33,30 +35,31 @@ export default function TokenCard() {
     const { t } = useTranslation("dashboard");
     const token = useOwnToken();
     const lost = useServerConnection() === "lost";
-    const { isLoggedIn } = useAuth();
     const resetWebsocket = useResetWebsocket();
+    const [pendingToken, setPendingToken] = useState<string | null>(null);
     const [inUseToken, setInUseToken] = useState<string | null>(null);
 
-    const chooseToken = async (chosen: string) => {
-        if (chosen.length !== CLIENT_TOKEN_LENGTH || chosen === token) {
+    const requestToken = (requested: string) => {
+        if (requested.length !== CLIENT_TOKEN_LENGTH || requested === token) {
             return;
         }
-
-        const result = await AuthService.setChosenClientToken(chosen);
-        if (!result) {
-            return;
-        }
-
-        if (result.inUse) {
-            setInUseToken(result.token);
-            return;
-        }
-
-        // The server assigns the chosen token on the next connect
-        resetWebsocket();
+        updateSettings({ requestedToken: requested });
+        setPendingToken(requested);
+        resetWebsocket(requested);
     };
 
-    const tokenEdit = useInlineEdit(draft => void chooseToken(draft));
+    useWebSocketMessage<ClientTokenMessage>(
+        MessageType.CLIENT_TOKEN,
+        message => {
+            if (normalizeClientToken(message.msg.token) !== pendingToken) {
+                setInUseToken(pendingToken);
+            }
+            setPendingToken(null);
+        },
+        pendingToken !== null
+    );
+
+    const tokenEdit = useInlineEdit(requestToken);
 
     const startEditing = () => {
         setInUseToken(null);
@@ -69,15 +72,13 @@ export default function TokenCard() {
                 <CardHeading id="own-token" icon={ProfileIcon} tone="secondary">
                     {t("token.title")}
                 </CardHeading>
-                {isLoggedIn && (
-                    <IconButton
-                        label={t("token.change")}
-                        size="m"
-                        onClick={startEditing}
-                    >
-                        <EditIcon aria-hidden />
-                    </IconButton>
-                )}
+                <IconButton
+                    label={t("token.change")}
+                    size="m"
+                    onClick={startEditing}
+                >
+                    <EditIcon aria-hidden />
+                </IconButton>
             </div>
             {tokenEdit.editing ? (
                 <input

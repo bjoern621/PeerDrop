@@ -3,7 +3,7 @@ namespace backend.WebSocketComponent.Common.Api;
 /// <summary>
 /// Letters and length of a client token.
 /// A generated token follows the proquint pattern con-vo-con-vo-con.
-/// A chosen token takes any of the letters a-z and digits 0-9.
+/// A requested token takes any of the letters a-z and digits 0-9.
 /// </summary>
 public static class ClientTokenFormat
 {
@@ -14,7 +14,7 @@ public static class ClientTokenFormat
     /// <summary>
     /// Returns true if the token has <see cref="Length"/> characters from lowercase a-z and 0-9, false otherwise.
     /// </summary>
-    public static bool IsValidChosenToken(string token)
+    public static bool IsValidRequestedToken(string token)
     {
         return token.Length == Length && token.All(c => char.IsAsciiLetterLower(c) || char.IsAsciiDigit(c));
     }

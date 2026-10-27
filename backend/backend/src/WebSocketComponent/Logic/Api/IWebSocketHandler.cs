@@ -25,9 +25,12 @@ public interface IWebSocketHandler
     public Task<bool> SendMessage(string clientToken, ITypedMessage message);
     /// <summary>
     /// Accepts the WebSocket and serves it until it closes.
-    /// The connection gets <paramref name="chosenToken"/> as its client token if no other connection holds it, a random token otherwise.
+    /// The connection gets <paramref name="requestedToken"/> as its client token if no other connection holds it, a random token otherwise.
+    /// A holder that answers no ping within a few seconds gets closed and hands the token over.
+    /// A requested token outside <see cref="Common.Api.ClientTokenFormat"/> counts as no request.
+    /// Uppercase letters count as lowercase.
     /// </summary>
-    public Task HandleConnect(HttpContext context, string? chosenToken);
+    public Task HandleConnect(HttpContext context, string? requestedToken);
     public void SubscribeToMessageType<T>(MessageType messageType, TypedMessageHandlerDelegate<T> handler);
     public List<string> GetClientTokensForUserId(int userId);
     /// <summary>

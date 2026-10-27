@@ -41,7 +41,7 @@ export class Peer {
     ): Promise<Peer> {
         const context = await browser.newContext();
         if (relay) {
-            await context.routeWebSocket(/\/connect$/, page =>
+            await context.routeWebSocket(/\/connect(\?|$)/, page =>
                 relay.attach(page)
             );
         }
@@ -72,6 +72,17 @@ export class Peer {
     /** The token that the page shows at the moment. {@link token} keeps the first one. */
     public currentToken() {
         return readOwnToken(this.page);
+    }
+
+    /** Asks the server for `token` through the token card. */
+    public async requestToken(token: string) {
+        await this.page.getByRole("button", { name: "Change token" }).click();
+        await this.page
+            .getByRole("textbox", { name: "New token" })
+            .fill(token.toLowerCase());
+        await this.page
+            .getByRole("textbox", { name: "New token" })
+            .press("Enter");
     }
 
     public lostConnectionToast() {
@@ -157,13 +168,14 @@ export class Peer {
 
 /**
  * Sits between a page and the backend on the WebSocket and forwards every message both ways.
- * It can drop or cut the connection or go silent, as a dead network does.
+ * It can drop, cut or stall the connection or go silent, as a dead network does.
  */
 export class SocketRelay {
     private page: WebSocketRoute | undefined;
     private server: WebSocketRoute | undefined;
     private silent = false;
     private refused = false;
+    private stalledPage: WebSocketRoute | undefined;
     public readonly fromServer: string[] = [];
 
     public attach(page: WebSocketRoute) {
@@ -172,13 +184,14 @@ export class SocketRelay {
             return;
         }
         const server = page.connectToServer();
+        const forwards = () => !this.silent && page !== this.stalledPage;
         page.onMessage(message => {
-            if (!this.silent) {
+            if (forwards()) {
                 server.send(message);
             }
         });
         server.onMessage(message => {
-            if (!this.silent) {
+            if (forwards()) {
                 this.fromServer.push(message.toString());
                 page.send(message);
             }
@@ -199,16 +212,37 @@ export class SocketRelay {
         await this.drop();
     }
 
+    /** Lets connections through again after {@link cut}. */
+    public reopen() {
+        this.refused = false;
+    }
+
     /** Swallows every message from here on, both ways, and keeps the connection open. */
     public goSilent() {
         this.silent = true;
     }
+
+    /**
+     * Swallows every message of the current connection, both ways.
+     * The server keeps that connection open even after the page closes it, as on a half-open connection.
+     * Later connections pass.
+     */
+    public stall() {
+        this.stalledPage = this.page;
+        // A close handler stops Playwright from passing the close on to the server.
+        this.page?.onClose(() => {});
+    }
+}
+
+/** A token of digits and letters, which no generated token matches, in the form that the page shows. */
+export function randomRequestableToken(): string {
+    return `0${randomBytes(4).toString("hex").slice(0, 4)}`.toUpperCase();
 }
 
 async function readOwnToken(page: Page): Promise<string> {
     const token = page
         .getByRole("region", { name: "Your token" })
-        .getByText(/^[A-Z]{5}$/);
+        .getByText(/^[A-Z0-9]{5}$/);
     await expect(token).toBeVisible();
     return (await token.textContent()) ?? "";
 }

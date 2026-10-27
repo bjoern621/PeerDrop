@@ -24,6 +24,10 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     private static readonly TimeSpan PongTimeout = TimeSpan.FromSeconds(15);
     // Browsers hide the WebSocket ping frames from scripts, so the client sends its own and expects a PongMessage.
     private const string PingMessageType = "ping";
+    // A connection that requests a held token waits this long for the holder to answer a ping.
+    // A half-open holder answers none until the keepalive above drops it, which takes up to PingInterval + PongTimeout.
+    private static readonly TimeSpan TakeoverProbeTimeout = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan TakeoverReleaseTimeout = TimeSpan.FromSeconds(5);
 
     // String is the client token. Case-insensitive so tokens entered with any casing map to the same connection.
     private readonly ConcurrentDictionary<string, RuntimeClientInformation> ActiveConnections = new(StringComparer.OrdinalIgnoreCase);
@@ -58,9 +62,10 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
 
     /// <summary>
     /// Adds the WebSocket connection to the active connections list and returns its client token.
-    /// The connection gets the chosen token if no other connection holds it, a generated unique token otherwise.
+    /// The connection gets the requested token if it fits the format and <see cref="ClaimToken"/> succeeds, a generated unique token otherwise.
     /// </summary>
-    private string AddConnection(WebSocket webSocket, HttpContext context, string? chosenToken)
+    private async Task<(string ClientToken, RuntimeClientInformation Client)> AddConnection(
+        WebSocket webSocket, HttpContext context, string? requestedToken)
     {
         int? userId = null;
         var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -77,9 +82,11 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
             UserAgent = context.Request.Headers.UserAgent.ToString() is { Length: > 0 } ua ? ua : null
         };
 
-        if (chosenToken != null && ActiveConnections.TryAdd(chosenToken, runtimeInformation))
+        requestedToken = requestedToken?.ToLowerInvariant();
+        if (requestedToken != null && IsValidRequestedToken(requestedToken)
+            && await ClaimToken(requestedToken, runtimeInformation))
         {
-            return chosenToken;
+            return (requestedToken, runtimeInformation);
         }
 
         string clientToken;
@@ -88,7 +95,35 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
             clientToken = GenerateClientToken();
         } while (!ActiveConnections.TryAdd(clientToken, runtimeInformation));
 
-        return clientToken;
+        return (clientToken, runtimeInformation);
+    }
+
+    /// <summary>
+    /// Adds the claimant under the token if no connection holds it.
+    /// A holder that answers no ping within <see cref="TakeoverProbeTimeout"/> gets aborted, and the claimant takes the token once the holder closed.
+    /// Returns false if the holder answers, outlasts <see cref="TakeoverReleaseTimeout"/> or another connection takes the token first.
+    /// </summary>
+    private async Task<bool> ClaimToken(string token, RuntimeClientInformation claimant)
+    {
+        if (ActiveConnections.TryAdd(token, claimant))
+            return true;
+        if (!ActiveConnections.TryGetValue(token, out var holder))
+            return ActiveConnections.TryAdd(token, claimant);
+
+        var pingedAt = DateTime.UtcNow;
+        await SendMessage(token, new PingMessage());
+        await Task.WhenAny(holder.Closed.Task, Task.Delay(TakeoverProbeTimeout));
+
+        if (!holder.Closed.Task.IsCompleted)
+        {
+            if (holder.LastMessageAt > pingedAt)
+                return false;
+
+            holder.WebSocket.Abort();
+            await Task.WhenAny(holder.Closed.Task, Task.Delay(TakeoverReleaseTimeout));
+        }
+
+        return ActiveConnections.TryAdd(token, claimant);
     }
 
     /// <summary>
@@ -137,7 +172,7 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         }
     }
 
-    public async Task HandleConnect(HttpContext context, string? chosenToken)
+    public async Task HandleConnect(HttpContext context, string? requestedToken)
     {
         if (!context.WebSockets.IsWebSocketRequest)
         {
@@ -149,17 +184,19 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
             KeepAliveInterval = PingInterval,
             KeepAliveTimeout = PongTimeout,
         });
-        var clientToken = AddConnection(webSocket, context, chosenToken);
+        var (clientToken, client) = await AddConnection(webSocket, context, requestedToken);
 
         await SendClientTokenAsync(clientToken);
 
         await RaiseClientConnected(clientToken);
 
-        await ListenForMessages(webSocket, clientToken);
+        await ListenForMessages(webSocket, clientToken, client);
 
         RemoveConnection(clientToken);
 
         await RaiseClientDisconnected(clientToken);
+
+        client.Closed.SetResult();
     }
 
     private async Task RaiseClientConnected(string clientToken)
@@ -205,7 +242,7 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     /// <summary>
     /// Continuously listens for messages from the WebSocket connection. If a message is received, it is deserialized and forwarded to typed message listeners. If the message is too large or cannot be deserialized, the connection is closed.
     /// </summary>
-    private async Task ListenForMessages(WebSocket webSocket, string clientToken)
+    private async Task ListenForMessages(WebSocket webSocket, string clientToken, RuntimeClientInformation client)
     {
         var buffer = new byte[ReceiveBufferBytes];
 
@@ -221,6 +258,8 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
 
             if (messageJson == null)
                 return;
+
+            client.LastMessageAt = DateTime.UtcNow;
 
             try
             {

@@ -146,7 +146,6 @@ builder.Services.AddSingleton<IUsageCountRepository, UsageCountRepository>();
 builder.Services.AddSingleton<ITelemetryWebsocketMessages, TelemetryWebsocketMessages>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
-builder.Services.AddScoped<IChosenClientTokenHandler, ChosenClientTokenHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IAccountSignInService, AccountSignInService>();

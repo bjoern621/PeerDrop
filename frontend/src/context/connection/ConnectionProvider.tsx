@@ -34,15 +34,15 @@ export function ConnectionProvider({
 
     /**
      * Resets the WebSocket connection by closing the current connection and opening a new one.
-     * This gets the user a new client token.
+     * The new connection asks for `requestedToken`, or else for the token held so far.
      *
      * When a new WebSocket connection is established, the server reads the UserId from the session cookie
-     * and associates it with the newly generated client token. This allows the server to link the authenticated
+     * and associates it with the client token. This allows the server to link the authenticated
      * user account with the WebSocket connection for features like device management and connection history.
      */
-    const resetWebsocketConnection = () => {
+    const resetWebsocketConnection = (requestedToken?: string) => {
         wsRef.current?.closeActiveConnection();
-        wsRef.current?.openWebSocket();
+        wsRef.current?.openWebSocket(requestedToken);
 
         forceUpdate(n => n + 1); // Inform React that the state has changed to trigger a re-render. This effectively updates the context values.
     };

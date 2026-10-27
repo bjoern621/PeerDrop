@@ -31,4 +31,14 @@ public class RuntimeClientInformation
     /// Null until the client sends one.
     /// </summary>
     public string? PublicKey { get; set; }
+
+    /// <summary>
+    /// UTC time of the last message received from the client, or <see cref="DateTime.MinValue"/> before the first one.
+    /// </summary>
+    public DateTime LastMessageAt { get; set; } = DateTime.MinValue;
+
+    /// <summary>
+    /// Completes once the connection left the active connections and every disconnect handler ran.
+    /// </summary>
+    public TaskCompletionSource Closed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 }

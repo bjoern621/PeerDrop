@@ -12,6 +12,8 @@ import { nextStep } from "./nextStep";
 import { useMessaging } from "../../hooks/useMessaging";
 import { useOwnToken } from "../../hooks/useOwnToken";
 import { useServerConnection } from "../../hooks/useServerConnection";
+import { useWebSocketMessage } from "../../hooks/useWebSocketMessage";
+import { MessageType } from "../../types/MessageType";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { COMPACT_QUERY, PHONE_QUERY } from "../../util/mediaQueries";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
@@ -65,13 +67,19 @@ export default function Dashboard() {
     // The server answers every lookup during the lock with the lock itself,
     // so the check waits for its end and runs then.
     const tokensLocked = lock?.reason === "tokens";
-    // A new own token drops every lookup made under the old one.
+    const canLookUp = complete && !tokensLocked;
     useEffect(() => {
-        if (complete && !tokensLocked) {
+        if (canLookUp) {
             messagingService.lookup(recipient);
         }
         // exhaustive-deps-exclude [messagingService]
-    }, [recipient, complete, tokensLocked, ownToken]);
+    }, [recipient, canLookUp]);
+    // A new connection starts without lookups, even under the same token.
+    useWebSocketMessage(MessageType.CLIENT_TOKEN, () => {
+        if (canLookUp) {
+            messagingService.lookup(recipient);
+        }
+    });
 
     useEffect(() => {
         if (!lock) {

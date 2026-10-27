@@ -383,8 +383,8 @@ export class MessagingService {
     }
 
     /**
-     * A new token ends every relation of the old one: the server dropped its
-     * connections, offers and permissions together with it.
+     * A new connection ends every relation of the old one, even under the same
+     * token: the server dropped its connections, offers and permissions.
      */
     private forgetSession() {
         this.peerConnections.reset();
