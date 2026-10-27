@@ -1,7 +1,11 @@
+import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { connect, type Socket } from "node:net";
+import { connect as tlsConnect } from "node:tls";
 import {
     test as base,
     expect,
+    type APIRequestContext,
     type Browser,
     type Download,
     type Page,
@@ -141,6 +145,57 @@ async function readOwnToken(page: Page): Promise<string> {
     return (await token.textContent()) ?? "";
 }
 
+/**
+ * A client that connects to the backend, reads its token and then answers nothing, pings included.
+ * It stands in for a device that drops off the network without closing its connection.
+ * The caller destroys the socket.
+ */
+async function connectSilentPeer(
+    request: APIRequestContext
+): Promise<{ token: string; socket: Socket }> {
+    const { wsBackendUrl } = (await (
+        await request.get("/envvars.json")
+    ).json()) as { wsBackendUrl: string };
+    const url = new URL(`${wsBackendUrl}/connect`);
+    const socket =
+        url.protocol === "wss:"
+            ? tlsConnect({
+                  host: url.hostname,
+                  port: Number(url.port || 443),
+                  servername: url.hostname,
+              })
+            : connect(Number(url.port || 80), url.hostname);
+    socket.write(
+        [
+            `GET ${url.pathname} HTTP/1.1`,
+            `Host: ${url.host}`,
+            "Upgrade: websocket",
+            "Connection: Upgrade",
+            `Sec-WebSocket-Key: ${randomBytes(16).toString("base64")}`,
+            "Sec-WebSocket-Version: 13",
+            "",
+            "",
+        ].join("\r\n")
+    );
+
+    const token = await new Promise<string>((resolve, reject) => {
+        let received = "";
+        const onData = (chunk: Buffer) => {
+            // The token message travels as one unmasked text frame, short enough to read as plain bytes.
+            received += chunk.toString("latin1");
+            const token = /"token":"([a-z]{5})"/.exec(received)?.[1];
+            if (token) {
+                socket.off("data", onData);
+                socket.pause();
+                resolve(token);
+            }
+        };
+        socket.on("data", onData);
+        socket.once("error", reject);
+    });
+    return { token: token.toUpperCase(), socket };
+}
+
 export async function contentOf(download: Download): Promise<string> {
     return readFile(await download.path(), "utf8");
 }
@@ -159,7 +214,13 @@ export function collectDownloads(page: Page): Download[] {
 }
 
 export const test = base.extend<
-    { alice: Peer; bob: Peer; openPeer: () => Promise<Peer> } & PeerOptions
+    {
+        alice: Peer;
+        bob: Peer;
+        openPeer: () => Promise<Peer>;
+        /** Connects a peer that goes silent, see connectSilentPeer. Returns its uppercase token. */
+        openSilentPeer: () => Promise<string>;
+    } & PeerOptions
 >({
     settings: [{}, { option: true }],
     directoryPicker: [true, { option: true }],
@@ -174,6 +235,15 @@ export const test = base.extend<
             return peer;
         });
         await Promise.all(peers.map(peer => peer.close()));
+    },
+    openSilentPeer: async ({ request }, provide) => {
+        const sockets: Socket[] = [];
+        await provide(async () => {
+            const { token, socket } = await connectSilentPeer(request);
+            sockets.push(socket);
+            return token;
+        });
+        sockets.forEach(socket => socket.destroy());
     },
     alice: async ({ openPeer }, provide) => provide(await openPeer()),
     bob: async ({ openPeer }, provide) => provide(await openPeer()),

@@ -88,3 +88,22 @@ test("a peer that leaves shows as offline", async ({ alice, openPeer }) => {
         alice.page.getByRole("button", { name: "Share file" })
     ).toBeDisabled();
 });
+
+test("a peer that drops off without closing shows as offline", async ({
+    alice,
+    openSilentPeer,
+}) => {
+    // The backend gives an unanswered ping its pong timeout on top of the ping interval.
+    test.setTimeout(90_000);
+    const token = await openSilentPeer();
+    await alice.recipientInput().fill(token.toLowerCase());
+    await expect(alice.hint()).toHaveText(
+        `Write a text to ${token} or share files and folders.`
+    );
+
+    await expect(alice.hint()).toHaveText(
+        `${token} is offline. Please check the token.`,
+        { timeout: 60_000 }
+    );
+    await expect(alice.textField()).toBeDisabled();
+});

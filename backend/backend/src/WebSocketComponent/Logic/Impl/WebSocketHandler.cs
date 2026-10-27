@@ -18,6 +18,10 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
     // Fits a text of 1 MiB as base64 ciphertext together with its envelope.
     public const int MaxMessageBytes = 2 * 1024 * 1024;
     private const int ReceiveBufferBytes = 16 * 1024;
+    // A client that drops off without closing (lost network, sleeping device) counts as disconnected
+    // once a ping goes unanswered for PongTimeout.
+    private static readonly TimeSpan PingInterval = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan PongTimeout = TimeSpan.FromSeconds(15);
 
     // String is the client token. Case-insensitive so tokens entered with any casing map to the same connection.
     private readonly ConcurrentDictionary<string, RuntimeClientInformation> ActiveConnections = new(StringComparer.OrdinalIgnoreCase);
@@ -138,7 +142,11 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
         }
 
-        using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+        using var webSocket = await context.WebSockets.AcceptWebSocketAsync(new WebSocketAcceptContext
+        {
+            KeepAliveInterval = PingInterval,
+            KeepAliveTimeout = PongTimeout,
+        });
         var clientToken = AddConnection(webSocket, context, chosenToken);
 
         await SendClientTokenAsync(clientToken);
