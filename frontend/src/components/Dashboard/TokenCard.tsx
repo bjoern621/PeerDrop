@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import css from "./TokenCard.module.scss";
@@ -14,11 +14,9 @@ import { useOwnToken } from "../../hooks/useOwnToken";
 import { useServerConnection } from "../../hooks/useServerConnection";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import { useInlineEdit } from "../../hooks/useInlineEdit";
-import { useWebSocketMessage } from "../../hooks/useWebSocketMessage";
+import useSettings from "../../hooks/useSettings";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
 import { updateSettings } from "../../services/SettingsStore";
-import { MessageType } from "../../types/MessageType";
-import { ClientTokenMessage } from "../../types/token/ClientTokenMessage";
 import {
     displayToken,
     normalizeClientToken,
@@ -34,35 +32,27 @@ import { cx } from "class-variance-authority";
 export default function TokenCard() {
     const { t } = useTranslation("dashboard");
     const token = useOwnToken();
-    const lost = useServerConnection() === "lost";
+    const connection = useServerConnection();
+    const lost = connection === "lost";
+    const { requestedToken } = useSettings();
     const resetWebsocket = useResetWebsocket();
-    const [pendingToken, setPendingToken] = useState<string | null>(null);
-    const [inUseToken, setInUseToken] = useState<string | null>(null);
+    // Waits for the open connection, since the old token stays on screen while a new one is on its way.
+    const takenToken =
+        connection === "open" && requestedToken !== token
+            ? requestedToken
+            : null;
 
     const requestToken = (requested: string) => {
         if (requested.length !== CLIENT_TOKEN_LENGTH || requested === token) {
             return;
         }
         updateSettings({ requestedToken: requested });
-        setPendingToken(requested);
         resetWebsocket(requested);
     };
-
-    useWebSocketMessage<ClientTokenMessage>(
-        MessageType.CLIENT_TOKEN,
-        message => {
-            if (normalizeClientToken(message.msg.token) !== pendingToken) {
-                setInUseToken(pendingToken);
-            }
-            setPendingToken(null);
-        },
-        pendingToken !== null
-    );
 
     const tokenEdit = useInlineEdit(requestToken);
 
     const startEditing = () => {
-        setInUseToken(null);
         tokenEdit.start(token ?? "");
     };
 
@@ -99,7 +89,7 @@ export default function TokenCard() {
             )}
             <div className={css.shareRow}>
                 <p className={css.shareText}>
-                    {shareText(t, tokenEdit.editing, inUseToken, token)}
+                    {shareText(t, tokenEdit.editing, takenToken)}
                 </p>
                 <CopyIconButton
                     text={token && displayToken(token)}
@@ -132,14 +122,13 @@ function chosenTokenFromInput(value: string): string {
 function shareText(
     t: TFunction<"dashboard">,
     editing: boolean,
-    inUseToken: string | null,
-    token: string | undefined
+    takenToken: string | null
 ): string {
     if (editing) {
         return t("token.pickCharacters", { length: CLIENT_TOKEN_LENGTH });
     }
-    if (inUseToken && inUseToken !== token) {
-        return t("token.inUse", { token: displayToken(inUseToken) });
+    if (takenToken) {
+        return t("token.inUse", { token: displayToken(takenToken) });
     }
     return t("token.share");
 }
