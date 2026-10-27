@@ -4,6 +4,7 @@ import css from "./DeviceTile.module.scss";
 import FakeButton from "../../../FakeButton/FakeButton";
 import Tooltip from "../../../Tooltip/Tooltip";
 import { cx } from "class-variance-authority";
+import { useServerConnection } from "../../../../hooks/useServerConnection";
 
 interface DeviceTileProps {
     online: boolean;
@@ -27,9 +28,14 @@ export default function DeviceTile({
     actions,
     children,
 }: DeviceTileProps) {
+    // Without the server, the last known status may be stale.
+    const lost = useServerConnection() === "lost";
     const dot = (
         <span
-            className={cx(css.status, online ? css.online : css.offline)}
+            className={cx(
+                css.status,
+                lost ? css.unknown : online ? css.online : css.offline
+            )}
             aria-hidden
         />
     );

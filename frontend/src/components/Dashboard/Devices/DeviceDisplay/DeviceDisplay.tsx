@@ -12,6 +12,7 @@ import Anchor from "../../../Anchor/Anchor";
 import DeviceTile from "../DeviceTile/DeviceTile";
 import TruncatedText from "../../../TruncatedText/TruncatedText";
 import { useInlineEdit } from "../../../../hooks/useInlineEdit";
+import { useServerConnection } from "../../../../hooks/useServerConnection";
 
 const MAX_DEVICE_NAME_LENGTH = 64; // Linked to the backend DisplayNameValidator
 
@@ -33,6 +34,7 @@ export default function DeviceDisplay({
 }: DeviceDisplayProps) {
     const { t } = useTranslation("dashboard");
     const online = device.status === DeviceStatus.ONLINE;
+    const lost = useServerConnection() === "lost";
     const nameEdit = useInlineEdit(draft => {
         const newName = draft.trim();
         if (newName.length > 0 && newName !== device.name) {
@@ -45,7 +47,11 @@ export default function DeviceDisplay({
             online={online}
             statusTooltip={
                 <>
-                    {online ? t("devices.online") : t("devices.offline")}{" "}
+                    {lost
+                        ? t("devices.statusUnknown")
+                        : online
+                          ? t("devices.online")
+                          : t("devices.offline")}{" "}
                     <Anchor to={"/faq#device-status"}>
                         {t("devices.learnMore")}
                     </Anchor>

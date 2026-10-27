@@ -27,6 +27,7 @@
         "unknown": "Unknown device",
         "online": "This device is online.",
         "offline": "This device is offline.",
+        "statusUnknown": "Without a connection to the server, it is unclear whether this device is online.",
         "learnMore": "Learn more",
         "rename": "Rename device",
         "remove": "Remove device from your registered devices",

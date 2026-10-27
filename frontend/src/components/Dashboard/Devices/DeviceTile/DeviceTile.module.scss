@@ -80,6 +80,10 @@
     background-color: var(--error);
 }
 
+.unknown {
+    background-color: var(--warning);
+}
+
 // The content gives way in a narrow column. Dot, check and actions keep their size.
 .content {
     flex: 1 1 auto;

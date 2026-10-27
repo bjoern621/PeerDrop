@@ -27,6 +27,7 @@
         "unknown": "Unbekanntes Gerät",
         "online": "Dieses Gerät ist online.",
         "offline": "Dieses Gerät ist nicht online.",
+        "statusUnknown": "Ohne Verbindung zum Server ist unklar, ob dieses Gerät online ist.",
         "learnMore": "Mehr erfahren",
         "rename": "Gerät umbenennen",
         "remove": "Gerät aus registrierten Geräten entfernen",
