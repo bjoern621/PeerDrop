@@ -2,7 +2,7 @@ import { expect, test } from "./peers";
 
 test("the hint walks through entering a token", async ({ alice, bob }) => {
     await expect(alice.hint()).toHaveText(
-        'Enter the token of another device or pick it under "Devices".'
+        'Enter the token of another device or pick one under "Devices".'
     );
     await expect(alice.textField()).toBeDisabled();
 

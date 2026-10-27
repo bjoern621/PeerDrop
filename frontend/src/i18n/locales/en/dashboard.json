@@ -51,7 +51,7 @@
         "tokensLocked_one": "You entered an unknown token too often. Please wait {{count}} minute.",
         "tokensLocked_other": "You entered an unknown token too often. Please wait {{count}} minutes.",
         "textsLocked": "You are sending too many texts. Please wait a few seconds.",
-        "enterToken": "Enter the token of another device or pick it under \"Devices\".",
+        "enterToken": "Enter the token of another device or pick one under \"Devices\".",
         "missingChars_one": "Enter the last character of the token.",
         "missingChars_other": "Enter the remaining {{count}} characters of the token.",
         "ownToken": "{{token}} is your own token. Enter the token of another device.",
