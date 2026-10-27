@@ -17,6 +17,7 @@ import CardHeading from "./CardHeading/CardHeading";
 import { Hint } from "./nextStep";
 import { ShareSelection } from "../../types/transfer/ShareSelection";
 import { useResizeObserver } from "../../hooks/useResizeObserver";
+import { useContentHeight } from "../../hooks/useContentHeight";
 import { cx } from "class-variance-authority";
 
 interface SendPanelProps {
@@ -55,6 +56,8 @@ export default function SendPanel(props: SendPanelProps) {
               ? css.err
               : css.info;
     const hintRef = useRef<HTMLDivElement>(null);
+    const hintContentRef = useRef<HTMLDivElement>(null);
+    const hintHeight = useContentHeight(hintContentRef);
     const partsRef = useRef<HTMLDivElement>(null);
     usePublishHeight(hintRef, "--send-hint-height");
 
@@ -81,9 +84,16 @@ export default function SendPanel(props: SendPanelProps) {
                 </div>
             </div>
 
-            <div ref={hintRef} role="status" className={cx(css.hint, tone)}>
-                <HintIcon aria-hidden />
-                <span>{props.hint.text}</span>
+            <div
+                ref={hintRef}
+                role="status"
+                className={cx(css.hint, tone)}
+                style={{ height: hintHeight }}
+            >
+                <div ref={hintContentRef} className={css.hintContent}>
+                    <HintIcon aria-hidden />
+                    <span>{props.hint.text}</span>
+                </div>
             </div>
 
             <div ref={partsRef} className={css.parts}>
