@@ -24,7 +24,7 @@
         "systemResolved": "System ({{scheme}})"
     },
     "connection": {
-        "lost": "The connection to the server dropped. Nobody can find you under your token anymore. Reload the page."
+        "lost": "The connection to the server dropped. Reload the page."
     },
     "pages": {
         "backHome": "Back to the home page",
