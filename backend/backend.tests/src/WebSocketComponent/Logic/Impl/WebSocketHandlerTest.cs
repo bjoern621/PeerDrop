@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -199,6 +200,24 @@ public class WebSocketHandlerTest
             Assert.That(firstToken, Is.EqualTo("aaaaa"));
             Assert.That(secondToken, Does.Match(GeneratedTokenPattern));
         });
+    }
+
+    [Test]
+    public async Task HandleConnect_RequestedTokenHeldByAnsweringConnection_AnswersWithoutWaitingForTheProbeTimeout()
+    {
+        var handler = new WebSocketHandler(NullLogger<WebSocketHandler>.Instance);
+        var first = new HeldOpenWebSocket(answersPings: true);
+        var second = new HeldOpenWebSocket();
+        var (firstServing, _) = await Connect(handler, first, "aaaaa");
+
+        var stopwatch = Stopwatch.StartNew();
+        var (secondServing, _) = await Connect(handler, second, "aaaaa");
+        stopwatch.Stop();
+        first.Close();
+        second.Close();
+        await Task.WhenAll(firstServing, secondServing);
+
+        Assert.That(stopwatch.Elapsed, Is.LessThan(TimeSpan.FromSeconds(1)));
     }
 
     [Test]

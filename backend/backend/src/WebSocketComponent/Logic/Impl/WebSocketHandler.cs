@@ -110,13 +110,13 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
         if (!ActiveConnections.TryGetValue(token, out var holder))
             return ActiveConnections.TryAdd(token, claimant);
 
-        var pingedAt = DateTime.UtcNow;
+        var answer = holder.NextMessage;
         await SendMessage(token, new PingMessage());
-        await Task.WhenAny(holder.Closed.Task, Task.Delay(TakeoverProbeTimeout));
+        await Task.WhenAny(answer, holder.Closed.Task, Task.Delay(TakeoverProbeTimeout));
 
         if (!holder.Closed.Task.IsCompleted)
         {
-            if (holder.LastMessageAt > pingedAt)
+            if (answer.IsCompleted)
                 return false;
 
             holder.WebSocket.Abort();
@@ -259,7 +259,7 @@ public class WebSocketHandler(ILogger<WebSocketHandler> logger) : IWebSocketHand
             if (messageJson == null)
                 return;
 
-            client.LastMessageAt = DateTime.UtcNow;
+            client.ReportMessage();
 
             try
             {

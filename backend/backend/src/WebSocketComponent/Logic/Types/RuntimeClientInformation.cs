@@ -32,10 +32,23 @@ public class RuntimeClientInformation
     /// </summary>
     public string? PublicKey { get; set; }
 
+    private TaskCompletionSource _nextMessage = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     /// <summary>
-    /// UTC time of the last message received from the client, or <see cref="DateTime.MinValue"/> before the first one.
+    /// Completes with the next message received from the client.
     /// </summary>
-    public DateTime LastMessageAt { get; set; } = DateTime.MinValue;
+    public Task NextMessage => Volatile.Read(ref _nextMessage).Task;
+
+    /// <summary>
+    /// Completes <see cref="NextMessage"/> and hands out a fresh one for the message after.
+    /// Called by the connection's receive loop alone.
+    /// </summary>
+    public void ReportMessage()
+    {
+        var reported = Interlocked.Exchange(
+            ref _nextMessage, new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously));
+        reported.SetResult();
+    }
 
     /// <summary>
     /// Completes once the connection left the active connections and every disconnect handler ran.
