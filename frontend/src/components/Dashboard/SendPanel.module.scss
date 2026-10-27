@@ -67,28 +67,35 @@
     }
 }
 
-// Grows and shrinks with a transition when the hint wraps to more or fewer lines.
 .hint {
-    overflow: hidden;
-    border-radius: var(--space-12);
-    font-weight: var(--font-weight-medium);
-
-    @media (prefers-reduced-motion: no-preference) {
-        transition: height 0.2s ease-out;
-    }
-}
-
-.hintContent {
     display: flex;
     align-items: center;
     gap: var(--space-12);
     padding: var(--space-8) var(--space-16);
+    border-radius: var(--space-12);
+    font-weight: var(--font-weight-medium);
 
     > svg {
         flex: none;
         width: 20px;
         height: 20px;
     }
+}
+
+// Grows and shrinks with a transition when the hint wraps to more or fewer lines.
+// The icon stays centered on the hint as it grows.
+.hintTextFrame {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition: height 0.2s ease-out;
+    }
+}
+
+.hintText {
+    display: block;
 }
 
 .info {

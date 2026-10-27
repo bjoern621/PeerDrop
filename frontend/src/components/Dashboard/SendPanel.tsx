@@ -56,8 +56,8 @@ export default function SendPanel(props: SendPanelProps) {
               ? css.err
               : css.info;
     const hintRef = useRef<HTMLDivElement>(null);
-    const hintContentRef = useRef<HTMLDivElement>(null);
-    const hintHeight = useContentHeight(hintContentRef);
+    const hintTextRef = useRef<HTMLSpanElement>(null);
+    const hintTextHeight = useContentHeight(hintTextRef);
     const partsRef = useRef<HTMLDivElement>(null);
     usePublishHeight(hintRef, "--send-hint-height");
 
@@ -84,15 +84,15 @@ export default function SendPanel(props: SendPanelProps) {
                 </div>
             </div>
 
-            <div
-                ref={hintRef}
-                role="status"
-                className={cx(css.hint, tone)}
-                style={{ height: hintHeight }}
-            >
-                <div ref={hintContentRef} className={css.hintContent}>
-                    <HintIcon aria-hidden />
-                    <span>{props.hint.text}</span>
+            <div ref={hintRef} role="status" className={cx(css.hint, tone)}>
+                <HintIcon aria-hidden />
+                <div
+                    className={css.hintTextFrame}
+                    style={{ height: hintTextHeight }}
+                >
+                    <span ref={hintTextRef} className={css.hintText}>
+                        {props.hint.text}
+                    </span>
                 </div>
             </div>
 
