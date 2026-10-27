@@ -1,7 +1,7 @@
 {
     "token": {
         "title": "Dein Token",
-        "share": "Wer dir etwas senden will, gibt diesen Token ein.",
+        "share": "Teile diesen Token mit anderen.",
         "change": "Token ändern",
         "newToken": "Neuer Token",
         "pickCharacters": "Wähle {{length}} Zeichen aus A bis Z und 0 bis 9.",

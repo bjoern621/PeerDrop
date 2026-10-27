@@ -1,7 +1,7 @@
 {
     "token": {
         "title": "Your token",
-        "share": "Anyone sending to you enters this token.",
+        "share": "Share this token with others.",
         "change": "Change token",
         "newToken": "New token",
         "pickCharacters": "Pick {{length}} characters from A to Z and 0 to 9.",
