@@ -9,6 +9,7 @@ import {
     type Browser,
     type Download,
     type Page,
+    type WebSocketRoute,
 } from "@playwright/test";
 
 export { expect };
@@ -35,9 +36,15 @@ export class Peer {
 
     public static async open(
         browser: Browser,
-        { settings, directoryPicker }: PeerOptions
+        { settings, directoryPicker }: PeerOptions,
+        relay?: SocketRelay
     ): Promise<Peer> {
         const context = await browser.newContext();
+        if (relay) {
+            await context.routeWebSocket(/\/connect$/, page =>
+                relay.attach(page)
+            );
+        }
         await context.addInitScript(
             ({ settings, directoryPicker }) => {
                 // LAN discovery would list every other test peer of this machine.
@@ -60,6 +67,13 @@ export class Peer {
 
     public async close() {
         await this.page.context().close();
+    }
+
+    /** The line under the own token, which tells whether others can find it. */
+    public tokenStatus() {
+        return this.page
+            .getByRole("region", { name: "Your token" })
+            .getByRole("status");
     }
 
     public hint() {
@@ -134,6 +148,45 @@ export class Peer {
 
     public async accept(name: string) {
         await this.row(name).getByRole("button", { name: "ACCEPT" }).click();
+    }
+}
+
+/**
+ * Sits between a page and the backend on the WebSocket and forwards every message both ways.
+ * It can drop the connection or go silent, as a dead network does.
+ */
+export class SocketRelay {
+    private page: WebSocketRoute | undefined;
+    private server: WebSocketRoute | undefined;
+    private silent = false;
+    public readonly fromServer: string[] = [];
+
+    public attach(page: WebSocketRoute) {
+        const server = page.connectToServer();
+        page.onMessage(message => {
+            if (!this.silent) {
+                server.send(message);
+            }
+        });
+        server.onMessage(message => {
+            if (!this.silent) {
+                this.fromServer.push(message.toString());
+                page.send(message);
+            }
+        });
+        this.page = page;
+        this.server = server;
+    }
+
+    /** Closes both sides, as a server restart does. */
+    public async drop() {
+        await this.server?.close();
+        await this.page?.close();
+    }
+
+    /** Swallows every message from here on, both ways, and keeps the connection open. */
+    public goSilent() {
+        this.silent = true;
     }
 }
 
@@ -217,7 +270,8 @@ export const test = base.extend<
     {
         alice: Peer;
         bob: Peer;
-        openPeer: () => Promise<Peer>;
+        /** With a relay, the peer reaches the backend through it. */
+        openPeer: (relay?: SocketRelay) => Promise<Peer>;
         /** Connects a peer that goes silent, see connectSilentPeer. Returns its uppercase token. */
         openSilentPeer: () => Promise<string>;
     } & PeerOptions
@@ -226,11 +280,12 @@ export const test = base.extend<
     directoryPicker: [true, { option: true }],
     openPeer: async ({ browser, settings, directoryPicker }, provide) => {
         const peers: Peer[] = [];
-        await provide(async () => {
-            const peer = await Peer.open(browser, {
-                settings,
-                directoryPicker,
-            });
+        await provide(async relay => {
+            const peer = await Peer.open(
+                browser,
+                { settings, directoryPicker },
+                relay
+            );
             peers.push(peer);
             return peer;
         });

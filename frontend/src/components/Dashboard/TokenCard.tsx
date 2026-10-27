@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 import { useOwnToken } from "../../hooks/useOwnToken";
+import { useServerConnection } from "../../hooks/useServerConnection";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import { useInlineEdit } from "../../hooks/useInlineEdit";
 import { useAuth } from "../../context/AuthContext";
@@ -31,6 +32,9 @@ import { cx } from "class-variance-authority";
 export default function TokenCard() {
     const { t } = useTranslation("dashboard");
     const token = useOwnToken();
+    const lost = useServerConnection() === "lost";
+    // Nobody finds a lost token, so it stays out of the clipboard.
+    const shareableToken = lost ? undefined : token;
     const { isLoggedIn } = useAuth();
     const resetWebsocket = useResetWebsocket();
     const [inUseToken, setInUseToken] = useState<string | null>(null);
@@ -90,24 +94,29 @@ export default function TokenCard() {
                     }
                 />
             ) : (
-                <div className={css.tokenBox}>
+                <div className={cx(css.tokenBox, lost && css.lost)}>
                     {token ? displayToken(token) : "_____"}
                 </div>
             )}
             <div className={css.shareRow}>
-                <p className={css.shareText}>
-                    {shareText(t, tokenEdit.editing, inUseToken, token)}
+                <p
+                    role="status"
+                    className={cx(css.shareText, lost && css.lostText)}
+                >
+                    {lost
+                        ? t("token.lost")
+                        : shareText(t, tokenEdit.editing, inUseToken, token)}
                 </p>
                 <CopyIconButton
-                    text={token && displayToken(token)}
+                    text={shareableToken && displayToken(shareableToken)}
                     label={t("token.copy")}
                     copiedLabel={t("token.copied")}
                     icon={<CopyIcon />}
                 />
                 <CopyIconButton
                     text={
-                        token &&
-                        `${getRuntimeEnvVars().frontendDomain}/connect?token=${token}`
+                        shareableToken &&
+                        `${getRuntimeEnvVars().frontendDomain}/connect?token=${shareableToken}`
                     }
                     label={t("token.copyLink")}
                     copiedLabel={t("token.linkCopied")}

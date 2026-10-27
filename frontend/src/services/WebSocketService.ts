@@ -4,10 +4,18 @@ import { Logger } from "../util/Logger";
 import { ITypedMessage } from "../types/ITypedMessage";
 import { ClientTokenMessage } from "../types/token/ClientTokenMessage";
 import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
+import { PingMessage } from "../types/server/PingMessage";
+import {
+    SERVER_CHECK_INTERVAL_MS,
+    SERVER_PONG_TIMEOUT_MS,
+} from "../util/Constants";
 
 export type MessageHandler = (typedMessage: ITypedMessage) => unknown;
 
 export type ClientToken = string;
+
+/** "lost" once the socket closed or stopped answering pings. */
+export type ServerConnection = "connecting" | "open" | "lost";
 
 /**
  * Normalizes a client token to its canonical form (lowercase).
@@ -43,12 +51,27 @@ export class WebSocketService {
 
     private localToken: ClientToken | undefined;
 
+    private connection: ServerConnection = "connecting";
+    private readonly connectionListeners = new Set<() => void>();
+    // Set while a ping waits for its pong.
+    private pongTimer: number | undefined;
+
     /**
      * Initializes a new instance of the WebSocketService class.
      * It connects to the server.
      */
     public constructor() {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
+
+        this.subscribeMessage(MessageType.PONG, () => this.clearPongTimer());
+        window.setInterval(() => this.checkServer(), SERVER_CHECK_INTERVAL_MS);
+        // A device waking up or rejoining a network often holds a socket that died in the meantime.
+        window.addEventListener("online", () => this.checkServer());
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                this.checkServer();
+            }
+        });
 
         this.openWebSocket();
     }
@@ -60,11 +83,69 @@ export class WebSocketService {
     }
 
     private connectToServer() {
-        this.socket = new WebSocket(
+        const socket = new WebSocket(
             `${getRuntimeEnvVars().wsBackendUrl}/connect`
         );
+        this.socket = socket;
+        this.setConnection("connecting");
+
+        // A socket replaced by closeActiveConnection reports nothing.
+        socket.addEventListener("open", () => {
+            if (socket === this.socket) {
+                this.setConnection("open");
+            }
+        });
+        socket.addEventListener("close", () => {
+            if (socket === this.socket) {
+                this.loseConnection();
+            }
+        });
 
         this.listenToMessages();
+    }
+
+    /** Sends a ping. Counts the connection as lost when no pong follows in time. */
+    private checkServer() {
+        if (this.connection !== "open" || this.pongTimer !== undefined) {
+            return;
+        }
+        this.sendMessage(new PingMessage());
+        this.pongTimer = window.setTimeout(
+            () => this.loseConnection(),
+            SERVER_PONG_TIMEOUT_MS
+        );
+    }
+
+    private clearPongTimer() {
+        window.clearTimeout(this.pongTimer);
+        this.pongTimer = undefined;
+    }
+
+    private loseConnection() {
+        this.clearPongTimer();
+        // A half-open socket can take minutes to report its close by itself.
+        this.socket?.close();
+        this.setConnection("lost");
+    }
+
+    private setConnection(connection: ServerConnection) {
+        if (connection === this.connection) {
+            return;
+        }
+        this.connection = connection;
+        this.connectionListeners.forEach(listener => listener());
+    }
+
+    public getConnection(): ServerConnection {
+        return this.connection;
+    }
+
+    /** Calls `listener` whenever the connection state changes. Returns the unsubscribe. */
+    public subscribeConnection(listener: () => void): () => void {
+        this.connectionListeners.add(listener);
+        return () => {
+            this.connectionListeners.delete(listener);
+        };
     }
 
     private listenToMessages() {
@@ -120,6 +201,7 @@ export class WebSocketService {
      */
     public closeActiveConnection(): boolean {
         assert(this.socket);
+        this.clearPongTimer();
 
         switch (this.socket.readyState) {
             case WebSocket.CONNECTING:

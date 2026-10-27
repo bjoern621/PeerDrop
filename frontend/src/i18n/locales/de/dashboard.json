@@ -6,6 +6,7 @@
         "newToken": "Neuer Token",
         "pickCharacters": "Wähle {{length}} Zeichen aus A bis Z und 0 bis 9.",
         "inUse": "{{token}} ist gerade belegt. Lade die Seite später neu, um den Token zu bekommen.",
+        "lost": "Die Verbindung zum Server ist abgebrochen. Unter diesem Token findet dich niemand. Lade die Seite neu.",
         "copy": "Token kopieren",
         "copied": "Token kopiert",
         "copyLink": "Token als Link kopieren",
