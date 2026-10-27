@@ -4,6 +4,8 @@ import { DeviceHeartbeatMessage } from "../types/device/DeviceHeartbeatMessage";
 import { DeviceStatus } from "../types/device/DeviceStatus";
 import { HEARTBEAT_INTERVAL_MS } from "../util/Constants";
 import { useBeforeUnload } from "react-router";
+import { MessageType } from "../types/MessageType";
+import { useWebSocketMessage } from "./useWebSocketMessage";
 
 interface UseDeviceHeartbeatOptions {
     status: DeviceStatus;
@@ -95,6 +97,9 @@ export function useDeviceHeartbeat({
             clearInterval(timer);
         };
     }, [enabled, intervalMs, sendHeartbeat, status]);
+
+    // The server finds a device under the token of its last heartbeat.
+    useWebSocketMessage(MessageType.CLIENT_TOKEN, sendHeartbeat, enabled);
 
     useBeforeUnload(() => {
         console.log("Sending OFFLINE heartbeat before unload");

@@ -65,12 +65,13 @@ export default function Dashboard() {
     // The server answers every lookup during the lock with the lock itself,
     // so the check waits for its end and runs then.
     const tokensLocked = lock?.reason === "tokens";
+    // A new own token drops every lookup made under the old one.
     useEffect(() => {
         if (complete && !tokensLocked) {
             messagingService.lookup(recipient);
         }
         // exhaustive-deps-exclude [messagingService]
-    }, [recipient, complete, tokensLocked]);
+    }, [recipient, complete, tokensLocked, ownToken]);
 
     useEffect(() => {
         if (!lock) {

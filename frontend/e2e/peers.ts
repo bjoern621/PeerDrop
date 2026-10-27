@@ -69,6 +69,11 @@ export class Peer {
         await this.page.context().close();
     }
 
+    /** The token that the page shows at the moment. {@link token} keeps the first one. */
+    public currentToken() {
+        return readOwnToken(this.page);
+    }
+
     public lostConnectionToast() {
         return this.page
             .getByRole("alert")
@@ -152,15 +157,20 @@ export class Peer {
 
 /**
  * Sits between a page and the backend on the WebSocket and forwards every message both ways.
- * It can drop the connection or go silent, as a dead network does.
+ * It can drop or cut the connection or go silent, as a dead network does.
  */
 export class SocketRelay {
     private page: WebSocketRoute | undefined;
     private server: WebSocketRoute | undefined;
     private silent = false;
+    private refused = false;
     public readonly fromServer: string[] = [];
 
     public attach(page: WebSocketRoute) {
+        if (this.refused) {
+            void page.close();
+            return;
+        }
         const server = page.connectToServer();
         page.onMessage(message => {
             if (!this.silent) {
@@ -181,6 +191,12 @@ export class SocketRelay {
     public async drop() {
         await this.server?.close();
         await this.page?.close();
+    }
+
+    /** Drops the connection and turns away every later one, as an unreachable server does. */
+    public async cut() {
+        this.refused = true;
+        await this.drop();
     }
 
     /** Swallows every message from here on, both ways, and keeps the connection open. */

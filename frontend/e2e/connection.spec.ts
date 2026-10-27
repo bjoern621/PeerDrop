@@ -1,11 +1,11 @@
 import { expect, SocketRelay, test } from "./peers";
 
-test("a dropped connection shows a toast that stays", async ({ openPeer }) => {
+test("a cut connection shows a toast that stays", async ({ openPeer }) => {
     const relay = new SocketRelay();
     const alice = await openPeer(relay);
     await expect(alice.lostConnectionToast()).toBeHidden();
 
-    await relay.drop();
+    await relay.cut();
 
     await expect(alice.lostConnectionToast()).toBeVisible();
     await expect(
@@ -49,7 +49,7 @@ test("a lost connection locks sending and leaves the recipient unknown", async (
     const bob = await openPeer();
     await alice.connectTo(bob);
 
-    await relay.drop();
+    await relay.cut();
 
     await expect(alice.hint()).toHaveText(
         "Without a connection to the server, you cannot send anything."
@@ -63,4 +63,29 @@ test("a lost connection locks sending and leaves the recipient unknown", async (
     await expect(
         alice.page.getByRole("button", { name: "Share file" })
     ).toBeDisabled();
+});
+
+test("a dropped connection comes back under a new token", async ({
+    openPeer,
+}) => {
+    const relay = new SocketRelay();
+    const alice = await openPeer(relay);
+    const bob = await openPeer();
+    await alice.connectTo(bob);
+
+    await relay.drop();
+
+    await expect(alice.lostConnectionToast()).toBeVisible();
+    await expect(alice.lostConnectionToast()).toBeHidden();
+    const token = await alice.currentToken();
+    expect(token).not.toBe(alice.token);
+    await expect(
+        alice.page.getByText(
+            `Connected to the server again. Your token changed to ${token}.`
+        )
+    ).toBeVisible();
+    await expect(alice.hint()).toHaveText(
+        `Write a text to ${bob.token} or share files and folders.`
+    );
+    await expect(alice.textField()).toBeEnabled();
 });

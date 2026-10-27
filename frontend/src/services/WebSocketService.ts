@@ -6,6 +6,7 @@ import { ClientTokenMessage } from "../types/token/ClientTokenMessage";
 import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
 import { PingMessage } from "../types/server/PingMessage";
 import {
+    RECONNECT_DELAYS_MS,
     SERVER_CHECK_INTERVAL_MS,
     SERVER_PONG_TIMEOUT_MS,
 } from "../util/Constants";
@@ -55,6 +56,9 @@ export class WebSocketService {
     private readonly connectionListeners = new Set<() => void>();
     // Set while a ping waits for its pong.
     private pongTimer: number | undefined;
+    // Set while a reconnect waits for its delay.
+    private reconnectTimer: number | undefined;
+    private reconnectAttempt = 0;
 
     /**
      * Initializes a new instance of the WebSocketService class.
@@ -66,10 +70,10 @@ export class WebSocketService {
         this.subscribeMessage(MessageType.PONG, () => this.clearPongTimer());
         window.setInterval(() => this.checkServer(), SERVER_CHECK_INTERVAL_MS);
         // A device waking up or rejoining a network often holds a socket that died in the meantime.
-        window.addEventListener("online", () => this.checkServer());
+        window.addEventListener("online", () => this.checkOrReconnect());
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") {
-                this.checkServer();
+                this.checkOrReconnect();
             }
         });
 
@@ -78,6 +82,8 @@ export class WebSocketService {
 
     public openWebSocket(): void {
         assert(!this.socket, "WebSocket is already open.");
+        window.clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = undefined;
         this.connectToServer();
         this.waitForLocalClientToken();
     }
@@ -87,14 +93,12 @@ export class WebSocketService {
             `${getRuntimeEnvVars().wsBackendUrl}/connect`
         );
         this.socket = socket;
-        this.setConnection("connecting");
+        // Attempts to reconnect leave the connection lost until one of them succeeds.
+        if (this.connection !== "lost") {
+            this.setConnection("connecting");
+        }
 
         // A socket replaced by closeActiveConnection reports nothing.
-        socket.addEventListener("open", () => {
-            if (socket === this.socket) {
-                this.setConnection("open");
-            }
-        });
         socket.addEventListener("close", () => {
             if (socket === this.socket) {
                 this.loseConnection();
@@ -126,6 +130,34 @@ export class WebSocketService {
         // A half-open socket can take minutes to report its close by itself.
         this.socket?.close();
         this.setConnection("lost");
+        this.scheduleReconnect();
+    }
+
+    /** Waits longer after every failed attempt, up to the last of RECONNECT_DELAYS_MS. */
+    private scheduleReconnect() {
+        if (this.reconnectTimer !== undefined) {
+            return;
+        }
+        const delay =
+            RECONNECT_DELAYS_MS[
+                Math.min(this.reconnectAttempt, RECONNECT_DELAYS_MS.length - 1)
+            ];
+        this.reconnectAttempt++;
+        this.reconnectTimer = window.setTimeout(() => this.reconnect(), delay);
+    }
+
+    /** Opens a new connection, which brings a new token. */
+    private reconnect() {
+        this.closeActiveConnection();
+        this.openWebSocket();
+    }
+
+    private checkOrReconnect() {
+        if (this.connection === "lost") {
+            this.reconnect();
+        } else {
+            this.checkServer();
+        }
     }
 
     private setConnection(connection: ServerConnection) {
@@ -187,6 +219,8 @@ export class WebSocketService {
             message => {
                 this.log("Received client token:", message.msg.token);
                 this.localToken = normalizeClientToken(message.msg.token);
+                this.reconnectAttempt = 0;
+                this.setConnection("open");
                 unsubscribe();
             }
         );
@@ -204,15 +238,13 @@ export class WebSocketService {
         this.clearPongTimer();
 
         switch (this.socket.readyState) {
-            case WebSocket.CONNECTING:
-                // this.log("WebSocket is not yet open. Delaying close.");
-                this.socket.addEventListener("open", () => {
-                    assert(this.socket);
-                    this.socket.close();
-                    this.socket = undefined;
-                });
-
+            case WebSocket.CONNECTING: {
+                // Closes once open, since closing during the handshake logs an error in the browser.
+                const socket = this.socket;
+                socket.addEventListener("open", () => socket.close());
+                this.socket = undefined;
                 return true;
+            }
             case WebSocket.OPEN:
                 this.socket.close();
                 this.socket = undefined;
