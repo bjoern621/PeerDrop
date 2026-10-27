@@ -6,8 +6,8 @@ $column-gap: 24px;
 $dashboard-padding: 24px;
 
 // Columns of the activity table. Their minimums add up to $activity-min-width.
-$activity-columns: minmax(200px, 1fr) minmax(240px, 300px) 100px 140px;
-$activity-min-width: 200px + 240px + 100px + 140px;
+$activity-columns: minmax(200px, 1fr) 300px 100px 140px;
+$activity-min-width: 200px + 300px + 100px + 140px;
 
 // Below this width the activity table no longer fits beside the left column and runs below both.
 // Adds the side padding of main in Layout.scss, --space-24 on each side, and room for the page scrollbar.
