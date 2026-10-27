@@ -51,7 +51,7 @@
         "tokensLocked_one": "Du hast zu oft einen unbekannten Token eingegeben. Bitte warte {{count}} Minute.",
         "tokensLocked_other": "Du hast zu oft einen unbekannten Token eingegeben. Bitte warte {{count}} Minuten.",
         "textsLocked": "Du schickst zu viele Texte. Bitte warte ein paar Sekunden.",
-        "enterToken": "Öffne zuerst PeerDrop auf einem anderen Gerät und gib dessen Token ein. Oder wähle es unter „Geräte“ aus.",
+        "enterToken": "Gib den Token eines anderen Geräts ein oder wähle es unter „Geräte“ aus.",
         "missingChars_one": "Gib das letzte Zeichen des Tokens ein.",
         "missingChars_other": "Gib die restlichen {{count}} Zeichen des Tokens ein.",
         "ownToken": "{{token}} ist dein eigener Token. Gib den Token eines anderen Geräts ein.",

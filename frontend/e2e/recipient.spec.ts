@@ -2,7 +2,7 @@ import { expect, test } from "./peers";
 
 test("the hint walks through entering a token", async ({ alice, bob }) => {
     await expect(alice.hint()).toHaveText(
-        'First open PeerDrop on another device and enter its token. Or pick the device under "Devices".'
+        'Enter the token of another device or pick it under "Devices".'
     );
     await expect(alice.textField()).toBeDisabled();
 
