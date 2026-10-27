@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 import { useOwnToken } from "../../hooks/useOwnToken";
+import { useServerConnection } from "../../hooks/useServerConnection";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
 import { useInlineEdit } from "../../hooks/useInlineEdit";
 import { useAuth } from "../../context/AuthContext";
@@ -31,6 +32,7 @@ import { cx } from "class-variance-authority";
 export default function TokenCard() {
     const { t } = useTranslation("dashboard");
     const token = useOwnToken();
+    const lost = useServerConnection() === "lost";
     const { isLoggedIn } = useAuth();
     const resetWebsocket = useResetWebsocket();
     const [inUseToken, setInUseToken] = useState<string | null>(null);
@@ -90,7 +92,7 @@ export default function TokenCard() {
                     }
                 />
             ) : (
-                <div className={css.tokenBox}>
+                <div className={cx(css.tokenBox, lost && css.lost)}>
                     {token ? displayToken(token) : "_____"}
                 </div>
             )}

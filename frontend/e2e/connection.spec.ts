@@ -8,6 +8,11 @@ test("a dropped connection shows a toast that stays", async ({ openPeer }) => {
     await relay.drop();
 
     await expect(alice.lostConnectionToast()).toBeVisible();
+    await expect(
+        alice.page
+            .getByRole("region", { name: "Your token" })
+            .getByText(alice.token, { exact: true })
+    ).toHaveClass(/_lost_/);
     // Outlasts the autoClose that the other toasts get.
     await alice.page.waitForTimeout(4_000);
     await expect(alice.lostConnectionToast()).toBeVisible();

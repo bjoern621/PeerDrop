@@ -19,6 +19,15 @@
     letter-spacing: 0.25em;
 }
 
+// Nobody reaches the token while the connection to the server is lost.
+// Takes the look of the disabled buttons.
+.lost {
+    border-color: var(--text-muted);
+    background-color: var(--text-muted-10);
+    color: var(--text-muted);
+    text-decoration: line-through;
+}
+
 .shareRow {
     display: flex;
     align-items: center;
