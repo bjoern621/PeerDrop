@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import css from "./TokenCard.module.scss";
 import {
@@ -8,6 +7,7 @@ import {
     IconLink as CopyLinkIcon,
     IconCheck as CheckIcon,
     IconPencil as EditIcon,
+    IconAlertTriangle as TakenIcon,
 } from "@tabler/icons-react";
 import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 import { useOwnToken } from "../../hooks/useOwnToken";
@@ -26,6 +26,7 @@ import {
     CLIENT_TOKEN_CHARACTERS,
 } from "../../util/Constants";
 import IconButton from "../IconButton/IconButton";
+import Tooltip from "../Tooltip/Tooltip";
 import CardHeading from "./CardHeading/CardHeading";
 import { cx } from "class-variance-authority";
 
@@ -62,13 +63,22 @@ export default function TokenCard() {
                 <CardHeading id="own-token" icon={ProfileIcon} tone="secondary">
                     {t("token.title")}
                 </CardHeading>
-                <IconButton
-                    label={t("token.change")}
-                    size="m"
-                    onClick={startEditing}
-                >
-                    <EditIcon aria-hidden />
-                </IconButton>
+                <div className={css.headerActions}>
+                    {takenToken && (
+                        <TakenNotice
+                            text={t("token.inUse", {
+                                token: displayToken(takenToken),
+                            })}
+                        />
+                    )}
+                    <IconButton
+                        label={t("token.change")}
+                        size="m"
+                        onClick={startEditing}
+                    >
+                        <EditIcon aria-hidden />
+                    </IconButton>
+                </div>
             </div>
             {tokenEdit.editing ? (
                 <input
@@ -89,7 +99,11 @@ export default function TokenCard() {
             )}
             <div className={css.shareRow}>
                 <p className={css.shareText}>
-                    {shareText(t, tokenEdit.editing, takenToken)}
+                    {tokenEdit.editing
+                        ? t("token.pickCharacters", {
+                              length: CLIENT_TOKEN_LENGTH,
+                          })
+                        : t("token.share")}
                 </p>
                 <CopyIconButton
                     text={token && displayToken(token)}
@@ -119,18 +133,14 @@ function chosenTokenFromInput(value: string): string {
         .slice(0, CLIENT_TOKEN_LENGTH);
 }
 
-function shareText(
-    t: TFunction<"dashboard">,
-    editing: boolean,
-    takenToken: string | null
-): string {
-    if (editing) {
-        return t("token.pickCharacters", { length: CLIENT_TOKEN_LENGTH });
-    }
-    if (takenToken) {
-        return t("token.inUse", { token: displayToken(takenToken) });
-    }
-    return t("token.share");
+function TakenNotice({ text }: { text: string }) {
+    return (
+        <Tooltip content={text}>
+            <span className={css.takenNotice} role="img" aria-label={text}>
+                <TakenIcon aria-hidden />
+            </span>
+        </Tooltip>
+    );
 }
 
 /** Copies `text` and shows a check mark for a moment; disabled while there is no text. */

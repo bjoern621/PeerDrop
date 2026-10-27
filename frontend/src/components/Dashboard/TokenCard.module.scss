@@ -56,3 +56,23 @@
     color: var(--text);
     text-transform: uppercase;
 }
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.takenNotice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: var(--warning-text);
+
+    > svg {
+        width: 20px;
+        height: 20px;
+    }
+}
