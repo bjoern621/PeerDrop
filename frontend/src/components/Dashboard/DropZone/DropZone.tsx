@@ -29,11 +29,17 @@ interface DropZoneProps {
     /** Uppercase token of a recipient that files can go to, or null. */
     recipient: string | null;
     onSelection: (selection: ShareSelection) => void;
+    /** Hint while no recipient can receive, naming what unlocks the zone. */
+    lockedHint: string;
 }
 
 type Flash = { kind: "ok" | "warn"; text: string };
 
-export default function DropZone({ recipient, onSelection }: DropZoneProps) {
+export default function DropZone({
+    recipient,
+    onSelection,
+    lockedHint,
+}: DropZoneProps) {
     const { t } = useTranslation("dashboard");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
@@ -100,7 +106,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
             return;
         }
         if (!recipient) {
-            showFlash({ kind: "warn", text: t("dropZone.pickRecipient") });
+            showFlash({ kind: "warn", text: lockedHint });
             return;
         }
         onSelection(selection);
@@ -173,7 +179,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
     const dimming = (overZone || pageDrag) && !flash;
 
     const hint = !recipient
-        ? t("dropZone.pickRecipient")
+        ? lockedHint
         : isTouchDevice
           ? t("dropZone.pick")
           : t("dropZone.pickOrDrag");

@@ -37,6 +37,8 @@ interface TextComposerProps {
     onDraftChange: (draft: string) => void;
     /** Keeps the field locked until the recipient can receive. */
     disabled: boolean;
+    /** Placeholder of the locked field, naming what unlocks it. */
+    lockedHint: string;
     canSend: boolean;
     /** Share of the send pause already over, 0..1; null while sending is allowed. */
     pauseProgress: number | null;
@@ -58,6 +60,7 @@ export default function TextComposer({
     draft,
     onDraftChange,
     disabled,
+    lockedHint,
     canSend,
     pauseProgress,
     onSend,
@@ -178,9 +181,7 @@ export default function TextComposer({
                         wrap="off"
                         disabled={disabled}
                         placeholder={
-                            disabled
-                                ? t("dropZone.pickRecipient")
-                                : t("composer.placeholder")
+                            disabled ? lockedHint : t("composer.placeholder")
                         }
                     />
                 </div>

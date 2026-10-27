@@ -172,6 +172,7 @@ export default function Dashboard() {
                               : lookup.status
                     }
                     hint={hint}
+                    lost={lost}
                     draft={draft}
                     onDraftChange={setDraft}
                     canWriteText={ready}

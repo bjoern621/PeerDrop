@@ -25,6 +25,8 @@ interface SendPanelProps {
     onRecipientChange: (token: string) => void;
     check: RecipientCheck;
     hint: Hint;
+    /** The connection to the server is lost, so no step can be taken. */
+    lost: boolean;
     draft: string;
     onDraftChange: (draft: string) => void;
     canWriteText: boolean;
@@ -60,6 +62,9 @@ export default function SendPanel(props: SendPanelProps) {
     const hintTextHeight = useContentHeight(hintTextRef);
     const partsRef = useRef<HTMLDivElement>(null);
     usePublishHeight(hintRef, "--send-hint-height");
+    const lockedHint = props.lost
+        ? t("send.noConnection")
+        : t("dropZone.pickRecipient");
 
     return (
         <section className={css.panel} aria-labelledby="send-heading">
@@ -73,7 +78,10 @@ export default function SendPanel(props: SendPanelProps) {
                 </CardHeading>
                 <div className={css.recipient}>
                     <span className={css.label}>
-                        <StepNumber step={1} active={!props.canWriteText} />
+                        <StepNumber
+                            step={1}
+                            active={!props.canWriteText && !props.lost}
+                        />
                         {t("send.to")}
                     </span>
                     <RecipientInput
@@ -109,6 +117,7 @@ export default function SendPanel(props: SendPanelProps) {
                         canSend={props.canSendText}
                         pauseProgress={props.pauseProgress}
                         onSend={props.onSendText}
+                        lockedHint={lockedHint}
                         boundsRef={props.boundsRef}
                         widthRef={partsRef}
                     />
@@ -121,6 +130,7 @@ export default function SendPanel(props: SendPanelProps) {
                     <DropZone
                         recipient={props.filesRecipient}
                         onSelection={props.onSelection}
+                        lockedHint={lockedHint}
                     />
                 </div>
             </div>

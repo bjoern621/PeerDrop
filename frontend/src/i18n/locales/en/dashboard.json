@@ -41,6 +41,7 @@
         }
     },
     "send": {
+        "noConnection": "No connection to the server",
         "title": "Send",
         "to": "To",
         "recipientToken": "Recipient's token",

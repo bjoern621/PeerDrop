@@ -56,6 +56,10 @@ test("a lost connection locks sending and leaves the recipient unknown", async (
     );
     await expect(alice.recipientCheck()).toHaveClass(/_unknown_/);
     await expect(alice.textField()).toBeDisabled();
+    await expect(alice.textField()).toHaveAttribute(
+        "placeholder",
+        "No connection to the server"
+    );
     await expect(
         alice.page.getByRole("button", { name: "Share file" })
     ).toBeDisabled();
