@@ -4,7 +4,8 @@ import css from "./DeviceTile.module.scss";
 import FakeButton from "../../../FakeButton/FakeButton";
 import Tooltip from "../../../Tooltip/Tooltip";
 import Spinner from "../../../Spinner/Spinner";
-import PopIn from "../../../PopIn/PopIn";
+import PopIn, { POP_OUT_MS } from "../../../PopIn/PopIn";
+import { useLingering } from "../../../../hooks/useLingering";
 import { cx } from "class-variance-authority";
 import { useServerConnection } from "../../../../hooks/useServerConnection";
 
@@ -36,6 +37,7 @@ export default function DeviceTile({
     // Without the server, the last known status may be stale.
     const lost = useServerConnection() === "lost";
     const spinning = checking && !lost;
+    const showsMark = useLingering(spinning || selected, POP_OUT_MS);
     const dot = (
         <span
             className={cx(
@@ -61,10 +63,10 @@ export default function DeviceTile({
                 dot
             )}
             <span className={css.content}>{children}</span>
-            {(spinning || selected) && (
+            {showsMark && (
                 <span className={css.mark}>
                     <Spinner visible={spinning} />
-                    <PopIn visible={!spinning}>
+                    <PopIn visible={selected && !spinning}>
                         <CheckIcon />
                     </PopIn>
                 </span>

@@ -18,6 +18,7 @@
     opacity: 0;
     scale: 0.5;
 
+    // The fade-out lasts POP_OUT_MS in PopIn.tsx.
     @media (prefers-reduced-motion: no-preference) {
         transition:
             opacity 0.2s ease-out,
