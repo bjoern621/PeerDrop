@@ -50,6 +50,26 @@ public class PresenceWatchRepositoryTest
     }
 
     [Test]
+    public void Unwatch_Watcher_DropsItsWatch()
+    {
+        _repository.Watch(WATCHER, WATCHED);
+
+        _repository.Unwatch(WATCHER.ToUpperInvariant());
+
+        Assert.That(_repository.WatchersOf(WATCHED), Is.Empty);
+    }
+
+    [Test]
+    public void Unwatch_ClientWatchingNothing_DoesNothing()
+    {
+        _repository.Watch(OTHER, WATCHED);
+
+        _repository.Unwatch(WATCHER);
+
+        Assert.That(_repository.WatchersOf(WATCHED), Is.EqualTo(new[] { OTHER }));
+    }
+
+    [Test]
     public void RemoveClient_Watcher_DropsItsWatch()
     {
         _repository.Watch(WATCHER, WATCHED);

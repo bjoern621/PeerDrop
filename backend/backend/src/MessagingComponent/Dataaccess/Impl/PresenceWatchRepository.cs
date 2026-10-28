@@ -15,6 +15,14 @@ public class PresenceWatchRepository : IPresenceWatchRepository
         }
     }
 
+    public void Unwatch(string watcherToken)
+    {
+        lock (_lock)
+        {
+            _watchedBy.Remove(Normalize(watcherToken));
+        }
+    }
+
     public IReadOnlyList<string> WatchersOf(string watchedToken)
     {
         lock (_lock)

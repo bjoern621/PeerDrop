@@ -13,6 +13,11 @@ public interface IPresenceWatchRepository
     void Watch(string watcherToken, string watchedToken);
 
     /// <summary>
+    /// Drops the watcher's watch. Nothing happens if it watches no token.
+    /// </summary>
+    void Unwatch(string watcherToken);
+
+    /// <summary>
     /// Returns the clients that watch the token.
     /// </summary>
     IReadOnlyList<string> WatchersOf(string watchedToken);

@@ -155,6 +155,25 @@ public class TokenLookupServiceTest
     }
 
     [Test]
+    public async Task HandlePublicKey_LookupWhileLocked_TellsNothing()
+    {
+        for (var i = 0; i < 6; i++)
+        {
+            await LookUp(OFFLINE);
+        }
+        var sentBefore = _sent.To<TokenStatusMessage>(REQUESTER).Count;
+
+        await LookUp(TARGET);
+        await _service.HandlePublicKey(TARGET, new PublicKeyMessage { Key = TARGET_KEY });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(sentBefore + 1));
+            Assert.That(LastStatus().RetryAfterMs, Is.Not.Null);
+        });
+    }
+
+    [Test]
     public async Task HandleClientDisconnected_RequesterLeftFirst_TellsNothing()
     {
         await LookUp(TARGET);

@@ -54,7 +54,10 @@ public class TokenLookupService(
             ? LookUpToken(clientToken, message.Token!.ToLowerInvariant())
             : await LookUpDevice(clientToken, message.DeviceUuid!.Value);
 
-        if (status.Token != string.Empty)
+        // A token lookup ends the watch on the token looked up before. One answered under the lock watches nothing.
+        if (status.RetryAfterMs != null)
+            _presenceWatchRepository.Unwatch(clientToken);
+        else if (status.Token != string.Empty)
             _presenceWatchRepository.Watch(clientToken, status.Token);
 
         await _clientRegistry.SendMessage(clientToken, status);
