@@ -69,19 +69,18 @@ export default function Dashboard() {
         recipient.length === CLIENT_TOKEN_LENGTH && recipient !== ownToken;
 
     const lock = messaging.lock;
-    // The server answers every lookup during the lock with the lock itself,
-    // so the check waits for its end and runs then.
     const tokensLocked = lock?.reason === "tokens";
-    const canLookUp = complete && !tokensLocked;
+    // Looks up during the lock as well, so the server drops its watch on the previous token.
+    // The server answers those lookups with the lock alone, so the end of the lock looks up again.
     useEffect(() => {
-        if (canLookUp) {
+        if (complete) {
             messagingService.lookup(recipient);
         }
         // exhaustive-deps-exclude [messagingService]
-    }, [recipient, canLookUp]);
+    }, [recipient, complete, tokensLocked]);
     // A new connection starts without lookups, even under the same token.
     useWebSocketMessage(MessageType.CLIENT_TOKEN, () => {
-        if (canLookUp) {
+        if (complete) {
             messagingService.lookup(recipient);
         }
     });
@@ -101,7 +100,10 @@ export default function Dashboard() {
     const blocked = messaging.blocked.has(recipient);
     const lost = useServerConnection() === "lost";
     const ready = complete && lookup?.status === "online" && !blocked && !lost;
-    const check = complete && !blocked ? recipientCheck(lookup, lost) : null;
+    const check =
+        complete && !blocked && !tokensLocked
+            ? recipientCheck(lookup, lost)
+            : null;
     const hasText = draft.trim().length > 0;
     const tooBig = useMemo(() => textBytes(draft) > MAX_TEXT_BYTES, [draft]);
 

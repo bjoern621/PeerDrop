@@ -187,12 +187,16 @@ export class MessagingService {
         return this.snapshot;
     }
 
-    /** Asks the server whether a token is online. Own tokens are never asked. */
+    /**
+     * Asks the server whether a token is online. Own tokens are never asked.
+     * Drops the result for every other token, since the server reports changes for the token looked up last alone.
+     */
     public lookup(token: ClientToken) {
         token = normalizeClientToken(token);
         if (this.lookups.get(token)?.status === "checking") {
             return;
         }
+        this.lookups.clear();
         this.lookups.set(token, {
             status: "checking",
             checkId: ++this.lastCheckId,
@@ -421,6 +425,7 @@ export class MessagingService {
             this.deviceLookups.delete(deviceUuid);
             if (online) {
                 this.rememberPeer(normalized, { publicKey, ownDevice });
+                this.lookups.clear();
                 this.lookups.set(normalized, { status: "online", ownDevice });
                 this.publish();
             }
@@ -431,6 +436,10 @@ export class MessagingService {
         if (retryAfterMs !== null) {
             this.lookups.delete(normalized);
             this.lockFor("tokens", retryAfterMs);
+            return;
+        }
+        // An answer for a token looked up before the current one.
+        if (!this.lookups.has(normalized)) {
             return;
         }
 
