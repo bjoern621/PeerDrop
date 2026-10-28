@@ -5,7 +5,6 @@ import {
     IconPlugConnected as ConnectIcon,
     IconKeyboard as KeyboardIcon,
     IconClock as ClockIcon,
-    IconLoader as CheckingIcon,
     IconAlertTriangle as WarningIcon,
     IconAlignLeft as LinesIcon,
 } from "@tabler/icons-react";
@@ -15,6 +14,7 @@ import RecipientInput, {
 import TextComposer from "./TextComposer/TextComposer";
 import DropZone from "./DropZone/DropZone";
 import CardHeading from "./CardHeading/CardHeading";
+import Spinner from "../Spinner/Spinner";
 import { Hint } from "./nextStep";
 import { ShareSelection } from "../../types/transfer/ShareSelection";
 import { useResizeObserver } from "../../hooks/useResizeObserver";
@@ -90,14 +90,10 @@ export default function SendPanel(props: SendPanelProps) {
                         onChange={props.onRecipientChange}
                         check={props.check}
                     />
-                    <span
-                        className={cx(
-                            css.checking,
-                            props.check === "checking" && css.visible
-                        )}
-                    >
-                        <CheckingIcon aria-hidden />
-                    </span>
+                    <Spinner
+                        visible={props.check === "checking"}
+                        className={css.checking}
+                    />
                 </div>
             </div>
 
