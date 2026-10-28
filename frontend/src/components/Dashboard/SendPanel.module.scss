@@ -169,3 +169,15 @@
         gap: var(--space-24);
     }
 }
+
+@keyframes spin {
+    to {
+        rotate: 1turn;
+    }
+}
+
+.spinning {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: spin 0.8s linear infinite;
+    }
+}

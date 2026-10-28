@@ -4,7 +4,7 @@ import css from "./SendPanel.module.scss";
 import {
     IconPlugConnected as ConnectIcon,
     IconKeyboard as KeyboardIcon,
-    IconClock as ClockIcon,
+    IconLoader2 as CheckingIcon,
     IconAlertTriangle as WarningIcon,
     IconAlignLeft as LinesIcon,
 } from "@tabler/icons-react";
@@ -43,7 +43,7 @@ interface SendPanelProps {
 const HINT_ICONS = {
     type: KeyboardIcon,
     pick: LinesIcon,
-    wait: ClockIcon,
+    wait: CheckingIcon,
     warn: WarningIcon,
     err: WarningIcon,
 };
@@ -93,7 +93,10 @@ export default function SendPanel(props: SendPanelProps) {
             </div>
 
             <div ref={hintRef} role="status" className={cx(css.hint, tone)}>
-                <HintIcon aria-hidden />
+                <HintIcon
+                    aria-hidden
+                    className={cx(props.hint.kind === "wait" && css.spinning)}
+                />
                 <div
                     className={css.hintTextFrame}
                     style={{ height: hintTextHeight }}
