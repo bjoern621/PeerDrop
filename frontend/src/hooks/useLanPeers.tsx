@@ -12,12 +12,13 @@ import { useWebSocketMessage } from "./useWebSocketMessage";
  *
  * The backend groups clients by public IP (same IP = same network) and pushes
  * the full peer list over the existing WebSocket connection whenever it
- * changes. On mount, the current list is requested explicitly so peers that
- * were already present are shown immediately. Discovery runs continuously;
+ * changes. Mounted on an open connection, it requests the current list, since
+ * the report of the setting went out before. Discovery runs continuously;
  * the list grows and shrinks as peers appear and disappear.
  *
- * The list stays empty while the LAN discovery setting is off. Switching the
- * setting back on requests the current list again.
+ * The list stays empty while the LAN discovery setting is off. Reporting the
+ * setting as on brings the current list, on every new connection and whenever
+ * the setting switches on.
  */
 export const useLanPeers = () => {
     const webSocketService = useWebSocketService();
@@ -38,13 +39,18 @@ export const useLanPeers = () => {
         lanDiscovery
     );
 
+    // Runs once, for a connection that reported the setting before this hook mounted.
     useEffect(() => {
-        if (lanDiscovery) {
+        if (lanDiscovery && webSocketService.getConnection() === "open") {
             webSocketService.sendMessage(new LanPeersRequestMessage());
-        } else {
+        }
+        // exhaustive-deps-exclude [webSocketService, lanDiscovery]
+    }, []);
+    useEffect(() => {
+        if (!lanDiscovery) {
             setPeers([]);
         }
-    }, [lanDiscovery, webSocketService]);
+    }, [lanDiscovery]);
 
     return { peers };
 };
