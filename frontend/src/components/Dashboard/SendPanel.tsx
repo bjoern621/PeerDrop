@@ -90,10 +90,13 @@ export default function SendPanel(props: SendPanelProps) {
                         onChange={props.onRecipientChange}
                         check={props.check}
                     />
-                    <span className={css.checking}>
-                        {props.check === "checking" && (
-                            <CheckingIcon aria-hidden />
+                    <span
+                        className={cx(
+                            css.checking,
+                            props.check === "checking" && css.visible
                         )}
+                    >
+                        <CheckingIcon aria-hidden />
                     </span>
                 </div>
             </div>

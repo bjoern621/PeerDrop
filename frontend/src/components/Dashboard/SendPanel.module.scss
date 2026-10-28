@@ -176,12 +176,25 @@
     }
 }
 
-// Keeps its width while empty, so the token slots stay in place when the check starts.
+// Keeps its width while hidden, so the token slots stay in place when the check starts.
 .checking {
     flex: none;
     width: 20px;
     height: 20px;
     color: var(--text-muted);
+    opacity: 0;
+    scale: 0.5;
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition:
+            opacity 0.2s ease-out,
+            scale 0.2s ease-out;
+    }
+
+    &.visible {
+        opacity: 1;
+        scale: 1;
+    }
 
     > svg {
         width: 20px;
