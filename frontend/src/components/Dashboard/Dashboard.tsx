@@ -56,6 +56,10 @@ export default function Dashboard() {
     const [selectedDeviceUuid, setSelectedDeviceUuid] = useState<string | null>(
         null
     );
+    // Set while the server resolves the token of a picked device.
+    const [pendingDeviceUuid, setPendingDeviceUuid] = useState<string | null>(
+        null
+    );
     const [draft, setDraft] = useState("");
     const [now, setNow] = useState(() => Date.now());
     const dashboardRef = useRef<HTMLDivElement>(null);
@@ -97,6 +101,7 @@ export default function Dashboard() {
     const blocked = messaging.blocked.has(recipient);
     const lost = useServerConnection() === "lost";
     const ready = complete && lookup?.status === "online" && !blocked && !lost;
+    const check = complete && !blocked ? recipientCheck(lookup, lost) : null;
     const hasText = draft.trim().length > 0;
     const tooBig = useMemo(() => textBytes(draft) > MAX_TEXT_BYTES, [draft]);
 
@@ -129,7 +134,11 @@ export default function Dashboard() {
             setRecipient("");
             return;
         }
+        setPendingDeviceUuid(device.uuid);
         void messagingService.lookupDevice(device.uuid).then(token => {
+            setPendingDeviceUuid(pending =>
+                pending === device.uuid ? null : pending
+            );
             if (token) {
                 setRecipient(token);
                 setSelectedDeviceUuid(device.uuid);
@@ -159,6 +168,8 @@ export default function Dashboard() {
                 <DevicePanel
                     recipient={recipient}
                     selectedDeviceUuid={selectedDeviceUuid}
+                    pendingDeviceUuid={pendingDeviceUuid}
+                    recipientChecking={check === "checking"}
                     onPickToken={pickToken}
                     onPickDevice={pickDevice}
                     floating={compact}
@@ -171,11 +182,7 @@ export default function Dashboard() {
                         setSelectedDeviceUuid(null);
                         setRecipient(token);
                     }}
-                    check={
-                        complete && !blocked
-                            ? recipientCheck(lookup, lost)
-                            : null
-                    }
+                    check={check}
                     hint={hint}
                     lost={lost}
                     draft={draft}

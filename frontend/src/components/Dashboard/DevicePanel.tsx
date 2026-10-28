@@ -33,6 +33,10 @@ const MOVE_MS = 200;
 interface DevicePanelProps {
     recipient: string;
     selectedDeviceUuid: string | null;
+    /** Own device whose token the server resolves. */
+    pendingDeviceUuid: string | null;
+    /** The server checks whether the recipient is online. */
+    recipientChecking: boolean;
     onPickToken: (token: string) => void;
     onPickDevice: (device: Device) => void;
     /** Offers to enlarge the list over the content below. */
@@ -43,6 +47,8 @@ interface DevicePanelProps {
 export default function DevicePanel({
     recipient,
     selectedDeviceUuid,
+    pendingDeviceUuid,
+    recipientChecking,
     onPickToken,
     onPickDevice,
     floating,
@@ -158,6 +164,10 @@ export default function DevicePanel({
                                         key={peer.token}
                                         peer={peer}
                                         selected={peer.token === recipient}
+                                        checking={
+                                            peer.token === recipient &&
+                                            recipientChecking
+                                        }
                                         onPick={pickToken}
                                     />
                                 ))}
@@ -190,6 +200,12 @@ export default function DevicePanel({
                         {isLoggedIn ? (
                             <DeviceList
                                 selectedUuid={selectedDeviceUuid}
+                                checkingUuid={
+                                    pendingDeviceUuid ??
+                                    (recipientChecking
+                                        ? selectedDeviceUuid
+                                        : null)
+                                }
                                 onSelect={pickDevice}
                             />
                         ) : (
@@ -227,10 +243,12 @@ export default function DevicePanel({
 function LanTile({
     peer,
     selected,
+    checking,
     onPick,
 }: {
     peer: LanPeer;
     selected: boolean;
+    checking: boolean;
     onPick: (token: string) => void;
 }) {
     const { t } = useTranslation("dashboard");
@@ -243,6 +261,7 @@ function LanTile({
         <DeviceTile
             online
             selected={selected}
+            checking={checking}
             onSelect={() => onPick(peer.token)}
         >
             <span className={css.tileToken}>{displayToken(peer.token)}</span>

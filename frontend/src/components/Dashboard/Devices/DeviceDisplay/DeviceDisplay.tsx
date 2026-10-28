@@ -21,6 +21,8 @@ interface DeviceDisplayProps {
     /** Picks the device as recipient. */
     onSelect: (device: Device) => void;
     selected: boolean;
+    /** The server resolves the device's token or checks whether it is online. */
+    checking: boolean;
     onDelete: (device: Device) => void;
     onRename: (device: Device, newName: string) => void;
 }
@@ -29,6 +31,7 @@ export default function DeviceDisplay({
     device,
     onSelect,
     selected,
+    checking,
     onDelete,
     onRename,
 }: DeviceDisplayProps) {
@@ -58,6 +61,7 @@ export default function DeviceDisplay({
                 </>
             }
             selected={selected}
+            checking={checking}
             disabled={!online || device.current}
             onSelect={() => onSelect(device)}
             actions={

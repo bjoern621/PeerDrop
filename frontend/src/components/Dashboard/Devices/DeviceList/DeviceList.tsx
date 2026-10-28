@@ -8,11 +8,13 @@ import { IconPlus as PlusIcon } from "@tabler/icons-react";
 
 interface DeviceListProps {
     selectedUuid: string | null;
+    checkingUuid: string | null;
     onSelect: (device: Device) => void;
 }
 
 export default function DeviceList({
     selectedUuid,
+    checkingUuid,
     onSelect,
 }: DeviceListProps) {
     const { t } = useTranslation("dashboard");
@@ -42,6 +44,7 @@ export default function DeviceList({
                     key={device.uuid}
                     device={device}
                     selected={device.uuid === selectedUuid}
+                    checking={device.uuid === checkingUuid}
                     onSelect={onSelect}
                     onDelete={() => void deleteDevice(device)}
                     onRename={(device, newName) =>
