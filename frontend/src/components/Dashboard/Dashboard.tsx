@@ -100,9 +100,10 @@ export default function Dashboard() {
     const blocked = messaging.blocked.has(recipient);
     const lost = useServerConnection() === "lost";
     const ready = complete && lookup?.status === "online" && !blocked && !lost;
+    // The lock holds the check back until it ends.
     const check =
-        complete && !blocked && !tokensLocked
-            ? recipientCheck(lookup, lost)
+        complete && !blocked
+            ? recipientCheck(tokensLocked ? undefined : lookup, lost)
             : null;
     const hasText = draft.trim().length > 0;
     const tooBig = useMemo(() => textBytes(draft) > MAX_TEXT_BYTES, [draft]);
