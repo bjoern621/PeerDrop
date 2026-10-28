@@ -5,6 +5,7 @@ import css from "./Dashboard.module.scss";
 import TokenCard from "./TokenCard";
 import DevicePanel from "./DevicePanel";
 import SendPanel from "./SendPanel";
+import { RecipientCheck } from "./RecipientInput/RecipientInput";
 import ActivityList from "./ActivityList/ActivityList";
 import CardHeading from "./CardHeading/CardHeading";
 import { IconArrowsTransferUpDown as TransferIcon } from "@tabler/icons-react";
@@ -171,14 +172,9 @@ export default function Dashboard() {
                         setRecipient(token);
                     }}
                     check={
-                        !complete ||
-                        blocked ||
-                        !lookup ||
-                        lookup.status === "checking"
-                            ? null
-                            : lost
-                              ? "unknown"
-                              : lookup.status
+                        complete && !blocked
+                            ? recipientCheck(lookup, lost)
+                            : null
                     }
                     hint={hint}
                     lost={lost}
@@ -221,6 +217,17 @@ export default function Dashboard() {
             </div>
         </div>
     );
+}
+
+function recipientCheck(
+    lookup: LookupState | undefined,
+    lost: boolean
+): RecipientCheck {
+    if (!lookup || lookup.status === "checking") {
+        // No answer arrives while the connection is lost.
+        return lost ? null : "checking";
+    }
+    return lost ? "unknown" : lookup.status;
 }
 
 /** Reports a fresh lookup as still checking until MIN_CHECK_MS have passed. */

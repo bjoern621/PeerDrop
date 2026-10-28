@@ -4,6 +4,7 @@ import css from "./SendPanel.module.scss";
 import {
     IconPlugConnected as ConnectIcon,
     IconKeyboard as KeyboardIcon,
+    IconClock as ClockIcon,
     IconLoader2 as CheckingIcon,
     IconAlertTriangle as WarningIcon,
     IconAlignLeft as LinesIcon,
@@ -43,7 +44,7 @@ interface SendPanelProps {
 const HINT_ICONS = {
     type: KeyboardIcon,
     pick: LinesIcon,
-    wait: CheckingIcon,
+    wait: ClockIcon,
     warn: WarningIcon,
     err: WarningIcon,
 };
@@ -89,14 +90,16 @@ export default function SendPanel(props: SendPanelProps) {
                         onChange={props.onRecipientChange}
                         check={props.check}
                     />
+                    <span className={css.checking}>
+                        {props.check === "checking" && (
+                            <CheckingIcon aria-hidden />
+                        )}
+                    </span>
                 </div>
             </div>
 
             <div ref={hintRef} role="status" className={cx(css.hint, tone)}>
-                <HintIcon
-                    aria-hidden
-                    className={cx(props.hint.kind === "wait" && css.spinning)}
-                />
+                <HintIcon aria-hidden />
                 <div
                     className={css.hintTextFrame}
                     style={{ height: hintTextHeight }}

@@ -12,10 +12,15 @@ import { useMediaQuery } from "../../../hooks/useMediaQuery";
 import { cx } from "class-variance-authority";
 
 /**
- * Result of the server's check of a complete token.
+ * Result of the server's check of a complete token, "checking" until the server answers.
  * "unknown" while the connection to the server is lost, because the last result may be stale.
  */
-export type RecipientCheck = "online" | "offline" | "unknown" | null;
+export type RecipientCheck =
+    | "checking"
+    | "online"
+    | "offline"
+    | "unknown"
+    | null;
 
 // Letters of the server's proquint tokens, from ClientTokenFormat in the backend.
 const PROQUINT_CONSONANTS = "bdfghjklmnprstvz";

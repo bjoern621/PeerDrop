@@ -176,8 +176,19 @@
     }
 }
 
-.spinning {
-    @media (prefers-reduced-motion: no-preference) {
-        animation: spin 0.8s linear infinite;
+// Keeps its width while empty, so the token slots stay in place when the check starts.
+.checking {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted);
+
+    > svg {
+        width: 20px;
+        height: 20px;
+
+        @media (prefers-reduced-motion: no-preference) {
+            animation: spin 0.8s linear infinite;
+        }
     }
 }
