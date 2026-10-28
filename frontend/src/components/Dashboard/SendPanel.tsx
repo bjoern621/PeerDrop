@@ -5,7 +5,7 @@ import {
     IconPlugConnected as ConnectIcon,
     IconKeyboard as KeyboardIcon,
     IconClock as ClockIcon,
-    IconLoader4 as CheckingIcon,
+    IconLoader as CheckingIcon,
     IconAlertTriangle as WarningIcon,
     IconAlignLeft as LinesIcon,
 } from "@tabler/icons-react";
