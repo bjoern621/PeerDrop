@@ -7,7 +7,7 @@ import {
     IconLink as CopyLinkIcon,
     IconCheck as CheckIcon,
     IconPencil as EditIcon,
-    IconAlertTriangle as TakenIcon,
+    IconInfoCircle as TakenIcon,
 } from "@tabler/icons-react";
 import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 import { useOwnToken } from "../../hooks/useOwnToken";
