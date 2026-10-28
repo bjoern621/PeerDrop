@@ -230,21 +230,23 @@ function recipientCheck(
     return lost ? "unknown" : lookup.status;
 }
 
-/** Reports a fresh lookup as still checking until MIN_CHECK_MS have passed. */
+/** Reports every lookup as still checking until MIN_CHECK_MS have passed since it started. */
 function useSteadyLookup(
     token: string,
     lookup: LookupState | undefined
 ): LookupState | undefined {
-    const [held, setHeld] = useState<string | null>(null);
-    const checking = lookup?.status === "checking";
+    const [held, setHeld] = useState<{ token: string; checkId: number } | null>(
+        null
+    );
+    const checkId = lookup?.status === "checking" ? lookup.checkId : null;
 
     useEffect(() => {
-        if (checking) {
-            setHeld(token);
+        if (checkId !== null) {
+            setHeld({ token, checkId });
         }
-    }, [token, checking]);
+    }, [token, checkId]);
 
-    // Keyed on the held token alone, so the lookup answering early keeps the timer.
+    // Keyed on the held check alone, so the lookup answering early keeps the timer.
     useEffect(() => {
         if (held === null) {
             return;
@@ -253,5 +255,7 @@ function useSteadyLookup(
         return () => window.clearTimeout(timer);
     }, [held]);
 
-    return held === token && lookup ? { status: "checking" } : lookup;
+    return held?.token === token && lookup
+        ? { status: "checking", checkId: held.checkId }
+        : lookup;
 }

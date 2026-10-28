@@ -32,7 +32,8 @@ const TEXT_BURST = 5;
 const TEXT_REFILL_MS = 6000;
 
 export type LookupState =
-    | { status: "checking" }
+    // Every lookup gets its own checkId, also for a token asked before.
+    | { status: "checking"; checkId: number }
     | { status: "online"; ownDevice: boolean }
     | { status: "offline" };
 
@@ -109,6 +110,7 @@ export class MessagingService {
     private readonly outgoingOffers = new Map<string, PendingOffer>();
     private readonly incomingOffers = new Map<string, OfferEntry>();
     private readonly lookups = new Map<ClientToken, LookupState>();
+    private lastCheckId = 0;
     private readonly peerInfo = new Map<ClientToken, PeerInfo>();
     private readonly deviceLookups = new Map<
         string,
@@ -191,7 +193,10 @@ export class MessagingService {
         if (this.lookups.get(token)?.status === "checking") {
             return;
         }
-        this.lookups.set(token, { status: "checking" });
+        this.lookups.set(token, {
+            status: "checking",
+            checkId: ++this.lastCheckId,
+        });
         this.publish();
         this.signaling.sendMessage(new TokenLookupMessage({ token }));
     }
