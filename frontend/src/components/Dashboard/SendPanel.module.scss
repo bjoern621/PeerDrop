@@ -176,6 +176,19 @@
     }
 }
 
+// Pops past its size like the due step.
+@keyframes checking-pop {
+    from {
+        opacity: 0;
+        scale: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+        scale: 1.25;
+    }
+}
+
 // Keeps its width while hidden, so the token slots stay in place when the check starts.
 .checking {
     flex: none;
@@ -194,6 +207,10 @@
     &.visible {
         opacity: 1;
         scale: 1;
+
+        @media (prefers-reduced-motion: no-preference) {
+            animation: checking-pop 0.35s ease-out;
+        }
     }
 
     > svg {
