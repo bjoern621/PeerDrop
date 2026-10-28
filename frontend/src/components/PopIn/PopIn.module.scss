@@ -1,0 +1,41 @@
+// Pops past its size like the due step.
+@keyframes pop {
+    from {
+        opacity: 0;
+        scale: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+        scale: 1.25;
+    }
+}
+
+.popIn {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+    scale: 0.5;
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition:
+            opacity 0.2s ease-out,
+            scale 0.2s ease-out;
+    }
+
+    &.visible {
+        opacity: 1;
+        scale: 1;
+
+        @media (prefers-reduced-motion: no-preference) {
+            animation: pop 0.35s ease-out;
+        }
+    }
+
+    > svg {
+        display: block;
+        width: 20px;
+        height: 20px;
+    }
+}

@@ -4,6 +4,7 @@ import css from "./DeviceTile.module.scss";
 import FakeButton from "../../../FakeButton/FakeButton";
 import Tooltip from "../../../Tooltip/Tooltip";
 import Spinner from "../../../Spinner/Spinner";
+import PopIn from "../../../PopIn/PopIn";
 import { cx } from "class-variance-authority";
 import { useServerConnection } from "../../../../hooks/useServerConnection";
 
@@ -34,6 +35,7 @@ export default function DeviceTile({
 }: DeviceTileProps) {
     // Without the server, the last known status may be stale.
     const lost = useServerConnection() === "lost";
+    const spinning = checking && !lost;
     const dot = (
         <span
             className={cx(
@@ -59,10 +61,13 @@ export default function DeviceTile({
                 dot
             )}
             <span className={css.content}>{children}</span>
-            {checking && !lost ? (
-                <Spinner />
-            ) : (
-                selected && <CheckIcon className={css.check} aria-hidden />
+            {(spinning || selected) && (
+                <span className={css.mark}>
+                    <Spinner visible={spinning} />
+                    <PopIn visible={!spinning}>
+                        <CheckIcon />
+                    </PopIn>
+                </span>
             )}
             {actions && <span className={css.actions}>{actions}</span>}
         </FakeButton>

@@ -94,9 +94,13 @@
     overflow-x: clip;
 }
 
-.check {
-    width: 20px;
-    height: 20px;
+// Stacks spinner and check mark, so one fades out while the other pops in.
+.mark {
+    display: grid;
+
+    > * {
+        grid-area: 1 / 1;
+    }
 }
 
 .actions {
