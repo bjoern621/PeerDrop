@@ -4,10 +4,21 @@ import { Logger } from "../util/Logger";
 import { ITypedMessage } from "../types/ITypedMessage";
 import { ClientTokenMessage } from "../types/token/ClientTokenMessage";
 import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
+import { PingMessage } from "../types/server/PingMessage";
+import { HelloMessage } from "../types/token/HelloMessage";
+import { getSettings } from "./SettingsStore";
+import {
+    RECONNECT_DELAYS_MS,
+    SERVER_CHECK_INTERVAL_MS,
+    SERVER_PONG_TIMEOUT_MS,
+} from "../util/Constants";
 
 export type MessageHandler = (typedMessage: ITypedMessage) => unknown;
 
 export type ClientToken = string;
+
+/** "lost" once the socket closed or stopped answering pings. */
+export type ServerConnection = "connecting" | "open" | "lost";
 
 /**
  * Normalizes a client token to its canonical form (lowercase).
@@ -19,6 +30,11 @@ export type ClientToken = string;
  */
 export function normalizeClientToken(token: ClientToken): ClientToken {
     return token.toLowerCase();
+}
+
+/** Uppercase form of a token, as the interface shows it. */
+export function displayToken(token: ClientToken): string {
+    return token.toUpperCase();
 }
 
 /**
@@ -37,6 +53,16 @@ export class WebSocketService {
         new Map();
 
     private localToken: ClientToken | undefined;
+    // Lets the next connection take localToken back from a connection that the server still counts as open.
+    private reclaimKey: string | null = null;
+
+    private connection: ServerConnection = "connecting";
+    private readonly connectionListeners = new Set<() => void>();
+    // Set while a ping waits for its pong.
+    private pongTimer: number | undefined;
+    // Set while a reconnect waits for its delay.
+    private reconnectTimer: number | undefined;
+    private reconnectAttempt = 0;
 
     /**
      * Initializes a new instance of the WebSocketService class.
@@ -45,21 +71,133 @@ export class WebSocketService {
     public constructor() {
         this.logger.setEnabled(false); // Disable logging by default, can be enabled later if needed
 
+        this.subscribeMessage(MessageType.PONG, () => this.clearPongTimer());
+        window.setInterval(() => this.checkServer(), SERVER_CHECK_INTERVAL_MS);
+        // A device waking up or rejoining a network often holds a socket that died in the meantime.
+        window.addEventListener("online", () => this.checkOrReconnect());
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                this.checkOrReconnect();
+            }
+        });
+
         this.openWebSocket();
     }
 
-    public openWebSocket(): void {
+    /**
+     * Connects and asks the server for `requestedToken`. By default it asks for
+     * the token held last, so a reconnect keeps it, or else for the token that
+     * the settings request. The server may hand out another one.
+     */
+    public openWebSocket(
+        requestedToken = this.localToken ?? getSettings().requestedToken
+    ): void {
         assert(!this.socket, "WebSocket is already open.");
-        this.connectToServer();
+        window.clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = undefined;
+        this.connectToServer(requestedToken);
         this.waitForLocalClientToken();
     }
 
-    private connectToServer() {
-        this.socket = new WebSocket(
+    private connectToServer(requestedToken: ClientToken | null) {
+        const socket = new WebSocket(
             `${getRuntimeEnvVars().wsBackendUrl}/connect`
         );
+        this.socket = socket;
+        // The server assigns no token before the hello, so it has to go out first.
+        const hello = new HelloMessage({
+            requestedToken,
+            reclaimKey:
+                requestedToken === this.localToken ? this.reclaimKey : null,
+        });
+        socket.addEventListener("open", () =>
+            socket.send(JSON.stringify(hello))
+        );
+        // Attempts to reconnect leave the connection lost until one of them succeeds.
+        if (this.connection !== "lost") {
+            this.setConnection("connecting");
+        }
+
+        // A socket replaced by closeActiveConnection reports nothing.
+        socket.addEventListener("close", () => {
+            if (socket === this.socket) {
+                this.loseConnection();
+            }
+        });
 
         this.listenToMessages();
+    }
+
+    /** Sends a ping. Counts the connection as lost when no pong follows in time. */
+    private checkServer() {
+        if (this.connection !== "open" || this.pongTimer !== undefined) {
+            return;
+        }
+        this.sendMessage(new PingMessage());
+        this.pongTimer = window.setTimeout(
+            () => this.loseConnection(),
+            SERVER_PONG_TIMEOUT_MS
+        );
+    }
+
+    private clearPongTimer() {
+        window.clearTimeout(this.pongTimer);
+        this.pongTimer = undefined;
+    }
+
+    private loseConnection() {
+        this.clearPongTimer();
+        // A half-open socket can take minutes to report its close by itself.
+        this.socket?.close();
+        this.setConnection("lost");
+        this.scheduleReconnect();
+    }
+
+    /** Waits longer after every failed attempt, up to the last of RECONNECT_DELAYS_MS. */
+    private scheduleReconnect() {
+        if (this.reconnectTimer !== undefined) {
+            return;
+        }
+        const delay =
+            RECONNECT_DELAYS_MS[
+                Math.min(this.reconnectAttempt, RECONNECT_DELAYS_MS.length - 1)
+            ];
+        this.reconnectAttempt++;
+        this.reconnectTimer = window.setTimeout(() => this.reconnect(), delay);
+    }
+
+    /** Opens a new connection, which brings a new token. */
+    private reconnect() {
+        this.closeActiveConnection();
+        this.openWebSocket();
+    }
+
+    private checkOrReconnect() {
+        if (this.connection === "lost") {
+            this.reconnect();
+        } else {
+            this.checkServer();
+        }
+    }
+
+    private setConnection(connection: ServerConnection) {
+        if (connection === this.connection) {
+            return;
+        }
+        this.connection = connection;
+        this.connectionListeners.forEach(listener => listener());
+    }
+
+    public getConnection(): ServerConnection {
+        return this.connection;
+    }
+
+    /** Calls `listener` whenever the connection state changes. Returns the unsubscribe. */
+    public subscribeConnection(listener: () => void): () => void {
+        this.connectionListeners.add(listener);
+        return () => {
+            this.connectionListeners.delete(listener);
+        };
     }
 
     private listenToMessages() {
@@ -96,20 +234,16 @@ export class WebSocketService {
      * subscription to the message type is automatically removed.
      */
     private waitForLocalClientToken() {
-        const handleClientTokenMessage = (message: ClientTokenMessage) => {
-            this.log("Received client token:", message.msg.token);
-
-            this.localToken = normalizeClientToken(message.msg.token);
-
-            this.unsubscribeMessage(
-                MessageType.CLIENT_TOKEN,
-                handleClientTokenMessage as MessageHandler
-            );
-        };
-
-        this.subscribeMessage(
+        const unsubscribe = this.subscribeMessage<ClientTokenMessage>(
             MessageType.CLIENT_TOKEN,
-            handleClientTokenMessage as MessageHandler
+            message => {
+                this.log("Received client token:", message.msg.token);
+                this.localToken = normalizeClientToken(message.msg.token);
+                this.reclaimKey = message.msg.reclaimKey;
+                this.reconnectAttempt = 0;
+                this.setConnection("open");
+                unsubscribe();
+            }
         );
     }
 
@@ -122,17 +256,16 @@ export class WebSocketService {
      */
     public closeActiveConnection(): boolean {
         assert(this.socket);
+        this.clearPongTimer();
 
         switch (this.socket.readyState) {
-            case WebSocket.CONNECTING:
-                // this.log("WebSocket is not yet open. Delaying close.");
-                this.socket.addEventListener("open", () => {
-                    assert(this.socket);
-                    this.socket.close();
-                    this.socket = undefined;
-                });
-
+            case WebSocket.CONNECTING: {
+                // Closes once open, since closing during the handshake logs an error in the browser.
+                const socket = this.socket;
+                socket.addEventListener("open", () => socket.close());
+                this.socket = undefined;
                 return true;
+            }
             case WebSocket.OPEN:
                 this.socket.close();
                 this.socket = undefined;
@@ -164,12 +297,13 @@ export class WebSocketService {
     }
 
     /**
-     * Subscribe to a specific message type.
+     * Calls `handler` for every message of `messageType`, which the caller declares as `M`.
+     * Returns the unsubscribe.
      */
-    public subscribeMessage(
+    public subscribeMessage<M extends ITypedMessage = ITypedMessage>(
         messageType: MessageType,
-        handler: MessageHandler
-    ): void {
+        handler: (message: M) => unknown
+    ): () => void {
         if (!this.messageHandlers.has(messageType)) {
             this.messageHandlers.set(messageType, []);
         }
@@ -177,14 +311,13 @@ export class WebSocketService {
         const handlers = this.messageHandlers.get(messageType);
         assert(handlers);
 
-        handlers.push(handler);
+        const typedHandler = handler as MessageHandler;
+        handlers.push(typedHandler);
+        return () => this.unsubscribeMessage(messageType, typedHandler);
     }
 
-    /**
-     * Unsubscribe from a specific message type.
-     * The handler must be subscribed to the message type.
-     */
-    public unsubscribeMessage(
+    /** The handler must be subscribed to the message type. */
+    private unsubscribeMessage(
         messageType: MessageType,
         handler: MessageHandler
     ): void {

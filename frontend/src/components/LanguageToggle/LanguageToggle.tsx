@@ -4,6 +4,7 @@ import { updateSettings } from "../../services/SettingsStore";
 import { Language, languageName, nextLanguage } from "../../i18n/languages";
 import IconButton from "../IconButton/IconButton";
 import css from "./LanguageToggle.module.scss";
+import { cx } from "class-variance-authority";
 
 const FLAGS: Record<Language, typeof GB> = {
     en: GB,
@@ -48,17 +49,13 @@ export function LanguageFlagButton() {
 }
 
 /** Link-styled button showing flag and name of the current language. */
-export default function LanguageToggle({
-    className = "",
-}: {
-    className?: string;
-}) {
+export default function LanguageToggle({ className }: { className?: string }) {
     const { language, name, Flag, switchLanguage } = useLanguageToggle();
 
     return (
         <button
             type="button"
-            className={`${css.languageToggle} ${className}`}
+            className={cx(css.languageToggle, className)}
             onClick={switchLanguage}
         >
             <Flag className={css.flag} aria-hidden />

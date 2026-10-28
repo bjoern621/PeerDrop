@@ -1,0 +1,11 @@
+@keyframes spin {
+    to {
+        rotate: 1turn;
+    }
+}
+
+.spinner > svg {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: spin 1.4s linear infinite;
+    }
+}

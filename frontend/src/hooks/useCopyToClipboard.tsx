@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import errorAsValue from "../util/ErrorAsValue";
+import { useTimeout } from "./useTimeout";
 
 const COPIED_DURATION_MS = 2000;
 
@@ -13,9 +14,7 @@ export function useCopyToClipboard(): [
     copy: (text: string) => Promise<void>,
 ] {
     const [copied, setCopied] = useState(false);
-    const timer = useRef<number | undefined>(undefined);
-
-    useEffect(() => () => window.clearTimeout(timer.current), []);
+    const reset = useTimeout();
 
     const copy = async (text: string) => {
         const [, err] = await errorAsValue(navigator.clipboard.writeText(text));
@@ -24,11 +23,7 @@ export function useCopyToClipboard(): [
             return;
         }
         setCopied(true);
-        window.clearTimeout(timer.current);
-        timer.current = window.setTimeout(
-            () => setCopied(false),
-            COPIED_DURATION_MS
-        );
+        reset.set(() => setCopied(false), COPIED_DURATION_MS);
     };
 
     return [copied, copy];

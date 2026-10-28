@@ -1,3 +1,11 @@
+@use "../../../theme/tones" as *;
+@use "../card" as *;
+
+// Lets the slots narrow below their width on phones too narrow for them.
+.container {
+    min-width: 0;
+}
+
 .slots-container {
     display: flex;
     align-items: center;
@@ -6,10 +14,11 @@
 
 .otp-slot {
     width: 44px;
+    min-width: 0;
     height: 56px;
     box-sizing: border-box;
 
-    border: 3px solid var(--primary-60);
+    border: $field-border;
     border-radius: 10px;
     background-color: var(--background);
 
@@ -19,12 +28,40 @@
 
     font-size: var(--font-size-xl);
     line-height: 1;
-    font-family: "Roboto Mono", monospace;
+    font-family: var(--font-mono);
 
     transition:
         background-color 0.2s ease,
         border-color 0.2s ease,
         color 0.2s ease;
+}
+
+@keyframes type-in {
+    0% {
+        scale: 0.75;
+        opacity: 0;
+    }
+
+    60% {
+        scale: 1.08;
+    }
+}
+
+@keyframes fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+.sample {
+    color: var(--text-muted);
+    opacity: 0.6;
+    animation: type-in 0.27s ease-out;
+}
+
+// Lasts SAMPLE_FADE_MS in RecipientInput.tsx.
+.sampleFading {
+    animation: fade-out 0.2s ease-in forwards;
 }
 
 .otpSlotActive {
@@ -33,15 +70,21 @@
 }
 
 .online .otp-slot {
+    @include tone(success);
+
     border-color: var(--success-text);
-    background-color: var(--success-20);
-    color: var(--success-text);
 }
 
 .offline .otp-slot {
+    @include tone(error);
+
     border-color: var(--error-text);
-    background-color: var(--error-20);
-    color: var(--error-text);
+}
+
+.unknown .otp-slot {
+    @include tone(warning);
+
+    border-color: var(--warning-text);
 }
 
 // The field draws its own slots, so the search box keeps no clear button or decoration.

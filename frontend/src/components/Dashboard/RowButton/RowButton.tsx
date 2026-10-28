@@ -1,6 +1,7 @@
 import { ComponentPropsWithRef, ReactNode } from "react";
 import css from "./RowButton.module.scss";
 import Tooltip from "../../Tooltip/Tooltip";
+import { cx } from "class-variance-authority";
 
 interface RowButtonProps extends ComponentPropsWithRef<"button"> {
     tooltip: ReactNode;
@@ -20,7 +21,7 @@ export default function RowButton({
         <Tooltip content={tooltip}>
             <button
                 type="button"
-                className={`${css.rowButton} ${primary ? css.primary : ""}`}
+                className={cx(css.rowButton, primary && css.primary)}
                 {...props}
             >
                 {children}

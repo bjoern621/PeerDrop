@@ -1,3 +1,5 @@
+@use "../../theme/tones" as *;
+
 .badge {
     display: inline-flex;
     align-items: center;
@@ -15,7 +17,7 @@
     line-height: var(--line-height-xs);
 
     svg {
-        height: calc(var(--font-size-xs) * var(--line-height-xs));
+        height: 1lh;
     }
 }
 
@@ -26,38 +28,24 @@
     line-height: var(--line-height-s);
 
     svg {
-        height: calc(var(--font-size-s) * var(--line-height-s));
+        height: 1lh;
     }
 }
 
-.primary {
-    background-color: var(--primary-20);
-    color: var(--primary-text);
-}
-
-.secondary {
-    background-color: var(--secondary-20);
-    color: var(--secondary-text);
-}
-
 .neutral {
-    background-color: var(--text-muted-10);
-    color: var(--text);
+    @include tone(neutral);
 }
 
 .success {
-    background-color: var(--success-20);
-    color: var(--success-text);
+    @include tone(success);
 }
 
 .warning {
-    background-color: var(--warning-20);
-    color: var(--warning-text);
+    @include tone(warning);
 }
 
 .error {
-    background-color: var(--error-20);
-    color: var(--error-text);
+    @include tone(error);
 }
 
 .clickable {

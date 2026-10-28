@@ -1,17 +1,20 @@
 using backend.DeviceComponent.Dataaccess.Api.Repo;
+using backend.MessagingComponent.Dataaccess.Api;
 using backend.DeviceComponent.Logic.Api;
 using backend.MessagingComponent.Common.Api.DTOs;
 using backend.MessagingComponent.Common.Api.Validators;
 using backend.MessagingComponent.Logic.Api;
 using backend.MessagingComponent.Logic.Types;
 using backend.TelemetryComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.MessagingComponent.Logic.Impl;
 
 public class TokenLookupService(
-    IWebSocketHandler _webSocketHandler,
+    IClientRegistry _clientRegistry,
+    IPublicKeyRepository _publicKeys,
     IAbuseGuard _abuseGuard,
+    IPresenceWatchRepository _presenceWatchRepository,
     IDeviceService _deviceService,
     IServiceScopeFactory _scopeFactory,
     IUsageMetrics _usageMetrics,
@@ -25,8 +28,17 @@ public class TokenLookupService(
             return Task.CompletedTask;
         }
 
-        _webSocketHandler.SetPublicKey(clientToken, message.Key);
-        return Task.CompletedTask;
+        _publicKeys.Set(clientToken, message.Key);
+        return TellWatchersOnline(clientToken.ToLowerInvariant());
+    }
+
+    // Waits for the public key, since a watcher can encrypt for the token only with it.
+    private async Task TellWatchersOnline(string token)
+    {
+        foreach (var watcher in _presenceWatchRepository.WatchersOf(token))
+        {
+            await _clientRegistry.SendMessage(watcher, OnlineStatus(watcher, token, null));
+        }
     }
 
     public async Task HandleTokenLookup(string clientToken, TokenLookupMessage message)
@@ -42,12 +54,29 @@ public class TokenLookupService(
             ? LookUpToken(clientToken, message.Token!.ToLowerInvariant())
             : await LookUpDevice(clientToken, message.DeviceUuid!.Value);
 
-        await _webSocketHandler.SendMessage(clientToken, status);
+        // A token lookup ends the watch on the token looked up before. One answered under the lock watches nothing.
+        if (status.RetryAfterMs != null)
+            _presenceWatchRepository.Unwatch(clientToken);
+        else if (status.Token != string.Empty)
+            _presenceWatchRepository.Watch(clientToken, status.Token);
+
+        await _clientRegistry.SendMessage(clientToken, status);
+    }
+
+    public async Task HandleClientDisconnected(string clientToken)
+    {
+        var token = clientToken.ToLowerInvariant();
+        _publicKeys.Remove(token);
+
+        foreach (var watcher in _presenceWatchRepository.RemoveClient(token))
+        {
+            await _clientRegistry.SendMessage(watcher, OfflineStatus(token, null, null));
+        }
     }
 
     private TokenStatusMessage LookUpToken(string clientToken, string token)
     {
-        var requesterIp = _webSocketHandler.GetRemoteIpAddressForClientToken(clientToken);
+        var requesterIp = _clientRegistry.GetRemoteIpAddressForClientToken(clientToken);
 
         var lockRemaining = _abuseGuard.GetUnknownTokenLock(clientToken, requesterIp);
         if (lockRemaining != null)
@@ -56,7 +85,7 @@ public class TokenLookupService(
             return OfflineStatus(token, null, lockRemaining);
         }
 
-        if (!_webSocketHandler.RemoteTokenExists(token))
+        if (!_clientRegistry.RemoteTokenExists(token))
         {
             _usageMetrics.TokenLookedUp("unknown");
             return OfflineStatus(token, null, _abuseGuard.RecordUnknownTokenMiss(clientToken, requesterIp));
@@ -68,7 +97,7 @@ public class TokenLookupService(
 
     private async Task<TokenStatusMessage> LookUpDevice(string clientToken, Guid deviceUuid)
     {
-        var userId = _webSocketHandler.GetUserIdForClientToken(clientToken);
+        var userId = _clientRegistry.GetUserIdForClientToken(clientToken);
         if (userId == null)
         {
             _logger.LogDebug($"Device lookup from {clientToken} without a session.");
@@ -88,7 +117,7 @@ public class TokenLookupService(
 
         // Empty if the device went offline since the status check.
         var deviceToken = _deviceService.GetClientTokenByDeviceUuid(deviceUuid);
-        if (string.IsNullOrEmpty(deviceToken) || !_webSocketHandler.RemoteTokenExists(deviceToken))
+        if (string.IsNullOrEmpty(deviceToken) || !_clientRegistry.RemoteTokenExists(deviceToken))
             return OfflineStatus(string.Empty, deviceUuid, null);
 
         return OnlineStatus(clientToken, deviceToken, deviceUuid);
@@ -101,8 +130,8 @@ public class TokenLookupService(
             Token = token,
             DeviceUuid = deviceUuid,
             Online = true,
-            PublicKey = _webSocketHandler.GetPublicKeyForClientToken(token),
-            OwnDevice = _webSocketHandler.AreSignedInWithSameAccount(clientToken, token),
+            PublicKey = _publicKeys.Get(token),
+            OwnDevice = _clientRegistry.AreSignedInWithSameAccount(clientToken, token),
         };
     }
 

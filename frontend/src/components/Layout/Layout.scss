@@ -1,3 +1,6 @@
+@use "../../theme/breakpoints" as *;
+@use "../../theme/page" as *;
+
 .layout-container {
     display: flex;
     flex-direction: column;
@@ -15,7 +18,9 @@
     overflow: hidden auto;
     scrollbar-width: thin;
     scrollbar-color: var(--text-muted) var(--background);
-    scrollbar-gutter: stable;
+
+    // A gutter on each edge centres the page under the header, which keeps none.
+    scrollbar-gutter: stable both-edges;
 
     scroll-behavior: smooth;
 }
@@ -28,31 +33,30 @@
 
 main {
     flex: 1;
-    max-width: 1120px; // 1200 - 64 * 2 (general preferred width) + 24 * 2 (padding)
+    max-width: $content-width + 2 * 24px; // Plus the side padding below.
     margin: 0 auto;
-    padding: 0 var(--space-24);
+    padding: 0 var(--space-24); // $compact-breakpoint in Dashboard/_layout.scss counts it
     width: 100%;
 }
 
 // Shows a scrollbar only once the page overflows.
-.layout-container.full-height > header,
 .layout-container.full-height .layout-scroll {
     scrollbar-gutter: auto;
 }
 
 // Pages that fill the window keep the footer in view and scroll inside.
-@media (width > 760px) {
+@media (width > #{$phone-breakpoint}) {
     .layout-container.full-height main {
         flex-basis: 0;
         display: flex;
         flex-direction: column;
         min-height: 609px; // Height in a 720px window, below which the page scrolls.
-        max-width: 1440px;
+        max-width: $wide-page-width;
     }
 }
 
 // The dashboard sections run to the screen edge on the phone.
-@media (width <= 760px) {
+@media (width <= #{$phone-breakpoint}) {
     .layout-container.full-height main {
         padding: 0;
     }

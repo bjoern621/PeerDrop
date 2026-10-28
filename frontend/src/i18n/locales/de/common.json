@@ -23,6 +23,11 @@
         "system": "System",
         "systemResolved": "System ({{scheme}})"
     },
+    "connection": {
+        "lost": "Die Verbindung zum Server ist abgebrochen. PeerDrop verbindet neu …",
+        "restored": "Wieder mit dem Server verbunden.",
+        "restoredNewToken": "Wieder mit dem Server verbunden. Dein Token lautet jetzt {{token}}."
+    },
     "pages": {
         "backHome": "Zurück zur Startseite",
         "notFound": {

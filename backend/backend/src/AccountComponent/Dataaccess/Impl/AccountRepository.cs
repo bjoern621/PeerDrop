@@ -70,24 +70,4 @@ public class AccountRepository(NpgsqlDataSource _dataSource) : IAccountRepositor
 
         return account;
     }
-
-    public async Task<string?> GetChosenClientTokenAsync(int id)
-    {
-        await using var cmd = _dataSource.CreateCommand(
-            "SELECT chosen_client_token FROM users WHERE id = @id");
-        cmd.Parameters.AddWithValue("id", id);
-
-        var result = await cmd.ExecuteScalarAsync();
-        return result as string;
-    }
-
-    public async Task<int> SetChosenClientTokenAsync(int id, string token)
-    {
-        await using var cmd = _dataSource.CreateCommand(
-            "UPDATE users SET chosen_client_token = @token WHERE id = @id");
-        cmd.Parameters.AddWithValue("token", token);
-        cmd.Parameters.AddWithValue("id", id);
-
-        return await cmd.ExecuteNonQueryAsync();
-    }
 }

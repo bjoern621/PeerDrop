@@ -8,6 +8,7 @@ import { TransferSnapshot } from "../../../services/TransferTracker";
 import { buildActivity, DEFAULT_SORT, Sort, SortKey } from "../activity";
 import { FileRow, FolderRow, OfferRow, TextRow } from "./ActivityRows";
 import ReadView from "./ReadView";
+import EdgeShadows from "../EdgeShadows/EdgeShadows";
 
 const COLUMNS: SortKey[] = ["name", "progress", "size", "time"];
 
@@ -23,6 +24,7 @@ export default function ActivityList({
     const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
     const [readId, setReadId] = useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const headRowRef = useRef<HTMLDivElement>(null);
     const shadows = useScrollShadows(scrollRef);
 
     const items = buildActivity(
@@ -45,6 +47,12 @@ export default function ActivityList({
                 : { key, direction: key === "time" ? "desc" : "asc" }
         );
 
+    const scrollHeadAlong = (event: React.UIEvent<HTMLDivElement>) =>
+        headRowRef.current?.style.setProperty(
+            "translate",
+            `${-event.currentTarget.scrollLeft}px`
+        );
+
     return (
         <div
             role="table"
@@ -54,9 +62,11 @@ export default function ActivityList({
             <div
                 role="rowgroup"
                 className={css.head}
-                style={{ paddingRight: shadows.scrollbar }}
+                style={{
+                    paddingRight: `calc(var(--row-gutter) + ${shadows.scrollbar}px)`,
+                }}
             >
-                <div role="row" className={css.headRow}>
+                <div role="row" ref={headRowRef} className={css.headRow}>
                     {COLUMNS.map(column => {
                         const active = sort.key === column;
                         return (
@@ -94,7 +104,11 @@ export default function ActivityList({
                 </div>
             </div>
             <div className={css.bodyFrame}>
-                <div ref={scrollRef} className={css.scroll}>
+                <div
+                    ref={scrollRef}
+                    className={css.scroll}
+                    onScroll={scrollHeadAlong}
+                >
                     <div role="rowgroup" className={css.rows}>
                         {items.length === 0 && (
                             <div role="row">
@@ -145,20 +159,7 @@ export default function ActivityList({
                         })}
                     </div>
                 </div>
-                <div
-                    className={`${css.shadowTop} ${shadows.top ? css.visible : ""}`}
-                    style={{
-                        right: `calc(${shadows.scrollbar}px + var(--space-12))`,
-                    }}
-                    aria-hidden
-                />
-                <div
-                    className={`${css.shadowBottom} ${shadows.bottom ? css.visible : ""}`}
-                    style={{
-                        right: `calc(${shadows.scrollbar}px + var(--space-12))`,
-                    }}
-                    aria-hidden
-                />
+                <EdgeShadows shadows={shadows} className={css.edgeShadows} />
             </div>
             {reading && (
                 <ReadView

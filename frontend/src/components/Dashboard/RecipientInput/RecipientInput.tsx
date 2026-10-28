@@ -1,26 +1,119 @@
-import { KeyboardEvent } from "react";
+import { KeyboardEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { OTPInput, SlotProps } from "input-otp";
 import css from "./RecipientInput.module.scss";
-import { normalizeClientToken } from "../../../services/WebSocketService";
+import {
+    displayToken,
+    normalizeClientToken,
+} from "../../../services/WebSocketService";
 import { CLIENT_TOKEN_LENGTH } from "../../../util/Constants";
+import { REDUCED_MOTION_QUERY } from "../../../util/mediaQueries";
+import { useMediaQuery } from "../../../hooks/useMediaQuery";
+import { cx } from "class-variance-authority";
 
-/** Result of the server's check of a complete token. */
-export type RecipientCheck = "online" | "offline" | null;
+/**
+ * Result of the server's check of a complete token, "checking" until the server answers.
+ * "unknown" while the connection to the server is lost, because the last result may be stale.
+ */
+export type RecipientCheck =
+    | "checking"
+    | "online"
+    | "offline"
+    | "unknown"
+    | null;
 
-const Slot = ({ char, hasFakeCaret, isActive }: SlotProps) => {
+// Letters of the server's proquint tokens, from ClientTokenFormat in the backend.
+const PROQUINT_CONSONANTS = "bdfghjklmnprstvz";
+const PROQUINT_VOWELS = "aiou";
+const SAMPLE_TYPE_MS = 380;
+const SAMPLE_HOLD_MS = 3000;
+// Matches the fade-out in RecipientInput.module.scss.
+const SAMPLE_FADE_MS = 200;
+const SAMPLE_GAP_MS = 500;
+
+const Slot = ({
+    char,
+    hasFakeCaret,
+    isActive,
+    sample,
+    sampleFading,
+}: SlotProps & { sample?: string; sampleFading: boolean }) => {
     return (
         <div
-            className={`${css.otpSlot} ${isActive ? css.otpSlotActive : ""}`}
+            className={cx(css.otpSlot, isActive && css.otpSlotActive)}
             data-state={!char ? "empty" : "filled"}
             data-active={isActive || undefined}
         >
             {/* Tokens are stored lowercase; presentation is uppercase. */}
             {char?.toUpperCase()}
             {hasFakeCaret && "_"}
+            {!char && sample && (
+                <span
+                    className={cx(css.sample, sampleFading && css.sampleFading)}
+                    aria-hidden
+                >
+                    {displayToken(sample)}
+                </span>
+            )}
         </div>
     );
 };
+
+/** Encodes a random 16-bit value as the backend's GenerateClientToken does. */
+function randomSampleToken(): string {
+    const value = Math.floor(Math.random() * 0x10000);
+    return (
+        PROQUINT_CONSONANTS[(value >> 12) & 0xf] +
+        PROQUINT_VOWELS[(value >> 10) & 0x3] +
+        PROQUINT_CONSONANTS[(value >> 6) & 0xf] +
+        PROQUINT_VOWELS[(value >> 4) & 0x3] +
+        PROQUINT_CONSONANTS[value & 0xf]
+    );
+}
+
+/**
+ * Types made-up tokens into the empty field one letter at a time, to show where a token goes.
+ * Returns the letters typed so far, "" while `active` is false, and whether the full token fades out.
+ */
+function useSampleToken(active: boolean): {
+    typed: string;
+    fading: boolean;
+} {
+    const [typed, setTyped] = useState("");
+    const [fading, setFading] = useState(false);
+
+    useEffect(() => {
+        if (!active) {
+            setTyped("");
+            setFading(false);
+            return;
+        }
+        let timer: number | undefined;
+        const later = (step: () => void, ms: number) => {
+            timer = window.setTimeout(step, ms);
+        };
+        const startToken = () => typeToken(randomSampleToken(), 1);
+        const typeToken = (token: string, length: number) => {
+            setTyped(token.slice(0, length));
+            if (length < token.length) {
+                later(() => typeToken(token, length + 1), SAMPLE_TYPE_MS);
+                return;
+            }
+            later(() => {
+                setFading(true);
+                later(() => {
+                    setTyped("");
+                    setFading(false);
+                    later(startToken, SAMPLE_GAP_MS);
+                }, SAMPLE_FADE_MS);
+            }, SAMPLE_HOLD_MS);
+        };
+        later(startToken, SAMPLE_GAP_MS);
+        return () => window.clearTimeout(timer);
+    }, [active]);
+
+    return { typed, fading };
+}
 
 /**
  * Ctrl+Backspace (Alt or Cmd on macOS) deletes everything before the caret.
@@ -79,6 +172,9 @@ export default function RecipientInput({
     check: RecipientCheck;
 }) {
     const { t } = useTranslation("dashboard");
+    const [focused, setFocused] = useState(false);
+    const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
+    const sample = useSampleToken(value === "" && !focused && !reducedMotion);
 
     return (
         <OTPInput
@@ -90,6 +186,7 @@ export default function RecipientInput({
             type="search"
             enterKeyHint="done"
             className={css.input}
+            containerClassName={css.container}
             data-bwignore="true"
             data-lpignore="true"
             data-1p-ignore="true"
@@ -99,12 +196,24 @@ export default function RecipientInput({
                 deleteWordBackward(event, value, onChange);
                 deleteForward(event, value, onChange);
             }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             render={({ slots }) => (
                 <div
-                    className={`${css.slotsContainer} ${check === "online" ? css.online : ""} ${check === "offline" ? css.offline : ""}`}
+                    className={cx(
+                        css.slotsContainer,
+                        check === "online" && css.online,
+                        check === "offline" && css.offline,
+                        check === "unknown" && css.unknown
+                    )}
                 >
                     {slots.map((slot, idx) => (
-                        <Slot key={idx} {...slot} />
+                        <Slot
+                            key={idx}
+                            {...slot}
+                            sample={sample.typed[idx]}
+                            sampleFading={sample.fading}
+                        />
                     ))}
                 </div>
             )}

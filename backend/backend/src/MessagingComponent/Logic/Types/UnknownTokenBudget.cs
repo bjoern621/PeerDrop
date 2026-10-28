@@ -2,12 +2,12 @@ namespace backend.MessagingComponent.Logic.Types;
 
 /// <summary>
 /// Counts one requester's misses on tokens that are not online.
-/// The miss that fills the budget locks it, for twice as long as the lock before, up to <see cref="MaxLockDuration"/>.
+/// The first miss beyond <see cref="AllowedMissesPerWindow"/> locks it, for twice as long as the lock before, up to <see cref="MaxLockDuration"/>.
 /// Not thread-safe.
 /// </summary>
 public class UnknownTokenBudget
 {
-    public const int MissesPerWindow = 5;
+    public const int AllowedMissesPerWindow = 5;
     public static readonly TimeSpan Window = TimeSpan.FromMinutes(1);
     public static readonly TimeSpan FirstLockDuration = TimeSpan.FromMinutes(1);
     public static readonly TimeSpan MaxLockDuration = TimeSpan.FromMinutes(15);
@@ -36,7 +36,7 @@ public class UnknownTokenBudget
             return;
 
         _misses.Add(now);
-        if (_misses.Count(now) < MissesPerWindow)
+        if (_misses.Count(now) <= AllowedMissesPerWindow)
             return;
 
         if (_lockedUntil != null && now - _lockedUntil >= LockCountResetAfter)

@@ -1,4 +1,6 @@
+@use "size" as *;
+
 .logo {
-    height: 45px;
+    height: $logo-height;
     display: block;
 }

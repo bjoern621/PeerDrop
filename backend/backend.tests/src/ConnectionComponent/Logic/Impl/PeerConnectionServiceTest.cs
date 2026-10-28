@@ -3,7 +3,7 @@ using backend.ConnectionComponent.Dataaccess.Impl;
 using backend.ConnectionComponent.Logic.Api;
 using backend.ConnectionComponent.Logic.Impl;
 using backend.tests.TestUtils;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
@@ -17,7 +17,7 @@ public class PeerConnectionServiceTest
     private const string TOKEN_C = "lukid";
     private const string OFFLINE = "dofug";
 
-    private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IClientRegistry> _mockHandler;
     private Mock<IConnectionInitiationService> _mockConnectionInitiationService;
     private SentMessages _sent;
     private PairRepository _pairRepository;
@@ -26,7 +26,7 @@ public class PeerConnectionServiceTest
     [SetUp]
     public void Setup()
     {
-        _mockHandler = new Mock<IWebSocketHandler>();
+        _mockHandler = new Mock<IClientRegistry>();
         _mockHandler.Setup(h => h.RemoteTokenExists(It.IsAny<string>())).Returns<string>(t => t != OFFLINE);
         _sent = new SentMessages().Capture<CloseConnectionMessage>(_mockHandler);
         _mockConnectionInitiationService = new Mock<IConnectionInitiationService>();

@@ -80,6 +80,10 @@
     background-color: var(--error);
 }
 
+.unknown {
+    background-color: var(--warning);
+}
+
 // The content gives way in a narrow column. Dot, check and actions keep their size.
 .content {
     flex: 1 1 auto;
@@ -90,9 +94,13 @@
     overflow-x: clip;
 }
 
-.check {
-    width: 20px;
-    height: 20px;
+// Stacks spinner and check mark, so one fades out while the other pops in.
+.mark {
+    display: grid;
+
+    > * {
+        grid-area: 1 / 1;
+    }
 }
 
 .actions {

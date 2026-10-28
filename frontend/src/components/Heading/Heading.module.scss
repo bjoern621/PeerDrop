@@ -1,16 +1,17 @@
 @use "../../theme/shadows.scss" as *;
 @use "Variables.scss" as *;
+@use "panel" as *;
+@use "../../theme/layers" as *;
+@use "../../theme/page" as *;
 
 .header {
     width: 100%;
 
     position: relative;
-    z-index: 100;
+    z-index: layer(header);
 
-    // Reserves the scrollbar gutter of the page below, so both centre alike.
-    overflow: hidden;
-    scrollbar-width: thin;
-    scrollbar-gutter: stable;
+    // A navigation wider than a tiny window would scroll the whole page sideways.
+    overflow: clip;
 
     border-bottom: 1px solid oklch(from var(--text) l c h / var(--a-10));
     background-color: var(--background);
@@ -19,11 +20,15 @@
 
     padding: var(--space-16) var(--space-24);
 
+    @media (max-width: $compact-header-breakpoint) {
+        padding: var(--space-12);
+    }
+
     anchor-name: --heading;
 }
 
 .headerContent {
-    max-width: 1072px;
+    max-width: $content-width;
     margin: auto;
 
     position: relative;
@@ -38,6 +43,27 @@
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
+    }
+
+    @media (max-width: $compact-header-breakpoint) {
+        column-gap: var(--space-12);
+    }
+}
+
+// Grows to the banner's 45px at $compact-header-breakpoint, from 28px at 360px.
+.headerContent .iconLogo {
+    height: clamp(28px, calc(28px + (100vw - 360px) * 17 / 280), 45px);
+}
+
+@media (width > #{$compact-header-breakpoint}) {
+    .headerContent .iconLogo {
+        display: none;
+    }
+}
+
+@media (max-width: $compact-header-breakpoint) {
+    .headerContent .bannerLogo {
+        display: none;
     }
 }
 
@@ -73,66 +99,17 @@
     }
 
     @media (max-width: $header-breakpoint) {
-        position-anchor: --heading;
-        position: fixed;
         inset: auto;
-        top: anchor(bottom);
-        right: 0;
         margin: 0;
-
         width: min(360px, 100%);
-
-        background-color: var(--background);
-
-        @include elevated-shadow-no-highlight;
-        border: 1px solid var(--border);
         padding: var(--space-24);
-        border-bottom-left-radius: var(--space-16);
+
+        @include header-panel(":popover-open");
 
         &:popover-open {
             display: flex;
             flex-direction: column;
             gap: var(--space-24);
-        }
-
-        // Starts below the header to keep the close button undimmed.
-        &::backdrop {
-            position-anchor: --heading;
-            top: anchor(bottom);
-
-            background-color: transparent;
-
-            @media (prefers-reduced-motion: no-preference) {
-                transition: background-color 0.1s;
-            }
-        }
-
-        &:popover-open::backdrop {
-            background-color: var(--backdrop);
-
-            @starting-style {
-                background-color: transparent;
-            }
-        }
-
-        @media (prefers-reduced-motion: no-preference) {
-            transition-property: opacity, scale, display, overlay;
-            transition-duration: 0.1s;
-            transition-behavior: allow-discrete;
-
-            opacity: 0;
-            scale: 0.9;
-            transform-origin: top;
-
-            &:popover-open {
-                opacity: 1;
-                scale: 1;
-
-                @starting-style {
-                    opacity: 0;
-                    scale: 0.9;
-                }
-            }
         }
     }
 }
@@ -174,13 +151,8 @@
         align-items: center;
         gap: var(--space-12);
 
-        padding: 0;
-        border: none;
-        background: none;
         color: var(--text);
-        font: inherit;
         font-weight: var(--font-weight-regular);
-        cursor: pointer;
         text-underline-position: under;
 
         > svg {
@@ -219,13 +191,17 @@
         }
     }
 
-    @media (max-width: $nav-row-breakpoint) {
+    @media (max-width: $compact-header-breakpoint) {
         position: static;
         transform: none;
 
+        gap: var(--space-12);
+    }
+
+    @media (max-width: $nav-row-breakpoint) {
         order: 1;
         flex-basis: 100%;
         justify-content: center;
-        margin-top: var(--space-16);
+        margin-top: var(--space-12);
     }
 }

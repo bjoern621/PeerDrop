@@ -1,4 +1,12 @@
 @use "../../theme/shadows.scss" as *;
+@use "layout" as *;
+@use "../../theme/text" as *;
+
+/// Border of the dashboard fields that take input: the recipient slots, the text field and the views over the page.
+$field-border: 3px solid var(--primary-60);
+
+/// Dashed border of the drop zone, whose colour also marks the disabled text field.
+$drop-zone-border-color: var(--primary-40);
 
 /// Bordered card of the dashboard.
 @mixin card {
@@ -13,13 +21,66 @@
     @include elevated-shadow;
 
     // The phone stacks the cards as full-width sections, divided by a band.
-    @media (width <= 760px) {
+    @media (width <= #{$phone-breakpoint}) {
         padding: var(--space-24) var(--space-16);
         border: none;
         border-bottom: var(--space-8) solid var(--text-muted-10);
         border-radius: 0;
         box-shadow: none;
         background-color: var(--background);
+    }
+}
+
+/// Frame of a view that opens over the dashboard, like the large text field or a read text.
+/// The page around it takes no pointer events while it is open, see useModalView.
+@mixin view-frame {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    border: $field-border;
+    border-radius: var(--space-16);
+    background-color: var(--background);
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+/// Row of a view frame along its top or bottom `$edge`, holding a title or meta line and buttons.
+@mixin view-bar($edge) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
+    border-#{$edge}: 1px solid var(--text-muted-10);
+}
+
+/// Muted line in a view bar that takes the free width and ends in an ellipsis.
+@mixin view-meta {
+    @include ellipsis;
+
+    flex: 1;
+    color: var(--text-muted);
+    font-weight: var(--font-weight-regular);
+}
+
+/// Monospaced text area of a view, without the browser's field chrome.
+@mixin code-field {
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    resize: none;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-s);
+    line-height: var(--line-height-s);
+    font-weight: var(--font-weight-regular);
+    white-space: pre;
+    tab-size: 4;
+
+    &:focus {
+        outline: none;
     }
 }
 

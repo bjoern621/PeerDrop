@@ -2,7 +2,7 @@ using System.Diagnostics.Metrics;
 using backend.TelemetryComponent.Common.Api.DTOs;
 using backend.TelemetryComponent.Dataaccess.Api;
 using backend.TelemetryComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Npgsql;
 
 namespace backend.TelemetryComponent.Logic.Impl;
@@ -32,7 +32,7 @@ public class UsageMetrics : IUsageMetrics
 
     public UsageMetrics(
         IMeterFactory meterFactory,
-        IWebSocketHandler webSocketHandler,
+        IClientRegistry clientRegistry,
         IUsageCountRepository usageCountRepository,
         ILogger<UsageMetrics> logger)
     {
@@ -41,7 +41,7 @@ public class UsageMetrics : IUsageMetrics
 
         meter.CreateObservableUpDownCounter(
             "peerdrop.clients",
-            () => MeasureClients(webSocketHandler),
+            () => MeasureClients(clientRegistry),
             unit: "{client}",
             description: "Clients holding a WebSocket connection");
         meter.CreateObservableGauge(
@@ -144,9 +144,9 @@ public class UsageMetrics : IUsageMetrics
     // Attribute values follow the OpenTelemetry snake_case convention, the wire statuses kebab-case.
     private static string ToAttributeValue(string status) => status.Replace('-', '_');
 
-    private static IEnumerable<Measurement<int>> MeasureClients(IWebSocketHandler webSocketHandler)
+    private static IEnumerable<Measurement<int>> MeasureClients(IClientRegistry clientRegistry)
     {
-        var (signedIn, anonymous) = webSocketHandler.CountClients();
+        var (signedIn, anonymous) = clientRegistry.CountClients();
         return
         [
             new Measurement<int>(signedIn, new KeyValuePair<string, object?>("signed_in", true)),

@@ -1,7 +1,12 @@
-$columns: minmax(200px, 1fr) 300px 100px 140px;
-$min-width: 740px;
+@use "../layout" as *;
+@use "../../../theme/shadows" as *;
+@use "../../../theme/text" as *;
 
 .table {
+    // Room beside the rows for their shadow, which the scroll box would clip.
+    // ActivityList.tsx adds it to the right padding of the head.
+    --row-gutter: var(--space-12);
+
     position: relative;
     flex: 1 1 0;
     min-height: 0;
@@ -9,21 +14,26 @@ $min-width: 740px;
     flex-direction: column;
 }
 
+// Clips at the same edges as the scrolling rows below, which it follows sideways.
 .head {
     position: relative;
     z-index: 4;
     flex: none;
+    margin: 0 calc(-1 * var(--row-gutter));
+    padding: 0 var(--row-gutter);
+    overflow-x: clip;
 }
 
 .headRow {
-    min-width: $min-width;
+    min-width: $activity-min-width;
     display: grid;
-    grid-template-columns: $columns;
+    grid-template-columns: $activity-columns;
     border: 1px solid var(--border);
     border-radius: var(--space-16);
     background-color: var(--background);
     background-image: linear-gradient(var(--primary-10), var(--primary-10));
-    box-shadow: 0 4px 10px 2px var(--shadow);
+
+    @include elevated-shadow-no-highlight;
 }
 
 .sortButton {
@@ -32,14 +42,10 @@ $min-width: 740px;
     align-items: center;
     gap: var(--space-8);
     padding: var(--space-8) var(--space-16);
-    border: none;
     border-radius: var(--space-16);
-    background: transparent;
     color: var(--text);
-    font: inherit;
     font-weight: var(--font-weight-medium);
     text-align: left;
-    cursor: pointer;
 
     &:hover {
         background-color: var(--text-muted-10);
@@ -62,10 +68,12 @@ $min-width: 740px;
 }
 
 .bodyFrame {
+    --edge-inset-x: var(--row-gutter);
+
     position: relative;
     flex: 1 1 0;
     min-height: 0;
-    margin: 0 calc(-1 * var(--space-12)) calc(-1 * var(--space-16));
+    margin: 0 calc(-1 * var(--row-gutter)) calc(-1 * var(--space-16));
 }
 
 .scroll {
@@ -73,16 +81,17 @@ $min-width: 740px;
     inset: 0;
     box-sizing: border-box;
     overflow: auto;
-    padding: var(--space-8) var(--space-12) var(--space-16);
+    padding: var(--space-8) var(--row-gutter) var(--space-16);
 }
 
 .rows {
-    min-width: $min-width;
+    min-width: $activity-min-width;
     border: 1px solid var(--border);
     border-radius: var(--space-16);
     overflow: hidden;
     background-color: var(--background);
-    box-shadow: 0 4px 10px 2px var(--shadow);
+
+    @include elevated-shadow-no-highlight;
 }
 
 .empty {
@@ -91,34 +100,9 @@ $min-width: 740px;
     font-weight: var(--font-weight-regular);
 }
 
-.shadowTop,
-.shadowBottom {
-    position: absolute;
-    z-index: 3;
-    left: var(--space-12);
-    height: 14px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.shadowTop {
-    top: 0;
-    background: linear-gradient(var(--shadow), transparent);
-}
-
-.shadowBottom {
-    bottom: 0;
-    background: linear-gradient(transparent, var(--shadow));
-}
-
-.visible {
-    opacity: 1;
-}
-
 .row {
     display: grid;
-    grid-template-columns: $columns;
+    grid-template-columns: $activity-columns;
     border-bottom: 1px solid var(--border);
     color: var(--text-muted);
 
@@ -163,9 +147,8 @@ $min-width: 740px;
 }
 
 .name {
-    min-width: 0;
-    overflow-x: clip;
-    text-overflow: ellipsis;
+    @include ellipsis;
+
     color: var(--text);
 }
 
@@ -178,19 +161,14 @@ $min-width: 740px;
 
 .nameButton {
     @extend .iconName;
-    padding: 0;
-    border: none;
-    background: none;
-    font: inherit;
     text-align: left;
     cursor: pointer;
 }
 
 .textPreview {
-    min-width: 0;
-    overflow-x: clip;
-    text-overflow: ellipsis;
-    font-family: "Roboto Mono", monospace;
+    @include ellipsis;
+
+    font-family: var(--font-mono);
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
 }
@@ -229,7 +207,7 @@ $min-width: 740px;
 .peer {
     flex: none;
     width: 52px;
-    font-family: "Roboto Mono", monospace;
+    font-family: var(--font-mono);
     font-size: var(--font-size-s);
     line-height: var(--line-height-s);
     font-weight: var(--font-weight-semibold);
@@ -303,14 +281,13 @@ $min-width: 740px;
     opacity: 0.75;
 }
 
-@media (width <= 760px) {
+@media (width <= #{$phone-breakpoint}) {
     .table {
         flex: none;
     }
 
     .head,
-    .shadowTop,
-    .shadowBottom {
+    .edgeShadows {
         display: none;
     }
 

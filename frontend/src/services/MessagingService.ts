@@ -1,6 +1,5 @@
 import {
     ClientToken,
-    MessageHandler,
     WebSocketService,
     normalizeClientToken,
 } from "./WebSocketService";
@@ -23,15 +22,18 @@ import { TransferAnswerMessage } from "../types/messaging/TransferAnswerMessage"
 import { EstablishConnectionMessage } from "../types/connection/EstablishConnectionMessage";
 import errorAsValue from "../util/ErrorAsValue";
 import { Logger } from "../util/Logger";
+import { TransferDirection } from "./TransferTracker";
 
 /** Largest text the server forwards, in UTF-8 bytes. */
 export const MAX_TEXT_BYTES = 1024 * 1024;
 
+// Mirror the server's text bucket, so a text the client lets through never comes back rate-limited.
 const TEXT_BURST = 5;
 const TEXT_REFILL_MS = 6000;
 
 export type LookupState =
-    | { status: "checking" }
+    // Every lookup gets its own checkId, also for a token asked before.
+    | { status: "checking"; checkId: number }
     | { status: "online"; ownDevice: boolean }
     | { status: "offline" };
 
@@ -48,7 +50,7 @@ export interface OfferSummary {
 export interface TextEntry {
     kind: "text";
     id: string;
-    direction: "up" | "down";
+    direction: TransferDirection;
     peer: ClientToken;
     text: string;
     at: Date;
@@ -58,7 +60,7 @@ export interface TextEntry {
 export interface OfferEntry {
     kind: "offer";
     offerId: string;
-    direction: "up" | "down";
+    direction: TransferDirection;
     peer: ClientToken;
     summary: OfferSummary;
     at: Date;
@@ -108,14 +110,13 @@ export class MessagingService {
     private readonly outgoingOffers = new Map<string, PendingOffer>();
     private readonly incomingOffers = new Map<string, OfferEntry>();
     private readonly lookups = new Map<ClientToken, LookupState>();
+    private lastCheckId = 0;
     private readonly peerInfo = new Map<ClientToken, PeerInfo>();
     private readonly deviceLookups = new Map<
         string,
         (token: ClientToken | null) => void
     >();
 
-    // Receivers that accepted an offer from this client.
-    private readonly acceptedBy = new Set<ClientToken>();
     // Senders whose offer this client accepted.
     private readonly acceptedFrom = new Set<ClientToken>();
     private readonly blocked = new Set<ClientToken>();
@@ -186,13 +187,20 @@ export class MessagingService {
         return this.snapshot;
     }
 
-    /** Asks the server whether a token is online. Own tokens are never asked. */
+    /**
+     * Asks the server whether a token is online. Own tokens are never asked.
+     * Drops the result for every other token, since the server reports changes for the token looked up last alone.
+     */
     public lookup(token: ClientToken) {
         token = normalizeClientToken(token);
         if (this.lookups.get(token)?.status === "checking") {
             return;
         }
-        this.lookups.set(token, { status: "checking" });
+        this.lookups.clear();
+        this.lookups.set(token, {
+            status: "checking",
+            checkId: ++this.lastCheckId,
+        });
         this.publish();
         this.signaling.sendMessage(new TokenLookupMessage({ token }));
     }
@@ -208,16 +216,14 @@ export class MessagingService {
     /** Whether files to this peer start without an offer. */
     public sendsDirectly(token: ClientToken): boolean {
         token = normalizeClientToken(token);
-        return (
-            this.acceptedBy.has(token) ||
-            this.peerInfo.get(token)?.ownDevice === true
-        );
+        return this.peerInfo.get(token)?.ownDevice === true;
     }
 
-    public async sendText(to: ClientToken, text: string): Promise<void> {
+    /** Queues a text. Returns false when a lock holds it back, so the draft can stay. */
+    public sendText(to: ClientToken, text: string): boolean {
         to = normalizeClientToken(to);
         if (this.isLocked() || !this.takeTextToken()) {
-            return;
+            return false;
         }
 
         const entry: TextEntry = {
@@ -231,21 +237,25 @@ export class MessagingService {
         };
         this.texts = [entry, ...this.texts];
         this.publish();
+        void this.deliverText(entry);
+        return true;
+    }
 
-        const sealed = await this.sealFor(to, { text });
+    private async deliverText(entry: TextEntry) {
+        const sealed = await this.sealFor(entry.peer, { text: entry.text });
         if (!sealed) {
             this.setTextStatus(entry.id, "failed");
             return;
         }
         this.signaling.sendMessage(
-            new OutgoingTextMessage({ id: entry.id, to, ...sealed })
+            new OutgoingTextMessage({ id: entry.id, to: entry.peer, ...sealed })
         );
     }
 
     /**
-     * Sends a selection of loose files and folders. To a peer that accepted
-     * before, or an own device, the files start right away; otherwise the
-     * peer gets an offer first.
+     * Sends a selection of loose files and folders. To an own device, the
+     * files start right away. Every other peer gets an offer first, since
+     * only the receiver knows whether it still trusts or blocks this client.
      */
     public async sendSelection(to: ClientToken, selection: ShareSelection) {
         to = normalizeClientToken(to);
@@ -311,10 +321,7 @@ export class MessagingService {
         }
 
         if (!accepted) {
-            this.signaling.sendMessage(
-                new TransferAnswerMessage({ offerId, accepted: false })
-            );
-            this.incomingOffers.set(offerId, { ...offer, status: "declined" });
+            this.declineOffer(offer);
             this.publish();
             return;
         }
@@ -335,24 +342,43 @@ export class MessagingService {
     }
 
     /**
-     * Mutes a peer until the page reloads: its texts and offers are dropped
-     * without telling it, and its connection closes.
+     * Mutes a peer until unblock: its open offers get declined, its new texts
+     * and offers are dropped without telling it, and its connection closes.
      */
     public block(token: ClientToken) {
         token = normalizeClientToken(token);
         this.blocked.add(token);
         this.acceptedFrom.delete(token);
         for (const offer of Array.from(this.incomingOffers.values())) {
-            if (offer.peer === token) {
-                this.incomingOffers.delete(offer.offerId);
+            if (offer.peer === token && offer.status === "waiting") {
+                this.declineOffer(offer);
             }
         }
         this.peerConnections.closePeer(token);
         this.publish();
     }
 
+    /** Lets the peer send again. Its next offer asks once more, since blocking dropped the trust. */
+    public unblock(token: ClientToken) {
+        this.blocked.delete(normalizeClientToken(token));
+        this.publish();
+    }
+
+    private declineOffer(offer: OfferEntry) {
+        this.signaling.sendMessage(
+            new TransferAnswerMessage({
+                offerId: offer.offerId,
+                accepted: false,
+            })
+        );
+        this.incomingOffers.set(offer.offerId, {
+            ...offer,
+            status: "declined",
+        });
+    }
+
     private on(type: MessageType, handler: (message: ITypedMessage) => void) {
-        this.signaling.subscribeMessage(type, handler as MessageHandler);
+        this.signaling.subscribeMessage(type, handler);
     }
 
     private async handleNewToken() {
@@ -366,12 +392,11 @@ export class MessagingService {
     }
 
     /**
-     * A new token ends every relation of the old one: the server dropped its
-     * connections, offers and permissions together with it.
+     * A new connection ends every relation of the old one, even under the same
+     * token: the server dropped its connections, offers and permissions.
      */
     private forgetSession() {
         this.peerConnections.reset();
-        this.acceptedBy.clear();
         this.acceptedFrom.clear();
         this.peerInfo.clear();
         this.lookups.clear();
@@ -400,6 +425,7 @@ export class MessagingService {
             this.deviceLookups.delete(deviceUuid);
             if (online) {
                 this.rememberPeer(normalized, { publicKey, ownDevice });
+                this.lookups.clear();
                 this.lookups.set(normalized, { status: "online", ownDevice });
                 this.publish();
             }
@@ -410,6 +436,10 @@ export class MessagingService {
         if (retryAfterMs !== null) {
             this.lookups.delete(normalized);
             this.lockFor("tokens", retryAfterMs);
+            return;
+        }
+        // An answer for a token looked up before the current one.
+        if (!this.lookups.has(normalized)) {
             return;
         }
 
@@ -456,7 +486,8 @@ export class MessagingService {
         this.setTextStatus(id, status === "delivered" ? "delivered" : "failed");
 
         if (status === "rate-limited" && retryAfterMs !== null) {
-            this.textTokens = 0;
+            this.textTokens = 1 - retryAfterMs / TEXT_REFILL_MS;
+            this.textRefilledAt = Date.now();
             this.lockFor("texts", retryAfterMs);
         } else if (status === "unknown" && retryAfterMs !== null) {
             this.lockFor("tokens", retryAfterMs);
@@ -530,7 +561,6 @@ export class MessagingService {
         }
 
         this.outgoingOffers.delete(offerId);
-        this.acceptedBy.add(offer.entry.peer);
         this.peerConnections.sendFiles(offer.entry.peer, offer.files);
         this.publish();
     }
@@ -584,18 +614,13 @@ export class MessagingService {
 
     private takeTextToken(): boolean {
         const now = Date.now();
-        const refills = Math.floor(
-            (now - this.textRefilledAt) / TEXT_REFILL_MS
+        this.textTokens = Math.min(
+            TEXT_BURST,
+            this.textTokens + (now - this.textRefilledAt) / TEXT_REFILL_MS
         );
-        if (refills > 0) {
-            this.textTokens = Math.min(TEXT_BURST, this.textTokens + refills);
-            this.textRefilledAt =
-                this.textTokens === TEXT_BURST
-                    ? now
-                    : this.textRefilledAt + refills * TEXT_REFILL_MS;
-        }
+        this.textRefilledAt = now;
         if (this.textTokens < 1) {
-            this.lockFor("texts", TEXT_REFILL_MS - (now - this.textRefilledAt));
+            this.lockFor("texts", (1 - this.textTokens) * TEXT_REFILL_MS);
             return false;
         }
         this.textTokens--;

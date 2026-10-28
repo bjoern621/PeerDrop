@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useWindowEvent } from "./useWindowEvent";
 
 /**
  * Prevents the browser's default behaviour of navigating to (and thereby
@@ -13,15 +13,10 @@ import { useEffect } from "react";
  * here, so intentional drops there are unaffected by this global guard.
  */
 export function usePreventFileDropNavigation(): void {
-    useEffect(() => {
-        const prevent = (e: DragEvent) => e.preventDefault();
+    useWindowEvent("dragover", preventDefault);
+    useWindowEvent("drop", preventDefault);
+}
 
-        window.addEventListener("dragover", prevent);
-        window.addEventListener("drop", prevent);
-
-        return () => {
-            window.removeEventListener("dragover", prevent);
-            window.removeEventListener("drop", prevent);
-        };
-    }, []);
+function preventDefault(event: Event) {
+    event.preventDefault();
 }

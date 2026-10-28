@@ -70,7 +70,7 @@
     background-color: var(--background);
     margin: 1px;
 
-    padding: var(--space-40);
+    padding: clamp(var(--space-16), 6vw, var(--space-40));
 
     p {
         margin-top: var(--space-24) !important;
@@ -89,8 +89,8 @@
         }
 
         svg {
-            width: calc(var(--font-size-l) * var(--line-height-l));
-            height: calc(var(--font-size-l) * var(--line-height-l));
+            width: 1lh;
+            height: 1lh;
             margin-left: var(--space-4);
             color: var(--accent);
 

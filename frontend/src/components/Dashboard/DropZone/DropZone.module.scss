@@ -1,3 +1,6 @@
+@use "../../../theme/layers" as *;
+@use "../card" as *;
+
 .zone {
     flex: 1 1 auto;
     position: relative;
@@ -7,7 +10,7 @@
     align-content: center;
     gap: var(--space-12) var(--space-16);
     padding: var(--space-12);
-    border: 3px dashed var(--primary-40);
+    border: 3px dashed $drop-zone-border-color;
     border-radius: var(--space-16);
     transition:
         border-color 0.2s ease,
@@ -16,17 +19,27 @@
 
 // Lifts the zone above the page and darkens everything around it.
 .dimming {
-    z-index: 150;
+    z-index: layer(drop-dimming);
     box-shadow: 0 0 0 200vmax rgb(0 0 0 / var(--a-50));
 }
 
 .shareButton {
     flex: 1 1 0;
-    min-width: 0;
+    min-width: max-content;
+}
+
+// Grows and shrinks with a transition when the hint wraps to more or fewer lines.
+.hintFrame {
+    flex: 1 1 100%;
+    overflow: hidden;
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition: height 0.2s ease-out;
+    }
 }
 
 .hint {
-    flex: 1 1 100%;
+    display: block;
     color: var(--text-muted);
     font-weight: var(--font-weight-regular);
     text-align: center;

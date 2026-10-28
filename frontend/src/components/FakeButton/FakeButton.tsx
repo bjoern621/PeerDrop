@@ -5,6 +5,7 @@ import {
     MouseEvent,
 } from "react";
 import styles from "./FakeButton.module.scss";
+import { cx } from "class-variance-authority";
 
 interface FakeButtonProps
     extends Omit<ComponentPropsWithoutRef<"div">, "role"> {
@@ -45,7 +46,7 @@ export default function FakeButton({
             aria-disabled={disabled || undefined}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
-            className={`${styles.fakeButton} ${className || ""}`}
+            className={cx(styles.fakeButton, className)}
             {...props}
         >
             {children}

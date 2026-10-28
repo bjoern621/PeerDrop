@@ -14,14 +14,25 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    border: 3px solid var(--primary-60);
+    border: $field-border;
     border-radius: var(--space-16);
     background-color: var(--background);
     transition:
         border-color 0.2s ease,
+        background-color 0.2s ease,
         box-shadow 0.2s ease;
 
     @include focused-frame;
+
+    // Borrows the border of the drop zone and the background of the disabled buttons beside it.
+    &:has(textarea:disabled) {
+        border-color: $drop-zone-border-color;
+        background-color: var(--text-muted-10);
+
+        .textBox {
+            cursor: default;
+        }
+    }
 }
 
 .label {
@@ -36,31 +47,18 @@
     flex-direction: column;
     padding: var(--space-8) var(--space-12);
     cursor: text;
+
+    // Keeps the textarea's default columns out of the field's minimum width.
+    contain: inline-size;
 }
 
 .textarea {
     flex: 1 1 auto;
-    display: block;
     min-width: 0;
     height: 72px;
-    box-sizing: border-box;
-    margin: 0;
-    resize: none;
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: var(--text);
-    font-family: "Roboto Mono", monospace;
-    font-size: var(--font-size-s);
-    line-height: var(--line-height-s);
-    font-weight: var(--font-weight-regular);
-    white-space: pre;
     overflow: hidden;
-    tab-size: 4;
 
-    &:focus {
-        outline: none;
-    }
+    @include code-field;
 }
 
 .bigTextarea {
@@ -93,23 +91,17 @@
 }
 
 .bar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-8);
-    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
-    border-top: 1px solid var(--text-muted-10);
+    @include view-bar(top);
+
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
 }
 
 .meta {
-    flex: 1;
-    min-width: 0;
-    color: var(--text-muted);
-    font-weight: var(--font-weight-regular);
-    white-space: nowrap;
-    overflow-x: clip;
-    text-overflow: ellipsis;
+    @include view-meta;
+
+    // Stays out of the field's minimum width and gets cut off instead.
+    contain: inline-size;
 }
 
 .send {
@@ -146,14 +138,9 @@
 }
 
 .big {
+    @include view-frame;
+
     position: absolute;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    border: 3px solid var(--primary-60);
-    border-radius: var(--space-16);
-    background-color: var(--background);
-    overflow: hidden;
     transition:
         width 0.2s ease-out,
         height 0.2s ease-out;

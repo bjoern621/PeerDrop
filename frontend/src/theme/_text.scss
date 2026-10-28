@@ -1,0 +1,7 @@
+// One line that ends in an ellipsis once it outgrows its box.
+@mixin ellipsis {
+    min-width: 0;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

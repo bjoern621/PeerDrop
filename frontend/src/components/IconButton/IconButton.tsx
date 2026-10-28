@@ -1,11 +1,13 @@
 import { ComponentPropsWithRef, ReactNode } from "react";
 import css from "./IconButton.module.scss";
 import Tooltip from "../Tooltip/Tooltip";
+import { cx } from "class-variance-authority";
 
 interface IconButtonProps
     extends Omit<ComponentPropsWithRef<"button">, "children"> {
     /** Accessible name, shown as tooltip unless `tooltip` is given. */
     label: string;
+    /** `false` shows no tooltip. */
     tooltip?: ReactNode;
     /** `ghost`: round, no background until hovered. `badge`: small square on a tint, for list rows. */
     variant?: "ghost" | "badge";
@@ -22,30 +24,27 @@ export default function IconButton({
     variant = "ghost",
     size = "l",
     tone = "neutral",
-    className = "",
+    className,
     children,
     ...props
 }: IconButtonProps) {
-    const classes = [
+    const classes = cx(
         css.iconButton,
         css[variant],
-        variant === "ghost" ? css[size] : "",
-        tone === "error" ? css.error : "",
-        className,
-    ]
-        .filter(Boolean)
-        .join(" ");
-
-    return (
-        <Tooltip content={tooltip ?? label}>
-            <button
-                type="button"
-                className={classes}
-                aria-label={label}
-                {...props}
-            >
-                {children}
-            </button>
-        </Tooltip>
+        variant === "ghost" && css[size],
+        tone === "error" && css.error,
+        className
     );
+
+    const button = (
+        <button type="button" className={classes} aria-label={label} {...props}>
+            {children}
+        </button>
+    );
+
+    if (tooltip === false) {
+        return button;
+    }
+
+    return <Tooltip content={tooltip ?? label}>{button}</Tooltip>;
 }

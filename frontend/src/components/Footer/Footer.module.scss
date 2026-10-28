@@ -1,8 +1,11 @@
+@use "../../theme/page" as *;
+@use "../Logo/size" as *;
+
 .footer {
     width: 100%;
     margin-top: var(--space-96);
 
-    max-width: 1072px;
+    max-width: $content-width;
     margin-left: auto;
     margin-right: auto;
     padding: var(--space-16) 0 var(--space-16) var(--space-64);
@@ -41,7 +44,7 @@
     align-items: flex-start;
 
     > :first-child {
-        height: 45px;
+        height: $logo-height;
     }
 }
 
@@ -59,7 +62,7 @@
     gap: var(--space-4);
 
     > svg {
-        height: calc(var(--font-size-s) * var(--line-height-s));
+        height: 1lh;
     }
 }
 
@@ -70,7 +73,7 @@
 
 .compactFooter {
     width: 100%;
-    max-width: 1440px;
+    max-width: $wide-page-width;
     margin: 0 auto;
     box-sizing: border-box;
     padding: var(--space-8) var(--space-24);

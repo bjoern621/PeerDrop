@@ -1,12 +1,12 @@
 using backend.ConnectionComponent.Common.Api.DTOs;
 using backend.ConnectionComponent.Dataaccess.Api;
 using backend.ConnectionComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.ConnectionComponent.Logic.Impl;
 
 public class PeerConnectionService(
-    IWebSocketHandler _webSocketHandler,
+    IClientRegistry _clientRegistry,
     IPairRepository _pairRepository,
     IConnectionInitiationService _connectionInitiationService,
     ILogger<PeerConnectionService> _logger) : IPeerConnectionService
@@ -21,14 +21,14 @@ public class PeerConnectionService(
         var targetToken = message.To.ToLowerInvariant();
 
         if (string.Equals(targetToken, clientToken, StringComparison.OrdinalIgnoreCase)
-            || !_webSocketHandler.RemoteTokenExists(targetToken))
+            || !_clientRegistry.RemoteTokenExists(targetToken))
         {
             _logger.LogDebug($"Peer connect from {clientToken} to {targetToken}, but the target is offline or the sender itself. Ignoring.");
             return;
         }
 
         string path;
-        if (_webSocketHandler.AreSignedInWithSameAccount(clientToken, targetToken))
+        if (_clientRegistry.AreSignedInWithSameAccount(clientToken, targetToken))
         {
             _pairRepository.AddPermission(clientToken, targetToken);
             _pairRepository.AddPermission(targetToken, clientToken);
@@ -58,7 +58,7 @@ public class PeerConnectionService(
             return;
         }
 
-        await _webSocketHandler.SendMessage(message.RemoteToken, new CloseConnectionMessage { RemoteToken = clientToken });
+        await _clientRegistry.SendMessage(message.RemoteToken, new CloseConnectionMessage { RemoteToken = clientToken });
         _logger.LogDebug($"to {message.RemoteToken}: Close Connection");
     }
 
@@ -68,7 +68,7 @@ public class PeerConnectionService(
 
         foreach (var partner in partners)
         {
-            await _webSocketHandler.SendMessage(partner, new CloseConnectionMessage { RemoteToken = clientToken });
+            await _clientRegistry.SendMessage(partner, new CloseConnectionMessage { RemoteToken = clientToken });
             _logger.LogDebug($"to {partner}: Close Connection: Partner {clientToken} disconnected");
         }
     }

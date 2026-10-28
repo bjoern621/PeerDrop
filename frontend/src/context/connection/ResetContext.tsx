@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
 export type ConnectionsContextType = {
-    resetWebsocketConnection: () => void;
+    resetWebsocketConnection: (requestedToken?: string) => void;
 };
 
 export const ResetContext = createContext<ConnectionsContextType | null>(null);

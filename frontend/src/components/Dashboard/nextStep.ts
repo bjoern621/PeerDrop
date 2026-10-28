@@ -1,6 +1,7 @@
 import { TFunction } from "i18next";
 import { LookupState, SendLock } from "../../services/MessagingService";
 import { CLIENT_TOKEN_LENGTH } from "../../util/Constants";
+import { displayToken } from "../../services/WebSocketService";
 
 export type HintKind = "type" | "pick" | "wait" | "warn" | "err";
 
@@ -15,6 +16,7 @@ interface NextStepInput {
     lookup: LookupState | undefined;
     blocked: boolean;
     tooBig: boolean;
+    lost: boolean;
     lock: SendLock | null;
     now: number;
 }
@@ -25,7 +27,11 @@ export function nextStep(
     t: TFunction<"dashboard">
 ): Hint {
     const { recipient, lock } = input;
-    const token = recipient.toUpperCase();
+    const token = displayToken(recipient);
+
+    if (input.lost) {
+        return { kind: "warn", text: t("hint.lost") };
+    }
 
     if (lock?.reason === "tokens") {
         const minutes = Math.max(

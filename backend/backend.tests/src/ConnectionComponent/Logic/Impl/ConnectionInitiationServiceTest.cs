@@ -6,7 +6,7 @@ using backend.SignalingComponent.Logic.Api;
 using backend.TelemetryComponent.Logic.Api;
 using backend.tests.TestUtils;
 using backend.WebSocketComponent.Common.Api.DTOs;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
@@ -18,7 +18,7 @@ public class ConnectionInitiationServiceTest
     private const string TOKEN_A = "sabak";
     private const string TOKEN_B = "rinot";
 
-    private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IClientRegistry> _mockHandler;
     private Mock<IUsageMetrics> _mockUsageMetrics;
     private SentMessages _sent;
     private PairRepository _pairRepository;
@@ -27,7 +27,7 @@ public class ConnectionInitiationServiceTest
     [SetUp]
     public void Setup()
     {
-        _mockHandler = new Mock<IWebSocketHandler>();
+        _mockHandler = new Mock<IClientRegistry>();
         _sent = new SentMessages().Capture<EstablishConnectionMessage>(_mockHandler);
         _mockUsageMetrics = new Mock<IUsageMetrics>();
         _pairRepository = new PairRepository();

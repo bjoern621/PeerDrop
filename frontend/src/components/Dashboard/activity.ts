@@ -6,6 +6,7 @@ import {
     FolderTransferItem,
     groupTransfers,
 } from "./groupTransfers";
+import { textBytes } from "./transferFormat";
 
 export type SortKey = "name" | "progress" | "size" | "time";
 
@@ -103,7 +104,7 @@ function nameOf(item: ActivityItem, t: TFunction<"dashboard">): string {
 function bytesOf(item: ActivityItem): number {
     switch (item.kind) {
         case "text":
-            return new Blob([item.entry.text]).size;
+            return textBytes(item.entry.text);
         case "offer":
             return item.entry.summary.bytes;
         default:

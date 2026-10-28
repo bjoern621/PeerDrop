@@ -6,6 +6,7 @@ import Compress from "../../../assets/illustrations/compression.svg?react";
 import Routes from "../../../assets/illustrations/all_routes.svg?react";
 import * as Accordion from "@radix-ui/react-accordion";
 import Anchor from "../../Anchor/Anchor";
+import { HEADING_COMPONENTS } from "../headingComponents";
 
 const illustrations = {
     "item-0": <Routes aria-hidden />,
@@ -23,9 +24,7 @@ export default function UnderTheHood() {
                 <Trans
                     t={t}
                     i18nKey="underTheHood.heading"
-                    components={{
-                        highlight: <span className="text-highlight" />,
-                    }}
+                    components={HEADING_COMPONENTS}
                 />
             </h2>
 

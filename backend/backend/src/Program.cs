@@ -37,6 +37,10 @@ using backend.TelemetryComponent.Facade.Api;
 using backend.TelemetryComponent.Facade.Impl;
 using backend.TelemetryComponent.Logic.Api;
 using backend.TelemetryComponent.Logic.Impl;
+using backend.TokenComponent.Facade.Api;
+using backend.TokenComponent.Facade.Impl;
+using backend.TokenComponent.Logic.Api;
+using backend.TokenComponent.Logic.Impl;
 using backend.WebSocketComponent.Facade.Api;
 using backend.WebSocketComponent.Facade.Impl;
 using backend.WebSocketComponent.Logic.Api;
@@ -120,7 +124,11 @@ if (Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") != null)
 
 builder.Services.AddWebSockets(options => { });
 builder.Services.AddSingleton<IWebSocketRoutes, WebSocketRoutes>();
-builder.Services.AddSingleton<IWebSocketHandler, WebSocketHandler>();
+builder.Services.AddSingleton<IWebSocketTransport, WebSocketTransport>();
+builder.Services.AddSingleton<ClientRegistry>();
+builder.Services.AddSingleton<IClientRegistry>(services => services.GetRequiredService<ClientRegistry>());
+builder.Services.AddSingleton<ITransportEventHandler>(services => services.GetRequiredService<ClientRegistry>());
+builder.Services.AddSingleton<ITransportSubscriptions, TransportSubscriptions>();
 builder.Services.AddSingleton<ISignalingFacade, SignalingFacade>();
 builder.Services.AddSingleton<ISignalingService, SignalingService>();
 builder.Services.AddSingleton<IAccountRoutes, AccountRoutes>();
@@ -140,12 +148,13 @@ builder.Services.AddSingleton<ITextService, TextService>();
 builder.Services.AddSingleton<ITransferOfferService, TransferOfferService>();
 builder.Services.AddSingleton<IAbuseGuard, AbuseGuard>();
 builder.Services.AddSingleton<IPendingOfferRepository, PendingOfferRepository>();
+builder.Services.AddSingleton<IPresenceWatchRepository, PresenceWatchRepository>();
+builder.Services.AddSingleton<IPublicKeyRepository, PublicKeyRepository>();
 builder.Services.AddSingleton<IUsageMetrics, UsageMetrics>();
 builder.Services.AddSingleton<IUsageCountRepository, UsageCountRepository>();
 builder.Services.AddSingleton<ITelemetryWebsocketMessages, TelemetryWebsocketMessages>();
 builder.Services.AddScoped<IAccountLoginHandler, AccountLoginHandler>();
 builder.Services.AddScoped<IAccountCreationHandler, AccountCreationHandler>();
-builder.Services.AddScoped<IChosenClientTokenHandler, ChosenClientTokenHandler>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IAccountSignInService, AccountSignInService>();
@@ -206,6 +215,8 @@ app.UseAuthentication();
 
 app.UseWebSockets();
 
+var transportSubscriptions = app.Services.GetRequiredService<ITransportSubscriptions>();
+transportSubscriptions.SubscribeToTransport();
 var webSocketRoutes = app.Services.GetRequiredService<IWebSocketRoutes>();
 webSocketRoutes.RegisterRoutes(app);
 var signalingFacade = app.Services.GetRequiredService<ISignalingFacade>();

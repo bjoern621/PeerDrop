@@ -5,7 +5,7 @@ using backend.MessagingComponent.Dataaccess.Impl;
 using backend.MessagingComponent.Logic.Impl;
 using backend.TelemetryComponent.Logic.Api;
 using backend.tests.TestUtils;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
@@ -20,7 +20,8 @@ public class TransferOfferServiceTest
     private const string SENDER_KEY = "BHN0dWJrZXk=";
     private const string IV = "AAECAwQFBgcICQoL";
 
-    private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IClientRegistry> _mockHandler;
+    private PublicKeyRepository _publicKeys;
     private Mock<IConnectionInitiationService> _mockConnectionInitiationService;
     private SentMessages _sent;
     private PairRepository _pairRepository;
@@ -30,9 +31,10 @@ public class TransferOfferServiceTest
     [SetUp]
     public void Setup()
     {
-        _mockHandler = new Mock<IWebSocketHandler>();
+        _mockHandler = new Mock<IClientRegistry>();
         _mockHandler.Setup(h => h.RemoteTokenExists(It.IsAny<string>())).Returns<string>(t => t is SENDER or RECEIVER);
-        _mockHandler.Setup(h => h.GetPublicKeyForClientToken(SENDER)).Returns(SENDER_KEY);
+        _publicKeys = new PublicKeyRepository();
+        _publicKeys.Set(SENDER, SENDER_KEY);
         _sent = new SentMessages()
             .Capture<IncomingTransferOfferMessage>(_mockHandler)
             .Capture<TransferOfferResultMessage>(_mockHandler)
@@ -45,6 +47,7 @@ public class TransferOfferServiceTest
         _clock = new ManualTimeProvider();
         _service = new TransferOfferService(
             _mockHandler.Object,
+            _publicKeys,
             new AbuseGuard(_clock),
             new PendingOfferRepository(),
             _pairRepository,
@@ -75,9 +78,9 @@ public class TransferOfferServiceTest
     }
 
     [Test]
-    public async Task HandleTransferOffer_ReceiverOffline_ReportsUnknownAndLocksOnFifthMiss()
+    public async Task HandleTransferOffer_ReceiverOffline_ReportsUnknownAndLocksOnSixthMiss()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await Offer($"o{i}", OFFLINE);
         }
@@ -92,7 +95,7 @@ public class TransferOfferServiceTest
     [Test]
     public async Task HandleTransferOffer_SenderLocked_ReportsUnknownWithoutForwarding()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await Offer($"miss{i}", OFFLINE);
         }
@@ -113,7 +116,7 @@ public class TransferOfferServiceTest
     [Test]
     public async Task HandleTransferOffer_WhileLocked_CountsNoOfferAgainstCap()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await Offer($"miss{i}", OFFLINE);
         }

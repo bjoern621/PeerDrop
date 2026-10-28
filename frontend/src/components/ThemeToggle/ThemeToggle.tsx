@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useThemeContext } from "../../context/ThemeContext";
+import { THEME_PREFERENCES, useThemeContext } from "../../context/ThemeContext";
 import css from "./ThemeToggle.module.scss";
 
 export default function ThemeToggle() {
@@ -8,13 +8,8 @@ export default function ThemeToggle() {
         useThemeContext();
 
     const cycleTheme = () => {
-        if (themePreference === "light") {
-            setThemePreference("dark");
-        } else if (themePreference === "dark") {
-            setThemePreference("system");
-        } else {
-            setThemePreference("light");
-        }
+        const next = THEME_PREFERENCES.indexOf(themePreference) + 1;
+        setThemePreference(THEME_PREFERENCES[next % THEME_PREFERENCES.length]);
     };
 
     const getThemeLabel = () => {

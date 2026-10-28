@@ -2,7 +2,6 @@ import {
     KeyboardEvent,
     MouseEvent,
     RefObject,
-    useEffect,
     useLayoutEffect,
     useRef,
     useState,
@@ -14,11 +13,15 @@ import {
     IconArrowsDiagonal as ExpandIcon,
     IconArrowsDiagonalMinimize2 as CollapseIcon,
 } from "@tabler/icons-react";
-import { getSizeInHumanReadableFormat } from "../transferFormat";
-import { useEscapeKey } from "../../../hooks/useEscapeKey";
+import { getTextSummary } from "../transferFormat";
+import { useModalView } from "../../../hooks/useModalView";
+import { useTimeout } from "../../../hooks/useTimeout";
+import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
+import { PHONE_QUERY } from "../../../util/mediaQueries";
 import Button from "../../Button/Button";
 import IconButton from "../../IconButton/IconButton";
 import Tooltip from "../../Tooltip/Tooltip";
+import { cx } from "class-variance-authority";
 
 const BIG_MAX_WIDTH = 840;
 const BIG_MAX_HEIGHT = 600;
@@ -26,18 +29,24 @@ const GROW_MS = 200;
 
 /** Space kept free below the large field: the phone shows the hint there. */
 function bottomReserve(): number {
-    return window.matchMedia("(width <= 760px)").matches ? 120 : 16;
+    return window.matchMedia(PHONE_QUERY).matches ? 120 : 16;
 }
 
 interface TextComposerProps {
     draft: string;
     onDraftChange: (draft: string) => void;
+    /** Keeps the field locked until the recipient can receive. */
+    disabled: boolean;
+    /** Placeholder of the locked field, naming what unlocks it. */
+    lockedHint: string;
     canSend: boolean;
     /** Share of the send pause already over, 0..1; null while sending is allowed. */
     pauseProgress: number | null;
     onSend: () => void;
     /** The large field grows inside this element. */
     boundsRef: RefObject<HTMLElement | null>;
+    /** The large field grows no further right than this element. */
+    widthRef: RefObject<HTMLElement | null>;
 }
 
 interface Rect {
@@ -50,18 +59,22 @@ interface Rect {
 export default function TextComposer({
     draft,
     onDraftChange,
+    disabled,
+    lockedHint,
     canSend,
     pauseProgress,
     onSend,
     boundsRef,
+    widthRef,
 }: TextComposerProps) {
     const { t } = useTranslation("dashboard");
+    const isTouchDevice = useIsTouchDevice();
     const fieldRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [overflowing, setOverflowing] = useState(false);
     const [big, setBig] = useState<{ from: Rect; to: Rect } | null>(null);
     const [grown, setGrown] = useState(false);
-    const closeTimer = useRef<number | undefined>(undefined);
+    const closeEnd = useTimeout();
 
     useLayoutEffect(() => {
         const textarea = textareaRef.current;
@@ -69,8 +82,6 @@ export default function TextComposer({
             setOverflowing(textarea.scrollHeight > textarea.clientHeight + 1);
         }
     }, [draft]);
-
-    useEffect(() => () => window.clearTimeout(closeTimer.current), []);
 
     const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
         if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
@@ -85,18 +96,19 @@ export default function TextComposer({
     const openBig = () => {
         const field = fieldRef.current?.getBoundingClientRect();
         const bounds = boundsRef.current?.getBoundingClientRect();
-        if (!field || !bounds) {
+        const right = widthRef.current?.getBoundingClientRect().right;
+        if (!field || !bounds || right === undefined) {
             return;
         }
         const left = field.left - bounds.left;
         const top = field.top - bounds.top;
-        window.clearTimeout(closeTimer.current);
+        closeEnd.clear();
         setBig({
             from: { left, top, width: field.width, height: field.height },
             to: {
                 left,
                 top,
-                width: Math.min(BIG_MAX_WIDTH, bounds.right - field.left),
+                width: Math.min(BIG_MAX_WIDTH, right - field.left),
                 height: Math.max(
                     field.height,
                     Math.min(
@@ -115,19 +127,15 @@ export default function TextComposer({
 
     const closeBig = () => {
         setGrown(false);
-        window.clearTimeout(closeTimer.current);
-        closeTimer.current = window.setTimeout(() => setBig(null), GROW_MS);
+        closeEnd.set(() => setBig(null), GROW_MS);
     };
-    useEscapeKey(closeBig, big !== null);
+    const bigRef = useRef<HTMLDivElement>(null);
+    useModalView(bigRef, closeBig, big !== null);
 
-    const lines = draft.length === 0 ? 0 : draft.split("\n").length;
-    const meta =
-        draft.length === 0
-            ? ""
-            : `${t("lines", { count: lines })} · ${getSizeInHumanReadableFormat(new Blob([draft]).size)}`;
+    const meta = draft.length === 0 ? "" : getTextSummary(draft, t);
 
     const sendButton = (
-        <Tooltip content={t("composer.sendShortcut")}>
+        <Tooltip content={t("composer.sendShortcut")} disabled={isTouchDevice}>
             <Button
                 size="small"
                 className={css.send}
@@ -171,18 +179,23 @@ export default function TextComposer({
                         onKeyDown={handleKeyDown}
                         spellCheck={false}
                         wrap="off"
-                        placeholder={t("composer.placeholder")}
+                        disabled={disabled}
+                        placeholder={
+                            disabled ? lockedHint : t("composer.placeholder")
+                        }
                     />
                 </div>
                 <div
-                    className={`${css.fadeBottom} ${overflowing ? css.visible : ""}`}
+                    className={cx(css.fadeBottom, overflowing && css.visible)}
                     aria-hidden
                 />
                 <div className={css.bar}>
                     <span className={css.meta}>{meta}</span>
                     <IconButton
                         label={t("composer.expand")}
+                        tooltip={isTouchDevice ? false : undefined}
                         size="m"
+                        disabled={disabled}
                         onClick={openBig}
                     >
                         <ExpandIcon aria-hidden />
@@ -192,13 +205,9 @@ export default function TextComposer({
             </div>
 
             {big && rect && (
-                <div
-                    className={css.overlay}
-                    onClick={event => {
-                        if (event.target === event.currentTarget) closeBig();
-                    }}
-                >
+                <div className={css.overlay}>
                     <div
+                        ref={bigRef}
                         role="dialog"
                         aria-modal="true"
                         aria-label={t("composer.label")}
@@ -233,7 +242,10 @@ export default function TextComposer({
                             <span className={css.meta}>{meta}</span>
                             <IconButton
                                 label={t("composer.collapse")}
-                                tooltip={t("composer.collapseShortcut")}
+                                tooltip={
+                                    !isTouchDevice &&
+                                    t("composer.collapseShortcut")
+                                }
                                 size="m"
                                 onClick={closeBig}
                             >

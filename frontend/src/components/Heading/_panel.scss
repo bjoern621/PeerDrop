@@ -1,0 +1,52 @@
+@use "../../theme/shadows.scss" as *;
+
+/// Panel that drops from the right end of the header, over a backdrop that leaves the header undimmed.
+/// $open selects the open state: "[open]" for a dialog, ":popover-open" for a popover.
+@mixin header-panel($open) {
+    position-anchor: --heading;
+    position: fixed;
+    top: anchor(bottom);
+    right: 0;
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: var(--space-16);
+
+    @include elevated-shadow-no-highlight;
+
+    &::backdrop {
+        position-anchor: --heading;
+        top: anchor(bottom);
+        background-color: transparent;
+
+        @media (prefers-reduced-motion: no-preference) {
+            transition: background-color 0.1s;
+        }
+    }
+
+    &#{$open}::backdrop {
+        background-color: var(--backdrop);
+
+        @starting-style {
+            background-color: transparent;
+        }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition-property: opacity, scale, display, overlay;
+        transition-duration: 0.1s;
+        transition-behavior: allow-discrete;
+        opacity: 0;
+        scale: 0.9;
+        transform-origin: top;
+
+        &#{$open} {
+            opacity: 1;
+            scale: 1;
+
+            @starting-style {
+                opacity: 0;
+                scale: 0.9;
+            }
+        }
+    }
+}

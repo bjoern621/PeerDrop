@@ -1,5 +1,8 @@
 export const enum MessageType {
     CLIENT_TOKEN = "client-token",
+    HELLO = "hello",
+    PING = "ping",
+    PONG = "pong",
     CLOSE_CONNECTION = "close-connection",
     ICE_CANDIDATE = "ice-candidate",
     SDP = "sdp",

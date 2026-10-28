@@ -33,6 +33,12 @@ tasks:
             - task: clean
             - docker images -q "peerdrop-*" | xargs -r docker rmi -f
 
+    e2e:
+        desc: Run the Playwright end-to-end tests against the running stack
+        dir: frontend
+        cmds:
+            - npx playwright test {{.CLI_ARGS}}
+
     logs:
         desc: Follow the logs of the running stack
         cmds:

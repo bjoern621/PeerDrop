@@ -1,11 +1,11 @@
 {
     "token": {
         "title": "Your token",
-        "share": "Share this token with others",
+        "share": "Share this token with others.",
         "change": "Change token",
         "newToken": "New token",
         "pickCharacters": "Pick {{length}} characters from A to Z and 0 to 9.",
-        "inUse": "{{token}} is taken right now. Reload the page later to get it.",
+        "inUse": "Token {{token}} is taken. Reload later.",
         "copy": "Copy token",
         "copied": "Token copied",
         "copyLink": "Copy token as link",
@@ -13,6 +13,9 @@
     },
     "devices": {
         "title": "Devices",
+        "expand": "Enlarge device list",
+        "collapse": "Shrink device list",
+        "expandHint": "Enlarge the list to see devices.",
         "network": "In your network",
         "networkHelp": "Devices in the same network show up here without a click",
         "searching": "Looking for devices in your network...",
@@ -24,6 +27,7 @@
         "unknown": "Unknown device",
         "online": "This device is online.",
         "offline": "This device is offline.",
+        "statusUnknown": "Without a connection to the server, it is unclear whether this device is online.",
         "learnMore": "Learn more",
         "rename": "Rename device",
         "remove": "Remove device from your registered devices",
@@ -38,6 +42,7 @@
         }
     },
     "send": {
+        "noConnection": "No connection to the server",
         "title": "Send",
         "to": "To",
         "recipientToken": "Recipient's token",
@@ -48,11 +53,12 @@
         "tokensLocked_one": "You entered an unknown token too often. Please wait {{count}} minute.",
         "tokensLocked_other": "You entered an unknown token too often. Please wait {{count}} minutes.",
         "textsLocked": "You are sending too many texts. Please wait a few seconds.",
-        "enterToken": "Enter the recipient's token or pick one under \"Devices\".",
+        "enterToken": "Enter the token of another device or pick one under \"Devices\".",
         "missingChars_one": "Enter the last character of the token.",
         "missingChars_other": "Enter the remaining {{count}} characters of the token.",
         "ownToken": "{{token}} is your own token. Enter the token of another device.",
         "blocked": "You blocked {{token}} until you reload the page.",
+        "lost": "Without a connection to the server, you cannot send anything.",
         "checking": "Checking whether {{token}} is online...",
         "offline": "{{token}} is offline. Please check the token.",
         "tooBig": "The text is larger than 1 MB. Send it as a file.",
@@ -86,7 +92,7 @@
     },
     "transfers": {
         "title": "Transfers",
-        "empty": "No transfers",
+        "empty": "No transfers yet",
         "columns": {
             "name": "Name",
             "progress": "Progress",
@@ -129,8 +135,8 @@
         },
         "block": {
             "block": "Block {{token}}",
-            "blocked": "{{token}} blocked",
-            "blockedHint": "{{token}} stays blocked until you reload the page"
+            "unblock": "Unblock {{token}}",
+            "blockedHint": "{{token}} is blocked. Click to unblock."
         },
         "copy": {
             "copy": "COPY",

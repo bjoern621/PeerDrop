@@ -1,5 +1,14 @@
 export const HEARTBEAT_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO THE BACKEND VARIABLE: INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS
 
+/** Time between two checks that the server still answers, besides the checks on waking up and going online. */
+export const SERVER_CHECK_INTERVAL_MS = 30_000;
+
+/** Time that the server gets to answer a check before the connection counts as broken. */
+export const SERVER_PONG_TIMEOUT_MS = 5_000;
+
+/** Waits before the attempts to reconnect to the server, in order. The last one repeats. */
+export const RECONNECT_DELAYS_MS = [1_000, 2_000, 5_000, 10_000, 30_000];
+
 /** Number of characters in a client token. */
 export const CLIENT_TOKEN_LENGTH = 5;
 

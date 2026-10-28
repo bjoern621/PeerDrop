@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
 import { IconMenu2 as MenuIcon, IconX as CloseIcon } from "@tabler/icons-react";
-import Logo from "../Logo/Logo";
+import Logo, { LogoIcon } from "../Logo/Logo";
 import css from "./Heading.module.scss";
 import StableText from "../StableText/StableText";
 import AuthButton from "../Auth/AuthButton";
@@ -12,9 +12,8 @@ import LanguageToggle, {
 } from "../LanguageToggle/LanguageToggle";
 import IconButton from "../IconButton/IconButton";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-
-// Matches $header-breakpoint in Variables.scss.
-const MENU_LAYOUT_QUERY = "(width <= 960px)";
+import { HEADER_MENU_QUERY } from "../../util/mediaQueries";
+import { cx } from "class-variance-authority";
 
 /**
  * On narrow screens, language, settings and account controls sit in a popover
@@ -24,7 +23,7 @@ const MENU_LAYOUT_QUERY = "(width <= 960px)";
 export default function Heading() {
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const isMenuLayout = useMediaQuery(MENU_LAYOUT_QUERY);
+    const isMenuLayout = useMediaQuery(HEADER_MENU_QUERY);
     const menuRef = useRef<HTMLDivElement>(null!);
 
     // An open popover stays in the top layer and leaves the wide header empty.
@@ -38,7 +37,8 @@ export default function Heading() {
         <header className={css.header}>
             <div className={css.headerContent}>
                 <Link to="/" aria-label={t("header.homeLink")}>
-                    <Logo aria-hidden />
+                    <Logo className={css.bannerLogo} aria-hidden />
+                    <LogoIcon className={css.iconLogo} aria-hidden />
                 </Link>
 
                 <nav
@@ -60,12 +60,9 @@ export default function Heading() {
                 </nav>
 
                 <IconButton
-                    className={
-                        isMenuOpen
-                            ? `${css.menuButton} ${css.open}`
-                            : css.menuButton
-                    }
+                    className={cx(css.menuButton, isMenuOpen && css.open)}
                     label={t("header.menu")}
+                    tooltip={false}
                     popoverTarget="header-menu"
                 >
                     {isMenuOpen ? (

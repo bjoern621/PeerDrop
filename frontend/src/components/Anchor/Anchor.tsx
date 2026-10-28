@@ -1,9 +1,10 @@
+/* eslint-disable react-refresh/only-export-components */
 import { cva, VariantProps } from "class-variance-authority";
 import { ReactNode } from "react";
 import css from "./Anchor.module.scss";
 import { Link, LinkProps } from "react-router";
 
-const anchorVariants = cva(css.anchor, {
+export const anchorVariants = cva(css.anchor, {
     variants: {
         underline: {
             none: css.noUnderline,
@@ -36,10 +37,7 @@ export default function Anchor({
 }: AnchorProps) {
     return (
         <Link
-            className={`${anchorVariants({
-                underline,
-                hover,
-            })} ${className || ""}`}
+            className={anchorVariants({ underline, hover, className })}
             {...props}
         >
             {children}

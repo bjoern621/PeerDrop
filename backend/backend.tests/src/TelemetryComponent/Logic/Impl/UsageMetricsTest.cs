@@ -1,7 +1,7 @@
 using backend.TelemetryComponent.Common.Api.DTOs;
 using backend.TelemetryComponent.Dataaccess.Api;
 using backend.TelemetryComponent.Logic.Impl;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,14 +14,14 @@ namespace backend.tests.TelemetryComponent.Logic.Impl;
 public class UsageMetricsTest
 {
     private ServiceProvider _services;
-    private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IClientRegistry> _mockHandler;
     private UsageMetrics _metrics;
 
     [SetUp]
     public void Setup()
     {
         _services = new ServiceCollection().AddMetrics().BuildServiceProvider();
-        _mockHandler = new Mock<IWebSocketHandler>();
+        _mockHandler = new Mock<IClientRegistry>();
         var mockRepository = new Mock<IUsageCountRepository>();
         mockRepository.Setup(r => r.CountAccounts()).Returns(7);
         mockRepository.Setup(r => r.CountDevices()).Returns(11);

@@ -1,0 +1,81 @@
+using backend.MessagingComponent.Dataaccess.Impl;
+
+namespace backend.tests.MessagingComponent.Dataaccess.Impl;
+
+[Category("UnitTest")]
+public class PresenceWatchRepositoryTest
+{
+    private const string WATCHER = "sabak";
+    private const string WATCHED = "rinot";
+    private const string OTHER = "lukid";
+
+    private PresenceWatchRepository _repository;
+
+    [SetUp]
+    public void Setup()
+    {
+        _repository = new PresenceWatchRepository();
+    }
+
+    [Test]
+    public void RemoveClient_WatchedClient_ReturnsLowercaseWatchers()
+    {
+        _repository.Watch(WATCHER.ToUpperInvariant(), WATCHED);
+        _repository.Watch(OTHER, WATCHED.ToUpperInvariant());
+
+        Assert.That(_repository.RemoveClient(WATCHED), Is.EquivalentTo(new[] { WATCHER, OTHER }));
+    }
+
+    [Test]
+    public void RemoveClient_WatchedClient_KeepsItsWatchers()
+    {
+        _repository.Watch(WATCHER, WATCHED);
+
+        _repository.RemoveClient(WATCHED);
+
+        Assert.That(_repository.WatchersOf(WATCHED.ToUpperInvariant()), Is.EqualTo(new[] { WATCHER }));
+    }
+
+    [Test]
+    public void Watch_SecondToken_ReplacesFirst()
+    {
+        _repository.Watch(WATCHER, WATCHED);
+        _repository.Watch(WATCHER, OTHER);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_repository.WatchersOf(WATCHED), Is.Empty);
+            Assert.That(_repository.WatchersOf(OTHER), Is.EqualTo(new[] { WATCHER }));
+        });
+    }
+
+    [Test]
+    public void Unwatch_Watcher_DropsItsWatch()
+    {
+        _repository.Watch(WATCHER, WATCHED);
+
+        _repository.Unwatch(WATCHER.ToUpperInvariant());
+
+        Assert.That(_repository.WatchersOf(WATCHED), Is.Empty);
+    }
+
+    [Test]
+    public void Unwatch_ClientWatchingNothing_DoesNothing()
+    {
+        _repository.Watch(OTHER, WATCHED);
+
+        _repository.Unwatch(WATCHER);
+
+        Assert.That(_repository.WatchersOf(WATCHED), Is.EqualTo(new[] { OTHER }));
+    }
+
+    [Test]
+    public void RemoveClient_Watcher_DropsItsWatch()
+    {
+        _repository.Watch(WATCHER, WATCHED);
+
+        _repository.RemoveClient(WATCHER);
+
+        Assert.That(_repository.WatchersOf(WATCHED), Is.Empty);
+    }
+}

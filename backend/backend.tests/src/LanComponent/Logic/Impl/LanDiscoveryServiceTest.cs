@@ -1,8 +1,9 @@
 using backend.LanComponent.Common.Api.DTOs;
 using backend.LanComponent.Logic.Api;
 using backend.LanComponent.Logic.Impl;
+using backend.TokenComponent.Common.Api.DTOs;
 using backend.WebSocketComponent.Common.Api.DTOs;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
@@ -20,7 +21,7 @@ public class LanDiscoveryServiceTest
     // generic argument of Moq's Callback overloads.
     private delegate void SendMessageCallback(string recipientToken, ITypedMessage message);
 
-    private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IClientRegistry> _mockHandler;
     private ILanDiscoveryService _service;
 
     // Peer lists the mock handler captured, newest last, per recipient.
@@ -29,7 +30,7 @@ public class LanDiscoveryServiceTest
     [SetUp]
     public void Setup()
     {
-        _mockHandler = new Mock<IWebSocketHandler>();
+        _mockHandler = new Mock<IClientRegistry>();
         _sentPeerLists = [];
 
         _mockHandler

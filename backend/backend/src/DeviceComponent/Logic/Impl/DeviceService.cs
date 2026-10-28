@@ -3,7 +3,7 @@ using backend.DeviceComponent.Common.DTOs;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
 using backend.DeviceComponent.Logic.Types;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.DeviceComponent.Logic.Impl;
 
@@ -17,17 +17,17 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
     private const int INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS = 1000 * 60; // 1 minute; THIS IS LINKED TO THE FRONTEND VARIABLE: HEARTBEAT_INTERVAL_MS
     private const int INACTIVE_HEARTBEAT_THRESHOLD_MS = 1000 * 30; // Amount of time additional to INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS in milliseconds after which a device is considered inactive if it has not sent a heartbeat, e.g. 1 minute (INACTIVE_HEARTBEAT_CHECK_INTERVAL_MS) + 30 seconds (INACTIVE_HEARTBEAT_THRESHOLD_MS) = 1 minute 30 seconds
 
-    private readonly IWebSocketHandler _webSocketHandler = null!;
+    private readonly IClientRegistry _clientRegistry = null!;
     private readonly IServiceScopeFactory _scopeFactory = null!; // Used to get a scoped IDeviceRepository
 
     public DeviceService(
-        IWebSocketHandler webSocketHandler,
+        IClientRegistry clientRegistry,
         IServiceScopeFactory scopeFactory,
         ILogger<DeviceService> logger
     )
         : this(logger)
     {
-        _webSocketHandler = webSocketHandler;
+        _clientRegistry = clientRegistry;
         _scopeFactory = scopeFactory;
         Task.Run(CleanupInactiveDevicesLoop);
     }
@@ -96,7 +96,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
     /// </summary>
     private void SendHeartbeatToAllActiveClientTokens(int userId, Guid uuid, string deviceStatus)
     {
-        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId);
+        var activeClientTokensForUserId = _clientRegistry.GetClientTokensForUserId(userId);
 
         foreach (var token in activeClientTokensForUserId)
         {
@@ -107,7 +107,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
                 DeviceStatus = deviceStatus,
             };
 
-            _webSocketHandler.SendMessage(token, forwardedHeartbeatMessage);
+            _clientRegistry.SendMessage(token, forwardedHeartbeatMessage);
         }
     }
 
@@ -117,7 +117,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
             $"Received heartbeat {message.DeviceStatus} from device {message.Uuid} for client {clientToken}"
         );
 
-        int? realUserId = _webSocketHandler.GetUserIdForClientToken(clientToken);
+        int? realUserId = _clientRegistry.GetUserIdForClientToken(clientToken);
         if (realUserId == null)
         {
             // No userId found for the clientToken (user has websocket connection but is not logged in)
@@ -200,7 +200,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
                 continue;
             }
 
-            if (_webSocketHandler.GetUserIdForClientToken(kvp.Key) != userId)
+            if (_clientRegistry.GetUserIdForClientToken(kvp.Key) != userId)
             {
                 // The client is logged in with another account that may still have the device registered
                 continue;
@@ -222,7 +222,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
                 var deviceInfo = kvp.Value;
                 if (
                     deviceInfo.DeviceGuid == deviceUuid
-                    && _webSocketHandler.GetUserIdForClientToken(kvp.Key) != null
+                    && _clientRegistry.GetUserIdForClientToken(kvp.Key) != null
                 )
                 {
                     // LastDeviceStatus is valid if the device is in the _activeDevices list and has a valid userId (client is logged in)
@@ -259,7 +259,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
         string status
     )
     {
-        var activeClientTokensForUserId = _webSocketHandler.GetClientTokensForUserId(userId);
+        var activeClientTokensForUserId = _clientRegistry.GetClientTokensForUserId(userId);
 
         foreach (var token in activeClientTokensForUserId)
         {
@@ -272,7 +272,7 @@ public class DeviceService(ILogger<DeviceService> logger) : IDeviceService
                 Device = new DeviceInfo { Uuid = deviceUuid, DisplayName = displayName },
             };
 
-            _webSocketHandler.SendMessage(token, deviceChangedMessage);
+            _clientRegistry.SendMessage(token, deviceChangedMessage);
         }
     }
 }

@@ -4,65 +4,53 @@ import { MessageType } from "../types/MessageType";
 import { LanPeersMessage } from "../types/lan/LanPeersMessage";
 import { LanPeersRequestMessage } from "../types/lan/LanPeersRequestMessage";
 import { useWebSocketService } from "../context/connection/WebSocketContext";
-import { MessageHandler } from "../services/WebSocketService";
 import useSettings from "./useSettings";
+import { useWebSocketMessage } from "./useWebSocketMessage";
 
 /**
  * Provides the list of peers discovered in the local network.
  *
  * The backend groups clients by public IP (same IP = same network) and pushes
  * the full peer list over the existing WebSocket connection whenever it
- * changes. On mount, the current list is requested explicitly so peers that
- * were already present are shown immediately. Discovery runs continuously;
+ * changes. Mounted on an open connection, it requests the current list, since
+ * the report of the setting went out before. Discovery runs continuously;
  * the list grows and shrinks as peers appear and disappear.
  *
- * The list stays empty while the LAN discovery setting is off. Switching the
- * setting back on requests the current list again.
+ * The list stays empty while the LAN discovery setting is off. Reporting the
+ * setting as on brings the current list, on every new connection and whenever
+ * the setting switches on.
  */
 export const useLanPeers = () => {
     const webSocketService = useWebSocketService();
     const { lanDiscovery } = useSettings();
     const [peers, setPeers] = useState<LanPeer[]>([]);
 
+    useWebSocketMessage<LanPeersMessage>(
+        MessageType.LAN_PEERS,
+        message => setPeers(message.msg.peers),
+        lanDiscovery
+    );
+    // A new client token means a fresh WebSocket connection (e.g. after a
+    // token reset). The previous peer list belongs to the old connection;
+    // the server pushes the current list right after.
+    useWebSocketMessage(
+        MessageType.CLIENT_TOKEN,
+        () => setPeers([]),
+        lanDiscovery
+    );
+
+    // Runs once, for a connection that reported the setting before this hook mounted.
+    useEffect(() => {
+        if (lanDiscovery && webSocketService.getConnection() === "open") {
+            webSocketService.sendMessage(new LanPeersRequestMessage());
+        }
+        // exhaustive-deps-exclude [webSocketService, lanDiscovery]
+    }, []);
     useEffect(() => {
         if (!lanDiscovery) {
             setPeers([]);
-            return;
         }
-
-        const handleLanPeers = (message: LanPeersMessage) => {
-            setPeers(message.msg.peers);
-        };
-
-        // A new client token means a fresh WebSocket connection (e.g. after a
-        // token reset). The previous peer list belongs to the old connection;
-        // the server pushes the current list right after.
-        const handleClientToken = () => {
-            setPeers([]);
-        };
-
-        webSocketService.subscribeMessage(
-            MessageType.LAN_PEERS,
-            handleLanPeers as MessageHandler
-        );
-        webSocketService.subscribeMessage(
-            MessageType.CLIENT_TOKEN,
-            handleClientToken as MessageHandler
-        );
-
-        webSocketService.sendMessage(new LanPeersRequestMessage());
-
-        return () => {
-            webSocketService.unsubscribeMessage(
-                MessageType.LAN_PEERS,
-                handleLanPeers as MessageHandler
-            );
-            webSocketService.unsubscribeMessage(
-                MessageType.CLIENT_TOKEN,
-                handleClientToken as MessageHandler
-            );
-        };
-    }, [lanDiscovery, webSocketService]);
+    }, [lanDiscovery]);
 
     return { peers };
 };

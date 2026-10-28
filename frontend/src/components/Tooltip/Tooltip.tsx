@@ -1,6 +1,8 @@
-import { ReactNode, useEffect, useId, useRef, useState } from "react";
+import { ReactNode, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import css from "./Tooltip.module.scss";
+import { useTimeout } from "../../hooks/useTimeout";
+import { cx } from "class-variance-authority";
 
 export type TooltipPosition = "top" | "bottom" | "left" | "right";
 
@@ -26,19 +28,17 @@ export default function Tooltip({
     content,
     position = "top",
     showArrow = false,
-    className = "",
+    className,
     disabled = false,
     hoverable = false,
     triggerClassName = "",
 }: TooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
-    const hideTimeout = useRef<number | undefined>(undefined);
+    const hide = useTimeout();
     const anchorId = useId();
 
-    useEffect(() => () => window.clearTimeout(hideTimeout.current), []);
-
     const handleMouseEnter = () => {
-        window.clearTimeout(hideTimeout.current);
+        hide.clear();
         if (!disabled) {
             setIsVisible(true);
         }
@@ -46,33 +46,21 @@ export default function Tooltip({
 
     const handleMouseLeave = () => {
         if (hoverable) {
-            hideTimeout.current = window.setTimeout(
-                () => setIsVisible(false),
-                HIDE_DELAY_MS
-            );
+            hide.set(() => setIsVisible(false), HIDE_DELAY_MS);
         } else {
             setIsVisible(false);
         }
     };
 
-    const tooltipClasses = [
+    const tooltipClasses = cx(
         css.tooltip,
         css[position],
-        showArrow ? css.withArrow : "",
-        isVisible ? css.visible : "",
-        hoverable ? css.hoverable : "",
-        className,
-    ]
-        .filter(Boolean)
-        .join(" ");
-
-    const arrowClasses = [
-        css.arrow,
-        css[position],
-        isVisible ? css.visible : "",
-    ]
-        .filter(Boolean)
-        .join(" ");
+        showArrow && css.withArrow,
+        isVisible && css.visible,
+        hoverable && css.hoverable,
+        className
+    );
+    const arrowClasses = cx(css.arrow, css[position], isVisible && css.visible);
 
     const anchorName = `--anchor-${anchorId.replace(/:/g, "")}`;
 
@@ -80,7 +68,7 @@ export default function Tooltip({
         <>
             <div
                 id={anchorId}
-                className={`${css.tooltipTrigger} ${triggerClassName}`}
+                className={cx(css.tooltipTrigger, triggerClassName)}
                 style={
                     {
                         anchorName: anchorName,

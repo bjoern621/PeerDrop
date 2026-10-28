@@ -6,14 +6,15 @@ import {
     useLayoutEffect,
     useState,
 } from "react";
+import { PREFERS_DARK_QUERY, REDUCED_MOTION_QUERY } from "../util/mediaQueries";
 
 const LOCAL_STORAGE_KEY = "theme";
 type ColorScheme = "light" | "dark";
-type ThemePreference = ColorScheme | "system";
-const prefersDarkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-const prefersReducedMotionQuery = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-);
+/** Order of the options in the settings and of the footer toggle's cycle. */
+export const THEME_PREFERENCES = ["light", "dark", "system"] as const;
+type ThemePreference = (typeof THEME_PREFERENCES)[number];
+const prefersDarkMediaQuery = window.matchMedia(PREFERS_DARK_QUERY);
+const prefersReducedMotionQuery = window.matchMedia(REDUCED_MOTION_QUERY);
 
 interface ThemeContextType {
     themePreference: ThemePreference;
@@ -36,7 +37,7 @@ function isColorScheme(value: unknown): value is ColorScheme {
 }
 
 function isThemePreference(value: unknown): value is ThemePreference {
-    return isColorScheme(value) || value === "system";
+    return THEME_PREFERENCES.includes(value as ThemePreference);
 }
 
 function storedColorScheme(): ColorScheme {

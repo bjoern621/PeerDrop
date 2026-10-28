@@ -18,22 +18,28 @@ import {
     selectionFromFileList,
 } from "../../../util/shareSelection";
 import { useIsTouchDevice } from "../../../hooks/useIsTouchDevice";
+import { useContentHeight } from "../../../hooks/useContentHeight";
+import { useTimeout } from "../../../hooks/useTimeout";
+import { cx } from "class-variance-authority";
 
 const FLASH_OK_MS = 1800;
 const FLASH_WARN_MS = 2500;
-// Dragover repeats about every 50 ms while a file hovers the page, so a
-// short silence means the drag left the page.
-const DRAG_SILENCE_MS = 250;
 
 interface DropZoneProps {
     /** Uppercase token of a recipient that files can go to, or null. */
     recipient: string | null;
     onSelection: (selection: ShareSelection) => void;
+    /** Hint while no recipient can receive, naming what unlocks the zone. */
+    lockedHint: string;
 }
 
 type Flash = { kind: "ok" | "warn"; text: string };
 
-export default function DropZone({ recipient, onSelection }: DropZoneProps) {
+export default function DropZone({
+    recipient,
+    onSelection,
+    lockedHint,
+}: DropZoneProps) {
     const { t } = useTranslation("dashboard");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
@@ -41,36 +47,52 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
     const [overZone, setOverZone] = useState(false);
     const [pageDrag, setPageDrag] = useState(false);
     const [flash, setFlash] = useState<Flash | null>(null);
-    const flashTimer = useRef<number | undefined>(undefined);
-    const dragTimer = useRef<number | undefined>(undefined);
+    const flashEnd = useTimeout();
+    const hintRef = useRef<HTMLSpanElement>(null);
+    const hintHeight = useContentHeight(hintRef);
 
     useEffect(() => {
         if (isTouchDevice) {
             return;
         }
-        const handlePageDragOver = (event: globalThis.DragEvent) => {
-            if (!event.dataTransfer?.types.includes("Files")) {
+        // Elements the dragged file is over. Dragenter on the next element fires
+        // before dragleave on the last one, so an empty list means the drag left the page.
+        let targets: EventTarget[] = [];
+        const endPageDrag = () => {
+            targets = [];
+            setPageDrag(false);
+            setOverZone(false);
+        };
+        const handlePageDragEnter = (event: globalThis.DragEvent) => {
+            if (!event.dataTransfer?.types.includes("Files") || !event.target) {
                 return;
             }
+            targets.push(event.target);
             setPageDrag(true);
-            window.clearTimeout(dragTimer.current);
-            dragTimer.current = window.setTimeout(() => {
-                setPageDrag(false);
-                setOverZone(false);
-            }, DRAG_SILENCE_MS);
         };
-        window.addEventListener("dragover", handlePageDragOver);
+        const handlePageDragLeave = (event: globalThis.DragEvent) => {
+            // An element removed mid-drag never fires dragleave.
+            targets = targets.filter(
+                target =>
+                    target !== event.target && document.contains(target as Node)
+            );
+            if (targets.length === 0) {
+                endPageDrag();
+            }
+        };
+        window.addEventListener("dragenter", handlePageDragEnter);
+        window.addEventListener("dragleave", handlePageDragLeave);
+        window.addEventListener("drop", endPageDrag);
         return () => {
-            window.removeEventListener("dragover", handlePageDragOver);
-            window.clearTimeout(dragTimer.current);
-            window.clearTimeout(flashTimer.current);
+            window.removeEventListener("dragenter", handlePageDragEnter);
+            window.removeEventListener("dragleave", handlePageDragLeave);
+            window.removeEventListener("drop", endPageDrag);
         };
     }, [isTouchDevice]);
 
     const showFlash = (next: Flash) => {
         setFlash(next);
-        window.clearTimeout(flashTimer.current);
-        flashTimer.current = window.setTimeout(
+        flashEnd.set(
             () => setFlash(null),
             next.kind === "ok" ? FLASH_OK_MS : FLASH_WARN_MS
         );
@@ -84,7 +106,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
             return;
         }
         if (!recipient) {
-            showFlash({ kind: "warn", text: t("dropZone.pickRecipient") });
+            showFlash({ kind: "warn", text: lockedHint });
             return;
         }
         onSelection(selection);
@@ -157,14 +179,14 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
     const dimming = (overZone || pageDrag) && !flash;
 
     const hint = !recipient
-        ? t("dropZone.pickRecipient")
+        ? lockedHint
         : isTouchDevice
           ? t("dropZone.pick")
           : t("dropZone.pickOrDrag");
 
     return (
         <div
-            className={`${css.zone} ${overlay?.edge ?? ""} ${dimming ? css.dimming : ""}`}
+            className={cx(css.zone, overlay?.edge, dimming && css.dimming)}
             onDragOver={event => {
                 event.preventDefault();
                 if (!overZone) setOverZone(true);
@@ -189,7 +211,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
                 variant="outline"
                 color_scheme="primary"
                 alignment="vertical"
-                className={`${css.shareButton} ${css.fileButton}`}
+                className={cx(css.shareButton, css.fileButton)}
                 disabled={!recipient}
                 onClick={() => fileInputRef.current?.click()}
             >
@@ -214,7 +236,7 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
                 variant="outline"
                 color_scheme="primary"
                 alignment="vertical"
-                className={`${css.shareButton} ${css.folderButton}`}
+                className={cx(css.shareButton, css.folderButton)}
                 disabled={!recipient}
                 onClick={() => folderInputRef.current?.click()}
             >
@@ -224,11 +246,15 @@ export default function DropZone({ recipient, onSelection }: DropZoneProps) {
                 </div>
                 {t("dropZone.shareFolder")}
             </Button>
-            <span className={css.hint}>{hint}</span>
+            <div className={css.hintFrame} style={{ height: hintHeight }}>
+                <span ref={hintRef} className={css.hint}>
+                    {hint}
+                </span>
+            </div>
             {overlay && (
                 <div
                     role="status"
-                    className={`${css.overlay} ${overlay.className}`}
+                    className={cx(css.overlay, overlay.className)}
                 >
                     {overlay.icon === "drop" && <DropIcon aria-hidden />}
                     {overlay.icon === "ok" && <CheckIcon aria-hidden />}

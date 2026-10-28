@@ -22,7 +22,10 @@ import { usePeerConnectionManager } from "../../../context/connection/PeerConnec
 import useSettings from "../../../hooks/useSettings";
 import { useCopyToClipboard } from "../../../hooks/useCopyToClipboard";
 import { OfferEntry, TextEntry } from "../../../services/MessagingService";
-import { TransferSnapshot } from "../../../services/TransferTracker";
+import {
+    TransferDirection,
+    TransferSnapshot,
+} from "../../../services/TransferTracker";
 import { peerColor } from "../../../util/peerColor";
 import { FolderNode } from "../groupTransfers";
 import { offerName } from "../activity";
@@ -30,7 +33,10 @@ import {
     getSizeInHumanReadableFormat,
     getTimeInHumanReadableFormat,
     getTransferInfo,
+    textBytes,
 } from "../transferFormat";
+import { cx } from "class-variance-authority";
+import { displayToken } from "../../../services/WebSocketService";
 
 interface RowProps {
     blocked: ReadonlySet<string>;
@@ -53,7 +59,6 @@ export function TextRow({
     onOpen,
 }: RowProps & { entry: TextEntry; onOpen: () => void }) {
     const { t } = useTranslation("dashboard");
-    const messaging = useMessagingService();
     const preview = entry.text.replace(/\s+/g, " ").trim();
 
     return (
@@ -71,7 +76,7 @@ export function TextRow({
             }
             direction={entry.direction}
             peer={entry.peer}
-            size={new Blob([entry.text]).size}
+            size={textBytes(entry.text)}
             at={entry.at}
         >
             {entry.direction === "up" ? (
@@ -97,7 +102,6 @@ export function TextRow({
                     <BlockButton
                         peer={entry.peer}
                         blocked={blocked.has(entry.peer)}
-                        onBlock={() => messaging.block(entry.peer)}
                     />
                 </>
             )}
@@ -131,9 +135,17 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
             at={entry.at}
         >
             {entry.status === "declined" ? (
-                <StatusChip tone="error">
-                    {t("transfers.offer.declined")}
-                </StatusChip>
+                <>
+                    <StatusChip tone="error">
+                        {t("transfers.offer.declined")}
+                    </StatusChip>
+                    {entry.direction === "down" && (
+                        <BlockButton
+                            peer={entry.peer}
+                            blocked={blocked.has(entry.peer)}
+                        />
+                    )}
+                </>
             ) : entry.status === "failed" ? (
                 <StatusChip tone="error">
                     {t("transfers.notDelivered")}
@@ -177,11 +189,7 @@ export function OfferRow({ entry, blocked }: RowProps & { entry: OfferEntry }) {
                     >
                         <CloseIcon aria-hidden />
                     </IconButton>
-                    <BlockButton
-                        peer={entry.peer}
-                        blocked={blocked.has(entry.peer)}
-                        onBlock={() => messaging.block(entry.peer)}
-                    />
+                    <BlockButton peer={entry.peer} blocked={false} />
                 </>
             )}
         </Row>
@@ -247,7 +255,10 @@ export function FolderRow({
                         onClick={() => setExpanded(value => !value)}
                     >
                         <ChevronIcon
-                            className={`${css.chevron} ${expanded ? css.chevronOpen : ""}`}
+                            className={cx(
+                                css.chevron,
+                                expanded && css.chevronOpen
+                            )}
                             aria-hidden
                         />
                         <FolderIcon className={css.icon} aria-hidden />
@@ -312,7 +323,6 @@ function TransferStatus({
 }) {
     const { t } = useTranslation("dashboard");
     const pcm = usePeerConnectionManager();
-    const messaging = useMessagingService();
     const { autoSaveDownloads } = useSettings();
     const { direction, remoteToken } = transfers[0];
 
@@ -321,7 +331,6 @@ function TransferStatus({
             <BlockButton
                 peer={remoteToken}
                 blocked={blocked.has(remoteToken)}
-                onBlock={() => messaging.block(remoteToken)}
             />
         ) : null;
 
@@ -363,7 +372,7 @@ function TransferStatus({
                     <StatusChip
                         tone="error"
                         tooltip={t("transfers.status.connectionLost", {
-                            token: remoteToken.toUpperCase(),
+                            token: displayToken(remoteToken),
                         })}
                     >
                         {t("transfers.status.interrupted")}
@@ -478,7 +487,7 @@ function Row({
 }: {
     name: ReactNode;
     count?: number;
-    direction: "up" | "down";
+    direction: TransferDirection;
     peer: string;
     size: number;
     at: Date;
@@ -510,7 +519,7 @@ function Row({
                     />
                 )}
                 <span className={css.peer} style={{ color: peerColor(peer) }}>
-                    {peer.toUpperCase()}
+                    {displayToken(peer)}
                 </span>
                 <div className={css.status}>{children}</div>
             </div>
@@ -527,25 +536,24 @@ function Row({
     );
 }
 
-/** Blocks a sender until reload. Once blocked, it stays in red and does nothing. */
+/** Blocks a sender. Once blocked, it turns red and unblocks on the next press. */
 export function BlockButton({
     peer,
     blocked,
-    onBlock,
 }: {
     peer: string;
     blocked: boolean;
-    onBlock: () => void;
 }) {
     const { t } = useTranslation("dashboard");
-    const token = peer.toUpperCase();
+    const messaging = useMessagingService();
+    const token = displayToken(peer);
     return blocked ? (
         <IconButton
             variant="badge"
             tone="error"
-            label={t("transfers.block.blocked", { token })}
+            label={t("transfers.block.unblock", { token })}
             tooltip={t("transfers.block.blockedHint", { token })}
-            aria-disabled
+            onClick={() => messaging.unblock(peer)}
         >
             <BlockIcon aria-hidden />
         </IconButton>
@@ -553,7 +561,7 @@ export function BlockButton({
         <IconButton
             variant="badge"
             label={t("transfers.block.block", { token })}
-            onClick={onBlock}
+            onClick={() => messaging.block(peer)}
         >
             <BlockIcon aria-hidden />
         </IconButton>

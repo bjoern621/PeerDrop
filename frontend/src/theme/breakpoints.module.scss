@@ -1,0 +1,10 @@
+@use "breakpoints";
+@use "../components/Dashboard/layout";
+@use "../components/Heading/Variables" as heading;
+
+// Hands the breakpoints to util/mediaQueries.ts, so script and styles switch at the same width.
+:export {
+    phone: breakpoints.$phone-breakpoint;
+    compact: layout.$compact-breakpoint;
+    headerMenu: heading.$header-breakpoint;
+}

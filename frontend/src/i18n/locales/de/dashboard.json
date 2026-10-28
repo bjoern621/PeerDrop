@@ -1,11 +1,11 @@
 {
     "token": {
         "title": "Dein Token",
-        "share": "Teile diesen Token mit anderen",
+        "share": "Teile diesen Token mit anderen.",
         "change": "Token ändern",
         "newToken": "Neuer Token",
         "pickCharacters": "Wähle {{length}} Zeichen aus A bis Z und 0 bis 9.",
-        "inUse": "{{token}} ist gerade belegt. Lade die Seite später neu, um den Token zu bekommen.",
+        "inUse": "Token {{token}} ist belegt. Lade später neu.",
         "copy": "Token kopieren",
         "copied": "Token kopiert",
         "copyLink": "Token als Link kopieren",
@@ -13,6 +13,9 @@
     },
     "devices": {
         "title": "Geräte",
+        "expand": "Geräteliste vergrößern",
+        "collapse": "Geräteliste verkleinern",
+        "expandHint": "Vergrößere die Liste, um Geräte zu sehen.",
         "network": "In deinem Netzwerk",
         "networkHelp": "Geräte im selben Netzwerk erscheinen hier automatisch",
         "searching": "Suche nach Geräten in deinem Netzwerk...",
@@ -24,6 +27,7 @@
         "unknown": "Unbekanntes Gerät",
         "online": "Dieses Gerät ist online.",
         "offline": "Dieses Gerät ist nicht online.",
+        "statusUnknown": "Ohne Verbindung zum Server ist unklar, ob dieses Gerät online ist.",
         "learnMore": "Mehr erfahren",
         "rename": "Gerät umbenennen",
         "remove": "Gerät aus registrierten Geräten entfernen",
@@ -38,6 +42,7 @@
         }
     },
     "send": {
+        "noConnection": "Keine Verbindung zum Server",
         "title": "Senden",
         "to": "An",
         "recipientToken": "Token des Empfängers",
@@ -48,11 +53,12 @@
         "tokensLocked_one": "Du hast zu oft einen unbekannten Token eingegeben. Bitte warte {{count}} Minute.",
         "tokensLocked_other": "Du hast zu oft einen unbekannten Token eingegeben. Bitte warte {{count}} Minuten.",
         "textsLocked": "Du schickst zu viele Texte. Bitte warte ein paar Sekunden.",
-        "enterToken": "Gib den Token des Empfängers ein oder wähle unter „Geräte“ einen aus.",
+        "enterToken": "Gib den Token eines anderen Geräts ein oder wähle einen unter „Geräte“ aus.",
         "missingChars_one": "Gib das letzte Zeichen des Tokens ein.",
         "missingChars_other": "Gib die restlichen {{count}} Zeichen des Tokens ein.",
         "ownToken": "{{token}} ist dein eigener Token. Gib den Token eines anderen Geräts ein.",
         "blocked": "Du hast {{token}} blockiert, bis du die Seite neu lädst.",
+        "lost": "Ohne Verbindung zum Server kannst du nichts senden.",
         "checking": "Prüfe, ob {{token}} online ist...",
         "offline": "{{token}} ist nicht online. Bitte überprüfe den Token.",
         "tooBig": "Der Text ist größer als 1 MB. Schicke ihn als Datei.",
@@ -86,7 +92,7 @@
     },
     "transfers": {
         "title": "Übertragungen",
-        "empty": "Keine Übertragungen",
+        "empty": "Bisher keine Übertragungen",
         "columns": {
             "name": "Name",
             "progress": "Fortschritt",
@@ -129,8 +135,8 @@
         },
         "block": {
             "block": "{{token}} blockieren",
-            "blocked": "{{token}} blockiert",
-            "blockedHint": "{{token}} ist blockiert, bis du die Seite neu lädst"
+            "unblock": "Blockierung von {{token}} aufheben",
+            "blockedHint": "{{token}} ist blockiert. Klicken hebt die Blockierung auf."
         },
         "copy": {
             "copy": "KOPIEREN",

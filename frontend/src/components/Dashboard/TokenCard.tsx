@@ -1,5 +1,4 @@
-import { ReactNode, useState } from "react";
-import { TFunction } from "i18next";
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import css from "./TokenCard.module.scss";
 import {
@@ -8,57 +7,54 @@ import {
     IconLink as CopyLinkIcon,
     IconCheck as CheckIcon,
     IconPencil as EditIcon,
+    IconInfoCircle as TakenIcon,
 } from "@tabler/icons-react";
 import { getRuntimeEnvVars } from "../../util/RuntimeEnvVars";
 import { useOwnToken } from "../../hooks/useOwnToken";
+import { useServerConnection } from "../../hooks/useServerConnection";
 import { useCopyToClipboard } from "../../hooks/useCopyToClipboard";
-import { useAuth } from "../../context/AuthContext";
+import { useInlineEdit } from "../../hooks/useInlineEdit";
+import useSettings from "../../hooks/useSettings";
 import { useResetWebsocket } from "../../context/connection/ResetContext";
-import { AuthService } from "../../services/AuthService";
-import { normalizeClientToken } from "../../services/WebSocketService";
+import { updateSettings } from "../../services/SettingsStore";
+import {
+    displayToken,
+    normalizeClientToken,
+} from "../../services/WebSocketService";
 import {
     CLIENT_TOKEN_LENGTH,
     CLIENT_TOKEN_CHARACTERS,
 } from "../../util/Constants";
 import IconButton from "../IconButton/IconButton";
+import Tooltip from "../Tooltip/Tooltip";
 import CardHeading from "./CardHeading/CardHeading";
+import { cx } from "class-variance-authority";
 
 export default function TokenCard() {
     const { t } = useTranslation("dashboard");
     const token = useOwnToken();
-    const { isLoggedIn } = useAuth();
+    const connection = useServerConnection();
+    const lost = connection === "lost";
+    const { requestedToken } = useSettings();
     const resetWebsocket = useResetWebsocket();
-    const [editing, setEditing] = useState(false);
-    const [editedToken, setEditedToken] = useState("");
-    const [inUseToken, setInUseToken] = useState<string | null>(null);
+    // Waits for the open connection, since the old token stays on screen while a new one is on its way.
+    const takenToken =
+        connection === "open" && requestedToken !== token
+            ? requestedToken
+            : null;
 
-    const startEditing = () => {
-        setEditedToken(token ?? "");
-        setInUseToken(null);
-        setEditing(true);
+    const requestToken = (requested: string) => {
+        if (requested.length !== CLIENT_TOKEN_LENGTH || requested === token) {
+            return;
+        }
+        updateSettings({ requestedToken: requested });
+        resetWebsocket(requested);
     };
 
-    const commitEdit = async () => {
-        setEditing(false);
-        if (
-            editedToken.length !== CLIENT_TOKEN_LENGTH ||
-            editedToken === token
-        ) {
-            return;
-        }
+    const tokenEdit = useInlineEdit(requestToken);
 
-        const result = await AuthService.setChosenClientToken(editedToken);
-        if (!result) {
-            return;
-        }
-
-        if (result.inUse) {
-            setInUseToken(result.token);
-            return;
-        }
-
-        // The server assigns the chosen token on the next connect
-        resetWebsocket();
+    const startEditing = () => {
+        tokenEdit.start(token ?? "");
     };
 
     return (
@@ -67,7 +63,14 @@ export default function TokenCard() {
                 <CardHeading id="own-token" icon={ProfileIcon} tone="secondary">
                     {t("token.title")}
                 </CardHeading>
-                {isLoggedIn && (
+                <div className={css.headerActions}>
+                    {takenToken && (
+                        <TakenNotice
+                            text={t("token.inUse", {
+                                token: displayToken(takenToken),
+                            })}
+                        />
+                    )}
                     <IconButton
                         label={t("token.change")}
                         size="m"
@@ -75,40 +78,35 @@ export default function TokenCard() {
                     >
                         <EditIcon aria-hidden />
                     </IconButton>
-                )}
+                </div>
             </div>
-            {editing ? (
+            {tokenEdit.editing ? (
                 <input
-                    className={`${css.tokenBox} ${css.tokenInput}`}
-                    value={editedToken}
+                    {...tokenEdit.fieldProps}
+                    className={cx(css.tokenBox, css.tokenInput)}
                     maxLength={CLIENT_TOKEN_LENGTH}
-                    autoFocus
                     autoComplete="off"
                     spellCheck={false}
                     aria-label={t("token.newToken")}
                     onChange={e =>
-                        setEditedToken(chosenTokenFromInput(e.target.value))
+                        tokenEdit.setDraft(chosenTokenFromInput(e.target.value))
                     }
-                    onKeyDown={e => {
-                        if (e.key === "Enter") {
-                            void commitEdit();
-                        } else if (e.key === "Escape") {
-                            setEditing(false);
-                        }
-                    }}
-                    onBlur={() => void commitEdit()}
                 />
             ) : (
-                <div className={css.tokenBox}>
-                    {token?.toUpperCase() ?? "_____"}
+                <div className={cx(css.tokenBox, lost && css.lost)}>
+                    {token ? displayToken(token) : "_____"}
                 </div>
             )}
             <div className={css.shareRow}>
                 <p className={css.shareText}>
-                    {shareText(t, editing, inUseToken, token)}
+                    {tokenEdit.editing
+                        ? t("token.pickCharacters", {
+                              length: CLIENT_TOKEN_LENGTH,
+                          })
+                        : t("token.share")}
                 </p>
                 <CopyIconButton
-                    text={token?.toUpperCase()}
+                    text={token && displayToken(token)}
                     label={t("token.copy")}
                     copiedLabel={t("token.copied")}
                     icon={<CopyIcon />}
@@ -135,19 +133,14 @@ function chosenTokenFromInput(value: string): string {
         .slice(0, CLIENT_TOKEN_LENGTH);
 }
 
-function shareText(
-    t: TFunction<"dashboard">,
-    editing: boolean,
-    inUseToken: string | null,
-    token: string | undefined
-): string {
-    if (editing) {
-        return t("token.pickCharacters", { length: CLIENT_TOKEN_LENGTH });
-    }
-    if (inUseToken && inUseToken !== token) {
-        return t("token.inUse", { token: inUseToken.toUpperCase() });
-    }
-    return t("token.share");
+function TakenNotice({ text }: { text: string }) {
+    return (
+        <Tooltip content={text}>
+            <span className={css.takenNotice} role="img" aria-label={text}>
+                <TakenIcon aria-hidden />
+            </span>
+        </Tooltip>
+    );
 }
 
 /** Copies `text` and shows a check mark for a moment; disabled while there is no text. */

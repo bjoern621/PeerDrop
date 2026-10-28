@@ -1,0 +1,25 @@
+// The frame sets --edge-inset-x and --edge-inset-y to line the shadows up with its scroll box.
+.shadow {
+    position: absolute;
+    z-index: 3;
+    left: var(--edge-inset-x, 0);
+    right: calc(var(--scrollbar) + var(--edge-inset-x, 0px));
+    height: 14px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.top {
+    top: var(--edge-inset-y, 0);
+    background: linear-gradient(var(--shadow), transparent);
+}
+
+.bottom {
+    bottom: var(--edge-inset-y, 0);
+    background: linear-gradient(transparent, var(--shadow));
+}
+
+.visible {
+    opacity: 1;
+}

@@ -5,8 +5,6 @@ import { ComponentPropsWithoutRef, ReactNode } from "react";
 const badgeVariants = cva(css.badge, {
     variants: {
         color_scheme: {
-            primary: css.primary,
-            secondary: css.secondary,
             neutral: css.neutral,
             success: css.success,
             warning: css.warning,

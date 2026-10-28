@@ -1,6 +1,5 @@
 import { FolderInfo, WebRTCConnection } from "./WebRTCConnection";
 import {
-    MessageHandler,
     WebSocketService,
     ClientToken,
     normalizeClientToken,
@@ -66,23 +65,19 @@ export class PeerConnectionManager {
     public constructor(private readonly signaling: WebSocketService) {
         this.logger.setEnabled(false);
 
-        this.signaling.subscribeMessage(
+        this.signaling.subscribeMessage<EstablishConnectionMessage>(
             MessageType.ESTABLISH_CONNECTION,
-            (message => {
-                this.handleEstablishConnection(
-                    message as EstablishConnectionMessage
-                );
-            }) as MessageHandler
+            message => this.handleEstablishConnection(message)
         );
-        this.signaling.subscribeMessage(
+        this.signaling.subscribeMessage<CloseConnectionMessage>(
             MessageType.CLOSE_CONNECTION,
-            (message => {
+            message => {
                 const remoteToken = normalizeClientToken(
-                    (message as CloseConnectionMessage).msg.remoteToken
+                    message.msg.remoteToken
                 );
                 this.log("Peer closed the connection:", remoteToken);
                 this.dropPeer(remoteToken);
-            }) as MessageHandler
+            }
         );
     }
 

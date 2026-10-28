@@ -1,3 +1,5 @@
+@use "../../../../theme/text" as *;
+
 .nameInput {
     width: 12ch;
     padding: 0 var(--space-4);
@@ -12,8 +14,7 @@
 }
 
 .deviceName {
+    @include ellipsis;
+
     flex: 1;
-    min-width: 0;
-    overflow-x: clip;
-    text-overflow: ellipsis;
 }

@@ -24,14 +24,6 @@
     }
 }
 
-@mixin fade-in-anim {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@mixin fade-out-anim {
-    animation: fadeOut 0.3s ease-in-out;
-}
-
 @keyframes slideInFromRight {
     from {
         transform: translateX(30px);
@@ -56,18 +48,6 @@
 @keyframes slideOutToLeft {
     to {
         transform: translateX(-30px);
-        opacity: 0;
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-}
-
-@keyframes fadeOut {
-    to {
         opacity: 0;
     }
 }

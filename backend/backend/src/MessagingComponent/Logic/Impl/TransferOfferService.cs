@@ -6,12 +6,13 @@ using backend.MessagingComponent.Dataaccess.Api;
 using backend.MessagingComponent.Logic.Api;
 using backend.MessagingComponent.Logic.Types;
 using backend.TelemetryComponent.Logic.Api;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 
 namespace backend.MessagingComponent.Logic.Impl;
 
 public class TransferOfferService(
-    IWebSocketHandler _webSocketHandler,
+    IClientRegistry _clientRegistry,
+    IPublicKeyRepository _publicKeys,
     IAbuseGuard _abuseGuard,
     IPendingOfferRepository _pendingOfferRepository,
     IPairRepository _pairRepository,
@@ -43,7 +44,7 @@ public class TransferOfferService(
             return;
 
         _usageMetrics.TransferOffered(status);
-        await _webSocketHandler.SendMessage(clientToken, new TransferOfferResultMessage
+        await _clientRegistry.SendMessage(clientToken, new TransferOfferResultMessage
         {
             OfferId = message.OfferId,
             Status = status,
@@ -57,12 +58,12 @@ public class TransferOfferService(
     private async Task<(string? Status, TimeSpan? RetryAfter)> DeliverOffer(string clientToken, string receiverToken, TransferOfferMessage message)
     {
         // A locked requester learns nothing about the receiver, delivered or not.
-        var requesterIp = _webSocketHandler.GetRemoteIpAddressForClientToken(clientToken);
+        var requesterIp = _clientRegistry.GetRemoteIpAddressForClientToken(clientToken);
         var lockRemaining = _abuseGuard.GetUnknownTokenLock(clientToken, requesterIp);
         if (lockRemaining != null)
             return (TransferOfferResultMessage.STATUS_UNKNOWN, lockRemaining);
 
-        if (!_webSocketHandler.RemoteTokenExists(receiverToken))
+        if (!_clientRegistry.RemoteTokenExists(receiverToken))
             return (TransferOfferResultMessage.STATUS_UNKNOWN, _abuseGuard.RecordUnknownTokenMiss(clientToken, requesterIp));
 
         var offerWait = _abuseGuard.TryRecordOffer(clientToken);
@@ -76,11 +77,11 @@ public class TransferOfferService(
             return (null, null);
         }
 
-        var forwarded = await _webSocketHandler.SendMessage(receiverToken, new IncomingTransferOfferMessage
+        var forwarded = await _clientRegistry.SendMessage(receiverToken, new IncomingTransferOfferMessage
         {
             OfferId = message.OfferId,
             From = clientToken,
-            FromKey = _webSocketHandler.GetPublicKeyForClientToken(clientToken),
+            FromKey = _publicKeys.Get(clientToken),
             Iv = message.Iv,
             Ciphertext = message.Ciphertext,
         });
@@ -116,7 +117,7 @@ public class TransferOfferService(
 
         _usageMetrics.TransferAnswered(message.Accepted);
 
-        await _webSocketHandler.SendMessage(offer.SenderToken, new TransferAnswerMessage
+        await _clientRegistry.SendMessage(offer.SenderToken, new TransferAnswerMessage
         {
             OfferId = offer.OfferId,
             From = offer.ReceiverToken,
@@ -144,7 +145,7 @@ public class TransferOfferService(
             }
             else
             {
-                await _webSocketHandler.SendMessage(offer.SenderToken, new TransferAnswerMessage
+                await _clientRegistry.SendMessage(offer.SenderToken, new TransferAnswerMessage
                 {
                     OfferId = offer.OfferId,
                     From = offer.ReceiverToken,
@@ -158,7 +159,7 @@ public class TransferOfferService(
 
     private async Task SendCancel(PendingOffer offer)
     {
-        await _webSocketHandler.SendMessage(offer.ReceiverToken, new TransferOfferCancelMessage
+        await _clientRegistry.SendMessage(offer.ReceiverToken, new TransferOfferCancelMessage
         {
             OfferId = offer.OfferId,
             From = offer.SenderToken,

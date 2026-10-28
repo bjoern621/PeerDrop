@@ -1,4 +1,5 @@
-import { RefObject, useEffect, useRef } from "react";
+import { RefObject } from "react";
+import { useWindowEvent } from "./useWindowEvent";
 
 /**
  * Calls `onOutsidePress` when a pointer goes down outside an open modal dialog,
@@ -11,26 +12,14 @@ export function useDialogOutsidePress(
     ref: RefObject<HTMLDialogElement>,
     onOutsidePress: () => void
 ) {
-    const latest = useRef(onOutsidePress);
-
-    useEffect(() => {
-        latest.current = onOutsidePress;
+    useWindowEvent("pointerdown", event => {
+        const dialog = ref.current;
+        // Presses on the backdrop target the dialog element itself.
+        if (
+            dialog.open &&
+            (event.target === dialog || !dialog.contains(event.target as Node))
+        ) {
+            onOutsidePress();
+        }
     });
-
-    useEffect(() => {
-        const handlePointerDown = (event: PointerEvent) => {
-            const dialog = ref.current;
-            // Presses on the backdrop target the dialog element itself.
-            if (
-                dialog.open &&
-                (event.target === dialog ||
-                    !dialog.contains(event.target as Node))
-            ) {
-                latest.current();
-            }
-        };
-        window.addEventListener("pointerdown", handlePointerDown);
-        return () =>
-            window.removeEventListener("pointerdown", handlePointerDown);
-    }, [ref]);
 }

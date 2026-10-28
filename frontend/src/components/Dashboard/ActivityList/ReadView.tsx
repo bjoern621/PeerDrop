@@ -1,15 +1,21 @@
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import css from "./ReadView.module.scss";
 import { IconX as CloseIcon } from "@tabler/icons-react";
 import { TextEntry } from "../../../services/MessagingService";
-import { useMessagingService } from "../../../context/connection/MessagingContext";
-import { useEscapeKey } from "../../../hooks/useEscapeKey";
+import { displayToken } from "../../../services/WebSocketService";
+import { useModalView } from "../../../hooks/useModalView";
+import { useTimeout } from "../../../hooks/useTimeout";
 import {
-    getSizeInHumanReadableFormat,
+    getTextSummary,
     getTimeInHumanReadableFormat,
 } from "../transferFormat";
 import { BlockButton, CopyButton } from "./ActivityRows";
 import IconButton from "../../IconButton/IconButton";
+import { cx } from "class-variance-authority";
+
+// Matches the shrink-out in ReadView.module.scss.
+const CLOSE_MS = 120;
 
 /** Shows a whole text read-only over the transfer list. */
 export default function ReadView({
@@ -22,50 +28,48 @@ export default function ReadView({
     onClose: () => void;
 }) {
     const { t } = useTranslation("dashboard");
-    const messaging = useMessagingService();
-    useEscapeKey(onClose);
-    const peer = entry.peer.toUpperCase();
+    const [closing, setClosing] = useState(false);
+    const closeEnd = useTimeout();
+
+    const close = () => {
+        if (closing) {
+            return;
+        }
+        setClosing(true);
+        closeEnd.set(onClose, CLOSE_MS);
+    };
+    const dialogRef = useRef<HTMLDivElement>(null);
+    useModalView(dialogRef, close);
+    const peer = displayToken(entry.peer);
     const title =
         entry.direction === "down"
             ? t("transfers.read.from", { token: peer })
             : t("transfers.read.to", { token: peer });
-    const lines = entry.text.split("\n").length;
 
     return (
-        <div
-            className={css.overlay}
-            onClick={event => {
-                if (event.target === event.currentTarget) onClose();
-            }}
-        >
+        <div className={css.overlay}>
             <div
+                ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
                 aria-label={title}
-                className={css.dialog}
+                className={cx(css.dialog, closing && css.closing)}
             >
                 <div className={css.bar}>
                     <span className={css.title}>{title}</span>
                     <span className={css.meta}>
-                        {t("lines", { count: lines })} ·{" "}
-                        {getSizeInHumanReadableFormat(
-                            new Blob([entry.text]).size
-                        )}{" "}
-                        · {getTimeInHumanReadableFormat(entry.at)}
+                        {getTextSummary(entry.text, t)} ·{" "}
+                        {getTimeInHumanReadableFormat(entry.at)}
                     </span>
                     <CopyButton text={entry.text} />
                     {entry.direction === "down" && (
-                        <BlockButton
-                            peer={entry.peer}
-                            blocked={blocked}
-                            onBlock={() => messaging.block(entry.peer)}
-                        />
+                        <BlockButton peer={entry.peer} blocked={blocked} />
                     )}
                     <IconButton
                         label={t("transfers.read.close")}
                         tooltip={t("transfers.read.closeShortcut")}
                         size="m"
-                        onClick={onClose}
+                        onClick={close}
                     >
                         <CloseIcon aria-hidden />
                     </IconButton>

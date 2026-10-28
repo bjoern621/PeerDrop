@@ -7,13 +7,12 @@ import {
 } from "@tabler/icons-react";
 import Button from "../Button/Button";
 import IconButton from "../IconButton/IconButton";
-import { useThemeContext } from "../../context/ThemeContext";
+import { THEME_PREFERENCES, useThemeContext } from "../../context/ThemeContext";
+import { cx } from "class-variance-authority";
 import useSettings from "../../hooks/useSettings";
 import { updateSettings } from "../../services/SettingsStore";
 import { useSettingsDialog } from "../../context/SettingsDialogContext";
 import { useDialogOutsidePress } from "../../hooks/useDialogOutsidePress";
-
-const THEME_OPTIONS = ["light", "dark", "system"] as const;
 
 /**
  * Gear button in the header that opens a settings dialog. The dialog is
@@ -110,17 +109,16 @@ export default function SettingsMenu({
                             role="radiogroup"
                             aria-label={t("theme")}
                         >
-                            {THEME_OPTIONS.map(option => (
+                            {THEME_PREFERENCES.map(option => (
                                 <button
                                     key={option}
                                     type="button"
                                     role="radio"
                                     aria-checked={themePreference === option}
-                                    className={
-                                        themePreference === option
-                                            ? `${css.themeOption} ${css.active}`
-                                            : css.themeOption
-                                    }
+                                    className={cx(
+                                        css.themeOption,
+                                        themePreference === option && css.active
+                                    )}
                                     onClick={() => setThemePreference(option)}
                                 >
                                     {t(`common:theme.${option}`)}

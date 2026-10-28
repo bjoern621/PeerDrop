@@ -1,3 +1,5 @@
+@use "../../../theme/tones" as *;
+
 .chip {
     flex: none;
     padding: var(--space-4) var(--space-8);
@@ -9,21 +11,17 @@
 }
 
 .neutral {
-    background-color: var(--text-muted-10);
-    color: var(--text);
+    @include tone(neutral);
 }
 
 .success {
-    background-color: var(--success-20);
-    color: var(--success-text);
+    @include tone(success);
 }
 
 .warning {
-    background-color: var(--warning-20);
-    color: var(--warning-text);
+    @include tone(warning);
 }
 
 .error {
-    background-color: var(--error-20);
-    color: var(--error-text);
+    @include tone(error);
 }

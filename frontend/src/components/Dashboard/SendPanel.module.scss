@@ -1,4 +1,8 @@
 @use "card" as *;
+@use "layout" as *;
+@use "../../theme/tones" as *;
+@use "../../theme/shadows" as *;
+@use "../../theme/layers" as *;
 
 .panel {
     @include card;
@@ -15,9 +19,52 @@
 }
 
 .recipient {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: var(--space-12);
+}
+
+.label,
+.partHeading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.step {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: var(--text-muted-10);
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    line-height: 1;
+    font-weight: var(--font-weight-semibold);
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+@keyframes step-pop {
+    50% {
+        scale: 1.25;
+    }
+}
+
+// A ring around the due step, popping once when the step comes due.
+.stepActive {
+    background-color: var(--primary);
+    color: var(--background);
+    box-shadow: 0 0 0 4px var(--primary-40);
+
+    @media (prefers-reduced-motion: no-preference) {
+        animation: step-pop 0.35s ease-out;
+    }
 }
 
 .hint {
@@ -25,7 +72,7 @@
     align-items: center;
     gap: var(--space-12);
     padding: var(--space-8) var(--space-16);
-    border-radius: 12px;
+    border-radius: var(--space-12);
     font-weight: var(--font-weight-medium);
 
     > svg {
@@ -35,26 +82,41 @@
     }
 }
 
+// Grows and shrinks with a transition when the hint wraps to more or fewer lines.
+// The icon stays centered on the hint as it grows.
+.hintTextFrame {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+
+    @media (prefers-reduced-motion: no-preference) {
+        transition: height 0.2s ease-out;
+    }
+}
+
+.hintText {
+    display: block;
+}
+
 .info {
-    background-color: var(--info-20);
-    color: var(--info-text);
+    @include tone(info);
 }
 
 .warn {
-    background-color: var(--warning-20);
-    color: var(--warning-text);
+    @include tone(warning);
 }
 
 .err {
-    background-color: var(--error-20);
-    color: var(--error-text);
+    @include tone(error);
 }
 
 .parts {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    // The text column keeps the width of the composer's button bar.
+    grid-template-columns: minmax(min-content, 1fr) minmax(0, 1fr);
     align-items: stretch;
-    gap: var(--space-16) var(--space-24);
+    gap: var(--space-16);
 }
 
 .part {
@@ -71,17 +133,23 @@
     font-weight: var(--font-weight-semibold);
 }
 
-@media (width <= 760px) {
+@media (width <= #{$phone-breakpoint}) {
     .hint {
         position: fixed;
-        z-index: 120;
+        z-index: layer(phone-hint);
         left: var(--space-16);
         right: var(--space-16);
         bottom: var(--space-16);
         background:
             linear-gradient(var(--hint-tint), var(--hint-tint)),
             var(--background);
-        box-shadow: 0 4px 10px 2px var(--shadow);
+
+        @include elevated-shadow-no-highlight;
+    }
+
+    // Lets the page scroll its footer clear of the hint above it.
+    :global(.layout-scroll):has(.hint) {
+        padding-bottom: calc(var(--send-hint-height) + 2 * var(--space-16));
     }
 
     .info {
@@ -100,4 +168,8 @@
         grid-template-columns: minmax(0, 1fr);
         gap: var(--space-24);
     }
+}
+
+.checking {
+    color: var(--text-muted);
 }

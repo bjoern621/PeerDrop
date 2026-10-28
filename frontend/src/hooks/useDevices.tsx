@@ -12,12 +12,11 @@ import { DeviceResponse } from "../util/dtos/DeviceResponse";
 import { DeviceStatus } from "../types/device/DeviceStatus";
 import { DeviceHeartbeatMessage } from "../types/device/DeviceHeartbeatMessage";
 import { DeviceChangedMessage } from "../types/device/DeviceChangedMessage";
-import { MessageHandler, WebSocketService } from "../services/WebSocketService";
-import { useWebSocketService } from "../context/connection/WebSocketContext";
 import { MessageType } from "../types/MessageType";
 import errorAsValue from "../util/ErrorAsValue";
 import { assert } from "../util/Assert";
 import { useDeviceHeartbeat } from "./useDeviceHeartbeat";
+import { useWebSocketMessage } from "./useWebSocketMessage";
 import { getRuntimeEnvVars } from "../util/RuntimeEnvVars";
 
 /**
@@ -74,99 +73,60 @@ const fetchDevices = async (setDevices: Dispatch<SetStateAction<Device[]>>) => {
     setDevices(updatedDevices);
 };
 
-/**
- * Subscribes to heartbeat messages that carry the status of a device.
- * Returns the unsubscribe.
- */
-const subscribeToHeartbeats = (
-    websocketService: WebSocketService,
-    setDevices: Dispatch<SetStateAction<Device[]>>
-) => {
-    const onHeartbeatReceived = (message: DeviceHeartbeatMessage) => {
-        setDevices(prevDevices =>
-            prevDevices.map(device =>
-                device.uuid === message.msg.uuid
-                    ? { ...device, status: message.msg.status }
-                    : device
-            )
-        );
-    };
-
-    websocketService.subscribeMessage(
-        MessageType.DEVICE_HEARTBEAT,
-        onHeartbeatReceived as MessageHandler
+/** Devices after a heartbeat that carries the status of one of them. */
+const withHeartbeat = (
+    devices: Device[],
+    message: DeviceHeartbeatMessage
+): Device[] =>
+    devices.map(device =>
+        device.uuid === message.msg.uuid
+            ? { ...device, status: message.msg.status }
+            : device
     );
 
-    return () => {
-        websocketService.unsubscribeMessage(
-            MessageType.DEVICE_HEARTBEAT,
-            onHeartbeatReceived as MessageHandler
-        );
-    };
-};
+/** Devices after a device-changed message that adds, removes or renames one. */
+const withDeviceChange = (
+    devices: Device[],
+    message: DeviceChangedMessage
+): Device[] => {
+    const { action, deviceInfo } = message.msg;
 
-/**
- * Subscribes to device-changed messages that add, remove or rename a device.
- * Returns the unsubscribe.
- */
-const subscribeToDeviceChanges = (
-    websocketService: WebSocketService,
-    setDevices: Dispatch<SetStateAction<Device[]>>
-) => {
-    const onDeviceChanged = (message: DeviceChangedMessage) => {
-        const { action, deviceInfo } = message.msg;
+    if (action === "added") {
+        const currentDeviceUuid = getDeviceUuidFromCookie();
+        if (devices.some(d => d.uuid === deviceInfo.uuid)) {
+            // Race condition:
+            // Dummy device already added by /device/register response
+            // Only update name because other fields are already correct
+            console.log("Device already exists, updating name only.");
+            return devices.map(device =>
+                device.uuid === currentDeviceUuid
+                    ? { ...device, name: deviceInfo.displayName }
+                    : device
+            );
+        }
 
-        if (action === "added") {
-            const currentDeviceUuid = getDeviceUuidFromCookie();
-            const newDevice: Device = {
+        // New device, add to list
+        return [
+            ...devices,
+            {
                 name: deviceInfo.displayName,
                 current: deviceInfo.uuid === currentDeviceUuid,
                 status: DeviceStatus.ONLINE,
                 uuid: deviceInfo.uuid,
-            };
-
-            setDevices(prevDevices => {
-                if (prevDevices.some(d => d.uuid === deviceInfo.uuid)) {
-                    // Race condition:
-                    // Dummy device already added by /device/register response
-                    // Only update name because other fields are already correct
-                    console.log("Device already exists, updating name only.");
-                    return prevDevices.map(device =>
-                        device.uuid === currentDeviceUuid
-                            ? { ...device, name: deviceInfo.displayName }
-                            : device
-                    );
-                }
-
-                // New device, add to list
-                return [...prevDevices, newDevice];
-            });
-        } else if (action === "removed") {
-            setDevices(prevDevices =>
-                prevDevices.filter(d => d.uuid !== deviceInfo.uuid)
-            );
-        } else if (action === "renamed") {
-            setDevices(prevDevices =>
-                prevDevices.map(device =>
-                    device.uuid === deviceInfo.uuid
-                        ? { ...device, name: deviceInfo.displayName }
-                        : device
-                )
-            );
-        }
-    };
-
-    websocketService.subscribeMessage(
-        MessageType.DEVICE_CHANGED,
-        onDeviceChanged as MessageHandler
-    );
-
-    return () => {
-        websocketService.unsubscribeMessage(
-            MessageType.DEVICE_CHANGED,
-            onDeviceChanged as MessageHandler
+            },
+        ];
+    }
+    if (action === "removed") {
+        return devices.filter(d => d.uuid !== deviceInfo.uuid);
+    }
+    if (action === "renamed") {
+        return devices.map(device =>
+            device.uuid === deviceInfo.uuid
+                ? { ...device, name: deviceInfo.displayName }
+                : device
         );
-    };
+    }
+    return devices;
 };
 
 /**
@@ -179,7 +139,6 @@ export const useDevices = () => {
         device => device.uuid === getDeviceUuidFromCookie()
     );
 
-    const websocketService = useWebSocketService();
     const { sendHeartbeat } = useDeviceHeartbeat({
         status: DeviceStatus.ONLINE,
         enabled: false,
@@ -304,24 +263,17 @@ export const useDevices = () => {
         []
     );
 
+    useWebSocketMessage<DeviceHeartbeatMessage>(
+        MessageType.DEVICE_HEARTBEAT,
+        message => setDevices(devices => withHeartbeat(devices, message))
+    );
+    useWebSocketMessage<DeviceChangedMessage>(
+        MessageType.DEVICE_CHANGED,
+        message => setDevices(devices => withDeviceChange(devices, message))
+    );
+
     useEffect(() => {
         void fetchDevices(setDevices);
-
-        const unsubscribeHeartbeats = subscribeToHeartbeats(
-            websocketService,
-            setDevices
-        );
-        const unsubscribeDeviceChanges = subscribeToDeviceChanges(
-            websocketService,
-            setDevices
-        );
-
-        return () => {
-            unsubscribeHeartbeats();
-            unsubscribeDeviceChanges();
-        };
-
-        // exhaustive-deps-exclude [websocketService]
     }, []);
 
     return {

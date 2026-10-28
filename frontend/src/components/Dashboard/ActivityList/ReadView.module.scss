@@ -1,4 +1,6 @@
 @use "../card" as *;
+@use "../layout" as *;
+@use "../../../theme/layers" as *;
 
 .overlay {
     position: absolute;
@@ -7,25 +9,43 @@
     display: flex;
 }
 
+@keyframes grow-in {
+    from {
+        scale: 0.96;
+        opacity: 0;
+    }
+}
+
+@keyframes shrink-out {
+    to {
+        scale: 0.96;
+        opacity: 0;
+    }
+}
+
 .dialog {
+    @include view-frame;
+
     flex: 1;
     min-width: 0;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
-    border: 3px solid var(--primary-60);
-    border-radius: var(--space-16);
-    background-color: var(--background);
-    overflow: hidden;
+
+    @media (prefers-reduced-motion: no-preference) {
+        animation: grow-in 0.18s ease-out;
+    }
+}
+
+// Lasts CLOSE_MS in ReadView.tsx.
+.closing {
+    @media (prefers-reduced-motion: no-preference) {
+        animation: shrink-out 0.12s ease-in forwards;
+    }
 }
 
 .bar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-8);
+    @include view-bar(bottom);
+
     min-height: 48px;
-    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
-    border-bottom: 1px solid var(--text-muted-10);
 }
 
 .title {
@@ -34,15 +54,10 @@
 }
 
 .meta {
-    flex: 1;
-    min-width: 0;
-    overflow-x: clip;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--text-muted);
+    @include view-meta;
+
     font-size: var(--font-size-xs);
     line-height: var(--line-height-xs);
-    font-weight: var(--font-weight-regular);
 }
 
 .label {
@@ -61,34 +76,18 @@
 
 // Scrolls itself where field-sizing is unsupported.
 .text {
-    display: block;
     field-sizing: content;
-    box-sizing: border-box;
     min-width: 100%;
     min-height: 100%;
-    margin: 0;
-    resize: none;
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: var(--text);
-    font-family: "Roboto Mono", monospace;
-    font-size: var(--font-size-s);
-    line-height: var(--line-height-s);
-    font-weight: var(--font-weight-regular);
-    white-space: pre;
     overflow: auto;
-    tab-size: 4;
 
-    &:focus {
-        outline: none;
-    }
+    @include code-field;
 }
 
-@media (width <= 760px) {
+@media (width <= #{$phone-breakpoint}) {
     .overlay {
         position: fixed;
-        z-index: 130;
+        z-index: layer(phone-read-view);
         padding: var(--space-16);
         background-color: var(--background);
     }

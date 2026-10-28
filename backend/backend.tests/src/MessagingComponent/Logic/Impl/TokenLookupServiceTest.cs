@@ -2,10 +2,11 @@ using backend.DeviceComponent.Dataaccess.Api.Entity;
 using backend.DeviceComponent.Dataaccess.Api.Repo;
 using backend.DeviceComponent.Logic.Api;
 using backend.MessagingComponent.Common.Api.DTOs;
+using backend.MessagingComponent.Dataaccess.Impl;
 using backend.MessagingComponent.Logic.Impl;
 using backend.TelemetryComponent.Logic.Api;
 using backend.tests.TestUtils;
-using backend.WebSocketComponent.Logic.Api;
+using backend.TokenComponent.Logic.Api;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -22,7 +23,8 @@ public class TokenLookupServiceTest
     private const int USER_ID = 7;
     private static readonly Guid DEVICE_UUID = Guid.Parse("8f14e45f-ceea-467f-a0e6-1f2c4b2d8a10");
 
-    private Mock<IWebSocketHandler> _mockHandler;
+    private Mock<IClientRegistry> _mockHandler;
+    private PublicKeyRepository _publicKeys;
     private Mock<IDeviceService> _mockDeviceService;
     private Mock<IDeviceRepository> _mockDeviceRepository;
     private SentMessages _sent;
@@ -31,9 +33,10 @@ public class TokenLookupServiceTest
     [SetUp]
     public void Setup()
     {
-        _mockHandler = new Mock<IWebSocketHandler>();
+        _mockHandler = new Mock<IClientRegistry>();
         _mockHandler.Setup(h => h.RemoteTokenExists(It.IsAny<string>())).Returns<string>(t => t is REQUESTER or TARGET);
-        _mockHandler.Setup(h => h.GetPublicKeyForClientToken(TARGET)).Returns(TARGET_KEY);
+        _publicKeys = new PublicKeyRepository();
+        _publicKeys.Set(TARGET, TARGET_KEY);
         _sent = new SentMessages().Capture<TokenStatusMessage>(_mockHandler);
 
         _mockDeviceService = new Mock<IDeviceService>();
@@ -48,7 +51,9 @@ public class TokenLookupServiceTest
 
         _service = new TokenLookupService(
             _mockHandler.Object,
+            _publicKeys,
             new AbuseGuard(new ManualTimeProvider()),
+            new PresenceWatchRepository(),
             _mockDeviceService.Object,
             scopeFactory.Object,
             new Mock<IUsageMetrics>().Object,
@@ -93,9 +98,96 @@ public class TokenLookupServiceTest
     }
 
     [Test]
-    public async Task HandleTokenLookup_OfflineToken_AnswersOfflineAndLocksOnFifthMiss()
+    public async Task HandleClientDisconnected_LookedUpTokenLeaves_TellsRequesterOffline()
     {
-        for (var i = 0; i < 4; i++)
+        await LookUp(TARGET);
+
+        await _service.HandleClientDisconnected(TARGET.ToUpperInvariant());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(LastStatus().Token, Is.EqualTo(TARGET));
+            Assert.That(LastStatus().Online, Is.False);
+            Assert.That(LastStatus().RetryAfterMs, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task HandlePublicKey_LookedUpTokenReturns_TellsRequesterOnlineWithKey()
+    {
+        await LookUp(TARGET);
+        await _service.HandleClientDisconnected(TARGET);
+
+        await _service.HandlePublicKey(TARGET.ToUpperInvariant(), new PublicKeyMessage { Key = TARGET_KEY });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(3));
+            Assert.That(LastStatus().Token, Is.EqualTo(TARGET));
+            Assert.That(LastStatus().Online, Is.True);
+            Assert.That(LastStatus().PublicKey, Is.EqualTo(TARGET_KEY));
+        });
+    }
+
+    [Test]
+    public async Task HandlePublicKey_OfflineLookupComesOnline_TellsRequesterOnline()
+    {
+        await LookUp(OFFLINE);
+
+        await _service.HandlePublicKey(OFFLINE, new PublicKeyMessage { Key = TARGET_KEY });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(LastStatus().Token, Is.EqualTo(OFFLINE));
+            Assert.That(LastStatus().Online, Is.True);
+        });
+    }
+
+    [Test]
+    public async Task HandlePublicKey_RequesterLookedUpAnotherToken_TellsNothing()
+    {
+        await LookUp(OFFLINE);
+        await LookUp(TARGET);
+
+        await _service.HandlePublicKey(OFFLINE, new PublicKeyMessage { Key = TARGET_KEY });
+
+        Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(2));
+    }
+
+    [Test]
+    public async Task HandlePublicKey_LookupWhileLocked_TellsNothing()
+    {
+        for (var i = 0; i < 6; i++)
+        {
+            await LookUp(OFFLINE);
+        }
+        var sentBefore = _sent.To<TokenStatusMessage>(REQUESTER).Count;
+
+        await LookUp(TARGET);
+        await _service.HandlePublicKey(TARGET, new PublicKeyMessage { Key = TARGET_KEY });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(sentBefore + 1));
+            Assert.That(LastStatus().RetryAfterMs, Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public async Task HandleClientDisconnected_RequesterLeftFirst_TellsNothing()
+    {
+        await LookUp(TARGET);
+
+        await _service.HandleClientDisconnected(REQUESTER);
+        await _service.HandleClientDisconnected(TARGET);
+
+        Assert.That(_sent.To<TokenStatusMessage>(REQUESTER), Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public async Task HandleTokenLookup_OfflineToken_AnswersOfflineAndLocksOnSixthMiss()
+    {
+        for (var i = 0; i < 5; i++)
         {
             await LookUp(OFFLINE);
             Assert.That(LastStatus().RetryAfterMs, Is.Null, $"miss {i + 1}");
@@ -114,7 +206,7 @@ public class TokenLookupServiceTest
     [Test]
     public async Task HandleTokenLookup_WhileLocked_AnswersOfflineForOnlineToken()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await LookUp(OFFLINE);
         }
@@ -186,7 +278,7 @@ public class TokenLookupServiceTest
     [Test]
     public async Task HandleTokenLookup_OfflineDevices_CostNoBudget()
     {
-        for (var i = 0; i < 5; i++)
+        for (var i = 0; i < 6; i++)
         {
             await LookUpDevice();
         }
@@ -211,7 +303,7 @@ public class TokenLookupServiceTest
 
         await _service.HandlePublicKey(REQUESTER, new PublicKeyMessage { Key = key });
 
-        _mockHandler.Verify(h => h.SetPublicKey(REQUESTER, key), Times.Once);
+        Assert.That(_publicKeys.Get(REQUESTER), Is.EqualTo(key));
     }
 
     [TestCase("not base64!")]
@@ -220,7 +312,7 @@ public class TokenLookupServiceTest
     {
         await _service.HandlePublicKey(REQUESTER, new PublicKeyMessage { Key = key });
 
-        _mockHandler.Verify(h => h.SetPublicKey(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        Assert.That(_publicKeys.Get(REQUESTER), Is.Null);
     }
 
     [Test]
@@ -228,6 +320,6 @@ public class TokenLookupServiceTest
     {
         await _service.HandlePublicKey(REQUESTER, new PublicKeyMessage { Key = Convert.ToBase64String(new byte[153]) });
 
-        _mockHandler.Verify(h => h.SetPublicKey(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        Assert.That(_publicKeys.Get(REQUESTER), Is.Null);
     }
 }

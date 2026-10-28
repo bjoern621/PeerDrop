@@ -1,11 +1,13 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import css from "./TruncatedText.module.scss";
 import Tooltip from "../Tooltip/Tooltip";
+import { useResizeObserver } from "../../hooks/useResizeObserver";
+import { cx } from "class-variance-authority";
 
 /** One line of text that ends in an ellipsis when too long and then shows itself in full on hover. */
 export default function TruncatedText({
     children,
-    className = "",
+    className,
 }: {
     children: string;
     /** Classes for the outer element, which takes part in the parent's layout. */
@@ -14,28 +16,27 @@ export default function TruncatedText({
     const ref = useRef<HTMLSpanElement>(null);
     const [truncated, setTruncated] = useState(false);
 
+    useResizeObserver(ref, element => setTruncated(isTruncated(element)));
+    // New text can overflow without a size change of the element.
     useLayoutEffect(() => {
-        const element = ref.current;
-        if (!element) {
-            return;
+        if (ref.current) {
+            setTruncated(isTruncated(ref.current));
         }
-        const measure = () =>
-            setTruncated(element.scrollWidth > element.clientWidth);
-        measure();
-        const observer = new ResizeObserver(measure);
-        observer.observe(element);
-        return () => observer.disconnect();
     }, [children]);
 
     return (
         <Tooltip
             content={children}
             disabled={!truncated}
-            triggerClassName={`${css.trigger} ${className}`}
+            triggerClassName={cx(css.trigger, className)}
         >
             <span ref={ref} className={css.text}>
                 {children}
             </span>
         </Tooltip>
     );
+}
+
+function isTruncated(element: HTMLElement) {
+    return element.scrollWidth > element.clientWidth;
 }

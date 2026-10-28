@@ -4,6 +4,7 @@ import { IconArrowRight as Arrow } from "@tabler/icons-react";
 import Illustration from "../../../assets/illustrations/hero_illustration.svg?react";
 import Link from "../../Button/Link";
 import { TUTORIAL_ID } from "../Tutorial/Tutorial";
+import { HEADING_COMPONENTS } from "../headingComponents";
 
 export default function Hero() {
     const { t } = useTranslation("landing");
@@ -15,9 +16,7 @@ export default function Hero() {
                 <Trans
                     t={t}
                     i18nKey="hero.heading"
-                    components={{
-                        highlight: <span className="text-highlight" />,
-                    }}
+                    components={HEADING_COMPONENTS}
                 />
             </h1>
             <p className="text-muted">{t("hero.text")}</p>

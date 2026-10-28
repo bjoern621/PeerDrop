@@ -1,5 +1,6 @@
 import { Trans, useTranslation } from "react-i18next";
 import css from "./Tutorial.module.scss";
+import { HEADING_COMPONENTS } from "../headingComponents";
 
 export const TUTORIAL_ID = "tutorial";
 
@@ -12,9 +13,7 @@ export default function Tutorial() {
                 <Trans
                     t={t}
                     i18nKey="tutorial.heading"
-                    components={{
-                        highlight: <span className="text-highlight" />,
-                    }}
+                    components={HEADING_COMPONENTS}
                 />
             </h2>
             <p className="text-muted">{t("tutorial.text")}</p>

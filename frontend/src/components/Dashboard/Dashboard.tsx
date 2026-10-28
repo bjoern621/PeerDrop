@@ -1,32 +1,35 @@
-import {
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-    useSyncExternalStore,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import css from "./Dashboard.module.scss";
 import TokenCard from "./TokenCard";
 import DevicePanel from "./DevicePanel";
 import SendPanel from "./SendPanel";
+import { RecipientCheck } from "./RecipientInput/RecipientInput";
 import ActivityList from "./ActivityList/ActivityList";
 import CardHeading from "./CardHeading/CardHeading";
 import { IconArrowsTransferUpDown as TransferIcon } from "@tabler/icons-react";
 import { nextStep } from "./nextStep";
 import { useMessaging } from "../../hooks/useMessaging";
 import { useOwnToken } from "../../hooks/useOwnToken";
+import { useServerConnection } from "../../hooks/useServerConnection";
+import { useWebSocketMessage } from "../../hooks/useWebSocketMessage";
+import { MessageType } from "../../types/MessageType";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { COMPACT_QUERY, PHONE_QUERY } from "../../util/mediaQueries";
 import { useDeviceHeartbeat } from "../../hooks/useDeviceHeartbeat";
 import { useMessagingService } from "../../context/connection/MessagingContext";
-import { usePeerConnectionManager } from "../../context/connection/PeerConnectionContext";
+import { useTransfers } from "../../hooks/useTransfers";
 import { LookupState, MAX_TEXT_BYTES } from "../../services/MessagingService";
-import { normalizeClientToken } from "../../services/WebSocketService";
+import {
+    displayToken,
+    normalizeClientToken,
+} from "../../services/WebSocketService";
 import { DeviceStatus } from "../../types/device/DeviceStatus";
 import { Device } from "../../types/device/Device";
 import { ShareSelection } from "../../types/transfer/ShareSelection";
 import { CLIENT_TOKEN_LENGTH } from "../../util/Constants";
+import { textBytes } from "./transferFormat";
 
 const LOCK_TICK_MS = 250;
 // Shortest time the hint shows the online check, so it does not flash by.
@@ -38,13 +41,10 @@ export default function Dashboard() {
     const { t } = useTranslation("dashboard");
     const messagingService = useMessagingService();
     const messaging = useMessaging();
-    const transferTracker = usePeerConnectionManager().getTransferTracker();
-    const transfers = useSyncExternalStore(
-        listener => transferTracker.subscribe(listener),
-        () => transferTracker.getSnapshot()
-    );
+    const transfers = useTransfers();
     const ownToken = useOwnToken();
-    const stacked = useMediaQuery("(width <= 760px)");
+    const stacked = useMediaQuery(PHONE_QUERY);
+    const compact = useMediaQuery(COMPACT_QUERY);
     const [searchParams] = useSearchParams();
 
     const [recipient, setRecipient] = useState(() =>
@@ -56,6 +56,10 @@ export default function Dashboard() {
     const [selectedDeviceUuid, setSelectedDeviceUuid] = useState<string | null>(
         null
     );
+    // Set while the server resolves the token of a picked device.
+    const [pendingDeviceUuid, setPendingDeviceUuid] = useState<string | null>(
+        null
+    );
     const [draft, setDraft] = useState("");
     const [now, setNow] = useState(() => Date.now());
     const dashboardRef = useRef<HTMLDivElement>(null);
@@ -65,15 +69,21 @@ export default function Dashboard() {
         recipient.length === CLIENT_TOKEN_LENGTH && recipient !== ownToken;
 
     const lock = messaging.lock;
-    // The server answers every lookup during the lock with the lock itself,
-    // so the check waits for its end and runs then.
     const tokensLocked = lock?.reason === "tokens";
+    // Looks up during the lock as well, so the server drops its watch on the previous token.
+    // The server answers those lookups with the lock alone, so the end of the lock looks up again.
     useEffect(() => {
-        if (complete && !tokensLocked) {
+        if (complete) {
             messagingService.lookup(recipient);
         }
         // exhaustive-deps-exclude [messagingService]
     }, [recipient, complete, tokensLocked]);
+    // A new connection starts without lookups, even under the same token.
+    useWebSocketMessage(MessageType.CLIENT_TOKEN, () => {
+        if (complete) {
+            messagingService.lookup(recipient);
+        }
+    });
 
     useEffect(() => {
         if (!lock) {
@@ -88,12 +98,15 @@ export default function Dashboard() {
         complete ? messaging.lookups.get(recipient) : undefined
     );
     const blocked = messaging.blocked.has(recipient);
-    const ready = complete && lookup?.status === "online" && !blocked;
+    const lost = useServerConnection() === "lost";
+    const ready = complete && lookup?.status === "online" && !blocked && !lost;
+    // The lock holds the check back until it ends.
+    const check =
+        complete && !blocked
+            ? recipientCheck(tokensLocked ? undefined : lookup, lost)
+            : null;
     const hasText = draft.trim().length > 0;
-    const tooBig = useMemo(
-        () => new TextEncoder().encode(draft).length > MAX_TEXT_BYTES,
-        [draft]
-    );
+    const tooBig = useMemo(() => textBytes(draft) > MAX_TEXT_BYTES, [draft]);
 
     const hint = nextStep(
         {
@@ -104,6 +117,7 @@ export default function Dashboard() {
             tooBig,
             lock,
             now,
+            lost,
         },
         t
     );
@@ -123,7 +137,11 @@ export default function Dashboard() {
             setRecipient("");
             return;
         }
+        setPendingDeviceUuid(device.uuid);
         void messagingService.lookupDevice(device.uuid).then(token => {
+            setPendingDeviceUuid(pending =>
+                pending === device.uuid ? null : pending
+            );
             if (token) {
                 setRecipient(token);
                 setSelectedDeviceUuid(device.uuid);
@@ -135,8 +153,9 @@ export default function Dashboard() {
         if (!ready || !hasText || tooBig || lock) {
             return;
         }
-        void messagingService.sendText(recipient, draft);
-        setDraft("");
+        if (messagingService.sendText(recipient, draft)) {
+            setDraft("");
+        }
     };
 
     const sendSelection = (selection: ShareSelection) => {
@@ -152,8 +171,11 @@ export default function Dashboard() {
                 <DevicePanel
                     recipient={recipient}
                     selectedDeviceUuid={selectedDeviceUuid}
+                    pendingDeviceUuid={pendingDeviceUuid}
+                    recipientChecking={check === "checking"}
                     onPickToken={pickToken}
                     onPickDevice={pickDevice}
+                    floating={compact}
                 />
             </div>
             <div ref={rightRef} className={css.right}>
@@ -163,17 +185,12 @@ export default function Dashboard() {
                         setSelectedDeviceUuid(null);
                         setRecipient(token);
                     }}
-                    check={
-                        !complete ||
-                        blocked ||
-                        !lookup ||
-                        lookup.status === "checking"
-                            ? null
-                            : lookup.status
-                    }
+                    check={check}
                     hint={hint}
+                    lost={lost}
                     draft={draft}
                     onDraftChange={setDraft}
+                    canWriteText={ready}
                     canSendText={ready && hasText && !tooBig && !lock}
                     pauseProgress={
                         lock?.reason === "texts"
@@ -188,10 +205,10 @@ export default function Dashboard() {
                             : null
                     }
                     onSendText={sendText}
-                    filesRecipient={ready ? recipient.toUpperCase() : null}
+                    filesRecipient={ready ? displayToken(recipient) : null}
                     onSelection={sendSelection}
-                    // The phone layout dissolves the column box.
-                    boundsRef={stacked ? dashboardRef : rightRef}
+                    // The phone and compact layouts dissolve the column box.
+                    boundsRef={stacked || compact ? dashboardRef : rightRef}
                 />
                 <section
                     className={css.transfers}
@@ -212,21 +229,34 @@ export default function Dashboard() {
     );
 }
 
-/** Reports a fresh lookup as still checking until MIN_CHECK_MS have passed. */
+function recipientCheck(
+    lookup: LookupState | undefined,
+    lost: boolean
+): RecipientCheck {
+    if (!lookup || lookup.status === "checking") {
+        // No answer arrives while the connection is lost.
+        return lost ? null : "checking";
+    }
+    return lost ? "unknown" : lookup.status;
+}
+
+/** Reports every lookup as still checking until MIN_CHECK_MS have passed since it started. */
 function useSteadyLookup(
     token: string,
     lookup: LookupState | undefined
 ): LookupState | undefined {
-    const [held, setHeld] = useState<string | null>(null);
-    const checking = lookup?.status === "checking";
+    const [held, setHeld] = useState<{ token: string; checkId: number } | null>(
+        null
+    );
+    const checkId = lookup?.status === "checking" ? lookup.checkId : null;
 
     useEffect(() => {
-        if (checking) {
-            setHeld(token);
+        if (checkId !== null) {
+            setHeld({ token, checkId });
         }
-    }, [token, checking]);
+    }, [token, checkId]);
 
-    // Keyed on the held token alone, so the lookup answering early keeps the timer.
+    // Keyed on the held check alone, so the lookup answering early keeps the timer.
     useEffect(() => {
         if (held === null) {
             return;
@@ -235,5 +265,7 @@ function useSteadyLookup(
         return () => window.clearTimeout(timer);
     }, [held]);
 
-    return held === token && lookup ? { status: "checking" } : lookup;
+    return held?.token === token && lookup
+        ? { status: "checking", checkId: held.checkId }
+        : lookup;
 }

@@ -1,0 +1,10 @@
+// Tinted surface of a status: its colour at 20 % behind text in the readable shade of it.
+@mixin tone($name) {
+    @if $name == neutral {
+        background-color: var(--text-muted-10);
+        color: var(--text);
+    } @else {
+        background-color: var(--#{$name}-20);
+        color: var(--#{$name}-text);
+    }
+}
