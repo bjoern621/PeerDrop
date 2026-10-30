@@ -9,26 +9,64 @@ import {
 import css from "./ConnectionDetails.module.scss";
 import CardHeading from "../CardHeading/CardHeading";
 import IconButton from "../../IconButton/IconButton";
+import Button from "../../Button/Button";
 import {
     ConnectionDetailsEntry,
     useConnectionDetails,
 } from "../../../hooks/useConnectionDetails";
 import { useCpuPressure } from "../../../hooks/useCpuPressure";
+import { useTransfers } from "../../../hooks/useTransfers";
+import { usePeerConnectionManager } from "../../../context/connection/PeerConnectionContext";
 import { updateSettings } from "../../../services/SettingsStore";
 import { isCpuPressureSupported } from "../../../services/CpuPressure";
 import { CandidateEnd } from "../../../services/ConnectionDetails";
-import { displayToken } from "../../../services/WebSocketService";
+import {
+    speedLimitOf,
+    SpeedTestOutcome,
+    SpeedTestResult,
+} from "../../../services/SpeedTest";
+import { ClientToken, displayToken } from "../../../services/WebSocketService";
 import { peerColor } from "../../../util/peerColor";
+import { SPEED_TEST_DURATION_MS } from "../../../util/Constants";
+
+/** "running" while the test sends, the outcome once it ended. */
+type SpeedTestState = "running" | SpeedTestOutcome;
 
 /**
  * Panel over the dashboard with route, round trip time and speed of every
- * peer connection. Shown while the connectionDetails setting is on.
+ * peer connection, and a speed test per peer. Shown while the
+ * connectionDetails setting is on.
  */
 export default function ConnectionDetails() {
     const { t } = useTranslation("dashboard");
+    const peerConnectionManager = usePeerConnectionManager();
     const connections = useConnectionDetails();
     const cpuPressure = useCpuPressure();
+    const transfers = useTransfers();
     const [collapsed, setCollapsed] = useState(false);
+    const [speedTests, setSpeedTests] = useState<
+        ReadonlyMap<ClientToken, SpeedTestState>
+    >(new Map());
+
+    const busyPeers = new Set(
+        transfers
+            .filter(
+                transfer =>
+                    transfer.status === "active" ||
+                    transfer.status === "finalizing"
+            )
+            .map(transfer => transfer.remoteToken)
+    );
+
+    const measureSpeed = (remoteToken: ClientToken) => {
+        setSpeedTests(tests => new Map(tests).set(remoteToken, "running"));
+        void peerConnectionManager
+            .measureSpeed(remoteToken)
+            .then(outcome =>
+                setSpeedTests(tests => new Map(tests).set(remoteToken, outcome))
+            );
+    };
+
     return (
         <section
             className={css.panel}
@@ -86,6 +124,13 @@ export default function ConnectionDetails() {
                             <ConnectionEntry
                                 key={connection.remoteToken}
                                 connection={connection}
+                                speedTest={speedTests.get(
+                                    connection.remoteToken
+                                )}
+                                busy={busyPeers.has(connection.remoteToken)}
+                                onMeasureSpeed={() =>
+                                    measureSpeed(connection.remoteToken)
+                                }
                             />
                         ))
                     )}
@@ -97,8 +142,14 @@ export default function ConnectionDetails() {
 
 function ConnectionEntry({
     connection,
+    speedTest,
+    busy,
+    onMeasureSpeed,
 }: {
     connection: ConnectionDetailsEntry;
+    speedTest: SpeedTestState | undefined;
+    busy: boolean;
+    onMeasureSpeed: () => void;
 }) {
     const { t, i18n } = useTranslation("dashboard");
     const token = displayToken(connection.remoteToken);
@@ -182,7 +233,121 @@ function ConnectionEntry({
                         : measuring}
                 </dd>
             </dl>
+            <SpeedTestSection
+                token={token}
+                state={speedTest}
+                busy={busy}
+                connected={connection.state === "connected"}
+                onMeasure={onMeasureSpeed}
+            />
         </article>
+    );
+}
+
+function SpeedTestSection({
+    token,
+    state,
+    busy,
+    connected,
+    onMeasure,
+}: {
+    token: string;
+    state: SpeedTestState | undefined;
+    busy: boolean;
+    connected: boolean;
+    onMeasure: () => void;
+}) {
+    const { t } = useTranslation("dashboard");
+    const running = state === "running";
+
+    return (
+        <div className={css.speedTest}>
+            <Button
+                size="small"
+                variant="outline"
+                disabled={running || busy || !connected}
+                onClick={onMeasure}
+            >
+                {running
+                    ? t("connections.speed.measuring")
+                    : t("connections.speed.measure")}
+            </Button>
+            {busy ? (
+                <p className={css.muted}>
+                    {t("connections.speed.busy", { token })}
+                </p>
+            ) : (
+                (state === undefined || running) && (
+                    <p className={css.muted}>
+                        {t("connections.speed.hint", {
+                            token,
+                            seconds: SPEED_TEST_DURATION_MS / 1000,
+                        })}
+                    </p>
+                )
+            )}
+            {state !== undefined &&
+                state !== "running" &&
+                (state.ok ? (
+                    <SpeedTestReport token={token} result={state.result} />
+                ) : (
+                    <p className={css.problem}>
+                        {t(`connections.speed.${state.reason}`, { token })}
+                    </p>
+                ))}
+        </div>
+    );
+}
+
+function SpeedTestReport({
+    token,
+    result,
+}: {
+    token: string;
+    result: SpeedTestResult;
+}) {
+    const { t, i18n } = useTranslation("dashboard");
+    const limit = speedLimitOf(result);
+    const formatRtt = (ms: number | null) =>
+        ms !== null ? formatMs(ms, i18n.language) : "?";
+
+    return (
+        <>
+            <p>
+                <span className={css.speed}>
+                    {formatMbps(result.mbps, i18n.language)}
+                </span>{" "}
+                {t("connections.speed.result", { token })}
+            </p>
+            <p>
+                <span className={css.label}>
+                    {t("connections.speed.limitLabel")}:
+                </span>{" "}
+                {t(`connections.speed.limit.${limit}`, {
+                    idle: Math.round(result.idleRttMs ?? 0),
+                    load: Math.round(result.loadRttMs ?? 0),
+                })}
+            </p>
+            <dl className={css.facts}>
+                <dt>{t("connections.speed.buffer")}</dt>
+                <dd>
+                    {t("connections.speed.bufferValue", {
+                        percent: Math.round(result.bufferFilledShare * 100),
+                    })}
+                </dd>
+                <dt>{t("connections.speed.pingIdleLoad")}</dt>
+                <dd>
+                    {formatRtt(result.idleRttMs)} /{" "}
+                    {formatRtt(result.loadRttMs)}
+                </dd>
+                {result.cpuPressure && (
+                    <>
+                        <dt>{t("connections.speed.cpuPeak")}</dt>
+                        <dd>{t(`connections.cpu.${result.cpuPressure}`)}</dd>
+                    </>
+                )}
+            </dl>
+        </>
     );
 }
 

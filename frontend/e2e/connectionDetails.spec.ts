@@ -32,3 +32,33 @@ test("the details show the route of a connection", async ({ alice, bob }) => {
     );
     await expect(details).toContainText(/Ping\s*\d+ ms/);
 });
+
+test("the speed test reports a speed and its likely limit", async ({
+    alice,
+    bob,
+}) => {
+    await transferOneFile(alice, bob);
+
+    const details = connectionTo(alice, bob);
+    await details.getByRole("button", { name: "Measure speed" }).click();
+
+    await expect(details).toContainText(
+        new RegExp(`[\\d.,]+ Mbit/s from you to ${bob.token}`),
+        { timeout: 30_000 }
+    );
+    await expect(details).toContainText("Likely limit:");
+});
+
+test("the speed test stops at a peer that takes no data", async ({
+    alice,
+    bob,
+}) => {
+    await transferOneFile(alice, bob);
+
+    const details = connectionTo(bob, alice);
+    await details.getByRole("button", { name: "Measure speed" }).click();
+
+    await expect(details).toContainText(
+        `${alice.token} takes no data from you until it accepts a transfer from you.`
+    );
+});

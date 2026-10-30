@@ -20,6 +20,12 @@ import { UsageReporter } from "./UsageReporter";
 import { PeerLane } from "./PeerLane";
 import { MAX_TRANSFER_LANES, PARALLEL_TRANSFER_LANES } from "../util/Constants";
 import { ConnectionReading, readConnection } from "./ConnectionDetails";
+import {
+    answerSpeedTest,
+    runSpeedTest,
+    SPEED_TEST_LABEL,
+    SpeedTestOutcome,
+} from "./SpeedTest";
 
 /** Bytes of the little-endian chunk sequence number prefixing each binary message. */
 const SEQUENCE_HEADER_BYTES = 4;
@@ -455,9 +461,10 @@ export class WebRTCConnection {
      * Handles a data channel opened by the remote peer. The reassembly state
      * is keyed by the channel label (the file UUID) and shared by the
      * channels of one file on all lanes. The "init" channel used to kick off
-     * negotiation is ignored. The sender closes the channels once the file is
-     * acknowledged; a close of the lane 0 channel before that fails the
-     * transfer. The sender closes lane 0 as well when another lane fails.
+     * negotiation is ignored. A speed test channel goes to answerSpeedTest,
+     * behind the same gate as a file. The sender closes the channels once the
+     * file is acknowledged; a close of the lane 0 channel before that fails
+     * the transfer. The sender closes lane 0 as well when another lane fails.
      */
     private handleIncomingDataChannel(
         dataChannel: RTCDataChannel,
@@ -470,6 +477,11 @@ export class WebRTCConnection {
         if (!this.acceptsIncoming()) {
             this.log("Refused data channel from", this.remoteToken);
             dataChannel.close();
+            return;
+        }
+
+        if (dataChannel.label === SPEED_TEST_LABEL) {
+            answerSpeedTest(dataChannel);
             return;
         }
 
@@ -860,6 +872,11 @@ export class WebRTCConnection {
         return readConnection(
             Array.from(this.lanes.values(), lane => lane.peerConnection)
         );
+    }
+
+    /** Measures the speed towards the peer on lane 0, see runSpeedTest. */
+    public measureSpeed(): Promise<SpeedTestOutcome> {
+        return runSpeedTest(this.peerConnection);
     }
 
     public subscribeTo(event: string, handler: (data: unknown) => void) {

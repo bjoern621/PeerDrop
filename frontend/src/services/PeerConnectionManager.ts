@@ -12,6 +12,7 @@ import { PeerConnectMessage } from "../types/messaging/PeerConnectMessage";
 import { TransferTracker } from "./TransferTracker";
 import { ReceivedFiles } from "./ReceivedFiles";
 import { ConnectionReading } from "./ConnectionDetails";
+import { SpeedTestOutcome } from "./SpeedTest";
 
 const CONNECT_TIMEOUT_MS = 10_000;
 
@@ -174,6 +175,20 @@ export class PeerConnectionManager {
                 ...(await peer.connection.readDetails()),
             }))
         );
+    }
+
+    /**
+     * Measures the speed towards a peer, see runSpeedTest. A peer without a
+     * connection reports the test as closed.
+     */
+    public async measureSpeed(
+        remoteToken: ClientToken
+    ): Promise<SpeedTestOutcome> {
+        const peer = this.peers.get(normalizeClientToken(remoteToken));
+        if (!peer?.connected) {
+            return { ok: false, reason: "closed" };
+        }
+        return peer.connection.measureSpeed();
     }
 
     /** Central transfer state consumed by the UI. */

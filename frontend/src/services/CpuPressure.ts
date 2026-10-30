@@ -60,6 +60,17 @@ export function subscribeToCpuPressure(listener: () => void): () => void {
     };
 }
 
+/** Higher of two loads, where null counts below every load. */
+export function worseCpuPressure(
+    a: CpuPressure | null,
+    b: CpuPressure | null
+): CpuPressure | null {
+    if (a === null || b === null) {
+        return a ?? b;
+    }
+    return CPU_PRESSURES.indexOf(a) >= CPU_PRESSURES.indexOf(b) ? a : b;
+}
+
 async function startObserving() {
     if (!PressureObserverClass || observer) {
         return;

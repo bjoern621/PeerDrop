@@ -109,3 +109,24 @@
 .muted {
     color: var(--text-muted);
 }
+
+.problem {
+    color: var(--error-text);
+}
+
+.label {
+    color: var(--text-muted);
+}
+
+.speedTest {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+}
+
+.speed {
+    font-size: var(--font-size-m);
+    line-height: var(--line-height-m);
+    font-weight: var(--font-weight-semibold);
+}
