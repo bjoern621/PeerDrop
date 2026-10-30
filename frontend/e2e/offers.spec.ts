@@ -26,6 +26,17 @@ test("an accepted file arrives with its content", async ({ alice, bob }) => {
     await expect(bob.row("notes.txt")).toContainText("Done");
 });
 
+test("a text file without extension keeps its name", async ({ alice, bob }) => {
+    await alice.connectTo(bob);
+    await alice.sendFiles({ name: "mvnw", content: "#!/bin/sh\n" });
+
+    const download = bob.page.waitForEvent("download");
+    await bob.accept("mvnw");
+
+    expect((await download).suggestedFilename()).toBe("mvnw");
+    expect(await contentOf(await download)).toBe("#!/bin/sh\n");
+});
+
 test("a declined offer shows as declined on both sides", async ({
     alice,
     bob,

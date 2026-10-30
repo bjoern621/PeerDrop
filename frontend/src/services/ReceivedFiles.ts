@@ -142,7 +142,11 @@ async function writeFileToDirectory(
  * Uses a queue system to prevent multiple simultaneous downloads.
  */
 function triggerDownload(blob: Blob, filename: string) {
-    const url = URL.createObjectURL(blob);
+    // Chromium appends an extension guessed from the content to a name without
+    // one (mvnw becomes mvnw.txt). This type maps to no extension.
+    const url = URL.createObjectURL(
+        blob.slice(0, blob.size, "application/octet-stream")
+    );
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
