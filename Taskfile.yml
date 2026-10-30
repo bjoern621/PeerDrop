@@ -37,7 +37,8 @@ tasks:
         desc: Run the Playwright end-to-end tests against the running stack
         dir: frontend
         cmds:
-            - npx playwright test {{.CLI_ARGS}}
+            # An inherited LD_LIBRARY_PATH can load libraries built against another glibc, which the browsers of the dev shell fail on.
+            - env -u LD_LIBRARY_PATH npx playwright test {{.CLI_ARGS}}
 
     logs:
         desc: Follow the logs of the running stack
