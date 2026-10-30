@@ -3,6 +3,7 @@
 // Stacking order of the layers over the page, from low to high.
 $layers: (
     floating-devices: 10,
+    connection-details: 20,
     header: 100,
     phone-hint: 120,
     phone-read-view: 130,

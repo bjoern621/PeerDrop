@@ -30,6 +30,8 @@ import { Device } from "../../types/device/Device";
 import { ShareSelection } from "../../types/transfer/ShareSelection";
 import { CLIENT_TOKEN_LENGTH } from "../../util/Constants";
 import { textBytes } from "./transferFormat";
+import ConnectionDetails from "./ConnectionDetails/ConnectionDetails";
+import useSettings from "../../hooks/useSettings";
 
 const LOCK_TICK_MS = 250;
 // Shortest time the hint shows the online check, so it does not flash by.
@@ -46,6 +48,7 @@ export default function Dashboard() {
     const stacked = useMediaQuery(PHONE_QUERY);
     const compact = useMediaQuery(COMPACT_QUERY);
     const [searchParams] = useSearchParams();
+    const { connectionDetails } = useSettings();
 
     const [recipient, setRecipient] = useState(() =>
         normalizeClientToken(searchParams.get("token") ?? "").slice(
@@ -225,6 +228,7 @@ export default function Dashboard() {
                     <ActivityList messaging={messaging} transfers={transfers} />
                 </section>
             </div>
+            {connectionDetails && <ConnectionDetails />}
         </div>
     );
 }

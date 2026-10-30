@@ -16,7 +16,10 @@ export { expect };
 
 export type Settings = Partial<
     Record<
-        "autoSaveDownloads" | "lanDiscovery" | "parallelTransfers",
+        | "autoSaveDownloads"
+        | "lanDiscovery"
+        | "parallelTransfers"
+        | "connectionDetails",
         "true" | "false"
     >
 >;

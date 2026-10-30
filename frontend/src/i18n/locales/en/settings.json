@@ -13,5 +13,10 @@
         "lanDiscoveryHint": "Your device then shows up on other devices in the same network and lists them for you.",
         "parallelTransfers": "Send over several connections",
         "parallelTransfersHint": "Splits each file you send across several connections. Over Wi-Fi this is often faster but uses more processing power."
+    },
+    "advanced": {
+        "title": "Advanced",
+        "connectionDetails": "Show connection details",
+        "connectionDetailsHint": "Shows route, ping and speed of every connection to another device. You can measure the speed there as well."
     }
 }

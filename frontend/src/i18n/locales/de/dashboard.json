@@ -149,5 +149,45 @@
             "close": "Text schließen",
             "closeShortcut": "Schließen (Esc)"
         }
+    },
+    "connections": {
+        "title": "Verbindungsdetails",
+        "collapse": "Verbindungsdetails einklappen",
+        "expand": "Verbindungsdetails ausklappen",
+        "close": "Verbindungsdetails ausblenden",
+        "empty": "Keine Verbindung zu einem anderen Gerät. Die erste Datei, die du sendest oder empfängst, baut eine auf.",
+        "cpu": {
+            "label": "CPU",
+            "unsupported": "Meldet dieser Browser nicht",
+            "nominal": "Wenig ausgelastet",
+            "fair": "Mäßig ausgelastet",
+            "serious": "Stark ausgelastet",
+            "critical": "Voll ausgelastet"
+        },
+        "ownDevice": "Dein Gerät",
+        "state": {
+            "new": "Neu",
+            "connecting": "Verbindet...",
+            "connected": "Verbunden",
+            "disconnected": "Unterbrochen",
+            "failed": "Fehlgeschlagen",
+            "closed": "Geschlossen"
+        },
+        "route": {
+            "label": "Weg",
+            "host": "Direkt im lokalen Netz",
+            "reflexive": "Direkt zum anderen Gerät",
+            "relay": "Über einen TURN-Server",
+            "none": "Noch nicht gewählt"
+        },
+        "candidates": "{{local}} zu {{remote}}, {{protocol}}",
+        "relayProtocol": "Zum TURN-Server über {{protocol}}",
+        "localAddress": "Adresse hier",
+        "remoteAddress": "Adresse dort",
+        "hidden": "Verborgen",
+        "ping": "Ping",
+        "lanes": "Parallele Verbindungen",
+        "sending": "Senden",
+        "receiving": "Empfangen"
     }
 }

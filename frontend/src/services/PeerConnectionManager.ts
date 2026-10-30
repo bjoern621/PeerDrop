@@ -11,8 +11,17 @@ import { CloseConnectionMessage } from "../types/connection/CloseConnectionMessa
 import { PeerConnectMessage } from "../types/messaging/PeerConnectMessage";
 import { TransferTracker } from "./TransferTracker";
 import { ReceivedFiles } from "./ReceivedFiles";
+import { ConnectionReading } from "./ConnectionDetails";
 
 const CONNECT_TIMEOUT_MS = 10_000;
+
+/** State and statistics of the connection to one peer. */
+export interface PeerConnectionDetails extends ConnectionReading {
+    remoteToken: ClientToken;
+    ownDevice: boolean;
+    /** State of lane 0. */
+    state: RTCPeerConnectionState;
+}
 
 /** One file on its way to a peer. */
 export interface OutgoingFile {
@@ -153,6 +162,18 @@ export class PeerConnectionManager {
         Array.from(this.queues.keys()).forEach(token => this.failQueue(token));
         this.requested.forEach(timer => clearTimeout(timer));
         this.requested.clear();
+    }
+
+    /** Reads state and statistics of the connection to every peer. */
+    public async readConnectionDetails(): Promise<PeerConnectionDetails[]> {
+        return Promise.all(
+            Array.from(this.peers, async ([remoteToken, peer]) => ({
+                remoteToken,
+                ownDevice: peer.ownDevice,
+                state: peer.connection.getPeerConnection().connectionState,
+                ...(await peer.connection.readDetails()),
+            }))
+        );
     }
 
     /** Central transfer state consumed by the UI. */

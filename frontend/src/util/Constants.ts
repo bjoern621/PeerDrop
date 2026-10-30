@@ -20,3 +20,9 @@ export const PARALLEL_TRANSFER_LANES = 4;
 
 /** Peer connections accepted from one peer; lane indexes from 0 up to this bound (exclusive). */
 export const MAX_TRANSFER_LANES = 8;
+
+/** Time between two reports of the CPU load. */
+export const CPU_PRESSURE_SAMPLE_INTERVAL_MS = 1_000;
+
+/** Time between two readings of the connection details on screen. */
+export const CONNECTION_DETAILS_INTERVAL_MS = 1_000;

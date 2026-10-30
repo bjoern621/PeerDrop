@@ -13,5 +13,10 @@
         "lanDiscoveryHint": "Dein Gerät erscheint dann bei anderen Geräten im selben Netzwerk und zeigt sie dir an.",
         "parallelTransfers": "Über mehrere Verbindungen senden",
         "parallelTransfersHint": "Teilt jede gesendete Datei auf mehrere Verbindungen auf. Im WLAN geht das oft schneller, braucht aber mehr Rechenleistung."
+    },
+    "advanced": {
+        "title": "Erweitert",
+        "connectionDetails": "Verbindungsdetails anzeigen",
+        "connectionDetailsHint": "Zeigt für jede Verbindung zu einem anderen Gerät den Weg, den Ping und die Geschwindigkeit. Dort kannst du die Geschwindigkeit auch messen."
     }
 }

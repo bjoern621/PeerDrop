@@ -34,8 +34,12 @@ export default function SettingsMenu({
     const dialogRef = useRef<HTMLDialogElement>(null!);
     const { isOpen, openSettings, closeSettings } = useSettingsDialog();
     const { themePreference, setThemePreference } = useThemeContext();
-    const { autoSaveDownloads, lanDiscovery, parallelTransfers } =
-        useSettings();
+    const {
+        autoSaveDownloads,
+        lanDiscovery,
+        parallelTransfers,
+        connectionDetails,
+    } = useSettings();
 
     // showModal() throws on an already open dialog and close() on an already
     // closed one, so both calls go through the element's own open flag.
@@ -159,6 +163,20 @@ export default function SettingsMenu({
                             checked={parallelTransfers}
                             onChange={checked =>
                                 updateSettings({ parallelTransfers: checked })
+                            }
+                        />
+                    </div>
+
+                    <div className={css.section}>
+                        <div className={css.sectionTitle}>
+                            {t("advanced.title")}
+                        </div>
+                        <SettingToggle
+                            label={t("advanced.connectionDetails")}
+                            hint={t("advanced.connectionDetailsHint")}
+                            checked={connectionDetails}
+                            onChange={checked =>
+                                updateSettings({ connectionDetails: checked })
                             }
                         />
                     </div>

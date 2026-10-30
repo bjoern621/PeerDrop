@@ -39,6 +39,9 @@ export interface IceCandidateStats {
     candidateType: string;
     protocol?: string;
     relayProtocol?: string;
+    /** Absent where the browser withholds the address, such as behind an mDNS name. */
+    address?: string;
+    port?: number;
 }
 
 const SAMPLE_INTERVAL_MS = 1000;

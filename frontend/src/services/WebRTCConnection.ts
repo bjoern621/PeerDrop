@@ -19,6 +19,7 @@ import { getSettings } from "./SettingsStore";
 import { UsageReporter } from "./UsageReporter";
 import { PeerLane } from "./PeerLane";
 import { MAX_TRANSFER_LANES, PARALLEL_TRANSFER_LANES } from "../util/Constants";
+import { ConnectionReading, readConnection } from "./ConnectionDetails";
 
 /** Bytes of the little-endian chunk sequence number prefixing each binary message. */
 const SEQUENCE_HEADER_BYTES = 4;
@@ -852,6 +853,13 @@ export class WebRTCConnection {
 
     public getPeerConnection(): RTCPeerConnection {
         return this.peerConnection;
+    }
+
+    /** Statistics of the selected candidate pairs of all lanes. */
+    public readDetails(): Promise<ConnectionReading> {
+        return readConnection(
+            Array.from(this.lanes.values(), lane => lane.peerConnection)
+        );
     }
 
     public subscribeTo(event: string, handler: (data: unknown) => void) {

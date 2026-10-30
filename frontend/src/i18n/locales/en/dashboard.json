@@ -149,5 +149,45 @@
             "close": "Close text",
             "closeShortcut": "Close (Esc)"
         }
+    },
+    "connections": {
+        "title": "Connection details",
+        "collapse": "Collapse connection details",
+        "expand": "Expand connection details",
+        "close": "Hide connection details",
+        "empty": "No connection to another device. The first file that you send or receive sets one up.",
+        "cpu": {
+            "label": "CPU",
+            "unsupported": "Not reported by this browser",
+            "nominal": "Low load",
+            "fair": "Moderate load",
+            "serious": "High load",
+            "critical": "Full load"
+        },
+        "ownDevice": "Your device",
+        "state": {
+            "new": "New",
+            "connecting": "Connecting...",
+            "connected": "Connected",
+            "disconnected": "Interrupted",
+            "failed": "Could not connect",
+            "closed": "Closed"
+        },
+        "route": {
+            "label": "Route",
+            "host": "Direct in the local network",
+            "reflexive": "Direct to the other device",
+            "relay": "Through a TURN server",
+            "none": "Not chosen yet"
+        },
+        "candidates": "{{local}} to {{remote}}, {{protocol}}",
+        "relayProtocol": "To the TURN server over {{protocol}}",
+        "localAddress": "Address here",
+        "remoteAddress": "Address there",
+        "hidden": "Hidden",
+        "ping": "Ping",
+        "lanes": "Parallel connections",
+        "sending": "Sending",
+        "receiving": "Receiving"
     }
 }
