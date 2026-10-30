@@ -149,5 +149,67 @@
             "close": "Close text",
             "closeShortcut": "Close (Esc)"
         }
+    },
+    "connections": {
+        "title": "Connection details",
+        "collapse": "Collapse connection details",
+        "expand": "Expand connection details",
+        "close": "Hide connection details",
+        "empty": "No connection to another device. The first file that you send or receive sets one up.",
+        "cpu": {
+            "label": "CPU",
+            "unsupported": "Not reported by this browser",
+            "nominal": "Low load",
+            "fair": "Moderate load",
+            "serious": "High load",
+            "critical": "Full load"
+        },
+        "ownDevice": "Your device",
+        "state": {
+            "new": "New",
+            "connecting": "Connecting...",
+            "connected": "Connected",
+            "disconnected": "Interrupted",
+            "failed": "Could not connect",
+            "closed": "Closed"
+        },
+        "route": {
+            "label": "Route",
+            "host": "Direct in the local network",
+            "reflexive": "Direct to the other device",
+            "relay": "Through a TURN server",
+            "none": "Not chosen yet"
+        },
+        "candidates": "{{local}} to {{remote}}, {{protocol}}",
+        "relayProtocol": "To the TURN server over {{protocol}}",
+        "localAddress": "Address here",
+        "remoteAddress": "Address there",
+        "hidden": "Hidden",
+        "ping": "Ping",
+        "lanes": "Parallel connections",
+        "sending": "Sending",
+        "receiving": "Receiving",
+        "speed": {
+            "measure": "Measure speed",
+            "measuring": "Measuring...",
+            "hint": "Sends test data to {{token}} for {{seconds}} seconds.",
+            "busy": "Locked while a transfer with {{token}} runs, since it would skew the result.",
+            "result": "from you to {{token}}",
+            "unsupported": "{{token}} does not answer the test. Reload PeerDrop there to get the current version.",
+            "refused": "{{token}} takes no data from you until it accepts a transfer from you.",
+            "closed": "The connection to {{token}} dropped during the test.",
+            "limitLabel": "Likely limit",
+            "limit": {
+                "relay": "The TURN server. All data passes through it.",
+                "cpu": "The CPU of this device. It ran under high load during the test.",
+                "tab": "This tab. It handed over the data slower than the connection sent it (is the computer under load?).",
+                "queue": "A queue on the route. The ping rose from {{idle}} to {{load}} ms under load. The network or the browser's network thread cannot keep up.",
+                "browser": "The browser's WebRTC stack. It often stops at a few 100 Mbit/s, even when network and CPU allow more."
+            },
+            "buffer": "Send buffer filled",
+            "bufferValue": "{{percent}} % of the time",
+            "pingIdleLoad": "Ping idle / under load",
+            "cpuPeak": "CPU during the test"
+        }
     }
 }

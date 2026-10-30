@@ -1,6 +1,10 @@
 import errorAsValue from "../util/ErrorAsValue";
 import { WebSocketService } from "./WebSocketService";
-import { findSelectedCandidatePair, IceCandidateStats } from "./TransferStats";
+import {
+    findSelectedCandidatePair,
+    IceCandidateStats,
+    routeOf,
+} from "./TransferStats";
 import { Route } from "../types/telemetry/Route";
 import { PeerConnectionReportMessage } from "../types/telemetry/PeerConnectionReportMessage";
 import { TransferReportMessage } from "../types/telemetry/TransferReportMessage";
@@ -80,11 +84,5 @@ async function readRoute(
         id => (stats.get(id) as IceCandidateStats | undefined)?.candidateType
     );
 
-    if (candidateTypes.includes("relay")) {
-        return "relay";
-    }
-    if (candidateTypes.includes("srflx") || candidateTypes.includes("prflx")) {
-        return "reflexive";
-    }
-    return "host";
+    return routeOf(candidateTypes);
 }

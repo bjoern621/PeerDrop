@@ -28,6 +28,12 @@ export interface AppSettings {
      */
     parallelTransfers: boolean;
 
+    /**
+     * Shows route, round trip time and speed of every peer connection on the
+     * dashboard when true.
+     */
+    connectionDetails: boolean;
+
     /** Language of the interface. Follows the browser until the user picks one. */
     language: Language;
 
@@ -42,6 +48,7 @@ const STORAGE_KEYS: Record<keyof AppSettings, string> = {
     autoSaveDownloads: "autoSaveDownloads",
     lanDiscovery: "lanDiscovery",
     parallelTransfers: "parallelTransfers",
+    connectionDetails: "connectionDetails",
     language: "language",
     requestedToken: "requestedToken",
 };
@@ -50,6 +57,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     autoSaveDownloads: true,
     lanDiscovery: true,
     parallelTransfers: false,
+    connectionDetails: false,
     language: detectLanguage(),
     requestedToken: null,
 };
@@ -87,6 +95,10 @@ let settings: AppSettings = {
     parallelTransfers: readBooleanSetting(
         STORAGE_KEYS.parallelTransfers,
         DEFAULT_SETTINGS.parallelTransfers
+    ),
+    connectionDetails: readBooleanSetting(
+        STORAGE_KEYS.connectionDetails,
+        DEFAULT_SETTINGS.connectionDetails
     ),
     language: readLanguageSetting(
         STORAGE_KEYS.language,

@@ -149,5 +149,67 @@
             "close": "Text schließen",
             "closeShortcut": "Schließen (Esc)"
         }
+    },
+    "connections": {
+        "title": "Verbindungsdetails",
+        "collapse": "Verbindungsdetails einklappen",
+        "expand": "Verbindungsdetails ausklappen",
+        "close": "Verbindungsdetails ausblenden",
+        "empty": "Keine Verbindung zu einem anderen Gerät. Die erste Datei, die du sendest oder empfängst, baut eine auf.",
+        "cpu": {
+            "label": "CPU",
+            "unsupported": "Meldet dieser Browser nicht",
+            "nominal": "Wenig ausgelastet",
+            "fair": "Mäßig ausgelastet",
+            "serious": "Stark ausgelastet",
+            "critical": "Voll ausgelastet"
+        },
+        "ownDevice": "Dein Gerät",
+        "state": {
+            "new": "Neu",
+            "connecting": "Verbindet...",
+            "connected": "Verbunden",
+            "disconnected": "Unterbrochen",
+            "failed": "Fehlgeschlagen",
+            "closed": "Geschlossen"
+        },
+        "route": {
+            "label": "Weg",
+            "host": "Direkt im lokalen Netz",
+            "reflexive": "Direkt zum anderen Gerät",
+            "relay": "Über einen TURN-Server",
+            "none": "Noch nicht gewählt"
+        },
+        "candidates": "{{local}} zu {{remote}}, {{protocol}}",
+        "relayProtocol": "Zum TURN-Server über {{protocol}}",
+        "localAddress": "Adresse hier",
+        "remoteAddress": "Adresse dort",
+        "hidden": "Verborgen",
+        "ping": "Ping",
+        "lanes": "Parallele Verbindungen",
+        "sending": "Senden",
+        "receiving": "Empfangen",
+        "speed": {
+            "measure": "Geschwindigkeit messen",
+            "measuring": "Misst...",
+            "hint": "Sendet {{seconds}} Sekunden lang Testdaten an {{token}}.",
+            "busy": "Gesperrt, solange eine Übertragung mit {{token}} läuft, da sie die Messung verfälscht.",
+            "result": "von dir zu {{token}}",
+            "unsupported": "{{token}} antwortet nicht auf die Messung. Lade PeerDrop dort neu, um die aktuelle Version zu bekommen.",
+            "refused": "{{token}} nimmt keine Daten von dir an, bis es eine Übertragung von dir annimmt.",
+            "closed": "Die Verbindung zu {{token}} ist während der Messung abgebrochen.",
+            "limitLabel": "Wahrscheinliche Grenze",
+            "limit": {
+                "relay": "Der TURN-Server. Alle Daten laufen über ihn.",
+                "cpu": "Die CPU dieses Geräts. Sie war während der Messung stark ausgelastet.",
+                "tab": "Dieser Tab. Er hat die Daten langsamer abgegeben, als die Verbindung sie gesendet hat (läuft der Rechner unter Last?).",
+                "queue": "Eine Warteschlange auf dem Weg. Der Ping stieg unter Last von {{idle}} auf {{load}} ms. Das Netz oder der Netzwerk-Thread des Browsers kommt nicht nach.",
+                "browser": "Die WebRTC-Umsetzung des Browsers. Sie schafft oft nur einige 100 Mbit/s, auch wenn Netz und CPU mehr hergeben."
+            },
+            "buffer": "Sendepuffer gefüllt",
+            "bufferValue": "{{percent}} % der Zeit",
+            "pingIdleLoad": "Ping ohne / unter Last",
+            "cpuPeak": "CPU während der Messung"
+        }
     }
 }
