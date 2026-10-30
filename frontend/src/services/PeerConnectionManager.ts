@@ -9,6 +9,7 @@ import { Logger } from "../util/Logger";
 import { EstablishConnectionMessage } from "../types/connection/EstablishConnectionMessage";
 import { CloseConnectionMessage } from "../types/connection/CloseConnectionMessage";
 import { PeerConnectMessage } from "../types/messaging/PeerConnectMessage";
+import { ResumeConnectionMessage } from "../types/connection/ResumeConnectionMessage";
 import { TransferTracker } from "./TransferTracker";
 import { ReceivedFiles } from "./ReceivedFiles";
 
@@ -25,6 +26,10 @@ interface PeerConnection {
     connection: WebRTCConnection;
     ownDevice: boolean;
     connected: boolean;
+    // Whether the server pairs the two and forwards their signaling. A link
+    // that outlived a server connection runs unpaired until both sides
+    // claimed it again.
+    paired: boolean;
 }
 
 interface QueuedFile extends OutgoingFile {
@@ -36,6 +41,11 @@ interface QueuedFile extends OutgoingFile {
  * between peers that may exchange files: after the receiver accepted an offer,
  * or between two devices of the same account. Files for a peer without an open
  * connection wait in a queue until it is connected.
+ *
+ * A connection outlives a lost server connection while its direct link stays
+ * up, so running transfers go on. Once both peers hold a server connection
+ * again under their tokens, each claims the connection with a
+ * ResumeConnectionMessage and the server pairs them again.
  */
 export class PeerConnectionManager {
     private readonly logger = new Logger("PeerConnectionManager");
@@ -75,9 +85,22 @@ export class PeerConnectionManager {
                 const remoteToken = normalizeClientToken(
                     message.msg.remoteToken
                 );
+                const peer = this.peers.get(remoteToken);
+                if (message.msg.gone && peer && hasLiveLink(peer)) {
+                    this.log("Peer lost the server:", remoteToken);
+                    peer.paired = false;
+                    return;
+                }
                 this.log("Peer closed the connection:", remoteToken);
                 this.dropPeer(remoteToken);
             }
+        );
+        this.signaling.subscribeMessage<ResumeConnectionMessage>(
+            MessageType.RESUME_CONNECTION,
+            message =>
+                this.handleResumeClaim(
+                    normalizeClientToken(message.msg.remoteToken)
+                )
         );
     }
 
@@ -144,15 +167,42 @@ export class PeerConnectionManager {
         this.dropPeer(remoteToken);
     }
 
+    /** Closes every connection and tells the server, e.g. before this client signs in. */
+    public closeAll() {
+        Array.from(this.peers.keys()).forEach(token => this.closePeer(token));
+    }
+
     /**
      * Forgets every connection without telling the server, which already
      * dropped them together with this client's previous token.
      */
     public reset() {
         Array.from(this.peers.keys()).forEach(token => this.dropPeer(token));
-        Array.from(this.queues.keys()).forEach(token => this.failQueue(token));
-        this.requested.forEach(timer => clearTimeout(timer));
-        this.requested.clear();
+        this.forgetPending();
+    }
+
+    /**
+     * Carries the connections whose direct link is up over to a new server
+     * connection under the same token, and claims each of them at the server.
+     * Forgets every other connection without telling the server, which
+     * dropped them together with the previous server connection.
+     * Returns the tokens of the peers kept.
+     */
+    public resumeLinks(): ClientToken[] {
+        const kept: ClientToken[] = [];
+        this.peers.forEach((peer, token) => {
+            if (!hasLiveLink(peer)) {
+                this.dropPeer(token);
+                return;
+            }
+            peer.paired = false;
+            kept.push(token);
+            this.signaling.sendMessage(
+                new ResumeConnectionMessage({ remoteToken: token })
+            );
+        });
+        this.forgetPending();
+        return kept;
     }
 
     /** Central transfer state consumed by the UI. */
@@ -215,10 +265,11 @@ export class PeerConnectionManager {
         }
     }
 
+    /** Files for an unpaired peer wait, since its token may name another client by now. */
     private flushQueue(remoteToken: ClientToken) {
         const peer = this.peers.get(remoteToken);
         const queue = this.queues.get(remoteToken);
-        if (!peer || !queue) {
+        if (!peer || !queue || !peer.paired) {
             return;
         }
         this.queues.delete(remoteToken);
@@ -230,6 +281,29 @@ export class PeerConnectionManager {
                 file.startedAt
             )
         );
+    }
+
+    private forgetPending() {
+        Array.from(this.queues.keys()).forEach(token => this.failQueue(token));
+        this.requested.forEach(timer => clearTimeout(timer));
+        this.requested.clear();
+    }
+
+    /**
+     * Answers the peer's claim of a live link and sends the files that waited
+     * meanwhile. The server pairs the two on the second claim, so an answer
+     * to a claim that confirms an own one goes unused.
+     */
+    private handleResumeClaim(remoteToken: ClientToken) {
+        const peer = this.peers.get(remoteToken);
+        if (!peer || peer.paired || !hasLiveLink(peer)) {
+            return;
+        }
+        this.signaling.sendMessage(
+            new ResumeConnectionMessage({ remoteToken })
+        );
+        peer.paired = true;
+        this.flushQueue(remoteToken);
     }
 
     private failQueue(remoteToken: ClientToken) {
@@ -260,6 +334,7 @@ export class PeerConnectionManager {
             connection,
             ownDevice,
             connected: false,
+            paired: true,
         };
         this.peers.set(remoteToken, peer);
 
@@ -269,7 +344,10 @@ export class PeerConnectionManager {
                 peer.connected = true;
                 this.flushQueue(remoteToken);
             } else if (
-                state === "failed" &&
+                (state === "failed" ||
+                    // An unpaired peer gets no close from the server.
+                    // Its link going quiet counts as one.
+                    (state === "disconnected" && !peer.paired)) &&
                 this.peers.get(remoteToken) === peer
             ) {
                 this.closePeer(remoteToken);
@@ -283,4 +361,8 @@ export class PeerConnectionManager {
         peer?.connection.closeConnection();
         this.failQueue(remoteToken);
     }
+}
+
+function hasLiveLink(peer: PeerConnection): boolean {
+    return peer.connection.getPeerConnection().connectionState === "connected";
 }

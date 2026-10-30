@@ -35,12 +35,14 @@ export function ConnectionProvider({
     /**
      * Resets the WebSocket connection by closing the current connection and opening a new one.
      * The new connection asks for `requestedToken`, or else for the token held so far.
+     * Every peer connection closes first, since the new session may belong to another account.
      *
      * When a new WebSocket connection is established, the server reads the UserId from the session cookie
      * and associates it with the client token. This allows the server to link the authenticated
      * user account with the WebSocket connection for features like device management and connection history.
      */
     const resetWebsocketConnection = (requestedToken?: string) => {
+        pcmRef.current?.closeAll();
         wsRef.current?.closeActiveConnection();
         wsRef.current?.openWebSocket(requestedToken);
 

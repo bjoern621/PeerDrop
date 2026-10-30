@@ -8,6 +8,7 @@ export const enum MessageType {
     SDP = "sdp",
     ESTABLISH_CONNECTION = "establish-connection",
     PEER_CONNECT = "peer-connect",
+    RESUME_CONNECTION = "resume-connection",
     PUBLIC_KEY = "public-key",
     TOKEN_LOOKUP = "token-lookup",
     TOKEN_STATUS = "token-status",
