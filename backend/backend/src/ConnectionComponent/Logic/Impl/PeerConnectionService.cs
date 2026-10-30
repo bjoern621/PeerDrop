@@ -62,13 +62,40 @@ public class PeerConnectionService(
         _logger.LogDebug($"to {message.RemoteToken}: Close Connection");
     }
 
+    public async Task HandleResumeConnection(string clientToken, ResumeConnectionMessage message)
+    {
+        _logger.LogDebug($"from {clientToken}: Resume Connection");
+
+        if (string.IsNullOrEmpty(message.RemoteToken))
+            return;
+
+        var partnerToken = message.RemoteToken.ToLowerInvariant();
+
+        if (string.Equals(partnerToken, clientToken, StringComparison.OrdinalIgnoreCase)
+            || !_clientRegistry.RemoteTokenExists(partnerToken)
+            || _pairRepository.AreConnected(clientToken, partnerToken))
+        {
+            _logger.LogDebug($"Resume connection from {clientToken} to {partnerToken}, but the partner is offline, the sender itself or connected. Ignoring.");
+            return;
+        }
+
+        if (_pairRepository.ClaimResume(clientToken, partnerToken) == ResumeClaim.Repeated)
+        {
+            _logger.LogDebug($"Resume connection from {clientToken} to {partnerToken} repeated. Ignoring.");
+            return;
+        }
+
+        await _clientRegistry.SendMessage(partnerToken, new ResumeConnectionMessage { RemoteToken = clientToken });
+        _logger.LogDebug($"to {partnerToken}: Resume Connection");
+    }
+
     public async Task HandleClientDisconnected(string clientToken)
     {
         var partners = _pairRepository.RemoveClient(clientToken);
 
         foreach (var partner in partners)
         {
-            await _clientRegistry.SendMessage(partner, new CloseConnectionMessage { RemoteToken = clientToken });
+            await _clientRegistry.SendMessage(partner, new CloseConnectionMessage { RemoteToken = clientToken, Gone = true });
             _logger.LogDebug($"to {partner}: Close Connection: Partner {clientToken} disconnected");
         }
     }

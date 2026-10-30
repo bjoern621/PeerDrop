@@ -12,4 +12,11 @@ public class CloseConnectionMessage : ITypedMessage
 
     [JsonPropertyName("remoteToken")]
     public required string RemoteToken { get; set; }
+
+    /// <summary>
+    /// True if the partner lost its server connection without closing the peer connection.
+    /// The direct link between the two may outlive it, see <see cref="ResumeConnectionMessage"/>.
+    /// </summary>
+    [JsonPropertyName("gone")]
+    public bool Gone { get; set; }
 }

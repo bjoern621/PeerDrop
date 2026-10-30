@@ -28,7 +28,9 @@ public class PeerConnectionServiceTest
     {
         _mockHandler = new Mock<IClientRegistry>();
         _mockHandler.Setup(h => h.RemoteTokenExists(It.IsAny<string>())).Returns<string>(t => t != OFFLINE);
-        _sent = new SentMessages().Capture<CloseConnectionMessage>(_mockHandler);
+        _sent = new SentMessages()
+            .Capture<CloseConnectionMessage>(_mockHandler)
+            .Capture<ResumeConnectionMessage>(_mockHandler);
         _mockConnectionInitiationService = new Mock<IConnectionInitiationService>();
         _pairRepository = new PairRepository();
 
@@ -104,6 +106,7 @@ public class PeerConnectionServiceTest
         Assert.Multiple(() =>
         {
             Assert.That(_sent.To<CloseConnectionMessage>(TOKEN_B).Single().RemoteToken, Is.EqualTo(TOKEN_A));
+            Assert.That(_sent.To<CloseConnectionMessage>(TOKEN_B).Single().Gone, Is.False);
             Assert.That(_pairRepository.AreConnected(TOKEN_A, TOKEN_B), Is.False);
             Assert.That(_pairRepository.HasPermissionEitherWay(TOKEN_A, TOKEN_B), Is.True);
         });
@@ -118,7 +121,7 @@ public class PeerConnectionServiceTest
     }
 
     [Test]
-    public async Task HandleClientDisconnected_ClosesConnectionAtEveryPartnerAndDropsPermissions()
+    public async Task HandleClientDisconnected_ClosesConnectionAtEveryPartnerAsGoneAndDropsPermissions()
     {
         _pairRepository.AddPermission(TOKEN_A, TOKEN_B);
         _pairRepository.TryAddConnectedPair(TOKEN_A, TOKEN_B);
@@ -130,7 +133,73 @@ public class PeerConnectionServiceTest
         {
             Assert.That(_sent.To<CloseConnectionMessage>(TOKEN_B).Single().RemoteToken, Is.EqualTo(TOKEN_A));
             Assert.That(_sent.To<CloseConnectionMessage>(TOKEN_C).Single().RemoteToken, Is.EqualTo(TOKEN_A));
+            Assert.That(_sent.To<CloseConnectionMessage>(TOKEN_B).Single().Gone, Is.True);
             Assert.That(_pairRepository.HasPermissionEitherWay(TOKEN_A, TOKEN_B), Is.False);
         });
+    }
+
+    [Test]
+    public async Task HandleResumeConnection_FirstClaim_ForwardsItAndLeavesPairDisconnected()
+    {
+        await _service.HandleResumeConnection(TOKEN_A, new ResumeConnectionMessage { RemoteToken = TOKEN_B.ToUpperInvariant() });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_sent.To<ResumeConnectionMessage>(TOKEN_B).Single().RemoteToken, Is.EqualTo(TOKEN_A));
+            Assert.That(_pairRepository.AreConnected(TOKEN_A, TOKEN_B), Is.False);
+        });
+    }
+
+    [Test]
+    public async Task HandleResumeConnection_BothClaimed_ConnectsPairAndForwardsSecondClaim()
+    {
+        await _service.HandleResumeConnection(TOKEN_A, new ResumeConnectionMessage { RemoteToken = TOKEN_B });
+        await _service.HandleResumeConnection(TOKEN_B, new ResumeConnectionMessage { RemoteToken = TOKEN_A });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(_pairRepository.AreConnected(TOKEN_A, TOKEN_B), Is.True);
+            Assert.That(_sent.To<ResumeConnectionMessage>(TOKEN_A).Single().RemoteToken, Is.EqualTo(TOKEN_B));
+            Assert.That(_pairRepository.HasPermissionEitherWay(TOKEN_A, TOKEN_B), Is.False);
+        });
+    }
+
+    [Test]
+    public async Task HandleResumeConnection_RepeatedClaim_ForwardsOnce()
+    {
+        await _service.HandleResumeConnection(TOKEN_A, new ResumeConnectionMessage { RemoteToken = TOKEN_B });
+        await _service.HandleResumeConnection(TOKEN_A, new ResumeConnectionMessage { RemoteToken = TOKEN_B });
+
+        Assert.That(_sent.To<ResumeConnectionMessage>(TOKEN_B), Has.Count.EqualTo(1));
+    }
+
+    [TestCase(OFFLINE)]
+    [TestCase(TOKEN_A)]
+    public async Task HandleResumeConnection_PartnerOfflineOrItself_IsIgnored(string partner)
+    {
+        await _service.HandleResumeConnection(TOKEN_A, new ResumeConnectionMessage { RemoteToken = partner });
+
+        Assert.That(_sent.Count, Is.Zero);
+    }
+
+    [Test]
+    public async Task HandleResumeConnection_ConnectedPair_IsIgnored()
+    {
+        _pairRepository.TryAddConnectedPair(TOKEN_A, TOKEN_B);
+
+        await _service.HandleResumeConnection(TOKEN_A, new ResumeConnectionMessage { RemoteToken = TOKEN_B });
+
+        Assert.That(_sent.Count, Is.Zero);
+    }
+
+    [Test]
+    public async Task HandleResumeConnection_ClaimOfDisconnectedClient_IsForgotten()
+    {
+        await _service.HandleResumeConnection(TOKEN_A, new ResumeConnectionMessage { RemoteToken = TOKEN_B });
+        await _service.HandleClientDisconnected(TOKEN_A);
+
+        await _service.HandleResumeConnection(TOKEN_B, new ResumeConnectionMessage { RemoteToken = TOKEN_A });
+
+        Assert.That(_pairRepository.AreConnected(TOKEN_A, TOKEN_B), Is.False);
     }
 }

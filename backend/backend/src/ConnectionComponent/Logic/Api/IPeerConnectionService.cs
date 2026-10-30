@@ -18,8 +18,15 @@ public interface IPeerConnectionService
     Task HandleCloseConnection(string clientToken, CloseConnectionMessage message);
 
     /// <summary>
-    /// Drops the client's permissions and connected pairs.
-    /// Each former connection partner receives a close-connection naming the client.
+    /// Records the client's claim to resume its connection to the named partner and forwards it to the partner.
+    /// The pair counts as connected once both sides claimed it. Permissions stay as they are.
+    /// Ignored if the partner is offline or the client itself, if the pair is connected or if the claim waits already.
+    /// </summary>
+    Task HandleResumeConnection(string clientToken, ResumeConnectionMessage message);
+
+    /// <summary>
+    /// Drops the client's permissions, connected pairs and resume claims.
+    /// Each former connection partner receives a close-connection naming the client, marked as gone.
     /// </summary>
     Task HandleClientDisconnected(string clientToken);
 }

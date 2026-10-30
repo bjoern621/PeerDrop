@@ -10,6 +10,9 @@ public class PairRepository : IPairRepository
     // Unordered pairs of lowercase tokens, the ordinally smaller token first.
     private readonly HashSet<(string, string)> _connectedPairs = [];
 
+    // Lowercase tokens.
+    private readonly HashSet<(string Claimant, string Partner)> _resumeClaims = [];
+
     private readonly Lock _lock = new();
 
     public void AddPermission(string senderToken, string receiverToken)
@@ -55,6 +58,21 @@ public class PairRepository : IPairRepository
         }
     }
 
+    public ResumeClaim ClaimResume(string claimantToken, string partnerToken)
+    {
+        var claimant = Normalize(claimantToken);
+        var partner = Normalize(partnerToken);
+
+        lock (_lock)
+        {
+            if (!_resumeClaims.Remove((partner, claimant)))
+                return _resumeClaims.Add((claimant, partner)) ? ResumeClaim.Recorded : ResumeClaim.Repeated;
+
+            _connectedPairs.Add(UnorderedPair(claimant, partner));
+            return ResumeClaim.Connected;
+        }
+    }
+
     public IReadOnlyList<string> RemoveClient(string clientToken)
     {
         var token = Normalize(clientToken);
@@ -62,6 +80,7 @@ public class PairRepository : IPairRepository
         lock (_lock)
         {
             _permissions.RemoveWhere(permission => permission.Sender == token || permission.Receiver == token);
+            _resumeClaims.RemoveWhere(claim => claim.Claimant == token || claim.Partner == token);
 
             var partners = _connectedPairs
                 .Where(pair => pair.Item1 == token || pair.Item2 == token)
