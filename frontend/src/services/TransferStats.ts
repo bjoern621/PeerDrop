@@ -12,6 +12,7 @@
  */
 
 import { Logger } from "../util/Logger";
+import { Route } from "../types/telemetry/Route";
 
 export interface TransferStatsSample {
     /** Candidate types of the selected pair, e.g. "host->host" or "relay->host". */
@@ -230,4 +231,15 @@ export function findSelectedCandidatePair(
     });
 
     return selectedPair;
+}
+
+/** Path class of a candidate pair, from the candidate types of its two ends. */
+export function routeOf(candidateTypes: (string | undefined)[]): Route {
+    if (candidateTypes.includes("relay")) {
+        return "relay";
+    }
+    if (candidateTypes.includes("srflx") || candidateTypes.includes("prflx")) {
+        return "reflexive";
+    }
+    return "host";
 }
