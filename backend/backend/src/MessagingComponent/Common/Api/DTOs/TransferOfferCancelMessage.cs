@@ -19,10 +19,4 @@ public class TransferOfferCancelMessage : ITypedMessage
 
     [JsonPropertyName("from")]
     public string? From { get; set; }
-
-    /// <summary>
-    /// True if the sender lost its server connection. It may take the offer up again, see <see cref="TransferOfferResumeMessage"/>.
-    /// </summary>
-    [JsonPropertyName("mayReturn")]
-    public bool MayReturn { get; set; }
 }

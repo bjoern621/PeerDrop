@@ -10,8 +10,6 @@ export class TransferAnswerMessage implements ITypedMessage {
         from?: string;
         /** The receiver left before answering. */
         gone?: boolean;
-        /** Set by the server: the receiver lost its server connection and may take the offer up again. */
-        mayReturn?: boolean;
     };
 
     public constructor(msg: {

@@ -122,7 +122,7 @@ public class TransferOfferService(
             OfferId = offer.OfferId,
             From = offer.ReceiverToken,
             Accepted = message.Accepted,
-            Gone = message.Gone && !message.Accepted,
+            Gone = false,
         });
         _logger.LogDebug($"to {offer.SenderToken}: Transfer Answer from {offer.ReceiverToken} (Accepted: {message.Accepted})");
 
@@ -133,31 +133,6 @@ public class TransferOfferService(
         await _connectionInitiationService.InitiateConnection(offer.SenderToken, offer.ReceiverToken, "offer");
     }
 
-    public async Task HandleTransferOfferResume(string clientToken, TransferOfferResumeMessage message)
-    {
-        if (!EncryptedMessageValidator.IsValidId(message.OfferId) || string.IsNullOrEmpty(message.To))
-        {
-            _logger.LogDebug($"Received malformed transfer offer resume from {clientToken}, ignoring.");
-            return;
-        }
-
-        var peerToken = message.To.ToLowerInvariant();
-        if (string.Equals(peerToken, clientToken, StringComparison.OrdinalIgnoreCase)
-            || !_clientRegistry.RemoteTokenExists(peerToken)
-            || _abuseGuard.TryRecordOffer(clientToken) != null)
-        {
-            _logger.LogDebug($"Transfer offer resume from {clientToken} to {peerToken}, but the peer is the sender itself or offline, or the cap is reached. Ignoring.");
-            return;
-        }
-
-        await _clientRegistry.SendMessage(peerToken, new TransferOfferResumeMessage
-        {
-            OfferId = message.OfferId,
-            From = clientToken,
-        });
-        _logger.LogDebug($"to {peerToken}: Transfer Offer Resume {message.OfferId} from {clientToken}");
-    }
-
     public async Task HandleClientDisconnected(string clientToken)
     {
         var token = clientToken.ToLowerInvariant();
@@ -166,7 +141,7 @@ public class TransferOfferService(
         {
             if (offer.SenderToken == token)
             {
-                await SendCancel(offer, mayReturn: true);
+                await SendCancel(offer);
             }
             else
             {
@@ -176,20 +151,18 @@ public class TransferOfferService(
                     From = offer.ReceiverToken,
                     Accepted = false,
                     Gone = true,
-                    MayReturn = true,
                 });
                 _logger.LogDebug($"to {offer.SenderToken}: Transfer Answer: Receiver {offer.ReceiverToken} disconnected");
             }
         }
     }
 
-    private async Task SendCancel(PendingOffer offer, bool mayReturn = false)
+    private async Task SendCancel(PendingOffer offer)
     {
         await _clientRegistry.SendMessage(offer.ReceiverToken, new TransferOfferCancelMessage
         {
             OfferId = offer.OfferId,
             From = offer.SenderToken,
-            MayReturn = mayReturn,
         });
         _logger.LogDebug($"to {offer.ReceiverToken}: Transfer Offer Cancel {offer.OfferId} from {offer.SenderToken}");
     }

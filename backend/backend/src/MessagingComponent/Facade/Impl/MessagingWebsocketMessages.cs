@@ -26,8 +26,6 @@ public class MessagingWebsocketMessages(
 
         _clientRegistry.SubscribeToMessageType<TransferAnswerMessage>(TransferAnswerMessage.TypeString, _transferOfferService.HandleTransferAnswer);
 
-        _clientRegistry.SubscribeToMessageType<TransferOfferResumeMessage>(TransferOfferResumeMessage.TypeString, _transferOfferService.HandleTransferOfferResume);
-
         _clientRegistry.ClientDisconnected += _transferOfferService.HandleClientDisconnected;
 
         _clientRegistry.ClientDisconnected += _tokenLookupService.HandleClientDisconnected;

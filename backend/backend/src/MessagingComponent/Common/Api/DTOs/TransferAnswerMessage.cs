@@ -4,8 +4,8 @@ using backend.WebSocketComponent.Common.Api.DTOs;
 namespace backend.MessagingComponent.Common.Api.DTOs;
 
 /// <summary>
-/// The receiver's answer to a pending offer. The receiver sends the offer ID, <see cref="Accepted"/>
-/// and, when it leaves, <see cref="Gone"/>. The sender gets it with <see cref="From"/> set.
+/// The receiver's answer to a pending offer. The receiver sends the offer ID and <see cref="Accepted"/>.
+/// The sender gets it with <see cref="From"/> and <see cref="Gone"/> set.
 /// </summary>
 public class TransferAnswerMessage : ITypedMessage
 {
@@ -24,14 +24,8 @@ public class TransferAnswerMessage : ITypedMessage
     public required bool Accepted { get; set; }
 
     /// <summary>
-    /// True if the receiver left or disconnected before answering. <see cref="Accepted"/> is false then.
+    /// True if the receiver disconnected before answering. <see cref="Accepted"/> is false then.
     /// </summary>
     [JsonPropertyName("gone")]
     public bool Gone { get; set; }
-
-    /// <summary>
-    /// True if the receiver lost its server connection. It may take the offer up again, see <see cref="TransferOfferResumeMessage"/>.
-    /// </summary>
-    [JsonPropertyName("mayReturn")]
-    public bool MayReturn { get; set; }
 }
