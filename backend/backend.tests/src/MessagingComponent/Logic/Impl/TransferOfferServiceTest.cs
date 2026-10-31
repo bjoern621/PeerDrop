@@ -39,7 +39,8 @@ public class TransferOfferServiceTest
             .Capture<IncomingTransferOfferMessage>(_mockHandler)
             .Capture<TransferOfferResultMessage>(_mockHandler)
             .Capture<TransferOfferCancelMessage>(_mockHandler)
-            .Capture<TransferAnswerMessage>(_mockHandler);
+            .Capture<TransferAnswerMessage>(_mockHandler)
+            .Capture<TransferOfferResumeMessage>(_mockHandler);
 
         _mockConnectionInitiationService = new Mock<IConnectionInitiationService>();
         _pairRepository = new PairRepository();
@@ -214,6 +215,21 @@ public class TransferOfferServiceTest
     }
 
     [Test]
+    public async Task HandleTransferAnswer_DeclinedOnLeaving_ForwardsAnswerAsGone()
+    {
+        await Offer("o1");
+
+        await _service.HandleTransferAnswer(RECEIVER, new TransferAnswerMessage { OfferId = "o1", Accepted = false, Gone = true });
+
+        var answer = _sent.To<TransferAnswerMessage>(SENDER).Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(answer.Gone, Is.True);
+            Assert.That(answer.MayReturn, Is.False);
+        });
+    }
+
+    [Test]
     public async Task HandleTransferAnswer_FromClientOtherThanReceiver_IsIgnored()
     {
         await Offer("o1");
@@ -240,6 +256,7 @@ public class TransferOfferServiceTest
         {
             Assert.That(cancel.OfferId, Is.EqualTo("o1"));
             Assert.That(cancel.From, Is.EqualTo(SENDER));
+            Assert.That(cancel.MayReturn, Is.False);
             Assert.That(_sent.To<TransferAnswerMessage>(SENDER), Is.Empty);
         });
     }
@@ -253,13 +270,18 @@ public class TransferOfferServiceTest
     }
 
     [Test]
-    public async Task HandleClientDisconnected_Sender_CancelsOfferAtReceiver()
+    public async Task HandleClientDisconnected_Sender_CancelsOfferAtReceiverAsMayReturn()
     {
         await Offer("o1");
 
         await _service.HandleClientDisconnected(SENDER);
 
-        Assert.That(_sent.To<TransferOfferCancelMessage>(RECEIVER).Single().From, Is.EqualTo(SENDER));
+        var cancel = _sent.To<TransferOfferCancelMessage>(RECEIVER).Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(cancel.From, Is.EqualTo(SENDER));
+            Assert.That(cancel.MayReturn, Is.True);
+        });
     }
 
     [Test]
@@ -276,6 +298,50 @@ public class TransferOfferServiceTest
             Assert.That(answer.From, Is.EqualTo(RECEIVER));
             Assert.That(answer.Accepted, Is.False);
             Assert.That(answer.Gone, Is.True);
+            Assert.That(answer.MayReturn, Is.True);
         });
+    }
+
+    [Test]
+    public async Task HandleTransferOfferResume_PeerOnline_ForwardsWithRequester()
+    {
+        await _service.HandleTransferOfferResume(RECEIVER, new TransferOfferResumeMessage { OfferId = "o1", To = SENDER.ToUpperInvariant() });
+
+        var resume = _sent.To<TransferOfferResumeMessage>(SENDER).Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(resume.OfferId, Is.EqualTo("o1"));
+            Assert.That(resume.From, Is.EqualTo(RECEIVER));
+            Assert.That(resume.To, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task HandleTransferOfferResume_PeerOffline_SendsNothing()
+    {
+        await _service.HandleTransferOfferResume(RECEIVER, new TransferOfferResumeMessage { OfferId = "o1", To = OFFLINE });
+
+        Assert.That(_sent.Count, Is.Zero);
+    }
+
+    [Test]
+    public async Task HandleTransferOfferResume_ToItself_SendsNothing()
+    {
+        await _service.HandleTransferOfferResume(SENDER, new TransferOfferResumeMessage { OfferId = "o1", To = SENDER });
+
+        Assert.That(_sent.Count, Is.Zero);
+    }
+
+    [Test]
+    public async Task HandleTransferOfferResume_BeyondOfferCap_SendsNothing()
+    {
+        for (var i = 0; i < 30; i++)
+        {
+            await Offer($"o{i}");
+        }
+
+        await _service.HandleTransferOfferResume(SENDER, new TransferOfferResumeMessage { OfferId = "o1", To = RECEIVER });
+
+        Assert.That(_sent.To<TransferOfferResumeMessage>(RECEIVER), Is.Empty);
     }
 }

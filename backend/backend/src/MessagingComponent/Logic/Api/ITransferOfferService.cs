@@ -20,15 +20,24 @@ public interface ITransferOfferService
     Task HandleTransferOfferCancel(string clientToken, TransferOfferCancelMessage message);
 
     /// <summary>
-    /// Forwards the receiver's answer to the offer's sender.
+    /// Forwards the receiver's answer to the offer's sender, marked gone if the receiver declined on leaving.
     /// An accepted offer permits the sender to send to the receiver and initiates their connection unless it exists.
     /// Ignored if the receiver has no pending offer with that ID.
     /// </summary>
     Task HandleTransferAnswer(string clientToken, TransferAnswerMessage message);
 
     /// <summary>
+    /// Forwards the request to take an offer up again to <see cref="TransferOfferResumeMessage.To"/>.
+    /// Sends nothing back, so the requester learns nothing about the peer.
+    /// Ignored if a field is malformed, the request targets the requester, the peer is not online
+    /// or the requester exceeded its offer cap.
+    /// </summary>
+    Task HandleTransferOfferResume(string clientToken, TransferOfferResumeMessage message);
+
+    /// <summary>
     /// Ends the pending offers of a disconnected client.
     /// The receivers of its offers get a cancel, the senders of offers to it an unaccepted answer marked gone.
+    /// Both get marked as from a client that may return.
     /// </summary>
     Task HandleClientDisconnected(string clientToken);
 }
