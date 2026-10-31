@@ -69,6 +69,14 @@ export class Peer {
         await this.page.context().close();
     }
 
+    /** Closes the tab the way a user does, unload handlers included. */
+    public async leave() {
+        // With unload handlers, close returns before the page has closed.
+        const closed = this.page.waitForEvent("close");
+        await this.page.close({ runBeforeUnload: true });
+        await closed;
+    }
+
     /** The token that the page shows at the moment. {@link token} keeps the first one. */
     public currentToken() {
         return readOwnToken(this.page);
@@ -89,6 +97,12 @@ export class Peer {
         return this.page
             .getByRole("alert")
             .filter({ hasText: "The connection to the server dropped." });
+    }
+
+    /** Waits until the page lost its server connection and holds a new one. */
+    public async reconnected() {
+        await expect(this.lostConnectionToast()).toBeVisible();
+        await expect(this.lostConnectionToast()).toBeHidden();
     }
 
     public hint() {

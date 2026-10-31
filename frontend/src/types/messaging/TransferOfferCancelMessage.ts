@@ -7,6 +7,8 @@ export class TransferOfferCancelMessage implements ITypedMessage {
         offerId: string;
         /** Set by the server when it forwards the cancellation. */
         from?: string;
+        /** The sender lost its server connection and may take the offer up again. */
+        mayReturn?: boolean;
     };
 
     public constructor(msg: { offerId: string; from?: string }) {

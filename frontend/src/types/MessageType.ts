@@ -18,6 +18,7 @@ export const enum MessageType {
     TRANSFER_OFFER_RESULT = "transfer-offer-result",
     TRANSFER_OFFER_CANCEL = "transfer-offer-cancel",
     TRANSFER_ANSWER = "transfer-answer",
+    TRANSFER_OFFER_RESUME = "transfer-offer-resume",
     DEVICE_HEARTBEAT = "device-heartbeat",
     DEVICE_CHANGED = "device-changed",
     LAN_PEERS = "lan-peers",

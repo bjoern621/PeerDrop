@@ -9,6 +9,9 @@ export const SERVER_PONG_TIMEOUT_MS = 5_000;
 /** Waits before the attempts to reconnect to the server, in order. The last one repeats. */
 export const RECONNECT_DELAYS_MS = [1_000, 2_000, 5_000, 10_000, 30_000];
 
+/** Time that an open offer waits for its peer to take it up again after either side lost the server. */
+export const OFFER_RESUME_TIMEOUT_MS = 60_000;
+
 /** Number of characters in a client token. */
 export const CLIENT_TOKEN_LENGTH = 5;
 

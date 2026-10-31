@@ -5,6 +5,7 @@ import {
     contentOf,
     downloadNamed,
     expect,
+    SocketRelay,
     test,
 } from "./peers";
 
@@ -80,9 +81,134 @@ test("an offer to a receiver that leaves is not delivered", async ({
     await alice.sendFiles({ name: "notes.txt", content: "hello bob" });
     await expect(bob.row("notes.txt")).toBeVisible();
 
-    await bob.close();
+    await bob.leave();
 
     await expect(alice.row("notes.txt")).toContainText("Not delivered");
+});
+
+test("an offer from a sender that leaves disappears at the receiver", async ({
+    bob,
+    openPeer,
+}) => {
+    const alice = await openPeer();
+    await alice.connectTo(bob);
+    await alice.sendFiles({ name: "notes.txt", content: "hello bob" });
+    await expect(bob.row("notes.txt")).toBeVisible();
+
+    await alice.leave();
+
+    await expect(bob.row("notes.txt")).toHaveCount(0);
+});
+
+test.describe("an open offer and a lost server connection", () => {
+    for (const side of ["sender", "receiver"] as const) {
+        test(`the offer stays open while the ${side} reconnects`, async ({
+            openPeer,
+        }) => {
+            const relay = new SocketRelay();
+            const alice = await openPeer(side === "sender" ? relay : undefined);
+            const bob = await openPeer(side === "receiver" ? relay : undefined);
+            await alice.connectTo(bob);
+            await alice.sendFiles({ name: "notes.txt", content: "hello bob" });
+            await expect(bob.row("notes.txt")).toBeVisible();
+
+            await relay.drop();
+            await (side === "sender" ? alice : bob).reconnected();
+
+            await expect(alice.row("notes.txt")).toContainText(
+                "Waiting for acceptance"
+            );
+            const download = downloadNamed(bob.page, "notes.txt");
+            await bob.accept("notes.txt");
+            expect(await contentOf(await download)).toBe("hello bob");
+            await expect(alice.row("notes.txt")).toContainText("Done");
+        });
+    }
+
+    test("the offer stays open while both peers reconnect at once", async ({
+        openPeer,
+    }) => {
+        const aliceRelay = new SocketRelay();
+        const bobRelay = new SocketRelay();
+        const alice = await openPeer(aliceRelay);
+        const bob = await openPeer(bobRelay);
+        await alice.connectTo(bob);
+        await alice.sendFiles({ name: "notes.txt", content: "hello bob" });
+        await expect(bob.row("notes.txt")).toBeVisible();
+
+        await Promise.all([aliceRelay.drop(), bobRelay.drop()]);
+        await Promise.all([alice.reconnected(), bob.reconnected()]);
+
+        await bob.accept("notes.txt");
+        await expect(bob.row("notes.txt")).toContainText("Done");
+        await expect(alice.row("notes.txt")).toContainText("Done");
+    });
+
+    test("an accept while the sender is away starts the transfer once it is back", async ({
+        openPeer,
+        bob,
+    }) => {
+        const relay = new SocketRelay();
+        const alice = await openPeer(relay);
+        await alice.connectTo(bob);
+        await alice.sendFiles({ name: "notes.txt", content: "hello bob" });
+        await expect(bob.row("notes.txt")).toBeVisible();
+
+        await relay.cut();
+        await expect(alice.lostConnectionToast()).toBeVisible();
+        await bob.accept("notes.txt");
+        relay.reopen();
+
+        await expect(alice.row("notes.txt")).toContainText("Done", {
+            timeout: 30_000,
+        });
+        await expect(bob.row("notes.txt")).toContainText("Done");
+    });
+
+    test("an accept while the receiver is away starts the transfer once it is back", async ({
+        alice,
+        openPeer,
+    }) => {
+        const relay = new SocketRelay();
+        const bob = await openPeer(relay);
+        await alice.connectTo(bob);
+        await alice.sendFiles({ name: "notes.txt", content: "hello bob" });
+        await expect(bob.row("notes.txt")).toBeVisible();
+
+        await relay.cut();
+        await expect(bob.lostConnectionToast()).toBeVisible();
+        await bob.accept("notes.txt");
+        relay.reopen();
+
+        await expect(bob.row("notes.txt")).toContainText("Done", {
+            timeout: 30_000,
+        });
+        await expect(alice.row("notes.txt")).toContainText("Done");
+    });
+
+    test("a decline while the sender is away reaches it once it is back", async ({
+        openPeer,
+        bob,
+    }) => {
+        const relay = new SocketRelay();
+        const alice = await openPeer(relay);
+        await alice.connectTo(bob);
+        await alice.sendFiles({ name: "notes.txt", content: "hello bob" });
+        await expect(bob.row("notes.txt")).toBeVisible();
+
+        await relay.cut();
+        await expect(alice.lostConnectionToast()).toBeVisible();
+        await bob
+            .row("notes.txt")
+            .getByRole("button", { name: "Decline" })
+            .click();
+        relay.reopen();
+
+        await expect(alice.row("notes.txt")).toContainText("Declined", {
+            timeout: 30_000,
+        });
+        await expect(bob.row("notes.txt")).toContainText("Declined");
+    });
 });
 
 test("after one accept, later files arrive without asking", async ({

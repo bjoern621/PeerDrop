@@ -21,6 +21,8 @@ import { TransferOfferCancelMessage } from "../types/messaging/TransferOfferCanc
 import { TransferAnswerMessage } from "../types/messaging/TransferAnswerMessage";
 import { EstablishConnectionMessage } from "../types/connection/EstablishConnectionMessage";
 import { ClientTokenMessage } from "../types/token/ClientTokenMessage";
+import { TransferOfferResumeMessage } from "../types/messaging/TransferOfferResumeMessage";
+import { OFFER_RESUME_TIMEOUT_MS } from "../util/Constants";
 import errorAsValue from "../util/ErrorAsValue";
 import { Logger } from "../util/Logger";
 import { TransferDirection } from "./TransferTracker";
@@ -91,6 +93,10 @@ interface PeerInfo {
 interface PendingOffer {
     entry: OfferEntry;
     files: OutgoingFile[];
+    // Sent again unchanged when the offer gets taken up after a lost server
+    // connection. A client that took the receiver's token meanwhile cannot
+    // open it.
+    sealed?: Sealed;
 }
 
 /**
@@ -110,6 +116,16 @@ export class MessagingService {
     private texts: TextEntry[] = [];
     private readonly outgoingOffers = new Map<string, PendingOffer>();
     private readonly incomingOffers = new Map<string, OfferEntry>();
+    // Open offers whose peer lost its server connection, or that this client
+    // carried over its own, with the timer that gives up on them.
+    // An offer accepted meanwhile or while this client has no server
+    // connection moves to acceptedWhileAway, since the answer never reached
+    // the sender. The offer sent again gets accepted then.
+    private readonly resumeTimers = new Map<
+        string,
+        ReturnType<typeof setTimeout>
+    >();
+    private readonly acceptedWhileAway = new Map<string, OfferEntry>();
     private readonly lookups = new Map<ClientToken, LookupState>();
     private lastCheckId = 0;
     private readonly peerInfo = new Map<ClientToken, PeerInfo>();
@@ -168,6 +184,15 @@ export class MessagingService {
         this.on(MessageType.TRANSFER_ANSWER, message =>
             this.handleAnswer(message as TransferAnswerMessage)
         );
+        this.on(MessageType.TRANSFER_OFFER_RESUME, message =>
+            this.handleOfferResume(message as TransferOfferResumeMessage)
+        );
+        window.addEventListener("pagehide", event => {
+            // A page kept in the back-forward cache may come back.
+            if (!event.persisted) {
+                this.leave();
+            }
+        });
         this.on(MessageType.ESTABLISH_CONNECTION, message => {
             const { remoteToken, ownDevice } = (
                 message as EstablishConnectionMessage
@@ -291,6 +316,10 @@ export class MessagingService {
             this.setOfferStatus(entry.offerId, "failed");
             return;
         }
+        const pending = this.outgoingOffers.get(entry.offerId);
+        if (pending) {
+            pending.sealed = sealed;
+        }
         this.signaling.sendMessage(
             new OutgoingTransferOfferMessage({
                 offerId: entry.offerId,
@@ -307,6 +336,7 @@ export class MessagingService {
             return;
         }
         this.outgoingOffers.delete(offerId);
+        this.stopAwaitingPeer(offerId);
         if (offer.entry.status === "waiting") {
             this.signaling.sendMessage(
                 new TransferOfferCancelMessage({ offerId })
@@ -341,6 +371,12 @@ export class MessagingService {
                     })
                 );
                 this.incomingOffers.delete(other.offerId);
+                if (
+                    this.resumeTimers.has(other.offerId) ||
+                    this.signaling.getConnection() !== "open"
+                ) {
+                    this.acceptedWhileAway.set(other.offerId, other);
+                }
             }
         }
         this.publish();
@@ -380,6 +416,7 @@ export class MessagingService {
             ...offer,
             status: "declined",
         });
+        this.stopAwaitingPeer(offer.offerId);
     }
 
     private on(type: MessageType, handler: (message: ITypedMessage) => void) {
@@ -388,20 +425,25 @@ export class MessagingService {
 
     private async handleNewToken(message: ClientTokenMessage) {
         const token = normalizeClientToken(message.msg.token);
+        const reconnected = token === this.token;
         if (this.token !== undefined) {
-            this.forgetSession(token === this.token);
+            this.forgetSession(reconnected);
         }
         this.token = token;
         this.signaling.sendMessage(
             new PublicKeyMessage({ key: await this.crypto.getPublicKey() })
         );
+        if (reconnected) {
+            this.resumeOpenOffers();
+        }
     }
 
     /**
      * A new connection ends every relation of the old one, even under the same
      * token: the server dropped its connections, offers and permissions.
      * Under the same token, a peer connection whose direct link is up goes on,
-     * together with the trust in its peer.
+     * together with the trust in its peer. Open offers wait for their peer to
+     * take them up again.
      */
     private forgetSession(sameToken: boolean) {
         let kept: ClientToken[] = [];
@@ -417,13 +459,142 @@ export class MessagingService {
         }
         this.peerInfo.clear();
         this.lookups.clear();
-        this.incomingOffers.clear();
+        if (!sameToken) {
+            this.incomingOffers.clear();
+            this.resumeTimers.forEach(timer => clearTimeout(timer));
+            this.resumeTimers.clear();
+            this.acceptedWhileAway.clear();
+        }
+        for (const offer of this.incomingOffers.values()) {
+            if (offer.status === "waiting") {
+                this.awaitPeer(offer.offerId);
+            }
+        }
+        this.acceptedWhileAway.forEach((_, offerId) => this.awaitPeer(offerId));
         for (const offer of this.outgoingOffers.values()) {
-            if (offer.entry.status === "waiting") {
+            if (offer.entry.status !== "waiting") {
+                continue;
+            }
+            if (sameToken) {
+                this.awaitPeer(offer.entry.offerId);
+            } else {
                 offer.entry = { ...offer.entry, status: "failed" };
             }
         }
         this.publish();
+    }
+
+    /**
+     * Asks the peer of every open offer to take it up again. Covers incoming
+     * offers answered meanwhile as well, since an answer sent while the server
+     * was away never reached the sender.
+     */
+    private resumeOpenOffers() {
+        const open = [
+            ...Array.from(this.outgoingOffers.values(), offer => offer.entry),
+            ...this.incomingOffers.values(),
+            ...this.acceptedWhileAway.values(),
+        ].filter(
+            offer =>
+                offer.status === "waiting" ||
+                (offer.direction === "down" && offer.status === "declined")
+        );
+        for (const offer of open) {
+            this.signaling.sendMessage(
+                new TransferOfferResumeMessage({
+                    offerId: offer.offerId,
+                    to: offer.peer,
+                })
+            );
+        }
+    }
+
+    /**
+     * Answers the peer's request to take an offer up again: as its sender by
+     * sending the offer again, as its receiver by asking back. A request for
+     * an offer this client does not hold with that peer goes unanswered.
+     */
+    private handleOfferResume(message: TransferOfferResumeMessage) {
+        const { offerId } = message.msg;
+        const from = normalizeClientToken(message.msg.from ?? "");
+
+        const outgoing = this.outgoingOffers.get(offerId);
+        if (
+            outgoing?.entry.peer === from &&
+            outgoing.entry.status === "waiting" &&
+            outgoing.sealed
+        ) {
+            this.signaling.sendMessage(
+                new OutgoingTransferOfferMessage({
+                    offerId,
+                    to: from,
+                    ...outgoing.sealed,
+                })
+            );
+            return;
+        }
+
+        const incoming =
+            this.incomingOffers.get(offerId) ??
+            this.acceptedWhileAway.get(offerId);
+        if (incoming?.peer === from) {
+            this.signaling.sendMessage(
+                new TransferOfferResumeMessage({ offerId, to: from })
+            );
+        }
+    }
+
+    /**
+     * Withdraws and declines the open offers before the page goes, so that
+     * their peers stop waiting for this client to take them up again.
+     */
+    private leave() {
+        for (const { entry } of this.outgoingOffers.values()) {
+            if (entry.status === "waiting") {
+                this.signaling.sendMessage(
+                    new TransferOfferCancelMessage({ offerId: entry.offerId })
+                );
+            }
+        }
+        for (const offer of this.incomingOffers.values()) {
+            if (offer.status === "waiting") {
+                this.signaling.sendMessage(
+                    new TransferAnswerMessage({
+                        offerId: offer.offerId,
+                        accepted: false,
+                        gone: true,
+                    })
+                );
+            }
+        }
+    }
+
+    /** Gives up on an open offer whose peer does not take it up again in time. */
+    private awaitPeer(offerId: string) {
+        if (this.resumeTimers.has(offerId)) {
+            return;
+        }
+        this.resumeTimers.set(
+            offerId,
+            setTimeout(() => {
+                this.resumeTimers.delete(offerId);
+                this.acceptedWhileAway.delete(offerId);
+                if (this.incomingOffers.get(offerId)?.status === "waiting") {
+                    this.incomingOffers.delete(offerId);
+                    this.publish();
+                }
+                if (
+                    this.outgoingOffers.get(offerId)?.entry.status === "waiting"
+                ) {
+                    this.setOfferStatus(offerId, "failed");
+                }
+            }, OFFER_RESUME_TIMEOUT_MS)
+        );
+    }
+
+    private stopAwaitingPeer(offerId: string) {
+        clearTimeout(this.resumeTimers.get(offerId));
+        this.resumeTimers.delete(offerId);
     }
 
     private handleTokenStatus(message: TokenStatusMessage) {
@@ -526,13 +697,33 @@ export class MessagingService {
         }
 
         // An offer from a trusted sender passes without asking again.
-        if (this.acceptedFrom.has(from)) {
+        if (
+            this.acceptedFrom.has(from) ||
+            this.acceptedWhileAway.get(message.msg.offerId)?.peer === from
+        ) {
             this.signaling.sendMessage(
                 new TransferAnswerMessage({
                     offerId: message.msg.offerId,
                     accepted: true,
                 })
             );
+            // A new server connection dropped the trust of an accept made while away.
+            this.acceptedFrom.add(from);
+            this.stopAwaitingPeer(message.msg.offerId);
+            this.acceptedWhileAway.delete(message.msg.offerId);
+            if (this.incomingOffers.delete(message.msg.offerId)) {
+                this.publish();
+            }
+            return;
+        }
+
+        // The sender took up an offer that this client holds already.
+        const known = this.incomingOffers.get(message.msg.offerId);
+        if (known?.peer === from) {
+            this.stopAwaitingPeer(known.offerId);
+            if (known.status === "declined") {
+                this.declineOffer(known);
+            }
             return;
         }
 
@@ -550,6 +741,7 @@ export class MessagingService {
 
     private handleOfferResult(message: TransferOfferResultMessage) {
         const { offerId, status, retryAfterMs } = message.msg;
+        this.stopAwaitingPeer(offerId);
         if (status === "delivered") {
             return;
         }
@@ -560,18 +752,32 @@ export class MessagingService {
     }
 
     private handleOfferCancel(message: TransferOfferCancelMessage) {
-        if (this.incomingOffers.delete(message.msg.offerId)) {
+        const { offerId, mayReturn } = message.msg;
+        if (
+            mayReturn &&
+            this.incomingOffers.get(offerId)?.status === "waiting"
+        ) {
+            this.awaitPeer(offerId);
+            return;
+        }
+        this.stopAwaitingPeer(offerId);
+        if (this.incomingOffers.delete(offerId)) {
             this.publish();
         }
     }
 
     private handleAnswer(message: TransferAnswerMessage) {
-        const { offerId, accepted, gone } = message.msg;
+        const { offerId, accepted, gone, mayReturn } = message.msg;
         const offer = this.outgoingOffers.get(offerId);
         if (!offer) {
             return;
         }
 
+        if (mayReturn && offer.entry.status === "waiting") {
+            this.awaitPeer(offerId);
+            return;
+        }
+        this.stopAwaitingPeer(offerId);
         if (!accepted) {
             this.setOfferStatus(offerId, gone ? "failed" : "declined");
             return;

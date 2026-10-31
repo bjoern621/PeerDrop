@@ -89,8 +89,7 @@ test.describe("a lost server connection", () => {
             await relay.drop();
             const sinceDrop = relay.fromServer.length;
 
-            await expect(reconnecting.lostConnectionToast()).toBeVisible();
-            await expect(reconnecting.lostConnectionToast()).toBeHidden();
+            await reconnecting.reconnected();
             await expect(bob.row("big.bin")).toContainText("%");
             await expect(alice.row("big.bin")).toContainText("Done", {
                 timeout: 45_000,
@@ -126,7 +125,7 @@ test.describe("a lost server connection", () => {
 
         await relay.drop();
 
-        await reconnected(alice);
+        await alice.reconnected();
         for (const name of ["first.bin", "second.bin"]) {
             await expect(bob.row(name)).toContainText("%");
         }
@@ -165,7 +164,7 @@ test.describe("a lost server connection", () => {
 
             await relay.drop();
 
-            await reconnected(side === "sender" ? alice : bob);
+            await (side === "sender" ? alice : bob).reconnected();
             await expect(bob.row("to-bob.bin")).toContainText("%");
             await expect(carol.row("to-carol.bin")).toContainText("%");
             for (const [receiver, name] of [
@@ -211,7 +210,7 @@ test.describe("a lost server connection", () => {
 
             await relay.drop();
 
-            await reconnected(side === "alice" ? alice : bob);
+            await (side === "alice" ? alice : bob).reconnected();
             await expect(bob.row("from-alice.bin")).toContainText("%");
             await expect(alice.row("from-bob.bin")).toContainText("%");
             for (const name of ["from-alice.bin", "from-bob.bin"]) {
@@ -250,7 +249,7 @@ test.describe("a lost server connection", () => {
 
         await Promise.all([aliceRelay.drop(), bobRelay.drop()]);
 
-        await Promise.all([reconnected(alice), reconnected(bob)]);
+        await Promise.all([alice.reconnected(), bob.reconnected()]);
         await expect(bob.row("big.bin")).toContainText("%");
         await expect(alice.row("big.bin")).toContainText("Done", {
             timeout: 90_000,
@@ -282,7 +281,7 @@ test.describe("a lost server connection", () => {
 
             await relay.drop();
 
-            await reconnected(alice);
+            await alice.reconnected();
             await expect(bob.row("big.bin")).toContainText("%");
             await expect(alice.row("big.bin")).toContainText("Done", {
                 timeout: 90_000,
@@ -298,12 +297,6 @@ test.describe("a lost server connection", () => {
         });
     });
 });
-
-/** Waits until the peer lost its server connection and holds a new one. */
-async function reconnected(peer: Peer) {
-    await expect(peer.lostConnectionToast()).toBeVisible();
-    await expect(peer.lostConnectionToast()).toBeHidden();
-}
 
 /** Waits out the drop zone's flash after a send, which shares the status role with the hint. */
 async function flashOver(peer: Peer) {
