@@ -13,6 +13,8 @@ public class ConnectionWebsocketMessages(IClientRegistry _clientRegistry, IPeerC
 
         _clientRegistry.SubscribeToMessageType<PeerConnectMessage>(PeerConnectMessage.TypeString, _peerConnectionService.HandlePeerConnect);
 
+        _clientRegistry.SubscribeToMessageType<ResumeConnectionMessage>(ResumeConnectionMessage.TypeString, _peerConnectionService.HandleResumeConnection);
+
         _clientRegistry.ClientDisconnected += _peerConnectionService.HandleClientDisconnected;
     }
 }

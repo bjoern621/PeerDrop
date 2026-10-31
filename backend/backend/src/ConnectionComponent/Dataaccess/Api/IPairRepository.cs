@@ -31,7 +31,13 @@ public interface IPairRepository
     bool AreConnected(string clientTokenA, string clientTokenB);
 
     /// <summary>
-    /// Drops every permission and connected pair the client takes part in.
+    /// Records that the claimant asks to resume its connection to the partner.
+    /// If the partner asked the same before, removes that claim and registers the two as connected.
+    /// </summary>
+    ResumeClaim ClaimResume(string claimantToken, string partnerToken);
+
+    /// <summary>
+    /// Drops every permission, connected pair and resume claim the client takes part in.
     /// Returns the lowercase tokens of its former connection partners.
     /// </summary>
     IReadOnlyList<string> RemoveClient(string clientToken);

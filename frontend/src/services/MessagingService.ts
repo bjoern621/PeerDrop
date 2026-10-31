@@ -20,6 +20,7 @@ import { TransferOfferResultMessage } from "../types/messaging/TransferOfferResu
 import { TransferOfferCancelMessage } from "../types/messaging/TransferOfferCancelMessage";
 import { TransferAnswerMessage } from "../types/messaging/TransferAnswerMessage";
 import { EstablishConnectionMessage } from "../types/connection/EstablishConnectionMessage";
+import { ClientTokenMessage } from "../types/token/ClientTokenMessage";
 import errorAsValue from "../util/ErrorAsValue";
 import { Logger } from "../util/Logger";
 import { TransferDirection } from "./TransferTracker";
@@ -126,7 +127,8 @@ export class MessagingService {
     private textTokens = TEXT_BURST;
     private textRefilledAt = Date.now();
 
-    private hadToken = false;
+    // Token of the current server connection, undefined before the first.
+    private token: ClientToken | undefined;
 
     public constructor(
         private readonly signaling: WebSocketService,
@@ -139,7 +141,10 @@ export class MessagingService {
             token => this.acceptedFrom.has(token) && !this.blocked.has(token)
         );
 
-        this.on(MessageType.CLIENT_TOKEN, () => void this.handleNewToken());
+        this.on(
+            MessageType.CLIENT_TOKEN,
+            message => void this.handleNewToken(message as ClientTokenMessage)
+        );
         this.on(MessageType.TOKEN_STATUS, message =>
             this.handleTokenStatus(message as TokenStatusMessage)
         );
@@ -381,11 +386,12 @@ export class MessagingService {
         this.signaling.subscribeMessage(type, handler);
     }
 
-    private async handleNewToken() {
-        if (this.hadToken) {
-            this.forgetSession();
+    private async handleNewToken(message: ClientTokenMessage) {
+        const token = normalizeClientToken(message.msg.token);
+        if (this.token !== undefined) {
+            this.forgetSession(token === this.token);
         }
-        this.hadToken = true;
+        this.token = token;
         this.signaling.sendMessage(
             new PublicKeyMessage({ key: await this.crypto.getPublicKey() })
         );
@@ -394,10 +400,21 @@ export class MessagingService {
     /**
      * A new connection ends every relation of the old one, even under the same
      * token: the server dropped its connections, offers and permissions.
+     * Under the same token, a peer connection whose direct link is up goes on,
+     * together with the trust in its peer.
      */
-    private forgetSession() {
-        this.peerConnections.reset();
-        this.acceptedFrom.clear();
+    private forgetSession(sameToken: boolean) {
+        let kept: ClientToken[] = [];
+        if (sameToken) {
+            kept = this.peerConnections.resumeLinks();
+        } else {
+            this.peerConnections.reset();
+        }
+        for (const token of Array.from(this.acceptedFrom)) {
+            if (!kept.includes(token)) {
+                this.acceptedFrom.delete(token);
+            }
+        }
         this.peerInfo.clear();
         this.lookups.clear();
         this.incomingOffers.clear();
